@@ -7,14 +7,20 @@ const ThemeContext = createContext<{ theme: Theme; toggle: () => void }>({
   toggle: () => {},
 });
 
+function applyTheme(theme: Theme) {
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+  localStorage.setItem('theme', theme);
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() =>
-    (localStorage.getItem('theme') as Theme) || 'light'
-  );
+  const [theme, setTheme] = useState<Theme>(() => {
+    const stored = (localStorage.getItem('theme') as Theme) || 'light';
+    applyTheme(stored);
+    return stored;
+  });
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-    localStorage.setItem('theme', theme);
+    applyTheme(theme);
   }, [theme]);
 
   return (
