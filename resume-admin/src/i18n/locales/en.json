@@ -1,0 +1,79 @@
+{
+  "admin": {
+    "title": "ResumePilot Admin"
+  },
+  "language": {
+    "label": "Language",
+    "ko": "한국어",
+    "en": "English",
+    "ja": "日本語",
+    "zh": "中文"
+  },
+  "nav": {
+    "prompts": "Prompts",
+    "forbidden": "Forbidden Expressions",
+    "companies": "Companies",
+    "users": "Users",
+    "aiLogs": "AI Logs",
+    "logout": "Log out"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "delete": "Delete",
+    "add": "Add",
+    "edit": "Edit",
+    "active": "Active",
+    "inactive": "Inactive",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "test": "Test"
+  },
+  "auth": {
+    "loginTitle": "Admin Login",
+    "login": "Log in",
+    "loginFailed": "Login failed",
+    "email": "Email",
+    "password": "Password"
+  },
+  "prompts": {
+    "title": "Prompt Management",
+    "templates": "Templates",
+    "versions": "Versions — {{name}}",
+    "newVersion": "Add new version (activate immediately)",
+    "systemPrompt": "System prompt",
+    "userPrompt": "User prompt",
+    "saveAndActivate": "Save & activate",
+    "testResult": "Test result"
+  },
+  "forbidden": {
+    "title": "Forbidden Expressions",
+    "expression": "Forbidden expression",
+    "suggestion": "Alternative suggestion"
+  },
+  "users": {
+    "title": "User Management",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "action": "Action"
+  },
+  "companies": {
+    "title": "Company Data",
+    "name": "Company",
+    "culture": "Culture",
+    "hiringKeywords": "Hiring keywords",
+    "editCompany": "Edit company",
+    "orgCulture": "Organizational culture",
+    "keywordsPlaceholder": "Hiring keywords (comma-separated)"
+  },
+  "aiLogs": {
+    "title": "AI Logs / Usage",
+    "time": "Time",
+    "service": "Service",
+    "operation": "Operation",
+    "status": "Status",
+    "duration": "Duration (ms)",
+    "empty": "No AI usage logs yet. Try running generation in the workspace."
+  }
+}

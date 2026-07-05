@@ -1,0 +1,79 @@
+{
+  "admin": {
+    "title": "ResumePilot Admin"
+  },
+  "language": {
+    "label": "语言",
+    "ko": "한국어",
+    "en": "English",
+    "ja": "日本語",
+    "zh": "中文"
+  },
+  "nav": {
+    "prompts": "Prompt 管理",
+    "forbidden": "禁用表达",
+    "companies": "企业数据",
+    "users": "用户",
+    "aiLogs": "AI 日志",
+    "logout": "退出登录"
+  },
+  "common": {
+    "loading": "加载中...",
+    "save": "保存",
+    "delete": "删除",
+    "add": "添加",
+    "edit": "编辑",
+    "active": "启用",
+    "inactive": "禁用",
+    "activate": "启用",
+    "deactivate": "停用",
+    "test": "测试"
+  },
+  "auth": {
+    "loginTitle": "Admin Login",
+    "login": "登录",
+    "loginFailed": "登录失败",
+    "email": "邮箱",
+    "password": "密码"
+  },
+  "prompts": {
+    "title": "Prompt 管理",
+    "templates": "模板",
+    "versions": "版本列表 — {{name}}",
+    "newVersion": "添加新版本（立即启用）",
+    "systemPrompt": "System prompt",
+    "userPrompt": "User prompt",
+    "saveAndActivate": "保存并启用",
+    "testResult": "测试结果"
+  },
+  "forbidden": {
+    "title": "禁用表达管理",
+    "expression": "禁用表达",
+    "suggestion": "替代建议"
+  },
+  "users": {
+    "title": "用户管理",
+    "email": "邮箱",
+    "role": "Role",
+    "status": "状态",
+    "action": "操作"
+  },
+  "companies": {
+    "title": "企业数据管理",
+    "name": "企业名称",
+    "culture": "文化",
+    "hiringKeywords": "招聘关键词",
+    "editCompany": "编辑企业",
+    "orgCulture": "组织文化",
+    "keywordsPlaceholder": "招聘关键词（逗号分隔）"
+  },
+  "aiLogs": {
+    "title": "AI 日志 / 用量",
+    "time": "时间",
+    "service": "服务",
+    "operation": "操作",
+    "status": "状态",
+    "duration": "耗时(ms)",
+    "empty": "暂无 AI 使用日志。请在工作区中尝试运行生成。"
+  }
+}

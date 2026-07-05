@@ -1,0 +1,79 @@
+{
+  "admin": {
+    "title": "ResumePilot Admin"
+  },
+  "language": {
+    "label": "언어",
+    "ko": "한국어",
+    "en": "English",
+    "ja": "日本語",
+    "zh": "中文"
+  },
+  "nav": {
+    "prompts": "Prompt 관리",
+    "forbidden": "금지 표현",
+    "companies": "기업 데이터",
+    "users": "사용자",
+    "aiLogs": "AI 로그",
+    "logout": "로그아웃"
+  },
+  "common": {
+    "loading": "로딩...",
+    "save": "저장",
+    "delete": "삭제",
+    "add": "추가",
+    "edit": "편집",
+    "active": "활성",
+    "inactive": "비활성",
+    "activate": "활성화",
+    "deactivate": "비활성화",
+    "test": "테스트"
+  },
+  "auth": {
+    "loginTitle": "Admin Login",
+    "login": "로그인",
+    "loginFailed": "로그인 실패",
+    "email": "이메일",
+    "password": "비밀번호"
+  },
+  "prompts": {
+    "title": "Prompt 관리",
+    "templates": "템플릿",
+    "versions": "버전 목록 — {{name}}",
+    "newVersion": "새 버전 추가 (즉시 활성화)",
+    "systemPrompt": "System prompt",
+    "userPrompt": "User prompt",
+    "saveAndActivate": "저장 및 활성화",
+    "testResult": "테스트 결과"
+  },
+  "forbidden": {
+    "title": "금지 표현 관리",
+    "expression": "금지 표현",
+    "suggestion": "대체 제안"
+  },
+  "users": {
+    "title": "사용자 관리",
+    "email": "이메일",
+    "role": "Role",
+    "status": "상태",
+    "action": "액션"
+  },
+  "companies": {
+    "title": "기업 데이터 관리",
+    "name": "기업명",
+    "culture": "문화",
+    "hiringKeywords": "채용 키워드",
+    "editCompany": "기업 편집",
+    "orgCulture": "조직 문화",
+    "keywordsPlaceholder": "채용 키워드 (쉼표 구분)"
+  },
+  "aiLogs": {
+    "title": "AI 로그 / 사용량",
+    "time": "시간",
+    "service": "서비스",
+    "operation": "작업",
+    "status": "상태",
+    "duration": "소요(ms)",
+    "empty": "AI 사용 로그가 없습니다. 워크스페이스에서 생성을 실행해 보세요."
+  }
+}
