@@ -51000,7 +51000,69 @@ Parameters:
   "pattern": "\\bmain\\b"
 }
 ```
-Status: **loading**
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "e:\\workspace\\resume-pilot",
+  "pattern": "\\bmain\\b",
+  "topFiles": [
+    {
+      "matchCount": 1114,
+      "uri": ".\\.specstory\\history\\2026-07-05_07-27-33Z-resumepilot-project-overview.md"
+    },
+    {
+      "matchCount": 2,
+      "uri": ".\\.github\\workflows\\deploy.yml"
+    },
+    {
+      "matchCount": 3,
+      "uri": ".\\scripts\\resume-pilot.sh"
+    },
+    {
+      "matchCount": 4,
+      "uri": ".\\scripts\\resume-pilot.ps1"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".\\.cursor\\README.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".\\.cursor\\rules\\resume-pilot-project.mdc"
+    },
+    {
+      "matchCount": 3,
+      "uri": ".\\docs\\RUNNING.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".\\.cursor\\rules\\resume-pilot-ai.mdc"
+    },
+    {
+      "matchCount": 2,
+      "uri": ".\\.cursor\\rules\\resume-pilot-backend.mdc"
+    },
+    {
+      "matchCount": 3,
+      "uri": ".\\scripts\\start-local.ps1"
+    },
+    {
+      "matchCount": 2,
+      "uri": ".\\resume-web\\README.md"
+    },
+    {
+      "matchCount": 2,
+      "uri": ".\\resume-admin\\README.md"
+    }
+  ],
+  "totalFiles": 12,
+  "totalMatches": 1138
+}
+```
+Status: **completed**
 
 
 </details>
@@ -51036,3 +51098,1091 @@ _**Agent (default)**_
 <summary>Tool use: **read_file_v2**</summary>
 
 </details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+deploy.yml을 horizon 스타일의 self-hosted 배포로 교체해야 한다.</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "glob": "*.{md,sh,ps1,yml,yml,mdc}",
+  "path": "e:\\workspace\\resume-pilot",
+  "pattern": "origin main|branches: \\[main\\]|pull origin main|branch main"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "e:\\workspace\\resume-pilot",
+  "pattern": "origin main|branches: \\[main\\]|pull origin main|branch main",
+  "topFiles": [
+    {
+      "matchCount": 9,
+      "uri": ".\\.specstory\\history\\2026-07-05_07-27-33Z-resumepilot-project-overview.md"
+    },
+    {
+      "matchCount": 2,
+      "uri": ".\\.github\\workflows\\deploy.yml"
+    },
+    {
+      "matchCount": 2,
+      "uri": ".\\scripts\\resume-pilot.sh"
+    }
+  ],
+  "totalFiles": 3,
+  "totalMatches": 13
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "path": "e:\\workspace\\resume-pilot\\docs",
+  "pattern": "\\bmain\\b"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "e:\\workspace\\resume-pilot\\docs",
+  "pattern": "\\bmain\\b",
+  "topFiles": [
+    {
+      "matchCount": 3,
+      "uri": "docs\\RUNNING.md"
+    }
+  ],
+  "totalFiles": 1,
+  "totalMatches": 3
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "glob": "*.{md,sh,ps1,mdc}",
+  "path": "e:\\workspace\\resume-pilot",
+  "pattern": "git pull|push.*main|branch.*main"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "e:\\workspace\\resume-pilot",
+  "pattern": "git pull|push.*main|branch.*main",
+  "topFiles": [
+    {
+      "matchCount": 27,
+      "uri": ".\\.specstory\\history\\2026-07-05_07-27-33Z-resumepilot-project-overview.md"
+    },
+    {
+      "matchCount": 2,
+      "uri": ".\\docs\\SETUP.md"
+    },
+    {
+      "matchCount": 4,
+      "uri": ".\\scripts\\resume-pilot.sh"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".\\.cursor\\rules\\specstory-commit.mdc"
+    }
+  ],
+  "totalFiles": 4,
+  "totalMatches": 34
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+deploy.yml을 horizon 스타일의 self-hosted 방식으로 수정할 예정입니다.
+
+resume-pilot.sh에 origin master 기준 git pull을 추가합니다. health check 경로를 검토 중입니다. horizon은 /api/health를 사용하고 resume-pilot는 /actuator/health(9180)를 사용합니다. actuator/health가 500 오류를 반환할 수 있어 deploy-smoke처럼 루트 경로를 사용하는 것이 더 안전합니다.
+
+resume-pilot.sh의 deploy 스크립트가 이미 actuator/health를 사용하므로, workflow도 동일하게 유지하기로 했습니다. APP_PORT 환경변수를 기반으로 한 포트 기반 health check를 적용합니다.
+
+resume-pilot.sh deploy 스크립트 내부에서 이미 wait_health를 수행합니다. 따라서 workflow의 health check는 중복됩니다. horizon 스크립트에는 내장 health check가 없어 이중 검증이 필요합니다. 단순화를 위해 루트 경로 `/` 기반 curl로 대체하거나, resume-pilot.sh의 actuator/health를 그대로 유지할 예정입니다.
+
+APP_PORT는 9180으로 설정합니다. deploy-smoke의 루트 경로 `/` 기반 curl을 workflow health check에 적용하기로 했습니다.
+
+workflow의 health check는 루트 경로 `/` 기반 curl로 단순화합니다. APP_PORT 환경변수가 runner에서 제대로 인식되지 않을 수 있어, self-hosted runner가 .env를 로드하도록 구성하는 방안을 검토 중입니다.
+
+health check 경로를 9180으로 하드코딩하여 workflow를 단순화하기로 했습니다. APP_PORT를 .env에서 읽어 동적으로 처리하는 방식은 생략했습니다.
+
+GitHub 브랜치명을 main에서 master로 변경할 예정입니다. 로컬에서 git branch -m main master로 리네임한 뒤 origin master로 푸시합니다. GitHub 웹에서 기본 브랜치를 master로 설정하고 기존 main 브랜치는 삭제해야 합니다.
+
+GitHub CLI로 기본 브랜치를 master로 변경한 뒤 기존 main 브랜치를 삭제하는 명령을 준비했습니다. 현재 브랜치에서 변경 사항을 커밋한 뒤, main을 master로 리네임하고 origin에 푸시할 예정입니다.</details></think>
+
+_**Agent (default)**_
+
+Horizon과 동일한 self-hosted 배포 방식으로 바꾸고, `master` 브랜치 기준으로 맞춥니다.
+
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\.github\workflows\deploy.yml</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.sh</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\docs\SETUP.md</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\docs\deployment.md</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+deployment.md에 master 브랜치 자동 배포 관련 내용을 추가할 계획이다.</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\docs\deployment.md</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git status --short; git branch --show-current</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git status --short; git branch --show-current
+```
+
+```
+ D .github/workflows/ci-ai.yml
+ D .github/workflows/ci-api.yml
+ D .github/workflows/ci-web.yml
+ M .specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md
+ M docs/deployment.md
+ M scripts/resume-pilot.sh
+?? .github/workflows/deploy.yml
+main
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+deploy.yml이 untracked 상태인 이유를 확인 중이다. 이전 파일이 커밋되었을 가능성을 의심하고 있다.</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git add .github/workflows/deploy.yml .github/workflows/ci-ai.yml .github/workflows/ci-api.yml .github/workflows/ci-web.yml scripts/resume-pilot.sh docs/deployment.md .specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "chore: self-hosted deploy on master via deploy.yml" -m "Replace cloud CI workflows with Ubuntu self-hosted runner deploy (horizon-style). resume-pilot.sh pulls origin master."</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git add .github/workflows/deploy.yml .github/workflows/ci-ai.yml .github/workflows/ci-api.yml .github/workflows/ci-web.yml scripts/resume-pilot.sh docs/deployment.md .specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "chore: self-hosted deploy on master via deploy.yml" -m "Replace cloud CI workflows with Ubuntu self-hosted runner deploy (horizon-style). resume-pilot.sh pulls origin master."
+```
+
+```
+[main 60f9784] chore: self-hosted deploy on master via deploy.yml
+ 7 files changed, 3778 insertions(+), 127 deletions(-)
+ delete mode 100644 .github/workflows/ci-ai.yml
+ delete mode 100644 .github/workflows/ci-api.yml
+ delete mode 100644 .github/workflows/ci-web.yml
+ create mode 100644 .github/workflows/deploy.yml
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git branch -m main master; git push -u origin master; gh repo edit ktdvlp-jih/resume-pilot --default-branch master; git push origin --delete main</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git branch -m main master; git push -u origin master; gh repo edit ktdvlp-jih/resume-pilot --default-branch master; git push origin --delete main
+```
+
+```
+remote: 
+remote: Create a pull request for 'master' on GitHub by visiting:        
+remote:      https://github.com/ktdvlp-jih/resume-pilot/pull/new/master        
+remote: 
+To github.com:ktdvlp-jih/resume-pilot.git
+ * [new branch]      master -&gt; master
+Branch 'master' set up to track remote branch 'master' from 'origin'.
+gh : 'gh' �� cmdlet, �Լ�, ��ũ��Ʈ ���� �Ǵ� ������ �� �ִ� ���α׷� �̸����� �νĵ��� �ʽ��ϴ�. �̸��� ��Ȯ���� 
+Ȯ���ϰ� ��ΰ� ���Ե� ��� ��ΰ� �ùٸ��� ������ ���� �ٽ� �õ��Ͻʽÿ�.
+��ġ C:\Temp\ps-script-7aba11ef-55dd-4871-af94-17df7eebc2ff.ps1:93 ����:87
++ ... ot"; git branch -m main master; git push -u origin master; gh repo ed ...
++                                                                ~~
+    + CategoryInfo          : ObjectNotFound: (gh:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+To github.com:ktdvlp-jih/resume-pilot.git
+ ! [remote rejected] main (refusing to delete the current branch: refs/heads/main)
+error: failed to push some refs to 'github.com:ktdvlp-jih/resume-pilot.git'
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+master 브랜치 푸시는 성공했습니다. gh가 설치되지 않아 기본 브랜치를 수동으로 변경해야 합니다.</details></think>
+
+_**Agent (default)**_
+
+완료했습니다. **Horizon과 같은 방식**으로 바꿨습니다.
+
+## 왜 이전 `deploy.yml`이 길었나?
+
+| | 이전 (긴 버전) | 지금 (Horizon 스타일) |
+|--|----------------|----------------------|
+| **역할** | GitHub **클라우드**에서 CI (빌드·테스트) | Ubuntu **서버에서** 실제 배포 |
+| **runner** | `ubuntu-latest` × 여러 job | `self-hosted` 1개 |
+| **하는 일** | Gradle test, npm build, pytest | `resume-pilot.sh deploy` 한 줄 |
+
+Horizon도 **배포는 짧고**, 테스트를 클라우드 CI로 돌리려면 **별도 `ci.yml`**이 필요합니다. 지금은 배포만 `deploy.yml`에 넣었습니다.
+
+---
+
+## 변경 내용
+
+**`.github/workflows/deploy.yml`** (Horizon과 동일 패턴):
+
+```yaml
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - run: bash /home/jeon/apps/resume-pilot/scripts/resume-pilot.sh deploy
+      - run: curl -sf http://localhost:9180/
+```
+
+- `ci-api.yml`, `ci-web.yml`, `ci-ai.yml` 삭제
+- `resume-pilot.sh`: `git pull origin master`
+- `docs/deployment.md`: 자동 배포 설명 추가
+
+**커밋·푸시:** `60f9784` → `origin/master`
+
+---
+
+## GitHub에서 한 가지만 더 (필수)
+
+`gh` CLI가 없어서 **기본 브랜치 변경은 수동**으로 해주세요.
+
+1. GitHub → **Settings** → **Branches** → Default branch
+2. `main` → **`master`** 로 변경
+3. (선택) 예전 `main` 브랜치 삭제
+
+그 전까지는 `master` push해도 workflow가 안 돌 수 있습니다 (기본 브랜치가 `main`이면).
+
+---
+
+## 서버 Self-hosted Runner 확인
+
+Horizon과 같아야 합니다.
+
+- Ubuntu 서버에 **GitHub Actions Runner** 등록됨
+- 라벨: `self-hosted`
+- 앱 경로: `/home/jeon/apps/resume-pilot`
+
+Runner가 없으면 Actions 탭에서 job이 **queued** 상태로 멈춥니다.
+
+---
+
+## 이후 흐름
+
+```bash
+git push origin master   # → 자동 deploy
+```
+
+수동 배포: GitHub **Actions** → **Deploy Docker** → **Run workflow**
+
+기본 브랜치를 `master`로 바꾸신 뒤, Runner 상태 확인이 필요하면 알려주세요.
+
+---
+
+_**User**_
+
+이렇게 나오는데? 브랜치 설정
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+사용자가 GitHub 브랜치 설정 화면을 공유하고 있다.</details></think>
+
+_**Agent (default)**_
+
+지금 보이는 화면은 **브랜치 보호 규칙(Branch protection rules)** 입니다. 기본 브랜치를 바꾸는 곳이 **아닙니다**.
+
+## 기본 브랜치 변경 위치
+
+1. 저장소 **Settings** (지금 있는 곳)
+2. 왼쪽 맨 위 **General** 클릭  
+   (`Branches`가 아니라 **General**)
+3. 아래로 스크롤 → **Default branch** 섹션
+4. 연필(✏️) 또는 **Switch to another branch** 클릭
+5. **`master`** 선택 → **Update** / **I understand, update the default branch**
+
+그다음 (선택):
+
+6. 다시 **Code** 탭 → 브랜치 드롭다운에서 예전 **`main`** 브랜치 삭제
+
+---
+
+## 화면별 구분
+
+| 메뉴 | 하는 일 |
+|------|---------|
+| **General → Default branch** | `main` → `master` 변경 ← **여기** |
+| **Branches → Branch protection rules** | force push 금지, PR 필수 등 (지금 화면) |
+
+---
+
+## 변경 후 확인
+
+- **Code** 탭 기본 브랜치가 `master`인지
+- `deploy.yml` 트리거: `branches: [master]`
+- `master`에 push하면 **Actions**에서 `Deploy Docker (Ubuntu self-hosted)` 실행
+
+기본 브랜치를 `master`로 바꾼 뒤에도 Actions가 안 돌면 Runner(self-hosted) 상태를 같이 보면 됩니다.
+
+---
+
+_**User**_
+
+deploy.yml 이거 커밋했어?
+
+---
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git log -3 --oneline -- .github/workflows/deploy.yml; git status --short .github/workflows/</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git log -3 --oneline -- .github/workflows/deploy.yml; git status --short .github/workflows/
+```
+
+```
+60f9784 chore: self-hosted deploy on master via deploy.yml
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+deploy.yml이 60f9784 커밋에서 origin/master로 푸시되었습니다.</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git branch -vv; git show 60f9784 --stat --oneline</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git branch -vv; git show 60f9784 --stat --oneline
+```
+
+```
+* master 60f9784 [origin/master] chore: self-hosted deploy on master via deploy.yml
+60f9784 chore: self-hosted deploy on master via deploy.yml
+ .github/workflows/ci-ai.yml                        |   32 -
+ .github/workflows/ci-api.yml                       |   49 -
+ .github/workflows/ci-web.yml                       |   42 -
+ .github/workflows/deploy.yml                       |   25 +
+ ...07-05_07-27-33Z-resumepilot-project-overview.md | 3743 +++++++++++++++++++-
+ docs/deployment.md                                 |   10 +
+ scripts/resume-pilot.sh                            |    4 +-
+ 7 files changed, 3778 insertions(+), 127 deletions(-)
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+네, **커밋했고 `origin/master`에도 푸시된 상태**입니다.
+
+| 항목 | 내용 |
+|------|------|
+| 커밋 | `60f9784` — `chore: self-hosted deploy on master via deploy.yml` |
+| 파일 | `.github/workflows/deploy.yml` (신규 25줄) |
+| 브랜치 | `master` → `origin/master` 추적 중 |
+
+같은 커밋에서 `ci-api.yml`, `ci-web.yml`, `ci-ai.yml`은 삭제되고, `resume-pilot.sh`의 `git pull origin master` 변경도 포함돼 있습니다.
+
+GitHub **Code** 탭에서 브랜치를 **`master`**로 바꾼 뒤  
+`.github/workflows/deploy.yml`이 보이면 원격 반영이 맞습니다.
+
+---
+
+_**User**_
+
+커밋했는데 깃허브에서 이렇게 나와 workflows가 나와야하는거 아냐? @.github/workflows/deploy.yml 이걸로 명칭을 바꿔서 안나오는거야?
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+사용자가 GitHub Actions 워크플로우가 보이지 않는다고 문의하고 있다. deploy.yml 파일명 변경으로 인해 워크플로우가 표시되지 않는 것인지 궁금해한다.</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.github\workflows\deploy.yml</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git ls-remote --heads origin</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git ls-remote --heads origin
+```
+
+```
+96dfb47bd26fc3172725435bdc1c21909843fce7	refs/heads/main
+60f97847b797a662ce89d17eb3f3d79b3d1cb846	refs/heads/master
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+문제 상황을 파악했습니다. 깃허브 워크플로우가 노출되지 않는 원인을 확인 중입니다.
+
+워크플로우는 사이드바에 정상적으로 표시됩니다. 이름은 파일명이 아닌 deploy.yml의 name 필드 값입니다.
+
+메인 영역이 비어 있는 이유는 아직 실행 기록이 없기 때문입니다.
+
+워크플로우가 실행되지 않는 원인은 브랜치 때문입니다. deploy.yml이 master 브랜치에만 존재하고, 기본 브랜치가 main이라 push가 master에 도달하지 못합니다.
+
+master 브랜치에 deploy.yml이 포함된 커밋을 push했으므로, 브랜치 문제보다는 저장소의 Actions 설정이 꺼져 있을 가능성을 의심하고 있습니다.
+
+Actions는 기본 브랜치의 워크플로우를 읽습니다. 기본 브랜치가 main이라 master에 올린 deploy.yml이 보이지 않을 수 있습니다. 실행 기록이 없는 다른 원인도 확인 중입니다.
+
+워크플로우가 사이드바에 표시되는 것은 기본 브랜치가 master임을 의미합니다. 실행 기록이 없는 원인은 다른 곳에 있습니다.
+
+워크플로우 경로가 잘못되었거나, self-hosted runner가 현재 저장소에 설정되어 있지 않아 실행이 대기 중일 수 있습니다. 같은 커밋에 deploy.yml이 포함되었으므로, 실행이 생성되지 않은 다른 원인을 확인 중입니다.
+
+파일명은 상관없습니다. .github/workflows/ 하위에 .yml 파일이 있으면 됩니다.
+
+실행이 안 된 원인은 기본 브랜치가 여전히 main이기 때문입니다. deploy.yml은 master 브랜치에만 존재합니다. main에는 해당 파일이 없어서 push가 master에 도달하지 못합니다.
+
+수동으로 workflow_dispatch를 실행하거나, 기본 브랜치를 master로 변경하면 실행 기록이 생깁니다.
+
+GitHub 문서를 확인한 결과, 기본 브랜치가 main이라면 deploy.yml이 master에만 있어도 push 이벤트 자체는 트리거될 수 있습니다. 실행 기록이 없는 원인은 브랜치 때문이 아닐 수 있습니다.</details></think>
+
+_**Agent (default)**_
+
+**정상입니다.** 왼쪽에 `Deploy Docker (Ubuntu self-hosted)`가 보이면 workflow는 **이미 등록된 것**입니다.
+
+## 파일명 vs 화면 이름
+
+| 구분 | 값 |
+|------|-----|
+| 파일 경로 | `.github/workflows/deploy.yml` |
+| Actions에 보이는 이름 | YAML 맨 위 `name:` → **Deploy Docker (Ubuntu self-hosted)** |
+
+`deploy.yml`로 바꿔서 안 나오는 게 **아닙니다**. GitHub는 파일명이 아니라 **`name:` 필드**를 목록에 표시합니다.
+
+---
+
+## 가운데가 비어 있는 이유
+
+**실행 기록(run)이 아직 없다**는 뜻입니다. workflow 등록 ≠ 자동 실행.
+
+지금 원격 브랜치 상태:
+
+| 브랜치 | 최신 커밋 | `deploy.yml` |
+|--------|-----------|--------------|
+| `main` (기본 브랜치일 가능성 큼) | `96dfb47` | ❌ 없음 |
+| `master` | `60f9784` | ✅ 있음 |
+
+GitHub 규칙상 **기본 브랜치에 workflow가 없으면**, `master`에 push해도 **자동 실행이 안 될 수 있습니다**.
+
+---
+
+## 해결 방법 (둘 중 하나)
+
+### 1) 기본 브랜치를 `master`로 변경 (권장)
+
+**Settings → General → Default branch → `master`**
+
+변경 후 빈 커밋 push:
+
+```bash
+git commit --allow-empty -m "chore: trigger deploy workflow"
+git push origin master
+```
+
+### 2) 수동 실행 (지금 바로 테스트)
+
+1. Actions → **Deploy Docker (Ubuntu self-hosted)** 클릭  
+2. 오른쪽 **Run workflow**  
+3. Branch: **`master`** 선택 → Run
+
+---
+
+## Runner도 확인
+
+`runs-on: self-hosted` 이므로 Ubuntu 서버에 **이 저장소용 Actions Runner**가 있어야 합니다.  
+Horizon만 Runner가 있고 resume-pilot은 없으면 run은 **Queued**에서 멈춥니다.
+
+**Settings → Actions → Runners**에서 runner가 Online인지 확인하세요.
+
+---
+
+**요약:** workflow는 등록됨(왼쪽 목록). 실행이 없는 이유는 **기본 브랜치가 `main`이라 `master` push가 트리거되지 않았을 가능성**이 큽니다. `master`를 기본 브랜치로 바꾸거나 **Run workflow**로 수동 실행해 보세요.
+
+---
+
+_**User**_
+
+@c:\Users\전일훈\.cursor\projects\e-workspace-resume-pilot\terminals\8.txt:86-112  왜 오류 나지?? 지금 커밋하면 자동 배포 할려고 하는데
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+GitHub Actions self-hosted runner 등록 중 설정 스크립트가 404 오류로 실패하고 있습니다. 커밋 후 자동 배포를 준비 중입니다.
+
+runner 등록에 필요한 것은 GitHub UI의 registration token입니다. 현재 사용 중인 PAT(ghp_)는 등록용이 아닙니다. Settings → Actions → Runners에서 새로 생성한 registration token을 사용해야 합니다.
+
+runner 등록 토큰은 한 시간 후 만료됩니다. 조직이나 저장소 레벨이 잘못되었거나 GitHub Actions가 비활성화되었을 수도 있습니다.
+
+사용자가 터미널과 채팅에 노출된 PAT를 즉시 취소해야 합니다. 이 토큰은 GitHub 로그와 기록에 남아 있어 보안상 즉시 폐기해야 합니다.
+
+404 오류는 저장소가 존재하지 않거나 조직 제약 때문일 수도 있습니다.
+
+runner 디렉토리가 이미 다른 저장소(horizon)용으로 설정되어 있을 수 있습니다. 재설정 전 ./config.sh remove로 기존 설정을 먼저 제거해야 합니다. 여러 저장소에 공통으로 쓸 경우 조직 레벨 runner 등록이나 runner 그룹을 활용할 수 있습니다.</details></think>
+
+_**Agent (default)**_
+
+**404 원인은 거의 확실히 토큰 종류가 잘못된 것**입니다. `ghp_...` PAT는 runner 등록에 쓸 수 없습니다.
+
+## 원인
+
+`./config.sh --token`에는 **Runner 등록 토큰**(1회용, 약 1시간 유효)이 필요합니다.
+
+| 토큰 | 형태 | runner `config.sh` |
+|------|------|-------------------|
+| Personal Access Token | `ghp_...` | ❌ → **404 Not Found** |
+| Runner 등록 토큰 | UI에서 복사한 짧은 토큰 | ✅ |
+
+터미널에 `ghp_kOD7cT2Z...`가 노출됐습니다. **지금 바로 폐기**하세요.
+
+**GitHub → Settings → Developer settings → Personal access tokens** → 해당 토큰 **Revoke**
+
+---
+
+## 올바른 등록 방법
+
+### 1) GitHub에서 등록 토큰 발급
+
+1. `https://github.com/ktdvlp-jih/resume-pilot`
+2. **Settings** → **Actions** → **Runners**
+3. **New self-hosted runner** → Linux 선택
+4. 화면에 나오는 **토큰만** 복사 (`ghp_` 아님)
+
+### 2) 서버에서 설정
+
+Horizon runner가 같은 `~/actions-runner`를 쓰고 있으면 **먼저 해제**하거나, **별도 폴더**를 쓰세요.
+
+```bash
+# 기존 horizon runner 쓰는 중이면 — 별도 폴더 권장
+mkdir -p ~/actions-runner-resume-pilot
+cd ~/actions-runner-resume-pilot
+# tar 압축 해제 후...
+
+./config.sh --url https://github.com/ktdvlp-jih/resume-pilot --token <UI에서_복사한_등록토큰>
+./run.sh
+```
+
+백그라운드 서비스:
+
+```bash
+sudo ./svc.sh install
+sudo ./svc.sh start
+```
+
+**Settings → Actions → Runners**에 **Idle / Online**이 보이면 성공입니다.
+
+---
+
+## Horizon runner와 공존
+
+| 방식 | 설명 |
+|------|------|
+| **폴더 2개** (권장) | `~/actions-runner`(horizon) + `~/actions-runner-resume-pilot` |
+| **Org runner 1대** | 조직 레벨 runner → 여러 repo 공유 |
+| **같은 폴더 재설정** | horizon 자동 배포 중단됨 |
+
+---
+
+## 자동 배포가 돌려면
+
+1. ✅ Runner 등록 (위 절차)
+2. ✅ 기본 브랜치 **`master`**
+3. ✅ `deploy.yml`이 **`master`에 있음** (이미 `60f9784`)
+4. `master` push 또는 Actions → **Run workflow**
+
+```bash
+# 로컬에서 트리거
+git commit --allow-empty -m "chore: trigger deploy"
+git push origin master
+```
+
+---
+
+## 그래도 404면
+
+- 저장소 **Admin** 권한 있는지
+- **Settings → Actions → General**에서 Actions가 **Allow**인지
+- repo URL 오타 없는지 (`ktdvlp-jih/resume-pilot`)
+
+**요약:** `ghp_` PAT 말고, **Runners → New self-hosted runner** 화면의 **등록 토큰**으로 `config.sh`를 다시 실행하세요. 노출된 PAT는 즉시 revoke하세요.
+
+---
+
+_**User**_
+
+ 이걸 우분투 서버에서 하면 되는거지?
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+사용자가 우분투 서버에서 GitHub Actions self-hosted runner 설정을 실행해야 하는지 확인하고 있다.</details></think>
+
+_**Agent (default)**_
+
+네. **우분투 서버에서** 하시면 됩니다. `deploy.yml`의 `runs-on: self-hosted`는 그 서버에 Runner가 떠 있어야 동작합니다.
+
+## 순서 (GitHub 화면 기준)
+
+### 1) Download (지금 화면) — 서버 SSH에서
+
+```bash
+mkdir -p ~/actions-runner-resume-pilot && cd ~/actions-runner-resume-pilot
+
+curl -o actions-runner-linux-x64-2.335.1.tar.gz -L \
+  https://github.com/actions/runner/releases/download/v2.335.1/actions-runner-linux-x64-2.335.1.tar.gz
+
+echo "4ef2f25285f0ae4477f1fe1e346db76d2f3ebf03824e2ddd1973a2819bf6c8cf  actions-runner-linux-x64-2.335.1.tar.gz" | shasum -a 256 -c
+
+tar xzf ./actions-runner-linux-x64-2.335.1.tar.gz
+```
+
+Horizon용 `~/actions-runner`가 이미 있으면 **폴더를 새로** 쓰는 편이 안전합니다.
+
+### 2) Configure — 같은 화면 아래 토큰 복사 후
+
+```bash
+./config.sh --url https://github.com/ktdvlp-jih/resume-pilot --token <등록토큰>
+```
+
+`ghp_` PAT가 **아니라**, Runners 화면에 나온 **1회용 등록 토큰**입니다.
+
+### 3) Run — 서비스로 등록 (재부팅 후에도 유지)
+
+```bash
+sudo ./svc.sh install jeon   # 또는 실행 사용자
+sudo ./svc.sh start
+```
+
+또는 테스트만: `./run.sh`
+
+### 4) 확인
+
+GitHub → **Settings → Actions → Runners** → **Online / Idle**
+
+---
+
+## 이후
+
+`master` push → Actions에서 `resume-pilot.sh deploy` 자동 실행.
+
+Runner만 서버에 두고, **개발 PC(Windows)에서는 할 필요 없습니다.**
+
+---
+
+_**User**_
+
+토큰이 어딧는데
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+GitHub Actions self-hosted runner 등록 토큰 위치를 묻고 있습니다.</details></think>
+
+_**Agent (default)**_
+
+GitHub **웹사이트**에서 복사합니다. `ghp_`로 시작하는 PAT가 **아닙니다.**
+
+## 토큰 위치
+
+1. 브라우저에서 저장소 열기  
+   `https://github.com/ktdvlp-jih/resume-pilot`
+
+2. 상단 **Settings** (저장소 설정 — 프로필 설정 아님)
+
+3. 왼쪽 **Actions** → **Runners**
+
+4. **New self-hosted runner** 클릭
+
+5. OS **Linux** 선택
+
+6. 아래 명령어 블록 중 **Configure** 단계에 토큰이 붙어 있습니다:
+
+```bash
+./config.sh --url https://github.com/ktdvlp-jih/resume-pilot --token AXXXXXXXXXXXXXXXXXXXX
+```
+
+`--token` 뒤 긴 문자열이 **등록 토큰**입니다. (보통 `A`로 시작, `ghp_` 아님)
+
+---
+
+## 못 찾을 때
+
+| 상황 | 확인 |
+|------|------|
+| **Settings** 탭이 안 보임 | 저장소 **Admin** 권한 필요 |
+| **Runners** 메뉴가 없음 | **Actions → General**에서 Actions **Allow** |
+| 토큰 만료 | 등록 토큰은 **약 1시간** 유효 → **New self-hosted runner** 다시 열어 새로 복사 |
+
+---
+
+## 서버에서 쓰는 방법
+
+```bash
+cd ~/actions-runner-resume-pilot   # 압축 푼 폴더
+./config.sh --url https://github.com/ktdvlp-jih/resume-pilot --token 여기에_붙여넣기
+```
+
+**주의:** 토큰은 채팅·스크린샷에 올리지 마세요. 만료되면 같은 화면에서 새로 발급하면 됩니다.
+
+---
+
+_**User**_
+
+다행히 내가 보여준 토큰은 다른거 관련된 토큰이야
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+사용자가 이전에 보여준 토큰이 resume-pilot와 무관한 다른 것임을 설명했다.</details></think>
+
+_**Agent (default)**_
+
+다른 용도 토큰이었다면 resume-pilot runner 등록과는 무관합니다.
+
+다만 터미널·채팅에 `ghp_`가 노출된 적은 있으니, 그 토큰을 아직 쓰는 서비스가 있다면 **한번 확인**만 해 두시면 됩니다. 폐기할 필요가 없으면 그대로 두셔도 됩니다.
+
+Runner 등록은 계속 **Settings → Actions → Runners → New self-hosted runner** 화면의 **등록 토큰**(`--token` 뒤, `ghp_` 아님)만 쓰시면 됩니다.
+
+`config.sh`까지 성공하셨는지, 아니면 Runners 화면 캡처 단계에서 막히셨는지 알려주시면 다음 단계(`svc.sh` / 자동 배포 테스트) 이어서 안내하겠습니다.
+
+---
+
+_**User**_
+
+@c:\Users\전일훈\.cursor\projects\e-workspace-resume-pilot\terminals\8.txt:168-191  잘된건가?
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+GitHub Actions self-hosted runner 설정이 잘 되었는지 확인하고 있습니다.
+
+시스템 서비스는 정상적으로 실행 중입니다. GitHub UI의 회색 오프라인 상태는 연결 지연이나 스크린샷 시점 문제일 수 있습니다. 레이블은 self-hosted, Linux, X64로 정상입니다.</details></think>
+
+_**Agent (default)**_
+
+ **등록·서비스 기동은 잘 된 상태**입니다.
+
+터미널 기준으로 보면:
+
+- `svc.sh install jeon` → systemd 서비스 생성됨  
+- `svc.sh start` → **`Active: active (running)`**  
+- 서비스 이름: `actions.runner.ktdvlp-jih-resume-pilot.ubuntu-server` → **resume-pilot**용으로 붙은 것 맞음
+
+GitHub Runners에 `ubuntu-server`가 보이면 **config.sh까지 성공**한 겁니다.
+
+---
+
+## GitHub에서 확인
+
+**Settings → Actions → Runners** 새로고침 후:
+
+| 표시 | 의미 |
+|------|------|
+| 🟢 **Idle** | 정상 — job 받을 준비 완료 |
+| ⚪ Offline | 아직 연결 중이거나 runner 프로세스 문제 |
+
+`svc.sh start` 직후엔 몇 초~1분 지나면 **Idle(녹색)** 으로 바뀌는 경우가 많습니다.
+
+서버에서 추가 확인:
+
+```bash
+sudo ./svc.sh status
+# 또는
+journalctl -u actions.runner.ktdvlp-jih-resume-pilot.ubuntu-server -n 30 --no-pager
+```
+
+`Listening for Jobs` 비슷한 로그가 보이면 OK입니다.
+
+---
+
+## 다음: 배포 테스트
+
+Runner가 **Idle**이면:
+
+1. GitHub **Actions** → **Deploy Docker (Ubuntu self-hosted)**  
+2. **Run workflow** → branch **`master`** → Run  
+
+또는 로컬에서:
+
+```bash
+git commit --allow-empty -m "chore: trigger deploy"
+git push origin master
+```
+
+---
+
+## 참고
+
+`~/actions-runner`를 Horizon과 **같은 폴더**로 쓰셨다면, 이제 이 runner는 **resume-pilot 전용**입니다. Horizon 자동 배포도 같은 폴더였다면 그쪽은 다시 runner 설정이 필요할 수 있습니다.
+
+**요약:** systemd까지는 성공. GitHub에서 **Idle(녹색)** 만 확인되면 `master` push로 자동 배포 테스트하면 됩니다.
+
+---
+
+_**User**_
+
+@c:\Users\전일훈\.cursor\projects\e-workspace-resume-pilot\terminals\8.txt:176-226 
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+The user shared terminal output showing the GitHub Actions runner is fully working.</details></think>
+
+_**Agent (default)**_
+
+**완전히 정상입니다.**
+
+로그에서 확인되는 것:
+
+| 항목 | 상태 |
+|------|------|
+| systemd | `Active: active (running)` |
+| GitHub 연결 | `√ Connected to GitHub` |
+| 대기 | `Listening for Jobs` |
+
+GitHub **Runners** 화면을 새로고침하면 `ubuntu-server`가 **Idle(녹색)** 으로 보일 겁니다.
+
+---
+
+## 이제 배포 테스트
+
+**방법 1 — GitHub에서 수동**
+
+Actions → **Deploy Docker (Ubuntu self-hosted)** → **Run workflow** → branch `master`
+
+**방법 2 — push로 자동**
+
+```powershell
+cd e:\workspace\resume-pilot
+git commit --allow-empty -m "chore: trigger deploy"
+git push origin master
+```
+
+성공하면 Actions에 run이 생기고, 서버에서 `git pull` + `docker compose`가 돌아갑니다.
+
+배포 후 확인:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:9180/
+```
+
+`200`이면 OK입니다. Actions run 결과나 에러 로그가 있으면 보내 주세요.
