@@ -39,27 +39,49 @@ cmd_deploy() {
   }
 
   wait_health() {
-    local url="${1:-http://localhost:9180/actuator/health}"
+    local port="${APP_PORT:-9180}"
+    # actuator/health 는 DB indicator 등으로 500 가능 — SPA 루트로 확인 (deploy.yml 과 동일)
+    local url="${1:-http://localhost:${port}/}"
     local deadline=$((SECONDS + 120))
     local attempt=0
     while (( SECONDS < deadline )); do
       attempt=$((attempt + 1))
       if curl -sf --max-time 15 "$url" >/dev/null 2>&1; then
-        echo "[ok] Health check passed (attempt $attempt)"
+        echo "[ok] Health check passed (attempt $attempt) — $url"
         return 0
       fi
-      echo "[wait] App starting... attempt $attempt"
+      echo "[wait] App starting... attempt $attempt ($url)"
       sleep 5
     done
     return 1
   }
 
+  load_env() {
+    if [[ -f .env ]]; then
+      # shellcheck disable=SC1091
+      set -a && source .env && set +a
+    fi
+  }
+
+  git_sync() {
+    local branch="${DEPLOY_BRANCH:-master}"
+    echo "[1/3] git sync origin ${branch}"
+    git fetch origin "${branch}"
+    if git show-ref --verify --quiet "refs/heads/${branch}"; then
+      git checkout "${branch}"
+    else
+      git checkout -b "${branch}" "origin/${branch}"
+    fi
+    git pull origin "${branch}"
+  }
+
   write_status running 0 "deploy started"
   exec > >(tee -a "$LOG_FILE") 2>&1
 
+  load_env
+
   echo "=== ResumePilot deploy ==="
-  echo "[1/3] git pull origin master"
-  git pull origin master
+  git_sync
   echo "[2/3] docker compose build"
   docker compose build
   echo "[3/3] docker compose up -d"

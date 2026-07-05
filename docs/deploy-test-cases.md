@@ -57,8 +57,8 @@ curl -s -o /dev/null -w "api: %{http_code}\n" "http://localhost:${APP_PORT}/api/
 |---|------|------|
 | 1 | `master` push 후 Actions run 생성 | Deploy Docker (Ubuntu self-hosted) |
 | 2 | Runner `ubuntu-server` | Idle → Running → Idle |
-| 3 | Deploy step | `resume-pilot.sh deploy` 성공 |
-| 4 | Health check step | `curl -sf http://localhost:9180/` 성공 |
+| 3 | Deploy step | `resume-pilot.sh deploy` 성공 (`git pull origin master`) |
+| 4 | Health check step | `curl -sf http://localhost:9180/` 성공 (`/actuator/health` 아님) |
 
 ---
 
