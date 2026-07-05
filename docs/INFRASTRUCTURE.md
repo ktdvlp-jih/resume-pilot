@@ -155,7 +155,7 @@ docker compose logs -f app
 ./scripts/server-down.sh
 ```
 
-배포: [SETUP.md §3](SETUP.md#part-3-ubuntu-서버) · `scripts/deploy-remote.ps1`
+배포: [SETUP.md §3](SETUP.md#part-3-ubuntu-서버) · `./scripts/resume-pilot.sh deploy`
 
 ---
 

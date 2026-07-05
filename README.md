@@ -33,11 +33,12 @@ Named Tunnel origin: `http://127.0.0.1:APP_PORT` 하나.
 ```powershell
 # 로컬 개발
 copy .env.example .env
-.\scripts\start-local.ps1   # PostgreSQL만 기동, 나머지는 터미널에서 실행
+.\scripts\resume-pilot.ps1 setup
+.\scripts\resume-pilot.ps1 db
 
 # 배포 (Linux 서버)
 cp .env.production.example .env
-./scripts/server-up.sh
+./scripts/resume-pilot.sh deploy
 
 # 로컬 prod 스모크
 .\scripts\local-prod-up.ps1

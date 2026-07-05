@@ -25,8 +25,13 @@ Prod: SPA `/` + `/admin/` + API가 **단일 app 포트**에서 서빙됩니다.
 ## Part 2 — 개발 PC (터미널)
 
 ```powershell
+.\scripts\resume-pilot.ps1 setup    # 1회
+.\scripts\resume-pilot.ps1 db       # PostgreSQL Docker
+```
+
+```powershell
 copy .env.example .env
-# OPENAI_API_KEY, JWT_SECRET 등 설정
+# OPENAI_API_KEY, JWT_SECRET, DEPLOY_HOST 등 설정
 ```
 
 상세: [RUNNING.md §1](RUNNING.md#1-로컬-개발-터미널)
@@ -69,9 +74,6 @@ docker compose version
 cd e:\workspace\resume-pilot
 # .env 에 DEPLOY_HOST 설정 후
 .\scripts\deploy-remote.ps1
-
-# 또는 직접 지정 (로컬에만)
-.\scripts\deploy-remote.ps1 -DeployHost $env:DEPLOY_HOST
 ```
 
 Linux/macOS:
@@ -90,7 +92,17 @@ nano .env   # POSTGRES_PASSWORD, JWT_SECRET, OPENAI_API_KEY, LAN_HOST
 ./scripts/server-up.sh
 ```
 
-### 3-5. 배포 후 확인 (서버에서)
+### 3-5. Ubuntu 서버에서 배포 (git pull)
+
+```bash
+cd ~/apps/resume-pilot
+chmod +x scripts/resume-pilot.sh
+./scripts/resume-pilot.sh deploy
+```
+
+또는 `./scripts/server-up.sh` (최초 `.env` 생성 포함).
+
+### 3-6. 배포 후 확인 (서버)
 
 ```bash
 cd ~/apps/resume-pilot
@@ -101,7 +113,7 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:${APP_PORT:-9180}/admi
 
 브라우저 (LAN): `http://<LAN_HOST>:<APP_PORT>/`
 
-### 3-6. `.env` 서버로 복사
+### 3-7. `.env` 서버로 복사
 
 `deploy-remote`는 `.env`를 업로드하지 않습니다.
 
@@ -109,7 +121,7 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:${APP_PORT:-9180}/admi
 scp .env ${env:DEPLOY_HOST}:~/apps/resume-pilot/.env
 ```
 
-### 3-7. Named Tunnel
+### 3-8. Named Tunnel
 
 origin **1개**:
 
