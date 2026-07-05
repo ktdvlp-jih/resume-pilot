@@ -23,8 +23,8 @@ jobs:
         working-directory: /home/jeon/apps/resume-pilot
         run: |
           git fetch origin master
-          git checkout master 2>/dev/null || git checkout -B master origin/master
-          git reset --hard origin/master
+          # 배포 서버 로컬 수정(수동 편집 등) 무시 — origin/master 와 강제 일치
+          git checkout -f -B master origin/master
           chmod +x scripts/resume-pilot.sh
 
       - name: Deploy (git pull + docker compose)
