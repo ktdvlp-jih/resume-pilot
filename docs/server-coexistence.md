@@ -1,0 +1,84 @@
+# 동일 서버 포트 격리
+
+같은 Linux 호스트에서 **ResumePilot**과 다른 Docker 스택을 함께 돌릴 때, **호스트 포트만** 겹치지 않으면 됩니다. 컨테이너 내부 포트(8080, 5432, 8000…)는 각 스택마다 동일해도 됩니다.
+
+## ResumePilot 기본 포트
+
+| 서비스 | 호스트 포트 | 컨테이너 포트 | 비고 |
+|--------|-------------|---------------|------|
+| **app** (SPA + API) | **9180** | 8080 | Named Tunnel origin |
+| postgres | **55532** | 5432 | 선택 외부 노출 |
+| resume-ai | *(내부)* | 8000 | prod에서 host 미노출 |
+| prompt-service | *(내부)* | 8001 | |
+| rag-service | *(내부)* | 8002 | |
+
+`.env`에서 변경:
+
+```env
+APP_PORT=9180
+POSTGRES_PORT=55532
+```
+
+## 격리 규칙
+
+1. **`COMPOSE_PROJECT_NAME=resume-pilot`** — 네트워크·볼륨 이름 충돌 방지
+2. **컨테이너명** — `resume-pilot-*` 고정 (`docker-compose.yml`)
+3. **DB** — 전용 Postgres 인스턴스·볼륨 (`resumepilot` DB)
+4. **`.env`** — [`.env.production.example`](../.env.production.example)에서 복사, 타 프로젝트 `.env` 재사용 금지
+
+## 다른 스택과 포트 충돌 시
+
+호스트에서 이미 사용 중인 포트가 있으면 `APP_PORT`, `POSTGRES_PORT`를 빈 구간으로 옮깁니다.
+
+예: 호스트 `9080`·`55432`가 사용 중이면 ResumePilot은 **`9180`·`55532`** (기본값)을 씁니다.
+
+확인:
+
+```bash
+docker ps --format "table {{.Names}}\t{{.Ports}}"
+ss -tlnp | grep -E '9180|55532'
+```
+
+## Named Tunnel
+
+origin **1개**:
+
+```text
+http://127.0.0.1:<APP_PORT>
+```
+
+라우트: `/`, `/admin/`, `/api/v1/...` 모두 동일 origin.
+
+## 내부 vs 외부 URL
+
+| 맥락 | 예시 |
+|------|------|
+| 브라우저 (prod) | `http://<LAN_HOST>:9180/` |
+| 컨테이너 → app | `http://app:8080` |
+| 컨테이너 → AI | `http://resume-ai:8000` |
+| 로컬 dev | Vite `5173`/`5174` → API `8080` (`VITE_API_URL`) |
+
+## 배포
+
+[SETUP.md §3](SETUP.md#part-3-ubuntu-서버)
+
+```bash
+cd ~/apps/resume-pilot
+cp .env.production.example .env
+./scripts/server-up.sh
+```
+
+## 검증
+
+```bash
+curl -s -o /dev/null -w "%{http_code}" http://localhost:9180/
+curl -s -o /dev/null -w "%{http_code}" http://localhost:9180/admin/
+docker compose ps
+```
+
+## 방화벽 (선택)
+
+```bash
+sudo ufw allow 9180/tcp
+sudo ufw allow 55532/tcp   # DB 외부 접속 시, IP 제한 권장
+```

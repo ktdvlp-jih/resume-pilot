@@ -1,0 +1,232 @@
+# ResumePilot 실행 가이드
+
+개발은 **터미널에서 각 서비스를 직접 실행**하고, 배포는 **`docker-compose.yml` 하나**로 합니다.
+
+---
+
+## 사전 요구사항
+
+| 도구 | 용도 |
+|------|------|
+| Docker Desktop | PostgreSQL 컨테이너 (개발) / 전체 스택 (배포) |
+| Java JDK 21 | `resume-api` |
+| Node.js 22 | `resume-web`, `resume-admin` |
+| Python 3.12+ | AI 서비스 3개 |
+
+---
+
+## 1. 로컬 개발 (터미널)
+
+### 1-1. 환경 변수
+
+```powershell
+cd e:\workspace\resume-pilot
+copy .env.example .env
+# OPENAI_API_KEY, JWT_SECRET 등 필요 시 수정
+```
+
+### 1-2. PostgreSQL
+
+```powershell
+docker run -d --name resume-pilot-db -p 5432:5432 `
+  -e POSTGRES_DB=resumepilot `
+  -e POSTGRES_USER=resumepilot `
+  -e POSTGRES_PASSWORD=resumepilot `
+  pgvector/pgvector:pg17
+```
+
+이미 실행 중이면 `docker start resume-pilot-db`
+
+### 1-3. AI 서비스 (터미널 3개)
+
+```powershell
+# 터미널 1 — RAG
+cd rag-service
+pip install -r requirements.txt
+$env:DATABASE_URL="postgresql://resumepilot:resumepilot@localhost:5432/resumepilot"
+uvicorn app.main:app --reload --port 8002
+
+# 터미널 2 — Prompt
+cd prompt-service
+pip install -r requirements.txt
+$env:DATABASE_URL="postgresql://resumepilot:resumepilot@localhost:5432/resumepilot"
+uvicorn app.main:app --reload --port 8001
+
+# 터미널 3 — AI Gateway
+cd resume-ai
+pip install -r requirements.txt
+$env:DATABASE_URL="postgresql://resumepilot:resumepilot@localhost:5432/resumepilot"
+$env:RAG_SERVICE_URL="http://localhost:8002"
+$env:PROMPT_SERVICE_URL="http://localhost:8001"
+uvicorn app.main:app --reload --port 8000
+```
+
+### 1-4. Spring API (터미널 1개)
+
+```powershell
+cd resume-api
+$env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/resumepilot"
+$env:SPRING_DATASOURCE_USERNAME="resumepilot"
+$env:SPRING_DATASOURCE_PASSWORD="resumepilot"
+$env:JWT_SECRET="local-dev-secret-key-must-be-at-least-256-bits-long"
+$env:RESUME_AI_URL="http://localhost:8000"
+$env:RAG_SERVICE_URL="http://localhost:8002"
+.\gradlew.bat bootRun
+```
+
+`.env`를 쓰려면 [dotenv](https://github.com/gradle/gradle) 없이 PowerShell에서 `Get-Content .env`로 export하거나, IDE run configuration에 변수를 넣으면 됩니다.
+
+### 1-5. 프론트엔드 (터미널 2개)
+
+```powershell
+cd resume-web
+npm install
+npm run dev
+# → http://localhost:5173
+
+cd resume-admin
+npm install
+npm run dev
+# → http://localhost:5174/admin/
+```
+
+### 개발 접속 URL
+
+| 서비스 | URL |
+|--------|-----|
+| Web | http://localhost:5173 |
+| Admin | http://localhost:5174/admin/ |
+| API / Swagger | http://localhost:8080/swagger-ui.html |
+| resume-ai | http://localhost:8000/docs |
+| prompt-service | http://localhost:8001/docs |
+| rag-service | http://localhost:8002/docs |
+
+### 포트 정리 (개발)
+
+| 서비스 | 포트 |
+|--------|------|
+| PostgreSQL | 5432 |
+| Spring API | 8080 |
+| resume-web (Vite) | 5173 |
+| resume-admin (Vite) | 5174 |
+| resume-ai | 8000 |
+| prompt-service | 8001 |
+| rag-service | 8002 |
+
+---
+
+## 2. 배포 (Docker Compose)
+
+프로덕션은 **5개 컨테이너**만 사용합니다.
+
+| 컨테이너 | 역할 | 호스트 노출 |
+|----------|------|-------------|
+| app | Spring + SPA `/` + `/admin/` + API | `APP_PORT` |
+| postgres | pgvector | `POSTGRES_PORT` (선택) |
+| resume-ai | AI Gateway | 내부만 |
+| prompt-service | Prompt runtime | 내부만 |
+| rag-service | RAG / embedding | 내부만 |
+
+### 2-1. Linux 서버
+
+[SETUP.md § Part 3](SETUP.md#part-3-ubuntu-서버) 참고. 로컬 `.env`에 `DEPLOY_HOST`, `LAN_HOST` 설정.
+
+```bash
+cd ~/apps/resume-pilot
+cp .env.production.example .env
+./scripts/server-up.sh
+```
+
+### 2-2. Windows에서 원격 배포
+
+```powershell
+# .env 에 DEPLOY_HOST 설정 후
+.\scripts\deploy-remote.ps1
+```
+
+### 2-3. 로컬에서 prod 스모크 테스트
+
+배포 전에 prod와 동일한 단일 app 컨테이너(SPA 번들 포함)를 띄울 때:
+
+```powershell
+.\scripts\local-prod-up.ps1
+# → http://localhost:8080/  http://localhost:8080/admin/
+```
+
+### 배포 접속 URL
+
+`http://<LAN_HOST>:<APP_PORT>/` — `LAN_HOST`·`APP_PORT`는 서버 `.env` 참고 (기본 9180).
+
+| 서비스 | Path |
+|--------|------|
+| Web | `/` |
+| Admin | `/admin/` |
+| API | `/api/v1` |
+| Swagger | `/swagger-ui.html` |
+
+### 유용한 명령 (서버)
+
+```bash
+cd ~/apps/resume-pilot
+docker compose ps
+docker compose logs -f app
+docker compose up -d --build app    # app만 재빌드
+./scripts/server-down.sh
+```
+
+---
+
+## 3. 환경 변수 파일 정리
+
+| 파일 | 용도 |
+|------|------|
+| `.env.example` | 로컬 터미널 개발 (`localhost` URL) |
+| `.env.production.example` | Docker 배포 (컨테이너 간 `postgres` 호스트명) |
+| `.env` | 실제 값 (Git 제외) |
+
+---
+
+## 4. 문제 해결
+
+| 증상 | 확인 |
+|------|------|
+| API 401 | 로그인·토큰 만료 |
+| AI 생성 실패 | resume-ai(8000), rag(8002) 실행 여부 |
+| RAG 결과 없음 | 경험 저장 후 임베딩 생성 여부 |
+| CORS | `RESUME_CORS_ORIGINS`에 `localhost:5173` 포함 |
+| Flyway 오류 | PostgreSQL 재시작, 필요 시 `docker compose down -v` |
+| 포트 충돌 | `.\scripts\kill-dev-ports.ps1` |
+
+---
+
+## 5. E2E 테스트 시나리오
+
+### 회원가입 → 자소서 (Phase 1)
+
+1. http://localhost:5173 → 회원가입
+2. 경험 라이브러리에 프로젝트 2~3개 등록
+3. 대시보드에서 자소서 생성 → 버전 diff 확인
+
+### 공고 분석 (Phase 2)
+
+1. 채용 공고 메뉴 → 텍스트/URL/PDF 업로드
+2. 분석 결과·문체 분석 확인
+
+### RAG + AI 생성 (Phase 3~4)
+
+1. 워크스페이스 → 관련 경험 추천 → 자소서 생성
+2. 품질 점수, AI 흔적, 첨삭, 면접 질문 확인
+
+### 관리자 (Phase 5)
+
+1. DB에서 role을 `ADMIN`으로 변경
+2. http://localhost:5174 → Prompt/금지표현/사용자 관리
+
+---
+
+## 관련 문서
+
+- [SETUP.md](SETUP.md) — 설치·배포 진입
+- [deployment.md](deployment.md) — Linux 서버 배포 상세
+- [server-coexistence.md](server-coexistence.md) — 동일 서버 포트 격리
+- [architecture.md](architecture.md) — 아키텍처
