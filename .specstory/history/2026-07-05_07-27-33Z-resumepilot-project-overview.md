@@ -44295,3 +44295,840 @@ cd "e:\workspace\resume-pilot"; git check-ignore -v .env .specstory/statistics.j
 <summary>Tool use: **run_terminal_command_v2**</summary>
 
 </details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git add .gitignore README.md; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "chore: add gitignore and project README"</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git add .gitignore README.md; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "chore: add gitignore and project README"
+```
+
+```
+[main (root-commit) a9432e1] chore: add gitignore and project README
+ 2 files changed, 186 insertions(+)
+ create mode 100644 .gitignore
+ create mode 100644 README.md
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git add resume-api/; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "feat: add Spring Boot API with Flyway, JWT, and SPA prod build"</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git add resume-api/; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "feat: add Spring Boot API with Flyway, JWT, and SPA prod build"
+```
+
+```
+warning: LF will be replaced by CRLF in resume-api/gradle/wrapper/gradle-wrapper.properties.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-api/gradlew.
+The file will have its original line endings in your working directory
+[main 12db492] feat: add Spring Boot API with Flyway, JWT, and SPA prod build
+ 148 files changed, 5169 insertions(+)
+ create mode 100644 resume-api/.dockerignore
+ create mode 100644 resume-api/Dockerfile
+ create mode 100644 resume-api/Dockerfile.prod
+ create mode 100644 resume-api/build.gradle
+ create mode 100644 resume-api/gradle/wrapper/gradle-wrapper.jar
+ create mode 100644 resume-api/gradle/wrapper/gradle-wrapper.properties
+ create mode 100644 resume-api/gradlew
+ create mode 100644 resume-api/gradlew.bat
+ create mode 100644 resume-api/settings.gradle
+ create mode 100644 resume-api/src/main/java/com/resumepilot/ResumePilotApplication.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/application/admin/AdminService.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/application/ai/AiOrchestrationService.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/application/auth/AuthService.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/application/company/CompanyService.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/application/experience/ExperienceService.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/application/job/JobPostingService.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/application/mapper/CompanyMapper.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/application/mapper/ExperienceMapper.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/application/rag/RagService.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/application/resume/ResumeService.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/application/style/WritingStyleService.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/application/user/UserService.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/admin/AiUsageLog.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/admin/AiUsageLogRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/admin/ForbiddenExpression.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/admin/ForbiddenExpressionRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/ai/AiDetection.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/ai/AiDetectionRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/ai/AiGeneration.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/ai/AiGenerationRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/ai/AiReview.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/ai/AiReviewRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/company/Company.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/company/CompanyRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/company/JobAnalysis.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/company/JobAnalysisRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/company/JobPosting.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/company/JobPostingRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/company/JobSourceType.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/experience/Experience.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/experience/ExperienceRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/experience/ExperienceType.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/prompt/PromptHistory.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/prompt/PromptHistoryRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/prompt/PromptTemplate.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/prompt/PromptTemplateRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/prompt/PromptVersion.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/prompt/PromptVersionRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/resume/Resume.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/resume/ResumeRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/resume/ResumeVersion.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/resume/ResumeVersionRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/style/UserWritingStyle.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/style/UserWritingStyleRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/user/RefreshToken.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/user/RefreshTokenRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/user/User.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/user/UserProfile.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/user/UserProfileRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/user/UserRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/domain/user/UserRole.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/global/config/QuerydslConfig.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/global/config/SecurityConfig.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/global/config/SecurityUtils.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/global/config/SpaResourceConfig.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/global/config/WebClientConfig.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/global/exception/BusinessException.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/global/exception/ErrorCode.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/global/exception/GlobalExceptionHandler.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/global/response/ApiResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/infrastructure/ai/AiGatewayClient.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/infrastructure/ai/PromptServiceClient.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/infrastructure/ai/RagServiceClient.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/infrastructure/document/DocumentExtractor.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/infrastructure/persistence/ExperienceQueryRepository.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/infrastructure/security/CustomUserDetailsService.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/infrastructure/security/JwtAuthenticationFilter.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/infrastructure/security/JwtTokenProvider.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/infrastructure/security/UserPrincipal.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/controller/AdminController.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/controller/AiController.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/controller/AuthController.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/controller/CompanyController.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/controller/ExperienceController.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/controller/JobPostingController.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/controller/RagController.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/controller/ResumeController.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/controller/UserController.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/controller/WritingStyleController.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/admin/AiLogResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/admin/CompanyUpdateRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/admin/ForbiddenCreateRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/admin/ForbiddenExpressionResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/admin/PromptAdminResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/admin/PromptTestRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/admin/PromptTestResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/admin/PromptVersionCreateRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/admin/PromptVersionResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/admin/UserAdminResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/admin/UserEnabledUpdateRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/admin/UserRoleUpdateRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/ai/AiContentRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/ai/AiGenerateRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/ai/AiGenerationResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/ai/AiKeywordCompareRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/ai/AiReviewRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/auth/LoginRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/auth/PasswordChangeRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/auth/RefreshRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/auth/SignupRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/auth/TokenResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/experience/ExperienceCreateRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/experience/ExperienceResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/experience/ExperienceUpdateRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/job/CompanyResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/job/JobAnalysisResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/job/JobPostingResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/job/JobPostingUploadRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/rag/ExperienceRecommendRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/rag/ExperienceRecommendResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/rag/RagSearchRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/resume/ResumeCreateRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/resume/ResumeResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/resume/ResumeUpdateRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/resume/ResumeVersionCompareResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/resume/ResumeVersionCreateRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/resume/ResumeVersionResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/style/WritingStyleAnalyzeRequest.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/style/WritingStyleResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/user/UserResponse.java
+ create mode 100644 resume-api/src/main/java/com/resumepilot/presentation/dto/user/UserUpdateRequest.java
+ create mode 100644 resume-api/src/main/resources/application-dev.yml
+ create mode 100644 resume-api/src/main/resources/application-prod.yml
+ create mode 100644 resume-api/src/main/resources/application.yml
+ create mode 100644 resume-api/src/main/resources/db/migration/V10__seed_defaults.sql
+ create mode 100644 resume-api/src/main/resources/db/migration/V1__init_extensions.sql
+ create mode 100644 resume-api/src/main/resources/db/migration/V2__auth_and_user.sql
+ create mode 100644 resume-api/src/main/resources/db/migration/V3__resume_and_version.sql
+ create mode 100644 resume-api/src/main/resources/db/migration/V4__experience_library.sql
+ create mode 100644 resume-api/src/main/resources/db/migration/V5__company_and_job.sql
+ create mode 100644 resume-api/src/main/resources/db/migration/V6__prompt_management.sql
+ create mode 100644 resume-api/src/main/resources/db/migration/V7__ai_artifacts.sql
+ create mode 100644 resume-api/src/main/resources/db/migration/V8__vector_embedding.sql
+ create mode 100644 resume-api/src/main/resources/db/migration/V9__style_and_audit.sql
+ create mode 100644 resume-api/src/test/java/com/resumepilot/ResumePilotApplicationTests.java
+ create mode 100644 resume-api/src/test/java/com/resumepilot/application/auth/AuthIntegrationTest.java
+ create mode 100644 resume-api/src/test/java/com/resumepilot/application/resume/Phase1IntegrationTest.java
+ create mode 100644 resume-api/src/test/resources/application-test.yml
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git add resume-ai/ prompt-service/ rag-service/; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "feat: add FastAPI AI gateway, prompt, and RAG services"</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git add resume-ai/ prompt-service/ rag-service/; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "feat: add FastAPI AI gateway, prompt, and RAG services"
+```
+
+```
+[main 7dcd112] feat: add FastAPI AI gateway, prompt, and RAG services
+ 44 files changed, 1433 insertions(+)
+ create mode 100644 prompt-service/.dockerignore
+ create mode 100644 prompt-service/Dockerfile
+ create mode 100644 prompt-service/app/__init__.py
+ create mode 100644 prompt-service/app/config.py
+ create mode 100644 prompt-service/app/core/response.py
+ create mode 100644 prompt-service/app/main.py
+ create mode 100644 prompt-service/app/services/prompt_service.py
+ create mode 100644 prompt-service/pyproject.toml
+ create mode 100644 prompt-service/requirements.txt
+ create mode 100644 prompt-service/tests/conftest.py
+ create mode 100644 prompt-service/tests/test_health.py
+ create mode 100644 rag-service/.dockerignore
+ create mode 100644 rag-service/Dockerfile
+ create mode 100644 rag-service/app/__init__.py
+ create mode 100644 rag-service/app/config.py
+ create mode 100644 rag-service/app/core/response.py
+ create mode 100644 rag-service/app/main.py
+ create mode 100644 rag-service/app/schemas.py
+ create mode 100644 rag-service/app/services/context_service.py
+ create mode 100644 rag-service/app/services/embedding_service.py
+ create mode 100644 rag-service/app/services/vector_repository.py
+ create mode 100644 rag-service/pyproject.toml
+ create mode 100644 rag-service/requirements.txt
+ create mode 100644 rag-service/tests/conftest.py
+ create mode 100644 rag-service/tests/test_context.py
+ create mode 100644 rag-service/tests/test_health.py
+ create mode 100644 resume-ai/.dockerignore
+ create mode 100644 resume-ai/Dockerfile
+ create mode 100644 resume-ai/app/__init__.py
+ create mode 100644 resume-ai/app/clients/service_clients.py
+ create mode 100644 resume-ai/app/config.py
+ create mode 100644 resume-ai/app/core/response.py
+ create mode 100644 resume-ai/app/main.py
+ create mode 100644 resume-ai/app/services/company_analysis_service.py
+ create mode 100644 resume-ai/app/services/generation_service.py
+ create mode 100644 resume-ai/app/services/job_analysis_service.py
+ create mode 100644 resume-ai/app/services/llm_service.py
+ create mode 100644 resume-ai/app/services/writing_style_service.py
+ create mode 100644 resume-ai/pyproject.toml
+ create mode 100644 resume-ai/requirements.txt
+ create mode 100644 resume-ai/tests/conftest.py
+ create mode 100644 resume-ai/tests/test_health.py
+ create mode 100644 resume-ai/tests/test_pdf_upload.py
+ create mode 100644 resume-ai/tests/test_phase2.py
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git add resume-web/ resume-admin/; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "feat: add user and admin React frontends with i18n"</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git add resume-web/ resume-admin/; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "feat: add user and admin React frontends with i18n"
+```
+
+```
+warning: LF will be replaced by CRLF in resume-admin/.gitignore.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-admin/.oxlintrc.json.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-admin/README.md.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-admin/index.html.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-admin/package-lock.json.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-admin/package.json.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-admin/public/icons.svg.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-admin/src/App.css.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-admin/src/App.tsx.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-admin/src/assets/vite.svg.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-admin/src/index.css.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-admin/src/main.tsx.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-admin/tsconfig.app.json.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-admin/tsconfig.json.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-admin/tsconfig.node.json.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-admin/vite.config.ts.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-web/.gitignore.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-web/.oxlintrc.json.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-web/README.md.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-web/index.html.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-web/package-lock.json.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-web/package.json.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-web/public/icons.svg.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-web/src/App.css.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-web/src/App.tsx.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-web/src/assets/vite.svg.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-web/src/index.css.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-web/src/main.tsx.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-web/tsconfig.app.json.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-web/tsconfig.json.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-web/tsconfig.node.json.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in resume-web/vite.config.ts.
+The file will have its original line endings in your working directory
+[main 21a5dc3] feat: add user and admin React frontends with i18n
+ 80 files changed, 8449 insertions(+)
+ create mode 100644 resume-admin/.dockerignore
+ create mode 100644 resume-admin/.gitignore
+ create mode 100644 resume-admin/.oxlintrc.json
+ create mode 100644 resume-admin/Dockerfile
+ create mode 100644 resume-admin/README.md
+ create mode 100644 resume-admin/index.html
+ create mode 100644 resume-admin/nginx.conf
+ create mode 100644 resume-admin/package-lock.json
+ create mode 100644 resume-admin/package.json
+ create mode 100644 resume-admin/public/favicon.svg
+ create mode 100644 resume-admin/public/icons.svg
+ create mode 100644 resume-admin/src/App.css
+ create mode 100644 resume-admin/src/App.tsx
+ create mode 100644 resume-admin/src/assets/hero.png
+ create mode 100644 resume-admin/src/assets/react.svg
+ create mode 100644 resume-admin/src/assets/vite.svg
+ create mode 100644 resume-admin/src/components/AdminLayout.tsx
+ create mode 100644 resume-admin/src/components/LanguageSwitcher.tsx
+ create mode 100644 resume-admin/src/i18n/index.ts
+ create mode 100644 resume-admin/src/i18n/locales/en.json
+ create mode 100644 resume-admin/src/i18n/locales/ja.json
+ create mode 100644 resume-admin/src/i18n/locales/ko.json
+ create mode 100644 resume-admin/src/i18n/locales/zh.json
+ create mode 100644 resume-admin/src/index.css
+ create mode 100644 resume-admin/src/lib/api-base.ts
+ create mode 100644 resume-admin/src/lib/api.ts
+ create mode 100644 resume-admin/src/main.tsx
+ create mode 100644 resume-admin/src/pages/AiLogsPage.tsx
+ create mode 100644 resume-admin/src/pages/CompaniesPage.tsx
+ create mode 100644 resume-admin/src/pages/ForbiddenPage.tsx
+ create mode 100644 resume-admin/src/pages/LoginPage.tsx
+ create mode 100644 resume-admin/src/pages/PromptsPage.tsx
+ create mode 100644 resume-admin/src/pages/UsersPage.tsx
+ create mode 100644 resume-admin/tsconfig.app.json
+ create mode 100644 resume-admin/tsconfig.json
+ create mode 100644 resume-admin/tsconfig.node.json
+ create mode 100644 resume-admin/vite.config.ts
+ create mode 100644 resume-web/.dockerignore
+ create mode 100644 resume-web/.gitignore
+ create mode 100644 resume-web/.oxlintrc.json
+ create mode 100644 resume-web/Dockerfile
+ create mode 100644 resume-web/README.md
+ create mode 100644 resume-web/index.html
+ create mode 100644 resume-web/nginx.conf
+ create mode 100644 resume-web/package-lock.json
+ create mode 100644 resume-web/package.json
+ create mode 100644 resume-web/public/favicon.svg
+ create mode 100644 resume-web/public/icons.svg
+ create mode 100644 resume-web/src/App.css
+ create mode 100644 resume-web/src/App.tsx
+ create mode 100644 resume-web/src/assets/hero.png
+ create mode 100644 resume-web/src/assets/react.svg
+ create mode 100644 resume-web/src/assets/vite.svg
+ create mode 100644 resume-web/src/components/HighlightedContent.tsx
+ create mode 100644 resume-web/src/components/LanguageSwitcher.tsx
+ create mode 100644 resume-web/src/components/Layout.tsx
+ create mode 100644 resume-web/src/components/ui/button.tsx
+ create mode 100644 resume-web/src/i18n/index.ts
+ create mode 100644 resume-web/src/i18n/locales/en.json
+ create mode 100644 resume-web/src/i18n/locales/ja.json
+ create mode 100644 resume-web/src/i18n/locales/ko.json
+ create mode 100644 resume-web/src/i18n/locales/zh.json
+ create mode 100644 resume-web/src/index.css
+ create mode 100644 resume-web/src/lib/api-base.ts
+ create mode 100644 resume-web/src/lib/api.ts
+ create mode 100644 resume-web/src/lib/theme.tsx
+ create mode 100644 resume-web/src/main.tsx
+ create mode 100644 resume-web/src/pages/DashboardPage.tsx
+ create mode 100644 resume-web/src/pages/ExperiencesPage.tsx
+ create mode 100644 resume-web/src/pages/JobPostingsPage.tsx
+ create mode 100644 resume-web/src/pages/LoginPage.tsx
+ create mode 100644 resume-web/src/pages/SettingsPage.tsx
+ create mode 100644 resume-web/src/pages/SignupPage.tsx
+ create mode 100644 resume-web/src/pages/VersionComparePage.tsx
+ create mode 100644 resume-web/src/pages/WorkspacePage.tsx
+ create mode 100644 resume-web/src/pages/WritingStylePage.tsx
+ create mode 100644 resume-web/tsconfig.app.json
+ create mode 100644 resume-web/tsconfig.json
+ create mode 100644 resume-web/tsconfig.node.json
+ create mode 100644 resume-web/vite.config.ts
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git add docker-compose.yml scripts/ .env.example .env.production.example .github/; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "chore: add Docker prod stack, deploy scripts, and CI workflows"</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git add docker-compose.yml scripts/ .env.example .env.production.example .github/; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "chore: add Docker prod stack, deploy scripts, and CI workflows"
+```
+
+```
+[main 7e82aa6] chore: add Docker prod stack, deploy scripts, and CI workflows
+ 17 files changed, 708 insertions(+)
+ create mode 100644 .env.example
+ create mode 100644 .env.production.example
+ create mode 100644 .github/workflows/ci-ai.yml
+ create mode 100644 .github/workflows/ci-api.yml
+ create mode 100644 .github/workflows/ci-web.yml
+ create mode 100644 docker-compose.yml
+ create mode 100644 scripts/deploy-remote.ps1
+ create mode 100644 scripts/deploy-remote.sh
+ create mode 100644 scripts/generate-jwt-secret.ps1
+ create mode 100644 scripts/kill-dev-ports.ps1
+ create mode 100644 scripts/kill-port.ps1
+ create mode 100644 scripts/kill-port.sh
+ create mode 100644 scripts/local-prod-up.ps1
+ create mode 100644 scripts/local-prod-up.sh
+ create mode 100644 scripts/server-down.sh
+ create mode 100644 scripts/server-up.sh
+ create mode 100644 scripts/start-local.ps1
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git add docs/; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "docs: add setup, running, infrastructure, and deployment guides"</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git add docs/; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "docs: add setup, running, infrastructure, and deployment guides"
+```
+
+```
+[main 6c8022a] docs: add setup, running, infrastructure, and deployment guides
+ 8 files changed, 999 insertions(+)
+ create mode 100644 docs/INFRASTRUCTURE.md
+ create mode 100644 docs/RUNNING.md
+ create mode 100644 docs/SETUP.md
+ create mode 100644 docs/api-conventions.md
+ create mode 100644 docs/architecture.md
+ create mode 100644 docs/deployment.md
+ create mode 100644 docs/rag-pipeline.md
+ create mode 100644 docs/server-coexistence.md
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git add .cursor/ .specstory/; git status --short</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git add .cursor/ .specstory/; git status --short
+```
+
+```
+warning: LF will be replaced by CRLF in .cursor/rules/secrets-handling.mdc.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in .specstory/.project.json.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in .specstory/cli/config.toml.
+The file will have its original line endings in your working directory
+A  .cursor/README.md
+A  .cursor/commands/api-smoke.md
+A  .cursor/commands/deploy-smoke.md
+A  .cursor/commands/e2e-check.md
+A  .cursor/commands/handoff.md
+A  .cursor/hooks.json
+A  .cursor/hooks/guard-shell.js
+A  .cursor/hooks/session-start.js
+A  .cursor/rules/resume-pilot-ai.mdc
+A  .cursor/rules/resume-pilot-backend.mdc
+A  .cursor/rules/resume-pilot-frontend.mdc
+A  .cursor/rules/resume-pilot-project.mdc
+A  .cursor/rules/secrets-handling.mdc
+A  .cursor/rules/specstory-commit.mdc
+A  .cursor/skills/resume-pilot-api-smoke/SKILL.md
+A  .cursor/skills/resume-pilot-deploy-smoke/SKILL.md
+A  .specstory/.project.json
+A  .specstory/cli/config.toml
+A  .specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "chore: add Cursor workspace config and SpecStory history"</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "chore: add Cursor workspace config and SpecStory history"
+```
+
+```
+[main 54b9ce1] chore: add Cursor workspace config and SpecStory history
+ 19 files changed, 44787 insertions(+)
+ create mode 100644 .cursor/README.md
+ create mode 100644 .cursor/commands/api-smoke.md
+ create mode 100644 .cursor/commands/deploy-smoke.md
+ create mode 100644 .cursor/commands/e2e-check.md
+ create mode 100644 .cursor/commands/handoff.md
+ create mode 100644 .cursor/hooks.json
+ create mode 100644 .cursor/hooks/guard-shell.js
+ create mode 100644 .cursor/hooks/session-start.js
+ create mode 100644 .cursor/rules/resume-pilot-ai.mdc
+ create mode 100644 .cursor/rules/resume-pilot-backend.mdc
+ create mode 100644 .cursor/rules/resume-pilot-frontend.mdc
+ create mode 100644 .cursor/rules/resume-pilot-project.mdc
+ create mode 100644 .cursor/rules/secrets-handling.mdc
+ create mode 100644 .cursor/rules/specstory-commit.mdc
+ create mode 100644 .cursor/skills/resume-pilot-api-smoke/SKILL.md
+ create mode 100644 .cursor/skills/resume-pilot-deploy-smoke/SKILL.md
+ create mode 100644 .specstory/.project.json
+ create mode 100644 .specstory/cli/config.toml
+ create mode 100644 .specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git status; git log --oneline</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git status; git log --oneline
+```
+
+```
+On branch main
+Your branch is based on 'origin/main', but the upstream is gone.
+  (use "git branch --unset-upstream" to fixup)
+
+nothing to commit, working tree clean
+54b9ce1 chore: add Cursor workspace config and SpecStory history
+6c8022a docs: add setup, running, infrastructure, and deployment guides
+7e82aa6 chore: add Docker prod stack, deploy scripts, and CI workflows
+21a5dc3 feat: add user and admin React frontends with i18n
+7dcd112 feat: add FastAPI AI gateway, prompt, and RAG services
+12db492 feat: add Spring Boot API with Flyway, JWT, and SPA prod build
+a9432e1 chore: add gitignore and project README
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+모든 변경사항을 커밋했습니다. 사용자는 우분투에서 먼저 푸시해야 합니다.
+
+원격 저장소가 있는지 확인하겠습니다. 없으면 직접 푸시하거나 우분투에서 git clone/pull로 받으세요. .env 파일은 저장소에 포함되지 않았습니다.</details></think>
+
+_**Agent (default)**_
+
+**7개 커밋**으로 나눠 완료했습니다. working tree는 clean입니다.
+
+## 커밋 내역
+
+| # | 커밋 | 내용 |
+|---|------|------|
+| 1 | `a9432e1` | gitignore, README |
+| 2 | `12db492` | resume-api (Spring Boot) |
+| 3 | `7dcd112` | AI 3서비스 (FastAPI) |
+| 4 | `21a5dc3` | resume-web, resume-admin + i18n |
+| 5 | `7e82aa6` | docker-compose, scripts, CI, env 예시 |
+| 6 | `6c8022a` | docs |
+| 7 | `54b9ce1` | .cursor, SpecStory |
+
+**제외됨:** `.env` (비밀), `.specstory/statistics.json`
+
+---
+
+## Ubuntu에서 진행
+
+**1) Windows에서 push** (remote가 있다면):
+
+```powershell
+cd e:\workspace\resume-pilot
+git push -u origin main
+```
+
+**2) Ubuntu에서 받기:**
+
+```bash
+cd ~/apps
+git clone <your-repo-url> resume-pilot
+# 이미 clone 했다면: cd ~/apps/resume-pilot && git pull
+```
+
+**3) 서버 `.env` 설정** (Git에 없음 — 직접 복사):
+
+```powershell
+# Windows에서
+scp .env ${env:DEPLOY_HOST}:~/apps/resume-pilot/.env
+```
+
+또는 서버에서:
+
+```bash
+cd ~/apps/resume-pilot
+cp .env.production.example .env
+nano .env   # JWT_SECRET, OPENAI_API_KEY, POSTGRES_PASSWORD
+```
+
+**4) 배포:**
+
+```bash
+./scripts/server-up.sh
+```
+
+remote URL이 아직 없으면 push 전에 `git remote -v`로 확인하거나 알려주시면 됩니다.
+
+---
+
+_**User**_
+
+horizon-contest-check 스킬폴더명이 이렇게 된경우도 있는데?? 모두 변경해 해당 프로젝트에 맞게 
+
+---
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "" • **0** results in **0** directories</summary>
+
+No results found
+</details>
+</tool-use>
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search"><details>
+<summary>Tool use: **glob_file_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+Status: **loading**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "" • **0** results in **0** directories</summary>
+
+No results found
+</details>
+</tool-use>
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search"><details>
+<summary>Tool use: **glob_file_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+Status: **loading**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; Get-ChildItem -Path .cursor\skills -Recurse -Force | Select-Object FullName; Get-ChildItem -Path .cursor -Recurse -Directory | Select-Object FullName</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; Get-ChildItem -Path .cursor\skills -Recurse -Force | Select-Object FullName; Get-ChildItem -Path .cursor -Recurse -Directory | Select-Object FullName
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; dir .cursor\skills /s /b 2>&1; if (Test-Path ".cursor\skills\horizon-contest-check") { Write-Host "EXISTS: horizon-contest-check" }; if (Test-Path ".cursor\skills\horizon-deploy-smoke") { Write-Host "EXISTS: horizon-deploy-smoke" }; if (Test-Path ".cursor\skills\horizon-resilience-test") { Write-Host "EXISTS: horizon-resilience-test" }</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; dir .cursor\skills /s /b 2>&1; if (Test-Path ".cursor\skills\horizon-contest-check") { Write-Host "EXISTS: horizon-contest-check" }; if (Test-Path ".cursor\skills\horizon-deploy-smoke") { Write-Host "EXISTS: horizon-deploy-smoke" }; if (Test-Path ".cursor\skills\horizon-resilience-test") { Write-Host "EXISTS: horizon-resilience-test" }
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+Status: **loading**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git ls-files .cursor/</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git ls-files .cursor/
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; Get-ChildItem -Path .cursor -Recurse -Directory | ForEach-Object { $_.FullName.Replace((Get-Location).Path + '\', '') }</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; Get-ChildItem -Path .cursor -Recurse -Directory | ForEach-Object { $_.FullName.Replace((Get-Location).Path + '\', '') }
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
