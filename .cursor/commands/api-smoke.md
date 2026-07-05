@@ -1,6 +1,6 @@
 # API·빌드 스모크
 
-`resume-pilot-api-smoke` 스킬을 따른다.
+`api-smoke` 스킬을 따른다.
 
 1. `resume-api`: `.\gradlew.bat compileJava`
 2. `resume-web` / `resume-admin`: `npm run build`

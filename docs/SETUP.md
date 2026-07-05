@@ -141,7 +141,7 @@ Cursor: `/handoff` 또는 `@.specstory/history/` 최신 파일.
 
 - 규칙: `.cursor/rules/`
 - 슬래시: `/deploy-smoke`, `/api-smoke`, `/e2e-check`, `/handoff`
-- 배포 스모크: [SETUP.md Part 3](#part-3-ubuntu-서버) + `resume-pilot-deploy-smoke` 스킬
+- 배포 스모크: [SETUP.md Part 3](#part-3-ubuntu-서버) + `deploy-smoke` 스킬
 
 전체: [.cursor/README.md](../.cursor/README.md)
 

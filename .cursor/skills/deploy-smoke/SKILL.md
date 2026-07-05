@@ -1,5 +1,5 @@
 ---
-name: resume-pilot-deploy-smoke
+name: deploy-smoke
 description: Ubuntu Docker deploy smoke for ResumePilot. Use for server health, 5-container check, tunnel verification.
 ---
 

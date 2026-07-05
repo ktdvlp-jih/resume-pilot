@@ -36,8 +36,8 @@
 
 ## 스킬
 
-- `resume-pilot-api-smoke` — 빌드·API 스모크
-- `resume-pilot-deploy-smoke` — 서버 배포·health
+- `api-smoke` — 빌드·API 스모크
+- `deploy-smoke` — 서버 배포·health
 
 ## 훅
 

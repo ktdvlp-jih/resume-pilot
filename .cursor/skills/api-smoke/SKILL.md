@@ -1,5 +1,5 @@
 ---
-name: resume-pilot-api-smoke
+name: api-smoke
 description: Run ResumePilot build and API smoke (health, auth, AI services). Use when user asks for API test, build verification, or local smoke test.
 ---
 

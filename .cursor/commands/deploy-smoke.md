@@ -1,6 +1,6 @@
 # 배포 스모크
 
-`resume-pilot-deploy-smoke` 스킬을 따른다.
+`deploy-smoke` 스킬을 따른다.
 
 1. `@docs/SETUP.md#part-3-ubuntu-서버` 기준
 2. SSH는 로컬 `.env`의 `DEPLOY_HOST` (Git 제외)
