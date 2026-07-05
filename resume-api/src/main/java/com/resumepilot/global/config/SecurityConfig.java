@@ -84,11 +84,15 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(
-                List.of(allowedOrigins.split(",")).stream()
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .toList());
+        var origins = List.of(allowedOrigins.split(",")).stream()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+        if (!origins.isEmpty()) {
+            config.setAllowedOrigins(origins);
+        }
+        // Quick Tunnel (*.trycloudflare.com) — Vite crossorigin 제거 전 빌드·API CORS 대비
+        config.setAllowedOriginPatterns(List.of("https://*.trycloudflare.com"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

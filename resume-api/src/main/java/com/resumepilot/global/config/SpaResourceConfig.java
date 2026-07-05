@@ -31,6 +31,11 @@ public class SpaResourceConfig implements WebMvcConfigurer {
                         if (requested.exists() && requested.isReadable()) {
                             return requested;
                         }
+                        // assets/*.js|.css 등 — 없으면 index.html fallback 금지 (MIME 오류 방지)
+                        if (resourcePath.startsWith("assets/")
+                                || resourcePath.contains(".")) {
+                            return null;
+                        }
                         if (resourcePath.startsWith("admin") || resourcePath.startsWith("admin/")) {
                             return location.createRelative("admin/index.html");
                         }

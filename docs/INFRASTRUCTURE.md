@@ -13,6 +13,7 @@
 ```
 [인터넷 / 브라우저 / Tunnel]
         │
+        ├─ https://xxxx.trycloudflare.com ── Quick Tunnel (임시, 선택)
         ├─ https://your-domain.com  ── Cloudflare Named Tunnel (systemd, Docker 밖)
         ├─ http://<LAN_HOST>:9180   ── LAN
         │
@@ -137,7 +138,8 @@ Flyway 마이그레이션: **resume-api**만 소유 (`db/migration/`).
 |------|-----------|
 | Vite dev (5173/5174) | 개발 PC `npm run dev` |
 | `gradlew bootRun` | 개발 PC |
-| Cloudflare Tunnel | Ubuntu systemd (선택) |
+| Cloudflare Quick Tunnel | Ubuntu `resume-pilot.sh quick-tunnel` (임시 URL) |
+| Cloudflare Named Tunnel | Ubuntu systemd (선택, 고정 도메인) |
 
 ---
 

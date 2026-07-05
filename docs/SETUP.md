@@ -133,6 +133,45 @@ http://127.0.0.1:9180
 
 동일 서버 포트 격리: [server-coexistence.md](server-coexistence.md)
 
+### 3-9. Quick Tunnel {#part-3-9-quick-tunnel}
+
+도메인·Cloudflare 계정 없이 **임시 공개 URL** (`*.trycloudflare.com`). 재시작 시 URL이 바뀝니다.
+
+**사전:** Docker app 기동 (`./scripts/resume-pilot.sh deploy` 또는 `docker compose up -d`)
+
+**cloudflared 설치 (1회, Ubuntu):**
+
+```bash
+curl -fsSL -o /tmp/cloudflared.deb \
+  https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+sudo dpkg -i /tmp/cloudflared.deb
+```
+
+**foreground (테스트):**
+
+```bash
+cd ~/apps/resume-pilot
+./scripts/resume-pilot.sh quick-tunnel
+```
+
+출력된 `https://….trycloudflare.com` 으로 `/`, `/admin/` 접속.
+
+**systemd (백그라운드):**
+
+```bash
+cd ~/apps/resume-pilot
+./scripts/resume-pilot.sh quick-tunnel-install
+sudo journalctl -u resume-pilot-quick-tunnel -f   # URL 확인
+```
+
+origin은 **포트 1개**:
+
+```text
+http://127.0.0.1:9180
+```
+
+Named Tunnel(고정 도메인)은 나중에 `cloudflared` config + systemd로 별도 구성.
+
 ---
 
 ## Part 4 — PC 전환 · SpecStory {#part-4-pc-전환}

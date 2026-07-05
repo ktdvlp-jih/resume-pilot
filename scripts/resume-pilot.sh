@@ -4,7 +4,8 @@
 #   ./scripts/resume-pilot.sh help
 #   ./scripts/resume-pilot.sh deploy       # Ubuntu: git pull + docker compose + health
 #   ./scripts/resume-pilot.sh tunnel [IP] # dev PC: SSH DB tunnel localhost:55532
-#   ./scripts/resume-pilot.sh db           # 로컬 Docker Postgres만 기동
+#   ./scripts/resume-pilot.sh quick-tunnel      # Ubuntu: Cloudflare Quick Tunnel (foreground)
+#   ./scripts/resume-pilot.sh quick-tunnel-install  # Quick Tunnel systemd 등록
 
 set -euo pipefail
 
@@ -21,12 +22,31 @@ ResumePilot scripts (Linux/macOS)
   ./scripts/resume-pilot.sh deploy          Ubuntu 배포 (git pull + compose + health)
   ./scripts/resume-pilot.sh tunnel [IP]   DB SSH 터널 localhost:55532 (창 유지)
   ./scripts/resume-pilot.sh db              로컬 dev PostgreSQL (localhost:5432)
+  ./scripts/resume-pilot.sh quick-tunnel    Cloudflare Quick Tunnel → APP_PORT (9180)
+  ./scripts/resume-pilot.sh quick-tunnel-install  Quick Tunnel systemd (백그라운드)
 
 DB 스키마: resume-api/src/main/resources/db/migration/ (Flyway, prod)
 배포 시 AI 3개(resume-ai, prompt-service, rag-service)는 compose 에 포함 — 별도 명령 없음
 로컬 dev: 터미널에서 uvicorn 3개 (8002/8001/8000) — docs/RUNNING.md
-상세: docs/SETUP.md#part-3-ubuntu-서버
+Quick Tunnel: docs/SETUP.md#part-3-9-quick-tunnel
 EOF
+}
+
+load_env() {
+  if [[ -f .env ]]; then
+    # shellcheck disable=SC1091
+    set -a && source .env && set +a
+  fi
+}
+
+require_cloudflared() {
+  if command -v cloudflared >/dev/null 2>&1; then
+    return 0
+  fi
+  echo "[!!] cloudflared not found. Install:" >&2
+  echo "  curl -fsSL -o /tmp/cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb" >&2
+  echo "  sudo dpkg -i /tmp/cloudflared.deb" >&2
+  return 1
 }
 
 cmd_deploy() {
@@ -60,13 +80,6 @@ cmd_deploy() {
     echo "[fail] Health check failed. app logs:"
     docker compose logs app --tail 40 || true
     return 1
-  }
-
-  load_env() {
-    if [[ -f .env ]]; then
-      # shellcheck disable=SC1091
-      set -a && source .env && set +a
-    fi
   }
 
   git_sync() {
@@ -129,11 +142,48 @@ cmd_db() {
   echo "jdbc:postgresql://localhost:5432/resumepilot"
 }
 
+cmd_quick_tunnel() {
+  load_env
+  require_cloudflared
+  local port="${APP_PORT:-9180}"
+  local origin="http://127.0.0.1:${port}"
+  echo "=== ResumePilot Cloudflare Quick Tunnel ==="
+  echo "Origin: ${origin}"
+  echo "Public URL: *.trycloudflare.com (printed below — changes each restart)"
+  echo "Routes: /  /admin/  /api/v1  (SPA-in-JAR, same origin)"
+  echo "Keep this terminal open (Ctrl+C to stop)."
+  exec cloudflared tunnel --url "${origin}"
+}
+
+cmd_quick_tunnel_install() {
+  load_env
+  require_cloudflared
+  local port="${APP_PORT:-9180}"
+  local user="${SUDO_USER:-${USER:-jeon}}"
+  local unit="resume-pilot-quick-tunnel.service"
+  local dest="/etc/systemd/system/${unit}"
+  local tmp
+  tmp="$(mktemp)"
+  sed "s|@APP_PORT@|${port}|g; s|@RUN_USER@|${user}|g" \
+    "$ROOT/scripts/cloudflared-quick-tunnel.service" > "$tmp"
+  echo "=== Install Quick Tunnel systemd (${dest}) ==="
+  sudo cp "$tmp" "$dest"
+  rm -f "$tmp"
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now "${unit}"
+  echo ""
+  echo "[ok] Started ${unit}"
+  echo "URL 확인: sudo journalctl -u ${unit} -f"
+  echo "중지:     sudo systemctl stop ${unit}"
+}
+
 case "$CMD" in
   help|-h|--help) usage ;;
   deploy) cmd_deploy "$@" ;;
   tunnel) cmd_tunnel "$@" ;;
   db) cmd_db "$@" ;;
+  quick-tunnel) cmd_quick_tunnel "$@" ;;
+  quick-tunnel-install) cmd_quick_tunnel_install "$@" ;;
   *)
     echo "Unknown command: $CMD" >&2
     usage >&2
