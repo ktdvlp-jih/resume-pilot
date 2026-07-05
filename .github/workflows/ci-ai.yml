@@ -1,0 +1,32 @@
+name: CI AI
+
+on:
+  push:
+    branches: [main]
+    paths: ['resume-ai/**', 'prompt-service/**', 'rag-service/**', '.github/workflows/ci-ai.yml']
+  pull_request:
+    branches: [main]
+    paths: ['resume-ai/**', 'prompt-service/**', 'rag-service/**']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [resume-ai, prompt-service, rag-service]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.service }}
+        run: |
+          pip install -r requirements.txt pytest pytest-asyncio httpx
+
+      - name: Run tests
+        working-directory: ${{ matrix.service }}
+        run: pytest tests/ -v

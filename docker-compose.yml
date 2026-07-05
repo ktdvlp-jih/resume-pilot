@@ -1,0 +1,101 @@
+# ResumePilot — production deployment (5 containers)
+#
+#   docker compose up -d --build
+#   Linux server: ./scripts/server-up.sh  (.env from .env.production.example)
+#   Local smoke:  .\scripts\local-prod-up.ps1
+#
+# Local development: run services in terminals — see docs/RUNNING.md
+
+name: resume-pilot
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: resume-pilot-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-resumepilot}
+      POSTGRES_USER: ${POSTGRES_USER:-resumepilot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-resumepilot}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-resumepilot} -d ${POSTGRES_DB:-resumepilot}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "${POSTGRES_PORT:-55532}:5432"
+
+  app:
+    build:
+      context: .
+      dockerfile: resume-api/Dockerfile.prod
+    container_name: resume-pilot-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/${POSTGRES_DB:-resumepilot}}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-${POSTGRES_USER:-resumepilot}}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-${POSTGRES_PASSWORD:-resumepilot}}
+      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-secure-random-string-at-least-256-bits}
+      RESUME_AI_SERVICE_URL: ${RESUME_AI_SERVICE_URL:-http://resume-ai:8000}
+      RESUME_AI_URL: ${RESUME_AI_SERVICE_URL:-http://resume-ai:8000}
+      RAG_SERVICE_URL: ${RAG_SERVICE_URL:-http://rag-service:8002}
+      RESUME_CORS_ORIGINS: ${RESUME_CORS_ORIGINS:-}
+    ports:
+      - "${APP_PORT:-9180}:8080"
+
+  resume-ai:
+    build:
+      context: ./resume-ai
+      dockerfile: Dockerfile
+    container_name: resume-pilot-ai
+    restart: unless-stopped
+    depends_on:
+      - rag-service
+      - prompt-service
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-resumepilot}:${POSTGRES_PASSWORD:-resumepilot}@postgres:5432/${POSTGRES_DB:-resumepilot}}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      RAG_SERVICE_URL: ${RAG_SERVICE_URL:-http://rag-service:8002}
+      PROMPT_SERVICE_URL: ${PROMPT_SERVICE_URL:-http://prompt-service:8001}
+
+  prompt-service:
+    build:
+      context: ./prompt-service
+      dockerfile: Dockerfile
+    container_name: resume-pilot-prompt
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-resumepilot}:${POSTGRES_PASSWORD:-resumepilot}@postgres:5432/${POSTGRES_DB:-resumepilot}}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+
+  rag-service:
+    build:
+      context: ./rag-service
+      dockerfile: Dockerfile
+    container_name: resume-pilot-rag
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-resumepilot}:${POSTGRES_PASSWORD:-resumepilot}@postgres:5432/${POSTGRES_DB:-resumepilot}}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
+      EMBEDDING_DIMENSION: ${EMBEDDING_DIMENSION:-1536}
+
+volumes:
+  postgres_data:

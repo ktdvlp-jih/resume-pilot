@@ -1,0 +1,49 @@
+name: CI API
+
+on:
+  push:
+    branches: [main]
+    paths: ['resume-api/**', '.github/workflows/ci-api.yml']
+  pull_request:
+    branches: [main]
+    paths: ['resume-api/**']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_DB: resumepilot
+          POSTGRES_USER: resumepilot
+          POSTGRES_PASSWORD: resumepilot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U resumepilot"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        working-directory: resume-api
+        run: chmod +x gradlew
+
+      - name: Build and test
+        working-directory: resume-api
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/resumepilot
+          SPRING_DATASOURCE_USERNAME: resumepilot
+          SPRING_DATASOURCE_PASSWORD: resumepilot
+          JWT_SECRET: ci-test-secret-key-must-be-long-enough-for-hmac-sha256
+        run: ./gradlew test bootJar
