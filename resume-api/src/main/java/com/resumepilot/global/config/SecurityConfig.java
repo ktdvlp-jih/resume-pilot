@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -23,6 +26,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
@@ -59,7 +63,23 @@ public class SecurityConfig {
                     }
                 })
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                        .accessDeniedHandler((request, response, accessDenied) -> {
+                            var auth = org.springframework.security.core.context.SecurityContextHolder
+                                    .getContext().getAuthentication();
+                            boolean anonymous = auth == null || !auth.isAuthenticated()
+                                    || "anonymousUser".equals(auth.getPrincipal());
+                            response.setStatus(anonymous ? HttpStatus.UNAUTHORIZED.value()
+                                    : HttpStatus.FORBIDDEN.value());
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            String code = anonymous ? "UNAUTHORIZED" : "FORBIDDEN";
+                            String message = anonymous ? "Authentication required" : "Access denied";
+                            response.getWriter().write(
+                                    "{\"success\":false,\"error\":{\"code\":\"" + code
+                                            + "\",\"message\":\"" + message + "\"}}");
+                        }));
         return http.build();
     }
 
@@ -88,14 +108,21 @@ public class SecurityConfig {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .toList();
-        if (!origins.isEmpty()) {
-            config.setAllowedOrigins(origins);
-        }
-        // Quick Tunnel (*.trycloudflare.com) — Vite crossorigin 제거 전 빌드·API CORS 대비
-        config.setAllowedOriginPatterns(List.of("https://*.trycloudflare.com"));
+
+        // allowedOrigins + allowedOriginPatterns 동시 사용 시 Quick Tunnel 등에서 CORS 403 가능 → patterns만 사용
+        var patterns = new ArrayList<String>();
+        patterns.add("https://*.trycloudflare.com");
+        patterns.add("http://localhost:*");
+        patterns.add("http://127.0.0.1:*");
+        patterns.add("http://192.168.*:*");
+        patterns.add("https://192.168.*:*");
+        patterns.addAll(origins);
+        config.setAllowedOriginPatterns(patterns);
+
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

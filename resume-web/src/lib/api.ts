@@ -140,7 +140,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   let response = await fetch(`${API_URL}${path}`, { ...options, headers });
 
-  if (response.status === 401 && getRefreshToken()) {
+  const shouldRefresh =
+    (response.status === 401 || response.status === 403) && getRefreshToken() && !path.includes('/auth/refresh');
+
+  if (shouldRefresh) {
     const refreshRes = await fetch(`${API_URL}/api/v1/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -151,7 +154,21 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       setTokens(refreshed.data.accessToken, refreshed.data.refreshToken);
       headers['Authorization'] = `Bearer ${refreshed.data.accessToken}`;
       response = await fetch(`${API_URL}${path}`, { ...options, headers });
+    } else {
+      clearTokens();
+      if (!path.includes('/auth/')) {
+        window.location.href = '/login';
+      }
+      throw new Error('Session expired');
     }
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    clearTokens();
+    if (!path.includes('/auth/')) {
+      window.location.href = '/login';
+    }
+    throw new Error('Authentication required');
   }
 
   const json: ApiResponse<T> = await response.json();
