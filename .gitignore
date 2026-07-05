@@ -1,0 +1,106 @@
+# Java / Gradle
+.gradle/
+**/build/
+**/bin/
+**/out/
+*.class
+!**/gradle/wrapper/gradle-wrapper.jar
+
+# Node (resume-web, resume-admin)
+node_modules/
+dist/
+dist-ssr/
+*.tsbuildinfo
+.npm
+.eslintcache
+
+# Python (resume-ai, prompt-service, rag-service)
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+*.egg
+
+# ---------------------------------------------------------------------------
+# Environment & secrets — NEVER commit (API keys, DB passwords, JWT, LLM keys)
+# Copy from *.env.example and fill in locally.
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+resume-web/.env
+resume-web/.env.local
+resume-web/.env.*.local
+
+resume-admin/.env
+resume-admin/.env.local
+resume-admin/.env.*.local
+
+resume-ai/.env
+resume-ai/.env.local
+resume-ai/.env.*.local
+
+prompt-service/.env
+prompt-service/.env.local
+prompt-service/.env.*.local
+
+rag-service/.env
+rag-service/.env.local
+rag-service/.env.*.local
+
+# Spring Boot local overrides (often contain real DB/JWT values)
+**/application-local.yml
+**/application-local.yaml
+**/application-local.properties
+
+# Docker Compose local overrides (ports, secrets)
+compose.override.yaml
+compose.override.yml
+docker-compose.override.yml
+docker-compose.override.yaml
+
+# Cloudflare Tunnel credentials
+.cloudflared/
+*.pem
+
+# Ad-hoc secret files
+secrets/
+*.secret
+*credentials*.json
+*.key
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Local logs / runtime
+*.log
+logs/
+.deploy-status.json
+.deploy-last.log
+.docker-deploy-ci/
+docker-data/
+
+# SpecStory — 자주 바뀌는 메타만 제외 (history/*.md 는 Git 동기화)
+.specstory/statistics.json
+
+# 로컬 API 스모크 테스트 payload (Cursor 임시 생성)
+tmp-smoke-eval.json
+tmp-*.json
+
+# Cursor indexing (워크스페이스별)
+.cursorindexingignore
