@@ -2,6 +2,8 @@
 
 GitHub Actions `deploy.yml` (master push) 또는 `./scripts/resume-pilot.sh deploy` 실행 후 검증용 체크리스트.
 
+> 마지막 자동 배포 트리거 테스트: 2026-07-05
+
 ---
 
 ## TC-01 — Docker 컨테이너 (5개)
