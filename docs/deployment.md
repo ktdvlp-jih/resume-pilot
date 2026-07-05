@@ -56,6 +56,16 @@ docker compose up -d --build
 
 5 containers: app, postgres, resume-ai, prompt-service, rag-service
 
+## GitHub Actions (auto deploy)
+
+`master` 브랜치 push 시 Ubuntu **self-hosted runner**가 배포합니다.
+
+- Workflow: [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml)
+- 실행: `bash /home/jeon/apps/resume-pilot/scripts/resume-pilot.sh deploy`
+- 사전: 서버에 GitHub Actions Runner 등록, 저장소 clone 경로 일치
+
+수동 배포는 `./scripts/resume-pilot.sh deploy` 와 동일합니다.
+
 ## Environment variables
 
 [`.env.production.example`](../.env.production.example) → server `.env`

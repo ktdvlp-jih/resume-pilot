@@ -47258,7 +47258,81 @@ SETUP.md의 `deploy-remote` 명령은 `.\scripts\deploy-remote.ps1`로 수정해
 _**Agent (default)**_
 
 <tool-use data-tool-type="read" data-tool-name="read_file_v2">
-<details><summary>Tool use: **read_file_v2** • Read file: </summary>
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\docs\RUNNING.md</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Glob pattern "**/*" matches every file and is not allowed. Use a more specific glob or no glob.
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\resume-api\Dockerfile.prod</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+사용자에게 종합적인 검토를 다시 한 번 정리하고 있습니다.
+
+resume-pilot.ps1와 resume-pilot.sh의 `db` 명령어 버그를 수정할 예정입니다. 로컬 개발 환경에서 포트 5432를 사용하도록 통일합니다.
+
+sh의 `db`가 프로덕션 포트 55532를 사용하면 로컬 개발 JDBC가 망가집니다. 로컬 개발 DB는 반드시 5432 포트를 써야 합니다.
+
+SETUP.md 76번 줄의 스크립트명을 resume-pilot.ps1에서 deploy-remote.ps1로 수정해야 합니다.
+
+deploy-remote.ps1에는 resume-pilot.sh의 deploy와 비교해 health check가 빠져 있습니다.
+
+커밋되지 않은 스크립트가 몇 개 남아 있을 수 있습니다.
+
+sh에 Linux용 setup 명령어를 추가하는 것도 고려할 수 있습니다.</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "" • **3** results in **1** directory</summary>
+
+Directory: **e:\workspace\resume-pilot** (3 files)
+
+| File |
+|------|
+| `../.\.github\workflows\ci-ai.yml` |
+| `../.\.github\workflows\ci-web.yml` |
+| `../.\.github\workflows\ci-api.yml` |
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search"><details>
+<summary>Tool use: **glob_file_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\docs\INFRASTRUCTURE.md</summary>
 
 </details>
 </tool-use>
@@ -47274,6 +47348,3658 @@ _**Agent (default)**_
 <details>
 <summary>Tool use: **ripgrep_raw_search**</summary>
 
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "glob": "docs/*",
+  "path": "e:\\workspace\\resume-pilot",
+  "pattern": "deploy-remote"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "e:\\workspace\\resume-pilot",
+  "pattern": "deploy-remote",
+  "topFiles": [
+    {
+      "matchCount": 4,
+      "uri": ".\\docs\\SETUP.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".\\docs\\RUNNING.md"
+    },
+    {
+      "matchCount": 2,
+      "uri": ".\\docs\\deployment.md"
+    }
+  ],
+  "totalFiles": 3,
+  "totalMatches": 7
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+한국어로 상세 검토를 진행하고 명확한 버그를 수정할 예정입니다.
+
+resume-pilot.ps1에 db 명령을 추가하고, resume-pilot.sh의 db 포트를 로컬 개발 컨테이너(5432)로 수정합니다. SETUP.md의 잘못된 deploy-remote 명령도 고칩니다.
+
+ps1의 db 명령과 ValidateSet도 함께 수정합니다. SETUP.md 37번 줄의 잘못된 db 참조를 고치고, 74번 줄의 deploy-remote.ps1 명령은 이미 정확합니다. Linux 환경에서 .env 심볼릭 링크는 별도로 안내하겠습니다. deploy-remote.ps1는 서버에 git이 없을 때 tar 기반으로 동작하며, deploy-remote.sh는 server-up.sh를 호출합니다.
+
+deploy-remote.ps1는 server-up.sh와 헬스 체크를 생략합니다. AI 도커 헬스 체크, 미커밋 파일, Gemini 임베딩 검증, actuator/health 500 오류 등 추가 확인 사항을 정리했습니다.
+
+start-local.ps1는 db 명령이 추가되면 중복되므로 제거하거나 db가 이를 호출하도록 정리할 수 있습니다. Linux 개발 환경에서는 AI 서비스용 pip, npm, .env 복사가 누락됩니다. deploy-remote.ps1를 deploy-remote.sh처럼 server-up.sh를 실행하도록 통일하는 방안도 검토 중입니다.</details></think>
+
+_**Agent (default)**_
+
+문서·스크립트 불일치를 확인했습니다. `db` 명령 누락과 포트 혼선을 바로 수정합니다.
+
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.ps1</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.ps1</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.ps1</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.ps1</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.sh</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.sh</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\docs\SETUP.md</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+SETUP.md 2부의 DB 설명을 업데이트해야 한다. resume-pilot.ps1 db가 이제 정상 작동한다.
+
+DB 명령어 주석 헤더를 수정해야 한다. 로컬 개발 시에는 DB 단계를 먼저 쓰는 것이 맞다. 터널은 원격 DB용이다. Next 스텝에서 순서가 어긋날 수 있다. RUNNING.md는 로컬 Docker 5432를 사용한다. deploy-remote.ps1도 server-up.sh를 써서 통일해야 한다. health 체크도 추가해야 한다.</details></think>
+
+_**Agent (default)**_
+
+전체를 다시 점검했습니다. **지금 당장 막히는 것 2건은 방금 고쳤고**, 나머지는 우선순위별로 정리합니다.
+
+---
+
+## 방금 수정한 것 (버그)
+
+| 문제 | 내용 |
+|------|------|
+| `resume-pilot.ps1 db` 없음 | README·SETUP이 참조했는데 명령이 없었음 → **5432 로컬 DB** 추가 |
+| `resume-pilot.sh db` 포트 혼선 | compose `55532`(prod)를 띄워 dev `.env`(5432)와 안 맞음 → **5432 단독 컨테이너**로 통일 |
+| SETUP.md 오타 | `resume-pilot.ps1 deploy-remote` (없는 명령) → `deploy-remote.ps1` |
+
+---
+
+## 스크립트·인프라 — 상태 OK
+
+| 항목 | 판단 |
+|------|------|
+| Ubuntu `deploy` | compose 5컨테이너 + health check ✅ |
+| AI 3개 prod | compose에 포함, 별도 명령 불필요 ✅ |
+| Windows `setup` | pip×3, `.env`×3, admin 안내 ✅ |
+| `tunnel` | 원격 DB `55532`만 (AI 포트 터널 불필요) ✅ |
+| `deploy-remote.sh` | rsync + `server-up.sh` ✅ |
+| `local-prod-up.ps1` | 로컬 prod 스모크 (8080/55433) ✅ |
+| CI | api / web / ai 워크플로 3개 ✅ |
+| 문서 | RUNNING, deployment, INFRASTRUCTURE, server-coexistence ✅ |
+
+---
+
+## 아직 남은 것 (우선순위)
+
+### 🔴 배포 전 권장
+
+1. **스크립트·문서 커밋** — `resume-pilot.sh/ps1`이 아직 untracked (`??`)
+2. **서버 `.env` 수동 업로드** — `deploy-remote`는 `.env` 안 올림
+   ```powershell
+   scp .env ${env:DEPLOY_HOST}:~/apps/resume-pilot/.env
+   ```
+3. **Ubuntu 첫 배포** — SSH 세션에서 `git pull` + `./scripts/resume-pilot.sh deploy` 또는 `deploy-remote.ps1`
+
+### 🟡 개선하면 좋음 (필수 아님)
+
+| 항목 | 설명 |
+|------|------|
+| `deploy-remote.ps1` | `.sh`는 `server-up.sh` 호출, `.ps1`은 `docker compose` 직접 호출 + **health check 없음** |
+| Linux `setup` | Windows만 `setup` 있음. Mac/Linux dev는 RUNNING.md 수동 따라야 함 |
+| `start-local.ps1` | `resume-pilot.ps1 db`와 역할 중복 → 나중에 하나로 통합 가능 |
+| AI healthcheck | compose에 AI 3개 healthcheck 없음. app이 AI 준비 전에 뜰 수 있음 |
+| `/actuator/health` 500 | 이전에 보고됨. Swagger/로그인은 되면 배포는 가능, 원인 조사는 별도 |
+| Gemini embedding | `EMBEDDING_MODEL` + Gemini URL 조합 실제 검증 안 됨 |
+
+### 🟢 로컬 dev UX (선택)
+
+| 항목 | 설명 |
+|------|------|
+| `setup` Next 1번이 `tunnel` | **원격 DB** 쓸 때만 필요. 순수 로컬이면 `db` 먼저 |
+| Spring `.env` 자동 로드 | bootRun은 IDE/수동 export 필요 (RUNNING.md에 명시됨) |
+| `.env` 갱신 시 AI 3개 | `setup`은 최초만 복사. 루트 `.env` 바꾸면 AI 폴더 `.env` 수동 동기화 |
+
+---
+
+## Horizon 대비 최종 체크리스트
+
+| Horizon | ResumePilot | 추가 필요? |
+|---------|-------------|-----------|
+| `deploy` | ✅ (AI 3개 내장) | ❌ |
+| `tunnel` (DB) | ✅ 55532 | ❌ |
+| `db` | ✅ 5432 (방금 수정) | ❌ |
+| `setup` (Win) | ✅ + AI `.env`×3 | ❌ |
+| `github-ssh` | ✅ | ❌ |
+| AI 터미널 | 1개 | **3개** (문서·setup 안내로 충분) |
+| admin 프론트 | 있음 | setup Next에 추가됨 ✅ |
+
+---
+
+## 결론
+
+**인프라·스크립트 구조는 배포 가능한 수준**입니다. AI 3개 때문에 스크립트에 명령을 더 넣을 필요는 없고, 차이는 **로컬에서 터미널 2개 더** 띄우는 것뿐입니다.
+
+**지금 할 일 순서:**
+1. 변경사항 커밋 (`resume-pilot.sh/ps1`, SETUP 등)
+2. 서버에 `.env` scp
+3. `./scripts/resume-pilot.sh deploy` 실행
+4. `deploy-smoke` / `/admin/` / AI 기능 한 번씩 확인
+
+커밋이나 Ubuntu 배포를 이어서 진행할까요?
+
+---
+
+_**User**_
+
+그럼 커밋 및 푸쉬해줘 배포 바로 진행할게
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+커밋과 푸시를 진행하겠습니다. 배포를 바로 시작합니다.</details></think>
+
+_**Agent (default)**_
+
+커밋·푸시 전에 변경 사항을 확인합니다.
+
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git status --short</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git status --short
+```
+
+```
+ M .specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md
+ M README.md
+ M docs/INFRASTRUCTURE.md
+ M docs/SETUP.md
+?? scripts/resume-pilot.ps1
+?? scripts/resume-pilot.sh
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git diff; git diff --cached</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git diff; git diff --cached
+```
+
+```
+diff --git a/.specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md b/.specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md
+index 17f991a..4157a10 100644
+--- a/.specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md
++++ b/.specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md
+@@ -44992,9 +44992,29 @@ _**Agent (default)**_
+ 
+ &lt;tool-use data-tool-type="search" data-tool-name="glob_file_search"&gt;
+ &lt;details&gt;
+-&lt;summary&gt;Tool use: **glob_file_search** • Searched codebase "" • **0** results in **0** directories&lt;/summary&gt;
++&lt;summary&gt;Tool use: **glob_file_search** • Searched codebase "" • **16** results in **1** directory&lt;/summary&gt;
++
++Directory: **e:\workspace\resume-pilot\.cursor** (16 files)
++
++| File |
++|------|
++| &#96;../.cursor\rules\resume-pilot-project.mdc&#96; |
++| &#96;../.cursor\rules\specstory-commit.mdc&#96; |
++| &#96;../.cursor\hooks\session-start.js&#96; |
++| &#96;../.cursor\README.md&#96; |
++| &#96;../.cursor\commands\handoff.md&#96; |
++| &#96;../.cursor\skills\resume-pilot-deploy-smoke\SKILL.md&#96; |
++| &#96;../.cursor\commands\deploy-smoke.md&#96; |
++| &#96;../.cursor\skills\resume-pilot-api-smoke\SKILL.md&#96; |
++| &#96;../.cursor\commands\api-smoke.md&#96; |
++| &#96;../.cursor\commands\e2e-check.md&#96; |
++| &#96;../.cursor\rules\secrets-handling.mdc&#96; |
++| &#96;../.cursor\rules\resume-pilot-ai.mdc&#96; |
++| &#96;../.cursor\rules\resume-pilot-frontend.mdc&#96; |
++| &#96;../.cursor\rules\resume-pilot-backend.mdc&#96; |
++| &#96;../.cursor\hooks\guard-shell.js&#96; |
++| &#96;../.cursor\hooks.json&#96; |
+ 
+-No results found
+ &lt;/details&gt;
+ &lt;/tool-use&gt;
+ 
+@@ -45005,15 +45025,7 @@ No results found
+ 
+ _**Agent (default)**_
+ 
+-&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;
+-&lt;details&gt;
+-&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
+-
+-Status: **loading**
+-
+-
+-&lt;/details&gt;
+-&lt;/tool-use&gt;
++Glob pattern "**/*" matches every file and is not allowed. Use a more specific glob or no glob.
+ 
+ &lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;&lt;details&gt;
+ &lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
+@@ -45022,11 +45034,22 @@ Status: **loading**
+ 
+ _**Agent (default)**_
+ 
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++glob 결과를 확인하니 resume-pilot-* 스킬만 존재한다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
+ &lt;tool-use data-tool-type="search" data-tool-name="glob_file_search"&gt;
+ &lt;details&gt;
+-&lt;summary&gt;Tool use: **glob_file_search** • Searched codebase "" • **0** results in **0** directories&lt;/summary&gt;
++&lt;summary&gt;Tool use: **glob_file_search** • Searched codebase "" • **2** results in **1** directory&lt;/summary&gt;
++
++Directory: **e:\workspace\resume-pilot\.cursor\skills** (2 files)
++
++| File |
++|------|
++| &#96;../.cursor\skills\resume-pilot-deploy-smoke\SKILL.md&#96; |
++| &#96;../.cursor\skills\resume-pilot-api-smoke\SKILL.md&#96; |
+ 
+-No results found
+ &lt;/details&gt;
+ &lt;/tool-use&gt;
+ 
+@@ -45041,7 +45064,36 @@ _**Agent (default)**_
+ &lt;details&gt;
+ &lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
+ 
+-Status: **loading**
++
++Parameters:
++
++&#96;&#96;&#96;json
++{
++  "caseInsensitive": false,
++  "glob": "*.{md,mdc,json,yml,sh,ps1}",
++  "path": "e:\\workspace\\resume-pilot",
++  "pattern": "horizon|contest-check|contest"
++}
++&#96;&#96;&#96;
++Additional data:
++
++&#96;&#96;&#96;json
++{
++  "isPruned": true,
++  "outputMode": "content",
++  "path": "e:\\workspace\\resume-pilot",
++  "pattern": "horizon|contest-check|contest",
++  "topFiles": [
++    {
++      "matchCount": 66,
++      "uri": ".\\.specstory\\history\\2026-07-05_07-27-33Z-resumepilot-project-overview.md"
++    }
++  ],
++  "totalFiles": 1,
++  "totalMatches": 66
++}
++&#96;&#96;&#96;
++Status: **completed**
+ 
+ 
+ &lt;/details&gt;
+@@ -45059,6 +45111,11 @@ _**Agent (default)**_
+ 
+ &#96;&#96;&#96;bash
+ cd "e:\workspace\resume-pilot"; Get-ChildItem -Path .cursor\skills -Recurse -Force | Select-Object FullName; Get-ChildItem -Path .cursor -Recurse -Directory | Select-Object FullName
++&#96;&#96;&#96;
++
++&#96;&#96;&#96;
++
++
+ &#96;&#96;&#96;
+ &lt;/details&gt;
+ &lt;/tool-use&gt;
+@@ -45070,11 +45127,30 @@ cd "e:\workspace\resume-pilot"; Get-ChildItem -Path .cursor\skills -Recurse -For
+ 
+ _**Agent (default)**_
+ 
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++Get-ChildItem 명령의 출력이 비어 있었다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
+ &lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;
+ &lt;details&gt;&lt;summary&gt;Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; dir .cursor\skills /s /b 2&gt;&amp;1; if (Test-Path ".cursor\skills\horizon-contest-check") { Write-Host "EXISTS: horizon-contest-check" }; if (Test-Path ".cursor\skills\horizon-deploy-smoke") { Write-Host "EXISTS: horizon-deploy-smoke" }; if (Test-Path ".cursor\skills\horizon-resilience-test") { Write-Host "EXISTS: horizon-resilience-test" }&lt;/summary&gt;
+ 
+ &#96;&#96;&#96;bash
+ cd "e:\workspace\resume-pilot"; dir .cursor\skills /s /b 2&gt;&amp;1; if (Test-Path ".cursor\skills\horizon-contest-check") { Write-Host "EXISTS: horizon-contest-check" }; if (Test-Path ".cursor\skills\horizon-deploy-smoke") { Write-Host "EXISTS: horizon-deploy-smoke" }; if (Test-Path ".cursor\skills\horizon-resilience-test") { Write-Host "EXISTS: horizon-resilience-test" }
++&#96;&#96;&#96;
++
++&#96;&#96;&#96;
++Get-ChildItem : '/b' �μ��� ����ϴ� ��ġ �Ű� ������ ã�� �� �����ϴ�.
++��ġ C:\Temp\ps-script-55889c20-854a-4c43-bd89-8ea208137eff.ps1:93 ����:33
+++ cd "e:\workspace\resume-pilot"; dir .cursor\skills /s /b 2&amp;gt;&amp;amp;1; if (Te ...
+++                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++    + CategoryInfo          : InvalidArgument: (:) [Get-ChildItem], ParameterBindingException
++    + FullyQualifiedErrorId : PositionalParameterNotFound,Microsoft.PowerShell.Commands.GetChildItemCommand
++ 
++EXISTS: horizon-contest-check
++EXISTS: horizon-deploy-smoke
++EXISTS: horizon-resilience-test
++
+ &#96;&#96;&#96;
+ &lt;/details&gt;
+ &lt;/tool-use&gt;
+@@ -45090,7 +45166,30 @@ _**Agent (default)**_
+ &lt;details&gt;
+ &lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
+ 
+-Status: **loading**
++
++Parameters:
++
++&#96;&#96;&#96;json
++{
++  "caseInsensitive": false,
++  "path": "e:\\workspace\\resume-pilot\\.cursor",
++  "pattern": "horizon|contest"
++}
++&#96;&#96;&#96;
++Additional data:
++
++&#96;&#96;&#96;json
++{
++  "isPruned": true,
++  "outputMode": "content",
++  "path": "e:\\workspace\\resume-pilot\\.cursor",
++  "pattern": "horizon|contest",
++  "topFiles": [],
++  "totalFiles": 0,
++  "totalMatches": 0
++}
++&#96;&#96;&#96;
++Status: **completed**
+ 
+ 
+ &lt;/details&gt;
+@@ -45108,6 +45207,26 @@ _**Agent (default)**_
+ 
+ &#96;&#96;&#96;bash
+ cd "e:\workspace\resume-pilot"; git ls-files .cursor/
++&#96;&#96;&#96;
++
++&#96;&#96;&#96;
++.cursor/README.md
++.cursor/commands/api-smoke.md
++.cursor/commands/deploy-smoke.md
++.cursor/commands/e2e-check.md
++.cursor/commands/handoff.md
++.cursor/hooks.json
++.cursor/hooks/guard-shell.js
++.cursor/hooks/session-start.js
++.cursor/rules/resume-pilot-ai.mdc
++.cursor/rules/resume-pilot-backend.mdc
++.cursor/rules/resume-pilot-frontend.mdc
++.cursor/rules/resume-pilot-project.mdc
++.cursor/rules/secrets-handling.mdc
++.cursor/rules/specstory-commit.mdc
++.cursor/skills/resume-pilot-api-smoke/SKILL.md
++.cursor/skills/resume-pilot-deploy-smoke/SKILL.md
++
+ &#96;&#96;&#96;
+ &lt;/details&gt;
+ &lt;/tool-use&gt;
+@@ -45119,11 +45238,60 @@ cd "e:\workspace\resume-pilot"; git ls-files .cursor/
+ 
+ _**Agent (default)**_
+ 
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++디스크에 빈 horizon 폴더가 남아 있다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
+ &lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;
+ &lt;details&gt;&lt;summary&gt;Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; Get-ChildItem -Path .cursor -Recurse -Directory | ForEach-Object { $_.FullName.Replace((Get-Location).Path + '\', '') }&lt;/summary&gt;
+ 
+ &#96;&#96;&#96;bash
+ cd "e:\workspace\resume-pilot"; Get-ChildItem -Path .cursor -Recurse -Directory | ForEach-Object { $_.FullName.Replace((Get-Location).Path + '\', '') }
++&#96;&#96;&#96;
++
++&#96;&#96;&#96;
++.cursor\commands
++.cursor\hooks
++.cursor\rules
++.cursor\skills
++.cursor\skills\horizon-contest-check
++.cursor\skills\horizon-deploy-smoke
++.cursor\skills\horizon-resilience-test
++.cursor\skills\resume-pilot-api-smoke
++.cursor\skills\resume-pilot-deploy-smoke
++
++&#96;&#96;&#96;
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **run_terminal_command_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++빈 horizon 스킬 폴더가 3개 남아 있다. 이 폴더들을 모두 제거해야 한다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++삭제된 스킬의 빈 &#96;horizon-*&#96; 폴더가 남아 있어 제거하고, &#96;.cursor&#96; 전체를 다시 점검합니다.
++
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; Remove-Item -Recurse -Force ".cursor\skills\horizon-contest-check", ".cursor\skills\horizon-deploy-smoke", ".cursor\skills\horizon-resilience-test" -ErrorAction SilentlyContinue; Get-ChildItem -Path .cursor\skills -Directory | Select-Object Name&lt;/summary&gt;
++
++&#96;&#96;&#96;bash
++cd "e:\workspace\resume-pilot"; Remove-Item -Recurse -Force ".cursor\skills\horizon-contest-check", ".cursor\skills\horizon-deploy-smoke", ".cursor\skills\horizon-resilience-test" -ErrorAction SilentlyContinue; Get-ChildItem -Path .cursor\skills -Directory | Select-Object Name
++&#96;&#96;&#96;
++
++&#96;&#96;&#96;
++
++
+ &#96;&#96;&#96;
+ &lt;/details&gt;
+ &lt;/tool-use&gt;
+@@ -45132,3 +45300,2000 @@ cd "e:\workspace\resume-pilot"; Get-ChildItem -Path .cursor -Recurse -Directory
+ &lt;summary&gt;Tool use: **run_terminal_command_v2**&lt;/summary&gt;
+ 
+ &lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;
++&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++
++Parameters:
++
++&#96;&#96;&#96;json
++{
++  "caseInsensitive": false,
++  "glob": "*",
++  "path": "e:\\workspace\\resume-pilot",
++  "pattern": "horizon|contest-review|resilience-test|demo-check"
++}
++&#96;&#96;&#96;
++Additional data:
++
++&#96;&#96;&#96;json
++{
++  "isPruned": true,
++  "outputMode": "content",
++  "path": "e:\\workspace\\resume-pilot",
++  "pattern": "horizon|contest-review|resilience-test|demo-check",
++  "topFiles": [
++    {
++      "matchCount": 70,
++      "uri": ".\\.specstory\\history\\2026-07-05_07-27-33Z-resumepilot-project-overview.md"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\resume-web\\dist\\assets\\index-BWDEV9bo.js"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\resume-admin\\dist\\assets\\index-CsoPZfc0.js"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\resume-admin\\node_modules\\.vite\\deps\\react-dom_client.js.map"
++    },
++    {
++      "matchCount": 3,
++      "uri": ".\\resume-admin\\node_modules\\.vite\\deps\\react-dom_client.js"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\resume-web\\node_modules\\.vite\\deps\\react-dom_client.js.map"
++    },
++    {
++      "matchCount": 3,
++      "uri": ".\\resume-web\\node_modules\\.vite\\deps\\react-dom_client.js"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\resume-web\\node_modules\\tailwindcss\\dist\\lib.mjs"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\resume-admin\\node_modules\\tailwindcss\\dist\\lib.mjs"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\resume-web\\node_modules\\tailwindcss\\dist\\lib.js"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\resume-admin\\node_modules\\tailwindcss\\dist\\lib.js"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\resume-web\\node_modules\\tailwindcss\\preflight.css"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\resume-web\\node_modules\\tailwindcss\\index.css"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\resume-admin\\node_modules\\tailwindcss\\preflight.css"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\resume-admin\\node_modules\\tailwindcss\\index.css"
++    },
++    {
++      "matchCount": 12,
++      "uri": ".\\resume-admin\\node_modules\\typescript\\lib\\lib.webworker.d.ts"
++    },
++    {
++      "matchCount": 12,
++      "uri": ".\\resume-web\\node_modules\\typescript\\lib\\lib.webworker.d.ts"
++    },
++    {
++      "matchCount": 69,
++      "uri": ".\\resume-admin\\node_modules\\typescript\\lib\\lib.dom.d.ts"
++    },
++    {
++      "matchCount": 69,
++      "uri": ".\\resume-web\\node_modules\\typescript\\lib\\lib.dom.d.ts"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\resume-admin\\node_modules\\react-dom\\cjs\\react-dom-server.node.production.js"
++    }
++  ],
++  "totalFiles": 65,
++  "totalMatches": 538
++}
++&#96;&#96;&#96;
++Status: **completed**
++
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++빈 폴더를 제거했습니다. 폴더명을 해당 프로젝트에 맞게 변경할 예정입니다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++스킬 폴더명을 commands와 맞춰 &#96;api-smoke&#96;, &#96;deploy-smoke&#96;로 통일합니다.
++
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.cursor\skills\resume-pilot-api-smoke\SKILL.md&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.cursor\commands\api-smoke.md&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.cursor\README.md&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++git mv 명령어를 사용해 스킬 폴더명을 모두 변경할 예정입니다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.cursor\skills\resume-pilot-deploy-smoke\SKILL.md&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.cursor\commands\deploy-smoke.md&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;
++&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++
++Parameters:
++
++&#96;&#96;&#96;json
++{
++  "caseInsensitive": false,
++  "path": "e:\\workspace\\resume-pilot",
++  "pattern": "resume-pilot-api-smoke|resume-pilot-deploy-smoke"
++}
++&#96;&#96;&#96;
++Additional data:
++
++&#96;&#96;&#96;json
++{
++  "isPruned": true,
++  "outputMode": "content",
++  "path": "e:\\workspace\\resume-pilot",
++  "pattern": "resume-pilot-api-smoke|resume-pilot-deploy-smoke",
++  "topFiles": [
++    {
++      "matchCount": 14,
++      "uri": ".\\.specstory\\history\\2026-07-05_07-27-33Z-resumepilot-project-overview.md"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\docs\\SETUP.md"
++    },
++    {
++      "matchCount": 2,
++      "uri": ".\\.cursor\\README.md"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\.cursor\\skills\\resume-pilot-deploy-smoke\\SKILL.md"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\.cursor\\commands\\deploy-smoke.md"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\.cursor\\skills\\resume-pilot-api-smoke\\SKILL.md"
++    },
++    {
++      "matchCount": 1,
++      "uri": ".\\.cursor\\commands\\api-smoke.md"
++    }
++  ],
++  "totalFiles": 7,
++  "totalMatches": 21
++}
++&#96;&#96;&#96;
++Status: **completed**
++
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++스킬 폴더명을 변경하고 관련 참조를 모두 수정할 예정입니다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git mv .cursor/skills/resume-pilot-api-smoke .cursor/skills/api-smoke; git mv .cursor/skills/resume-pilot-deploy-smoke .cursor/skills/deploy-smoke&lt;/summary&gt;
++
++&#96;&#96;&#96;bash
++cd "e:\workspace\resume-pilot"; git mv .cursor/skills/resume-pilot-api-smoke .cursor/skills/api-smoke; git mv .cursor/skills/resume-pilot-deploy-smoke .cursor/skills/deploy-smoke
++&#96;&#96;&#96;
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **run_terminal_command_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++File not found: 
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++File not found: 
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\.cursor\commands\api-smoke.md&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\.cursor\commands\deploy-smoke.md&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\.cursor\README.md&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\docs\SETUP.md&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="search" data-tool-name="glob_file_search"&gt;
++&lt;details&gt;
++&lt;summary&gt;Tool use: **glob_file_search** • Searched codebase "" • **2** results in **1** directory&lt;/summary&gt;
++
++Directory: **e:\workspace\resume-pilot\.cursor\skills** (2 files)
++
++| File |
++|------|
++| &#96;../.cursor\skills\deploy-smoke\SKILL.md&#96; |
++| &#96;../.cursor\skills\api-smoke\SKILL.md&#96; |
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="search" data-tool-name="glob_file_search"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **glob_file_search**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\.cursor\skills\api-smoke\SKILL.md&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\.cursor\skills\deploy-smoke\SKILL.md&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; Get-ChildItem .cursor\skills -Directory | Select-Object Name; git status --short&lt;/summary&gt;
++
++&#96;&#96;&#96;bash
++cd "e:\workspace\resume-pilot"; Get-ChildItem .cursor\skills -Directory | Select-Object Name; git status --short
++&#96;&#96;&#96;
++
++&#96;&#96;&#96;
++
++ M .cursor/README.md
++ M .cursor/commands/api-smoke.md
++ M .cursor/commands/deploy-smoke.md
++RM .cursor/skills/resume-pilot-api-smoke/SKILL.md -&amp;gt; .cursor/skills/api-smoke/SKILL.md
++RM .cursor/skills/resume-pilot-deploy-smoke/SKILL.md -&amp;gt; .cursor/skills/deploy-smoke/SKILL.md
++ M .specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md
++ M docs/SETUP.md
++
++&#96;&#96;&#96;
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **run_terminal_command_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++Specstory가 수정된 것으로 보입니다. 아마도 자동 업데이트 때문일 것입니다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git add .cursor/ docs/SETUP.md; git commit --trailer "Co-authored-by: Cursor &lt;cursoragent@cursor.com&gt;" -m "chore: rename Cursor skills and remove leftover horizon folders"&lt;/summary&gt;
++
++&#96;&#96;&#96;bash
++cd "e:\workspace\resume-pilot"; git add .cursor/ docs/SETUP.md; git commit --trailer "Co-authored-by: Cursor &lt;cursoragent@cursor.com&gt;" -m "chore: rename Cursor skills and remove leftover horizon folders"
++&#96;&#96;&#96;
++
++&#96;&#96;&#96;
++[main fdb129c] chore: rename Cursor skills and remove leftover horizon folders
++ 6 files changed, 7 insertions(+), 7 deletions(-)
++ rename .cursor/skills/{resume-pilot-api-smoke =&amp;gt; api-smoke}/SKILL.md (97%)
++ rename .cursor/skills/{resume-pilot-deploy-smoke =&amp;gt; deploy-smoke}/SKILL.md (97%)
++
++&#96;&#96;&#96;
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **run_terminal_command_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git status --short; Test-Path ".cursor\skills\horizon-contest-check"&lt;/summary&gt;
++
++&#96;&#96;&#96;bash
++cd "e:\workspace\resume-pilot"; git status --short; Test-Path ".cursor\skills\horizon-contest-check"
++&#96;&#96;&#96;
++
++&#96;&#96;&#96;
++ M .specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md
++False
++
++&#96;&#96;&#96;
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **run_terminal_command_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++horizon-contest-check 폴더는 존재하지 않습니다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git add .specstory/history/; git commit --trailer "Co-authored-by: Cursor &lt;cursoragent@cursor.com&gt;" -m "docs: SpecStory 대화 이력 동기화"&lt;/summary&gt;
++
++&#96;&#96;&#96;bash
++cd "e:\workspace\resume-pilot"; git add .specstory/history/; git commit --trailer "Co-authored-by: Cursor &lt;cursoragent@cursor.com&gt;" -m "docs: SpecStory 대화 이력 동기화"
++&#96;&#96;&#96;
++
++&#96;&#96;&#96;
++[main 8beb893] docs: SpecStory 대화 이력 동기화
++ 1 file changed, 837 insertions(+)
++
++&#96;&#96;&#96;
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **run_terminal_command_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++정리했습니다.
++
++## 원인
++&#96;horizon-contest-check&#96; 등 **빈 폴더**가 남아 있었습니다. &#96;SKILL.md&#96;만 지우고 Git은 빈 디렉터리를 추적하지 않아서 Explorer에는 보였습니다.
++
++## 조치
++
++### 삭제한 빈 폴더
++- &#96;horizon-contest-check&#96;
++- &#96;horizon-deploy-smoke&#96;
++- &#96;horizon-resilience-test&#96;
++
++### 스킬 폴더명 통일 (commands와 동일)
++| 이전 | 이후 |
++|------|------|
++| &#96;resume-pilot-api-smoke/&#96; | &#96;api-smoke/&#96; |
++| &#96;resume-pilot-deploy-smoke/&#96; | &#96;deploy-smoke/&#96; |
++
++### 현재 &#96;.cursor/skills/&#96; 구조
++&#96;&#96;&#96;
++api-smoke/SKILL.md
++deploy-smoke/SKILL.md
++&#96;&#96;&#96;
++
++## 커밋
++- &#96;fdb129c&#96; — 스킬 rename + horizon 빈 폴더 제거
++- &#96;8beb893&#96; — SpecStory 동기화
++
++Ubuntu에서 &#96;git pull&#96; 하시면 됩니다. Cursor는 **창 새로고침** 후 &#96;/api-smoke&#96;, &#96;/deploy-smoke&#96;를 쓰세요.
++
++---
++
++_**User**_
++
++resume-pilot.sh 이거 파일을 너 안만들어준거 같거든? horizon.ps1 horizon.sh 기준으로 내가 다른 프로젝트에 있는거 들고 왔는데
++현재 .env에 맞게 수정해서 만들어줘
++
++---
++
++_**Agent (default)**_
++
++horizon 스크립트를 찾아 &#96;resume-pilot&#96;용으로 맞추겠습니다.
++
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="search" data-tool-name="glob_file_search"&gt;
++&lt;details&gt;
++&lt;summary&gt;Tool use: **glob_file_search** • Searched codebase "" • **2** results in **1** directory&lt;/summary&gt;
++
++Directory: **e:\workspace\resume-pilot** (2 files)
++
++| File |
++|------|
++| &#96;../.\scripts\horizon.sh&#96; |
++| &#96;../.\scripts\horizon.ps1&#96; |
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="search" data-tool-name="glob_file_search"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **glob_file_search**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="search" data-tool-name="glob_file_search"&gt;
++&lt;details&gt;
++&lt;summary&gt;Tool use: **glob_file_search** • Searched codebase "" • **4** results in **1** directory&lt;/summary&gt;
++
++Directory: **e:\workspace\resume-pilot** (4 files)
++
++| File |
++|------|
++| &#96;../.\.cursor\rules\resume-pilot-project.mdc&#96; |
++| &#96;../.\.cursor\rules\resume-pilot-ai.mdc&#96; |
++| &#96;../.\.cursor\rules\resume-pilot-frontend.mdc&#96; |
++| &#96;../.\.cursor\rules\resume-pilot-backend.mdc&#96; |
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="search" data-tool-name="glob_file_search"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **glob_file_search**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="search" data-tool-name="glob_file_search"&gt;
++&lt;details&gt;
++&lt;summary&gt;Tool use: **glob_file_search** • Searched codebase "" • **13** results in **1** directory&lt;/summary&gt;
++
++Directory: **e:\workspace\resume-pilot** (13 files)
++
++| File |
++|------|
++| &#96;../.\scripts\deploy-remote.sh&#96; |
++| &#96;../.\scripts\deploy-remote.ps1&#96; |
++| &#96;../.\scripts\server-down.sh&#96; |
++| &#96;../.\scripts\server-up.sh&#96; |
++| &#96;../.\scripts\local-prod-up.sh&#96; |
++| &#96;../.\scripts\local-prod-up.ps1&#96; |
++| &#96;../.\scripts\start-local.ps1&#96; |
++| &#96;../.\scripts\horizon.sh&#96; |
++| &#96;../.\scripts\generate-jwt-secret.ps1&#96; |
++| &#96;../.\scripts\kill-port.ps1&#96; |
++| &#96;../.\scripts\kill-dev-ports.ps1&#96; |
++| &#96;../.\scripts\kill-port.sh&#96; |
++| &#96;../.\scripts\horizon.ps1&#96; |
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="search" data-tool-name="glob_file_search"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **glob_file_search**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\horizon.sh&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\horizon.ps1&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.env&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\server-up.sh&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++ResumePilot용 resume-pilot.sh와 resume-pilot.ps1를 horizon 스크립트를 참고해 새로 만든다. .env 설정에 맞게 수정할 것이다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git remote -v 2&gt;&amp;1; git branch --show-current&lt;/summary&gt;
++
++&#96;&#96;&#96;bash
++cd "e:\workspace\resume-pilot"; git remote -v 2&gt;&amp;1; git branch --show-current
++&#96;&#96;&#96;
++
++&#96;&#96;&#96;
++origin	git@github.com:ktdvlp-jih/resume-pilot.git (fetch)
++origin	git@github.com:ktdvlp-jih/resume-pilot.git (push)
++main
++
++&#96;&#96;&#96;
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **run_terminal_command_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.env.example&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\docs\SETUP.md&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++resume-pilot.sh와 resume-pilot.ps1를 생성하고, 기존 horizon 파일들은 삭제할 예정이다.
++
++resume-pilot.sh에는 help, deploy, tunnel, db 함수를 추가할 예정이다. deploy는 git pull과 docker compose up -d --build를 실행한 뒤 APP_PORT(9180) 헬스 체크를 수행한다. tunnel은 서버의 POSTGRES_PORT(55532)로 SSH 터널을 연다. 로컬 개발용 DB는 docker run 명령으로 실행한다.
++
++db 명령은 로컬 개발 전용 포트 5432에서 Postgres를 실행한다. .env 파일이 있으면 APP_PORT, POSTGRES_PORT, DEPLOY_HOST를 파싱하여 사용한다. tunnel은 서버의 55532 포트를 로컬 55532로 연결해 DBeaver가 접근하도록 한다.
++
++bash 스크립트는 .env를 &#96;set -a; source .env; set +a&#96; 방식으로 불러온다. Git 브랜치명은 master 대신 main을 사용한다. resume-pilot.ps1에는 setup, github-ssh, tunnel 등 명령을 추가한다. tunnel은 .env의 DEPLOY_HOST를 파싱하거나 -TailscaleIp 옵션으로 지정한다. bash에도 down과 status 명령을 추가한다. horizon 스크립트와 유사하게 유지한다.
++
++bash에서는 &#96;source .env&#96; 후 &#96;set +a&#96;로 환경변수를 불러온다. PowerShell은 .env 파일을 파싱해 Process 환경변수로 설정하는 &#96;Read-DotEnv&#96; 함수를 사용한다. Tunnel은 DEPLOY_HOST를 파싱하거나 &#96;-TailscaleIp&#96;와 &#96;SSH_USER&#96;로 지정한다. github-ssh 키 주석은 &#96;ktdvlp-jih@github-resume-pilot&#96;이다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++&#96;resume-pilot.sh&#96;와 &#96;resume-pilot.ps1&#96;을 작성하고, horizon 스크립트는 제거합니다.
++
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.sh&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.ps1&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++server-up.sh에 resume-pilot.sh 배포를 대안으로 추가하고 SETUP.md를 갱신한다. horizon 스크립트는 삭제하며 resume-pilot.sh를 새로 만든다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="delete_file"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **delete_file**&lt;/summary&gt;
++
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="delete_file"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **delete_file**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="delete_file"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **delete_file**&lt;/summary&gt;
++
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="delete_file"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **delete_file**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\docs\SETUP.md&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\docs\SETUP.md&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\docs\SETUP.md&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\docs\SETUP.md&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\docs\SETUP.md&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\docs\SETUP.md&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\docs\SETUP.md&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\docs\INFRASTRUCTURE.md&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git update-index --chmod=+x scripts/resume-pilot.sh scripts/resume-pilot.ps1 2&gt;$null; git add scripts/resume-pilot.sh scripts/resume-pilot.ps1 scripts/horizon.sh scripts/horizon.ps1 docs/SETUP.md docs/INFRASTRUCTURE.md 2&gt;&amp;1&lt;/summary&gt;
++
++&#96;&#96;&#96;bash
++cd "e:\workspace\resume-pilot"; git update-index --chmod=+x scripts/resume-pilot.sh scripts/resume-pilot.ps1 2&gt;$null; git add scripts/resume-pilot.sh scripts/resume-pilot.ps1 scripts/horizon.sh scripts/horizon.ps1 docs/SETUP.md docs/INFRASTRUCTURE.md 2&gt;&amp;1
++&#96;&#96;&#96;
++
++&#96;&#96;&#96;
++git : fatal: pathspec 'scripts/horizon.sh' did not match any files
++��ġ C:\Temp\ps-script-a2c87abe-6235-437a-9494-ed33952a8192.ps1:93 ����:119
+++ ... s1 2&amp;gt;$null; git add scripts/resume-pilot.sh scripts/resume-pilot.ps1  ...
+++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++    + CategoryInfo          : NotSpecified: (fatal: pathspec...match any files:String) [], RemoteException
++    + FullyQualifiedErrorId : NativeCommandError
++ 
++
++&#96;&#96;&#96;
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **run_terminal_command_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++horizon 파일들은 git에 커밋되지 않았다. 로컬에서만 삭제된 상태다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\README.md&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&#96;resume-pilot.sh&#96; / &#96;resume-pilot.ps1&#96;을 만들었고 &#96;horizon.*&#96;은 제거했습니다.
++
++## 생성된 스크립트
++
++### &#96;scripts/resume-pilot.sh&#96; (Ubuntu / macOS)
++
++| 명령 | 설명 |
++|------|------|
++| &#96;deploy&#96; | &#96;git pull&#96; + &#96;docker compose build/up&#96; + health (&#96;APP_PORT&#96;, 기본 9180) |
++| &#96;tunnel [host]&#96; | DB SSH 터널 (&#96;POSTGRES_PORT&#96; 55532) |
++| &#96;db&#96; | 로컬 dev용 pgvector (&#96;localhost:5432&#96;) |
++
++&#96;&#96;&#96;bash
++chmod +x scripts/resume-pilot.sh
++./scripts/resume-pilot.sh deploy
++&#96;&#96;&#96;
++
++### &#96;scripts/resume-pilot.ps1&#96; (Windows)
++
++| 명령 | 설명 |
++|------|------|
++| &#96;setup&#96; | &#96;.env&#96;, npm×2, pip×3, Gradle compile |
++| &#96;db&#96; | &#96;start-local.ps1&#96;로 PostgreSQL 기동 |
++| &#96;tunnel&#96; | DB 터널 (&#96;POSTGRES_PORT&#96; from &#96;.env&#96;) |
++| &#96;deploy-remote&#96; | &#96;DEPLOY_HOST&#96;로 원격 배포 |
++| &#96;github-ssh&#96; | &#96;resume-pilot&#96; repo SSH 설정 |
++
++&#96;&#96;&#96;powershell
++.\scripts\resume-pilot.ps1 setup
++.\scripts\resume-pilot.ps1 deploy-remote
++&#96;&#96;&#96;
++
++## &#96;.env&#96;에 추가 권장 (Windows 배포용)
++
++지금 &#96;.env&#96;는 서버 Docker용입니다. Windows에서 &#96;deploy-remote&#96; / &#96;tunnel&#96; 쓰려면:
++
++&#96;&#96;&#96;env
++DEPLOY_HOST=jeon@your-lan-host
++LAN_HOST=your-lan-host
++&#96;&#96;&#96;
++
++## Ubuntu에서 (이미 SSH 접속 중이면)
++
++&#96;&#96;&#96;bash
++cd ~/apps/resume-pilot
++git pull
++chmod +x scripts/resume-pilot.sh
++./scripts/resume-pilot.sh deploy
++&#96;&#96;&#96;
++
++&#96;docs/SETUP.md&#96;, &#96;README.md&#96;도 반영해 두었습니다. 커밋이 필요하면 말씀해 주세요.
++
++---
++
++_**User**_
++
++너무 다른데?  그냥 동일하게 환경셋팅을 하되 port번호나 필수경로 등등 같은거만 수정해서 재사용해줘
++
++---
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++원본과 유사한 구조를 유지하되 포트 번호와 필수 경로 등만 수정하여 재사용할 것이다.
++
++원본 horizon.sh와 horizon.ps1을 다시 만들어야 한다. 이전 대화에서 확인한 내용을 바탕으로 최소한의 수정만 적용할 것이다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++horizon 스크립트 구조를 유지하고 포트·경로만 바꿔 재작성합니다.
++
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;
++&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++
++Parameters:
++
++&#96;&#96;&#96;json
++{
++  "caseInsensitive": false,
++  "path": "e:\\workspace\\resume-pilot\\resume-api",
++  "pattern": "/health|actuator"
++}
++&#96;&#96;&#96;
++Additional data:
++
++&#96;&#96;&#96;json
++{
++  "isPruned": true,
++  "outputMode": "content",
++  "path": "e:\\workspace\\resume-pilot\\resume-api",
++  "pattern": "/health|actuator",
++  "topFiles": [
++    {
++      "matchCount": 1,
++      "uri": "resume-api\\src\\main\\java\\com\\resumepilot\\global\\config\\SecurityConfig.java"
++    },
++    {
++      "matchCount": 1,
++      "uri": "resume-api\\src\\main\\java\\com\\resumepilot\\global\\config\\SpaResourceConfig.java"
++    }
++  ],
++  "totalFiles": 2,
++  "totalMatches": 2
++}
++&#96;&#96;&#96;
++Status: **completed**
++
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\resume-pilot.sh&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\resume-pilot.ps1&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++사용자는 horizon.sh와 horizon.ps1의 구조를 거의 동일하게 유지하길 원한다. 포트 번호나 필수 경로 등 일부 값만 수정하여 재사용할 것이다.
++
++스크립트명은 resume-pilot로 변경한다. 포트는 9080→9180, 55432→55532로 수정한다. 프론트엔드 경로는 resume-web/resume-admin으로, AI는 resume-ai로 바꾼다. DB는 resumepilot로 설정하고, git remote는 resume-pilot로, 브랜치는 main으로, 환경변수 파일은 .env.dev에서 .env로 변경한다.
++
++프론트엔드 환경변수 파일 위치를 확인 중이다. DB 접속 주소는 기존 55432 포트에서 55532로 변경한다.
++
++DB 명령어는 horizon처럼 &#96;docker compose up -d postgres&#96;로 유지한다. 서버 환경에서는 55532 포트가 기본값이 되고, 로컬 개발 환경에서는 5432 포트를 사용한다.
++
++setup.ps1 구조는 horizon.ps1과 동일하게 유지한다. 프론트엔드는 frontend와 frontend-admin 폴더를 선택적으로 지원하며, AI는 단일 폴더로 구성한다.
++
++3개 AI 서비스는 pip 설치를 반복한다. 나머지 구조는 horizon.ps1과 동일하게 유지한다.
++
++터널 명령도 동일하게 유지한다. TailscaleIp 파라미터 기본값은 100.x.x.x이며, 포트는 55532로 변경한다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++horizon 스크립트와 동일한 구조로, 포트·경로만 바꿔 다시 작성합니다.
++
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.sh&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.ps1&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++SETUP.md에서 deploy-remote를 추가한 변경사항을 되돌리고 있다.
++
++SETUP.md 2부는 이미 resume-pilot.ps1 기반이라 수정이 필요 없다. Windows 개발 터널은 horizon처럼 TailscaleIp를 사용해야 한다. DB 명령어는 프로덕션 compose 포트(55532)를 쓴다. 로컬 개발 환경은 localhost 5432를 쓴다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++&#96;horizon.sh&#96; / &#96;horizon.ps1&#96;과 **같은 구조**로 맞춰 두었습니다. 바뀐 건 이름·포트·경로뿐입니다.
++
++## 변경对照 (Horizon → ResumePilot)
++
++| 항목 | Horizon | ResumePilot |
++|------|---------|-------------|
++| 스크립트 | &#96;horizon.sh&#96; / &#96;horizon.ps1&#96; | &#96;resume-pilot.sh&#96; / &#96;resume-pilot.ps1&#96; |
++| App health | &#96;:9080/api/health&#96; | &#96;:9180/actuator/health&#96; |
++| DB 터널 | &#96;55432&#96; | &#96;55532&#96; |
++| DB 이름 | &#96;horizon&#96; | &#96;resumepilot&#96; |
++| git pull | &#96;master&#96; | &#96;main&#96; |
++| &#96;.env&#96; | &#96;.env.dev&#96; | &#96;.env&#96; (&#96;.env.example&#96;) |
++| 프론트 | &#96;frontend&#96;, &#96;frontend-admin&#96; | &#96;resume-web&#96;, &#96;resume-admin&#96; |
++| AI | &#96;ai/&#96; 1개 | &#96;rag-service&#96;, &#96;prompt-service&#96;, &#96;resume-ai&#96; |
++| Gradle | 루트 &#96;gradlew&#96; | &#96;resume-api/gradlew&#96; |
++| GitHub | &#96;horizon.git&#96; | &#96;resume-pilot.git&#96; |
++
++## 명령 (동일)
++
++**Linux**
++&#96;&#96;&#96;bash
++./scripts/resume-pilot.sh deploy
++./scripts/resume-pilot.sh tunnel [IP]
++./scripts/resume-pilot.sh db
++&#96;&#96;&#96;
++
++**Windows**
++&#96;&#96;&#96;powershell
++.\scripts\resume-pilot.ps1 setup
++.\scripts\resume-pilot.ps1 github-ssh
++.\scripts\resume-pilot.ps1 tunnel -TailscaleIp 100.x.x.x
++&#96;&#96;&#96;
++
++추가했던 &#96;deploy-remote&#96;, &#96;db&#96;(ps1) 등은 **horizon에 없던 것**이라 제거했습니다. 원격 배포는 기존처럼 &#96;.\scripts\deploy-remote.ps1&#96; 쓰시면 됩니다.
++
++---
++
++_**User**_
++
++그럼 이게 프로젝트가 다르잖아 더 추가해야할건 없엇던거야? 여긴 ai 서버가 2개나 더 있는데
++
++---
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++ResumePilot는 Horizon과 달리 3개의 AI 서비스를 사용한다. 추가 설정이 필요한지 묻고 있다.
++
++setup 스크립트에 누락된 부분이 있는지 확인하고 있다. Python 패키지 설치와 uvicorn 실행 명령은 이미 3개 서비스에 대해 모두 포함되어 있다.
++
++setup.ps1의 도움말에 3개 AI 포트가 명시적으로 나와야 할 수 있다. 각 서비스 디렉토리에 개별 .env 파일이 필요할 수도 있다. 로컬 개발 환경 설정은 아직 추가되지 않았다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++Horizon은 AI 1개, ResumePilot은 3개라 setup에 빠진 게 있는지 확인 중입니다.
++
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="search" data-tool-name="glob_file_search"&gt;
++&lt;details&gt;
++&lt;summary&gt;Tool use: **glob_file_search** • Searched codebase "" • **3** results in **1** directory&lt;/summary&gt;
++
++Directory: **e:\workspace\resume-pilot** (3 files)
++
++| File |
++|------|
++| &#96;../.\.env.production.example&#96; |
++| &#96;../.\.env.example&#96; |
++| &#96;../.\.env&#96; |
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="search" data-tool-name="glob_file_search"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **glob_file_search**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\resume-pilot.ps1&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\docker-compose.yml&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++사용자가 2개의 추가 AI 서버 때문에 스크립트에 더 많은 내용을 추가해야 하는지 묻고 있다.
++
++프로덕션 배포는 docker compose가 5개 컨테이너를 자동으로 실행하므로 별도 추가가 필요 없다. Windows 설정 스크립트에는 3개 AI 패키지 설치가 이미 포함되어 있다. 다만 다음 단계에 &#96;resume-admin; npm run dev&#96;가 빠져 있다. 이 부분만 보완하면 된다.
++
++AI 서비스별로 루트 &#96;.env&#96; 파일을 복사하거나 심볼릭 링크를 만들어야 한다. pydantic이 각 서비스 디렉토리에서 &#96;.env&#96;를 찾기 때문이다. 터널은 DB만 열어두면 된다. 개발 시 AI 포트(8000, 8001, 8002) 안내 문구를 추가하는 것도 고려할 수 있다.
++
++루트 &#96;.env&#96;는 도커 호스트명이 포함되어 있어 로컬 개발용으로는 부적절하다. 대신 &#96;.env.example&#96;에 있는 localhost URL을 각 AI 서비스 디렉토리에 복사하는 것이 낫다. 로컬 실행 시 &#96;resume-ai&#96;의 &#96;RAG_SERVICE_URL&#96;과 &#96;PROMPT_SERVICE_URL&#96;도 반드시 설정해야 한다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++배포는 Docker가 AI 3개를 포함합니다. 로컬 &#96;setup&#96;에는 Horizon의 &#96;ai/.env&#96; 복사에 해당하는 처리와 admin 안내가 빠져 있어 보완하겠습니다.
++
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.ps1&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.ps1&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.ps1&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;
++
++&lt;details&gt;&lt;summary&gt;Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.sh&lt;/summary&gt;
++
++&lt;/details&gt;
++
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="write" data-tool-name="edit_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **edit_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++맞습니다. **프로젝트가 달라서 로컬 개발만** Horizon보다 손이 더 갑니다. 배포 스크립트에 명령을 더 넣을 필요는 없습니다.
++
++## 배포 (&#96;deploy&#96; / Docker) — 추가 없음
++
++&#96;docker compose up&#96;이 **5개를 한 번에** 띄웁니다.
++
++| 컨테이너 | Horizon | ResumePilot |
++|----------|---------|-------------|
++| app | ✅ | ✅ |
++| postgres | ✅ | ✅ |
++| AI | 1개 (&#96;ai&#96;) | **3개** (resume-ai, prompt, rag) |
++
++&#96;resume-pilot.sh deploy&#96;는 그대로 &#96;docker compose build/up&#96;이면 AI 3개까지 포함됩니다.
++
++---
++
++## 로컬 개발 (&#96;setup&#96; + 터미널) — 여기가 다름
++
++| | Horizon | ResumePilot |
++|--|---------|-------------|
++| AI 서버 | **1개** 터미널 (&#96;ai&#96; :8000) | **3개** 터미널 |
++| | | rag :8002 |
++| | | prompt :8001 |
++| | | resume-ai :8000 |
++| 프론트 | web (+ admin) | web + admin |
++| API | bootRun | &#96;resume-api&#96; bootRun |
++
++Horizon &#96;setup&#96;은 &#96;pip install&#96;을 &#96;ai/&#96; 한 곳만 했고, ResumePilot은 **3곳 모두** &#96;pip install&#96;합니다 (이미 반영됨).
++
++### 빠져 있던 것 (방금 보완)
++
++1. **&#96;ai/.env&#96; 복사에 해당** — 각 AI 폴더에 &#96;.env&#96; 복사 (&#96;rag-service&#96;, &#96;prompt-service&#96;, &#96;resume-ai&#96;)
++2. **Next 안내** — &#96;resume-admin&#96; npm dev 추가
++3. **help 주석** — AI 3개 포트 안내
++
++---
++
++## 정리
++
++| 구분 | 스크립트에 더 필요? |
++|------|-------------------|
++| Ubuntu &#96;deploy&#96; | ❌ compose가 처리 |
++| Windows &#96;setup&#96; | ✅ pip 3곳 + &#96;.env&#96; 3곳 복사 |
++| 매일 실행 | ❌ 명령 추가 없음, **터미널 2개 더** (uvicorn ×2) |
++
++즉 **스크립트 구조는 Horizon과 같고**, 차이는 로컬에서 **AI 터미널이 1개 → 3개**라는 점뿐입니다. 배포는 예전과 동일하게 &#96;deploy&#96; 한 번이면 됩니다.
++
++---
++
++_**User**_
++
++그외 더 할거 없어? 다시 한번더 검토해줘
++
++---
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++스크립트와 설정, 배포, 문서화, Horizon 대비 누락 사항 등을 다시 검토할 예정입니다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++전체를 다시 점검하겠습니다. 스크립트, Docker, env, 문서를 Horizon 대비로 비교합니다.
++
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\resume-pilot.sh&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\resume-pilot.ps1&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="search" data-tool-name="glob_file_search"&gt;
++&lt;details&gt;
++&lt;summary&gt;Tool use: **glob_file_search** • Searched codebase "" • **13** results in **1** directory&lt;/summary&gt;
++
++Directory: **e:\workspace\resume-pilot** (13 files)
++
++| File |
++|------|
++| &#96;../.\scripts\resume-pilot.sh&#96; |
++| &#96;../.\scripts\resume-pilot.ps1&#96; |
++| &#96;../.\scripts\deploy-remote.sh&#96; |
++| &#96;../.\scripts\deploy-remote.ps1&#96; |
++| &#96;../.\scripts\server-down.sh&#96; |
++| &#96;../.\scripts\server-up.sh&#96; |
++| &#96;../.\scripts\local-prod-up.sh&#96; |
++| &#96;../.\scripts\local-prod-up.ps1&#96; |
++| &#96;../.\scripts\start-local.ps1&#96; |
++| &#96;../.\scripts\generate-jwt-secret.ps1&#96; |
++| &#96;../.\scripts\kill-port.ps1&#96; |
++| &#96;../.\scripts\kill-dev-ports.ps1&#96; |
++| &#96;../.\scripts\kill-port.sh&#96; |
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="search" data-tool-name="glob_file_search"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **glob_file_search**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\docker-compose.yml&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\deploy-remote.ps1&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\server-up.sh&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\start-local.ps1&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.env.example&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.env.production.example&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;
++&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++
++Parameters:
++
++&#96;&#96;&#96;json
++{
++  "caseInsensitive": false,
++  "glob": "docs/**/*",
++  "pattern": "horizon|9080|55432|8000|8001|8002"
++}
++&#96;&#96;&#96;
++Additional data:
++
++&#96;&#96;&#96;json
++{
++  "isPruned": true,
++  "outputMode": "content",
++  "pattern": "horizon|9080|55432|8000|8001|8002",
++  "topFiles": [
++    {
++      "matchCount": 8,
++      "uri": ".\\docs\\INFRASTRUCTURE.md"
++    },
++    {
++      "matchCount": 3,
++      "uri": ".\\docs\\architecture.md"
++    },
++    {
++      "matchCount": 14,
++      "uri": ".\\docs\\RUNNING.md"
++    },
++    {
++      "matchCount": 6,
++      "uri": ".\\docs\\server-coexistence.md"
++    },
++    {
++      "matchCount": 3,
++      "uri": ".\\docs\\api-conventions.md"
++    }
++  ],
++  "totalFiles": 5,
++  "totalMatches": 34
++}
++&#96;&#96;&#96;
++Status: **completed**
++
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++SETUP.md와 deploy-remote의 health check 누락, resume-pilot.sh와 deploy-remote의 불일치, AI 설정을 추가로 검토하고 있습니다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\docs\SETUP.md&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\deploy-remote.sh&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\local-prod-up.ps1&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++Glob pattern "**/*" matches every file and is not allowed. Use a more specific glob or no glob.
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot" &amp;&amp; git status --short &amp;&amp; git diff --stat&lt;/summary&gt;
++
++&#96;&#96;&#96;bash
++cd "e:\workspace\resume-pilot" &amp;&amp; git status --short &amp;&amp; git diff --stat
++&#96;&#96;&#96;
++
++&#96;&#96;&#96;
++��ġ C:\Temp\ps-script-baa6f6fe-5349-4e22-895a-6bdaaa3d6255.ps1:93 ����:32
+++ cd "e:\workspace\resume-pilot" &amp;amp;&amp;amp; git status --short &amp;amp;&amp;amp; git diff --st ...
+++                                ~~
++'&amp;amp;&amp;amp;' ��ū�� �� �������� �ùٸ� �� ���� ��ȣ�� �ƴմϴ�.
++��ġ C:\Temp\ps-script-baa6f6fe-5349-4e22-895a-6bdaaa3d6255.ps1:93 ����:54
+++ cd "e:\workspace\resume-pilot" &amp;amp;&amp;amp; git status --short &amp;amp;&amp;amp; git diff --st ...
+++                                                      ~~
++'&amp;amp;&amp;amp;' ��ū�� �� �������� �ùٸ� �� ���� ��ȣ�� �ƴմϴ�.
++    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
++    + FullyQualifiedErrorId : InvalidEndOfLine
++ 
++
++&#96;&#96;&#96;
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **run_terminal_command_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;
++&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++
++Parameters:
++
++&#96;&#96;&#96;json
++{
++  "caseInsensitive": false,
++  "glob": "**/*.{md,sh,ps1,yml,mdc}",
++  "pattern": "horizon|9080|55432"
++}
++&#96;&#96;&#96;
++Additional data:
++
++&#96;&#96;&#96;json
++{
++  "isPruned": true,
++  "outputMode": "content",
++  "pattern": "horizon|9080|55432",
++  "topFiles": [
++    {
++      "matchCount": 50,
++      "uri": ".\\.specstory\\history\\2026-07-05_07-27-33Z-resumepilot-project-overview.md"
++    }
++  ],
++  "totalFiles": 1,
++  "totalMatches": 178
++}
++&#96;&#96;&#96;
++Status: **completed**
++
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++Glob pattern "**/*" matches every file and is not allowed. Use a more specific glob or no glob.
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\docs\SETUP.md&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;
++&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++
++Parameters:
++
++&#96;&#96;&#96;json
++{
++  "caseInsensitive": false,
++  "glob": "**/app/config.py",
++  "pattern": "env_file|Settings"
++}
++&#96;&#96;&#96;
++Additional data:
++
++&#96;&#96;&#96;json
++{
++  "isPruned": true,
++  "outputMode": "content",
++  "pattern": "env_file|Settings",
++  "topFiles": [
++    {
++      "matchCount": 4,
++      "uri": ".\\prompt-service\\app\\config.py"
++    },
++    {
++      "matchCount": 4,
++      "uri": ".\\rag-service\\app\\config.py"
++    },
++    {
++      "matchCount": 4,
++      "uri": ".\\resume-ai\\app\\config.py"
++    }
++  ],
++  "totalFiles": 3,
++  "totalMatches": 12
++}
++&#96;&#96;&#96;
++Status: **completed**
++
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git status --short; git diff --stat&lt;/summary&gt;
++
++&#96;&#96;&#96;bash
++cd "e:\workspace\resume-pilot"; git status --short; git diff --stat
++&#96;&#96;&#96;
++
++&#96;&#96;&#96;
++ M .specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md
++ M README.md
++ M docs/INFRASTRUCTURE.md
++ M docs/SETUP.md
++?? scripts/resume-pilot.ps1
++?? scripts/resume-pilot.sh
++ ...07-05_07-27-33Z-resumepilot-project-overview.md | 1527 +++++++++++++++++++-
++ README.md                                          |    5 +-
++ docs/INFRASTRUCTURE.md                             |    2 +-
++ docs/SETUP.md                                      |   28 +-
++ 4 files changed, 1537 insertions(+), 25 deletions(-)
++
++&#96;&#96;&#96;
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **run_terminal_command_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++SETUP.md 29번 줄에 문제가 있습니다.
++
++SETUP.md 76번 줄의 &#96;deploy-remote&#96; 명령도 잘못된 스크립트를 가리킵니다. &#96;resume-pilot.ps1&#96;에는 이 명령이 없습니다.
++
++&#96;start-local.ps1&#96;은 오래된 방식을 사용합니다. 포트 5432에서 DB를 실행하지만, &#96;resume-pilot.ps1&#96;의 터널은 포트 55532를 기대합니다. 두 스크립트가 서로 맞지 않습니다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++Glob pattern "**/*" matches every file and is not allowed. Use a more specific glob or no glob.
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\README.md&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.cursor\skills\deploy-smoke\SKILL.md&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\docs\deployment.md&lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;think&gt;&lt;details&gt;&lt;summary&gt;Thought Process&lt;/summary&gt;
++resume-pilot.ps1에 &#96;db&#96; 명령이 누락되어 있다. README와 SETUP.md에서 이를 참조하고 있다.
++
++SETUP.md의 &#96;deploy-remote&#96; 명령은 &#96;.\scripts\deploy-remote.ps1&#96;로 수정해야 한다. 로컬 개발 환경은 Docker 5432 포트를 사용하며, 프로덕션 DB 연결은 55532 포트 터널을 통해 이루어진다.
++
++로컬 개발용 &#96;db&#96; 명령을 추가해야 한다. sh 스크립트의 &#96;cmd_db&#96;는 프로젝트 .env를 기준으로 동작하므로, 5432 포트를 사용하는 방식과 55532 포트를 사용하는 방식 중 어떤 구현을 선택할지 검토가 필요하다.
++
++.env.example에는 POSTGRES_PORT가 설정되어 있지 않아, docker compose 기본값인 55532 포트가 적용된다. 이는 로컬 개발 환경의 5432 포트와 충돌한다. sh 스크립트처럼 동작시키면 로컬 개발에 잘못된 포트가 노출된다.&lt;/details&gt;&lt;/think&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: &lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;
++&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++Status: **loading**
++
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **ripgrep_raw_search**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
++
++_**Agent (default)**_
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;
++&lt;details&gt;&lt;summary&gt;Tool use: **read_file_v2** • Read file: &lt;/summary&gt;
++
++&lt;/details&gt;
++&lt;/tool-use&gt;
++
++&lt;tool-use data-tool-type="read" data-tool-name="read_file_v2"&gt;&lt;details&gt;
++&lt;summary&gt;Tool use: **read_file_v2**&lt;/summary&gt;
++
++&lt;/details&gt;&lt;/tool-use&gt;
+diff --git a/README.md b/README.md
+index 2b0b9bd..aab8a30 100644
+--- a/README.md
++++ b/README.md
+@@ -33,11 +33,12 @@ Named Tunnel origin: &#96;http://127.0.0.1:APP_PORT&#96; 하나.
+ &#96;&#96;&#96;powershell
+ # 로컬 개발
+ copy .env.example .env
+-.\scripts\start-local.ps1   # PostgreSQL만 기동, 나머지는 터미널에서 실행
++.\scripts\resume-pilot.ps1 setup
++.\scripts\resume-pilot.ps1 db
+ 
+ # 배포 (Linux 서버)
+ cp .env.production.example .env
+-./scripts/server-up.sh
++./scripts/resume-pilot.sh deploy
+ 
+ # 로컬 prod 스모크
+ .\scripts\local-prod-up.ps1
+diff --git a/docs/INFRASTRUCTURE.md b/docs/INFRASTRUCTURE.md
+index a51f917..f1f0b26 100644
+--- a/docs/INFRASTRUCTURE.md
++++ b/docs/INFRASTRUCTURE.md
+@@ -155,7 +155,7 @@ docker compose logs -f app
+ ./scripts/server-down.sh
+ &#96;&#96;&#96;
+ 
+-배포: [SETUP.md §3](SETUP.md#part-3-ubuntu-서버) · &#96;scripts/deploy-remote.ps1&#96;
++배포: [SETUP.md §3](SETUP.md#part-3-ubuntu-서버) · &#96;./scripts/resume-pilot.sh deploy&#96;
+ 
+ ---
+ 
+diff --git a/docs/SETUP.md b/docs/SETUP.md
+index a95dd22..cdf1f1a 100644
+--- a/docs/SETUP.md
++++ b/docs/SETUP.md
+@@ -24,9 +24,14 @@ Prod: SPA &#96;/&#96; + &#96;/admin/&#96; + API가 **단일 app 포트**에서 서빙됩니다.
+ 
+ ## Part 2 — 개발 PC (터미널)
+ 
++&#96;&#96;&#96;powershell
++.\scripts\resume-pilot.ps1 setup    # 1회
++.\scripts\resume-pilot.ps1 db       # PostgreSQL Docker
++&#96;&#96;&#96;
++
+ &#96;&#96;&#96;powershell
+ copy .env.example .env
+-# OPENAI_API_KEY, JWT_SECRET 등 설정
++# OPENAI_API_KEY, JWT_SECRET, DEPLOY_HOST 등 설정
+ &#96;&#96;&#96;
+ 
+ 상세: [RUNNING.md §1](RUNNING.md#1-로컬-개발-터미널)
+@@ -69,9 +74,6 @@ docker compose version
+ cd e:\workspace\resume-pilot
+ # .env 에 DEPLOY_HOST 설정 후
+ .\scripts\deploy-remote.ps1
+-
+-# 또는 직접 지정 (로컬에만)
+-.\scripts\deploy-remote.ps1 -DeployHost $env:DEPLOY_HOST
+ &#96;&#96;&#96;
+ 
+ Linux/macOS:
+@@ -90,7 +92,17 @@ nano .env   # POSTGRES_PASSWORD, JWT_SECRET, OPENAI_API_KEY, LAN_HOST
+ ./scripts/server-up.sh
+ &#96;&#96;&#96;
+ 
+-### 3-5. 배포 후 확인 (서버에서)
++### 3-5. Ubuntu 서버에서 배포 (git pull)
++
++&#96;&#96;&#96;bash
++cd ~/apps/resume-pilot
++chmod +x scripts/resume-pilot.sh
++./scripts/resume-pilot.sh deploy
++&#96;&#96;&#96;
++
++또는 &#96;./scripts/server-up.sh&#96; (최초 &#96;.env&#96; 생성 포함).
++
++### 3-6. 배포 후 확인 (서버)
+ 
+ &#96;&#96;&#96;bash
+ cd ~/apps/resume-pilot
+@@ -101,7 +113,7 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:${APP_PORT:-9180}/admi
+ 
+ 브라우저 (LAN): &#96;http://&lt;LAN_HOST&gt;:&lt;APP_PORT&gt;/&#96;
+ 
+-### 3-6. &#96;.env&#96; 서버로 복사
++### 3-7. &#96;.env&#96; 서버로 복사
+ 
+ &#96;deploy-remote&#96;는 &#96;.env&#96;를 업로드하지 않습니다.
+ 
+@@ -109,7 +121,7 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:${APP_PORT:-9180}/admi
+ scp .env ${env:DEPLOY_HOST}:~/apps/resume-pilot/.env
+ &#96;&#96;&#96;
+ 
+-### 3-7. Named Tunnel
++### 3-8. Named Tunnel
+ 
+ origin **1개**:
+ 
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git log -5 --oneline</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git log -5 --oneline
+```
+
+```
+8beb893 docs: SpecStory 대화 이력 동기화
+fdb129c chore: rename Cursor skills and remove leftover horizon folders
+54b9ce1 chore: add Cursor workspace config and SpecStory history
+6c8022a docs: add setup, running, infrastructure, and deployment guides
+7e82aa6 chore: add Docker prod stack, deploy scripts, and CI workflows
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: C:\Users\전일훈\.cursor\projects\e-workspace-resume-pilot\agent-tools\e74c74f2-9170-46bb-9009-3f05417082a3.txt</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.cursor\rules\specstory-commit.mdc</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "path": "C:\\Users\\전일훈\\.cursor\\projects\\e-workspace-resume-pilot\\agent-tools\\e74c74f2-9170-46bb-9009-3f05417082a3.txt",
+  "pattern": "^diff --git"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "C:\\Users\\전일훈\\.cursor\\projects\\e-workspace-resume-pilot\\agent-tools\\e74c74f2-9170-46bb-9009-3f05417082a3.txt",
+  "pattern": "^diff --git",
+  "topFiles": [
+    {
+      "matchCount": 4,
+      "uri": "C:\\Users\\전일훈\\.cursor\\projects\\e-workspace-resume-pilot\\agent-tools\\e74c74f2-9170-46bb-9009-3f05417082a3.txt"
+    }
+  ],
+  "totalFiles": 1,
+  "totalMatches": 4
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\resume-pilot.sh</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\resume-pilot.ps1</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: C:\Users\전일훈\.cursor\projects\e-workspace-resume-pilot\agent-tools\e74c74f2-9170-46bb-9009-3f05417082a3.txt</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+모든 파일을 커밋하고 푸시하겠습니다.
+
+커밋 메시지를 작성했습니다. 통합 스크립트와 배포 문서를 한 번에 커밋합니다.
+
+Windows PowerShell에서는 HEREDOC 대신 -m 플래그를 두 번 사용해 커밋 메시지를 전달하는 방식으로 변경했습니다.</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git branch -vv; git remote -v</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git branch -vv; git remote -v
+```
+
+```
+* main 8beb893 [origin/main] docs: SpecStory 대화 이력 동기화
+origin	git@github.com:ktdvlp-jih/resume-pilot.git (fetch)
+origin	git@github.com:ktdvlp-jih/resume-pilot.git (push)
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git add scripts/resume-pilot.sh scripts/resume-pilot.ps1 README.md docs/SETUP.md docs/INFRASTRUCTURE.md .specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "chore: add resume-pilot unified scripts and update deployment docs" -m "Horizon-style sh/ps1 for deploy, tunnel, local db, and Windows setup with AI service .env copies. Sync SpecStory history."</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git add scripts/resume-pilot.sh scripts/resume-pilot.ps1 README.md docs/SETUP.md docs/INFRASTRUCTURE.md .specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "chore: add resume-pilot unified scripts and update deployment docs" -m "Horizon-style sh/ps1 for deploy, tunnel, local db, and Windows setup with AI service .env copies. Sync SpecStory history."
+```
+
+```
+[main 96dfb47] chore: add resume-pilot unified scripts and update deployment docs
+ 6 files changed, 2504 insertions(+), 25 deletions(-)
+ create mode 100644 scripts/resume-pilot.ps1
+ create mode 100644 scripts/resume-pilot.sh
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git push origin main; git status --short</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git push origin main; git status --short
+```
+
+```
+To github.com:ktdvlp-jih/resume-pilot.git
+   8beb893..96dfb47  main -&gt; main
+ M .specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+커밋 후 specstory에 새 수정 사항이 추가되었다. 세션 중 자동 업데이트된 것으로 보인다.</details></think>
+
+_**Agent (default)**_
+
+커밋·푸시 완료했습니다.
+
+**커밋:** `96dfb47` — `chore: add resume-pilot unified scripts and update deployment docs`
+
+**포함 내용:**
+- `scripts/resume-pilot.sh` / `resume-pilot.ps1` (신규)
+- `README.md`, `docs/SETUP.md`, `docs/INFRASTRUCTURE.md` 갱신
+- SpecStory 이력 동기화
+
+---
+
+## 배포 순서 (Ubuntu SSH 세션)
+
+```bash
+cd ~/apps/resume-pilot
+git pull origin main
+chmod +x scripts/resume-pilot.sh
+
+# .env 없으면 (최초 1회)
+cp .env.production.example .env
+nano .env   # POSTGRES_PASSWORD, JWT_SECRET, OPENAI_API_KEY, LAN_HOST
+
+./scripts/resume-pilot.sh deploy
+```
+
+`.env`를 로컬에서 이미 준비했다면 Windows에서 먼저:
+
+```powershell
+scp .env ${env:DEPLOY_HOST}:~/apps/resume-pilot/.env
+```
+
+**배포 후 확인:**
+
+```bash
+docker compose ps
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:9180/
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:9180/admin/
+```
+
+브라우저: `http://<LAN_HOST>:9180/`
+
+배포 중 오류 나오면 로그 붙여 주시면 같이 보겠습니다.
+
+---
+
+_**User**_
+
+@c:\Users\전일훈\.cursor\projects\e-workspace-resume-pilot\terminals\8.txt:972-981  이거 로컬로 접근할떄 어덯게해
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+사용자가 로컬 개발 PC에서 배포된 ResumePilot 스택에 접근하는 방법을 묻고 있다.</details></think>
+
+_**Agent (default)**_
+
+배포된 서비스 접속 방법을 문서와 설정 기준으로 확인 중입니다.
+
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\전일훈\.cursor\projects\e-workspace-resume-pilot\terminals\8.txt</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\docs\SETUP.md</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.env.production.example</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+사용자가 로컬 PC에서 배포된 서비스에 어떻게 접근하는지 묻고 있다.</details></think>
+
+_**Agent (default)**_
+
+5개 컨테이너가 정상 기동된 상태입니다. **로컬 PC(Windows)에서 접근**은 아래처럼 하면 됩니다.
+
+## 브라우저 (웹·API) — 포트 **9180** 하나
+
+같은 LAN에 있으면 서버 IP로 접속합니다. (SSH에 쓰는 주소와 동일)
+
+| 용도 | URL |
+|------|-----|
+| 사용자 UI | `http://192.168.219.100:9180/` |
+| 관리자 | `http://192.168.219.100:9180/admin/` |
+| API | `http://192.168.219.100:9180/api/v1` |
+| Swagger | `http://192.168.219.100:9180/swagger-ui.html` |
+
+`docker compose ps`에서 `0.0.0.0:9180->8080`이면 LAN에서 이 주소로 열립니다.
+
+**Tailscale**을 쓰면 `.env`의 `TAILSCALE_HOST`(예: `100.x.x.x`)로도 동일하게:
+
+`http://100.x.x.x:9180/`
+
+---
+
+## AI 3개 — 로컬에서 직접 접근 불가 (정상)
+
+```
+resume-ai, prompt, rag → 8000/tcp, 8001/tcp, 8002/tcp (호스트 포트 없음)
+```
+
+prod에서는 **Docker 내부 전용**입니다. 브라우저로 `:8000` 등을 치면 안 됩니다.  
+AI 기능은 **9180의 Spring API**를 통해서만 사용합니다.
+
+---
+
+## DB (DBeaver 등) — 포트 **55532**
+
+| 방식 | 접속 |
+|------|------|
+| **LAN 직접** | Host `192.168.219.100`, Port `55532`, DB `resumepilot` |
+| **SSH 터널** (권장) | Windows에서: |
+
+```powershell
+.\scripts\resume-pilot.ps1 tunnel -TailscaleIp 192.168.219.100
+# 또는 Tailscale IP
+```
+
+그다음 DBeaver: `localhost:55532` / `resumepilot` / 비밀번호
+
+---
+
+## 안 열릴 때 체크
+
+1. **같은 Wi‑Fi/LAN**인지 확인
+2. 서버 방화벽: `9180`, `55532` 허용 여부
+3. 서버에서 먼저 확인:
+   ```bash
+   curl -s -o /dev/null -w "%{http_code}\n" http://localhost:9180/
+   ```
+   → `200`이면 서버는 정상, PC→서버 네트워크 문제일 가능성 큼
+
+4. **Named Tunnel** 쓰는 경우: 브라우저는 도메인으로, origin은 서버의 `http://127.0.0.1:9180`
+
+---
+
+**요약:** 로컬 PC에서는 **`http://서버IP:9180`** 만 열면 됩니다. DB는 `55532`, AI는 밖에서 직접 접속하지 않습니다.
+
+---
+
+_**User**_
+
+지금 workflows가 총 3개로 나눠져 있는데 이유가 뭐야?
+
+---
+
+_**Agent (default)**_
+
+CI 워크플로 3개 구성을 확인 중입니다.
+
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.github\workflows\ci-api.yml</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.github\workflows\ci-web.yml</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.github\workflows\ci-ai.yml</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+워크플로우가 기술 스택과 모노레포 경계에 따라 3개로 나뉘어 있습니다.</details></think>
+
+_**Agent (default)**_
+
+이 레포는 **모노레포**라서 스택별로 CI를 3개로 나눴습니다. 하나로 합칠 수도 있지만, 지금 구조는 의도적인 분리입니다.
+
+## 3개가 각각 하는 일
+
+| 워크플로 | 대상 | 하는 일 |
+|----------|------|---------|
+| `ci-api.yml` | `resume-api/` | JDK 21 + **PostgreSQL 서비스** + Gradle `test` / `bootJar` |
+| `ci-web.yml` | `resume-web/`, `resume-admin/` | Node 22, `npm ci` → lint → build (job 2개) |
+| `ci-ai.yml` | AI 3개 | Python 3.12, matrix로 `pytest` |
+
+---
+
+## 나눈 이유
+
+### 1. `paths` 필터 — 바뀐 부분만 CI
+
+```yaml
+paths: ['resume-api/**', ...]   # API만
+paths: ['resume-web/**', ...]   # 프론트만
+paths: ['resume-ai/**', ...]    # AI만
+```
+
+문서·스크립트만 수정하면 **CI가 아예 안 돌아가서** 분·크레딧을 아낍니다.
+
+### 2. 런타임이 완전히 다름
+
+- API: Java + Gradle + DB 컨테이너
+- Web: Node + npm (2앱)
+- AI: Python + pip + pytest ×3
+
+한 job에 넣으면 JDK·Node·Python·Postgres를 매번 설치해서 **느리고 로그도 섞입니다**.
+
+### 3. 병렬 실행
+
+3개는 GitHub Actions에서 **동시에** 돌 수 있어서, 전체 대기 시간이 짧아집니다.
+
+### 4. 실패 원인이 바로 보임
+
+Checks에 `CI API` / `CI Web` / `CI AI`로 나뉘어 **어느 스택이 깨졌는지** 한눈에 보입니다.
+
+---
+
+## 참고
+
+- **API만** Postgres가 필요합니다 (통합 테스트).
+- **AI 3개**는 matrix 1개 워크플로로 묶었습니다 (같은 Python/pytest 패턴).
+- **Web 2개**도 한 파일 안에 job 2개로 나눴습니다 (`build-web`, `build-admin`).
+
+`docs/`만 고치면 지금은 CI가 안 돕니다. Docker compose 전체 스모크는 CI에 없고, 배포 후 `deploy-smoke`로 확인하는 구조입니다.
+
+한 파일로 합치고 싶다면 가능하지만, 보통 모노레포에서는 지금처럼 **스택별 분리 + path filter**가 일반적입니다.
+
+---
+
+_**User**_
+
+보통 어떤식으로 관리해??
+하나로 해도 되지않나?
+
+---
+
+_**Agent (default)**_
+
+**둘 다 씁니다.** 팀 규모·레포 구조에 따라 갈립니다. ResumePilot처럼 **스택이 3종(Java / Node×2 / Python×3)** 이면 지금처럼 나누는 경우가 많고, **하나로 합쳐도 전혀 문제 없습니다.**
+
+---
+
+## 보통 어떻게 나누나
+
+### 1) 스택별 워크플로 (지금 방식) — 모노레포에서 흔함
+
+```
+ci-api.yml
+ci-web.yml
+ci-ai.yml
+```
+
+| 장점 | 단점 |
+|------|------|
+| `paths`로 **변경된 영역만** CI | 파일 3개 관리 |
+| 실패 시 **어느 스택인지** 바로 보임 | 공통 설정 복붙 가능 |
+| Java/Node/Python **병렬** 실행 | |
+
+Nx, Turborepo, Bazel 쓰는 대형 레포도 결국 “영역별 job”으로 가는 경우가 많습니다.
+
+### 2) 워크플로 1개 + job 여러 개 — 중소 규모에서도 많음
+
+```yaml
+# ci.yml 하나
+jobs:
+  api:   ...
+  web:   ...
+  admin: ...
+  ai:    strategy.matrix ...
+```
+
+| 장점 | 단점 |
+|------|------|
+| **한 파일**에서 전체 CI 파악 | `paths`를 job마다 따로 걸어야 함 |
+| PR에 check **한 세트**로 정리 가능 | 한 job 실패해도 나머지는 돌리려면 `fail-fast: false` 등 설정 |
+| reusable workflow / composite action으로 중복 줄이기 쉬움 | docs만 수정해도 전체 트리거하려면 `paths` 설계 필요 |
+
+### 3) Reusable workflow — “파일은 여러 개, 진입점은 하나”
+
+```
+.github/workflows/ci.yml          ← push/PR 트리거만
+.github/workflows/_build-api.yml  ← workflow_call
+```
+
+대형 프로젝트에서 **표준 패턴**입니다. 겉보기는 1개 CI, 안은 모듈별로 쪼갠 형태입니다.
+
+---
+
+## “하나로 해도 되지 않나?” → **됩니다**
+
+ResumePilot 규모에서는 **단일 `ci.yml`도 충분**합니다.
+
+```yaml
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  changes:        # optional — dorny/paths-filter
+  api:            needs: changes, if: api changed
+  web:            ...
+  ai:             matrix: [resume-ai, prompt-service, rag-service]
+```
+
+합칠 때 실무에서 자주 하는 것:
+
+1. **job 단위 `paths` / paths-filter** — 지금 3파일이 하던 일을 job 안으로
+2. **`concurrency`** — 같은 브랜치 중복 실행 방지
+3. **API만 Postgres service** — web/ai job에는 안 붙임
+4. **`fail-fast: false`** (matrix) — AI 3개 중 하나만 깨져도 나머지 결과 보기
+
+---
+
+## 뭐가 더 “보통”이냐
+
+| 상황 | 흔한 선택 |
+|------|-----------|
+| 스택 2~3개, 팀 소규모 | **1개 ci.yml** 또는 **스택별 2~3개** 둘 다 흔함 |
+| PR마다 전 스택 검증 원함 | 1개 파일 + job 병렬 |
+| docs/스크립트만 자주 커밋 | **paths 분리** (지금처럼) 유리 |
+| 나중에 팀·서비스 늘어남 | reusable workflow로 확장 |
+
+---
+
+## ResumePilot 기준 추천
+
+- **지금 3개 유지** — 이미 잘 맞음. docs 커밋 시 CI 안 도는 것도 장점.
+- **합치고 싶다면** — `ci.yml` 하나 + job 4개(api, web, admin, ai matrix)로 정리해도 됨. 동작은 거의 같음.
+
+정리하면, **“보통 하나냐 여러 개냐”에 정답은 없고**, 모노레포면 **job은 쪼개고, 파일은 1개 vs 3개는 취향·운영 편의** 문제입니다.
+
+원하시면 `ci.yml` 하나로 합친 버전 초안 만들어 드릴까요?
+
+---
+
+_**User**_
+
+난 하나로 할래 deploy.yml파일명으로 해서 진행해줘
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+3개의 CI 워크플로우 파일을 하나의 `deploy.yml`로 통합하겠습니다.
+
+기존 3개 파일을 삭제하고 `deploy.yml`로 통합하겠습니다. 메인 브랜치 푸시와 PR 시 실행되도록 설정합니다. 변경된 경로에 따라 각 작업이 조건부로 실행되도록 구성하겠습니다.
+
+GitHub Actions의 `if`와 `paths`를 활용한 단일 파일 내 경로별 필터링 방식을 검토 중입니다. 전체 작업을 매번 실행하는 대신 변경된 영역만 조건부로 실행하는 것이 더 효율적입니다.
+
+`dorny/paths-filter@v3` 액션을 사용해 `resume-api`, `resume-web`, `resume-ai` 등 각 영역의 변경 여부를 감지합니다. 이 값으로 API, 웹, AI 작업을 조건부로 실행할 예정입니다.</details></think>
+
+_**Agent (default)**_
+
+CI 워크플로 3개를 `deploy.yml` 하나로 통합합니다.
+
+
+_**Agent (default)**_
+
+Glob pattern "**/*" matches every file and is not allowed. Use a more specific glob or no glob.
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.github\workflows\ci-api.yml</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.github\workflows\ci-web.yml</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.github\workflows\ci-ai.yml</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "path": "e:\\workspace\\resume-pilot\\docs",
+  "pattern": "ci-api|ci-web|ci-ai|workflows"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "e:\\workspace\\resume-pilot\\docs",
+  "pattern": "ci-api|ci-web|ci-ai|workflows",
+  "topFiles": [],
+  "totalFiles": 0,
+  "totalMatches": 0
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "path": "e:\\workspace\\resume-pilot\\README.md",
+  "pattern": "ci-api|ci-web|ci-ai|workflows"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "e:\\workspace\\resume-pilot\\README.md",
+  "pattern": "ci-api|ci-web|ci-ai|workflows",
+  "topFiles": [],
+  "totalFiles": 0,
+  "totalMatches": 0
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+문서 참조는 없습니다. deploy.yml 파일을 생성하겠습니다.
+
+deploy.yml 하나로 통합합니다. 기존 3개 파일의 작업을 병합하고 기존 파일은 삭제합니다. paths-filter로 조건부 실행을 유지합니다. 워크플로우 이름은 Deploy로 지정했습니다.
+
+concurrency 그룹과 cancel-in-progress 설정을 추가했습니다. changes 작업에서 paths-filter를 사용해 api, web, admin, ai 변경 여부를 판단합니다.
+
+api, web, admin, ai 경로 필터에 deploy.yml도 포함했습니다. 각 빌드 작업은 changes 작업이 먼저 완료된 후 조건부로 실행됩니다.
+
+AI 매트릭스는 ai 필터가 true면 resume-ai, prompt-service, rag-service를 모두 실행합니다. 이전 동작과 동일하게 유지합니다.
+
+web과 admin은 resume-web 또는 resume-admin 중 하나만 변경되어도 둘 다 실행됩니다. 이전 워크플로우와 동일하게 유지합니다.</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\.github\workflows\deploy.yml</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="delete_file">
+<details><summary>Tool use: **delete_file**</summary>
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="delete_file"><details>
+<summary>Tool use: **delete_file**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="delete_file">
+<details><summary>Tool use: **delete_file**</summary>
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="delete_file"><details>
+<summary>Tool use: **delete_file**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="delete_file">
+<details><summary>Tool use: **delete_file**</summary>
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="delete_file"><details>
+<summary>Tool use: **delete_file**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+deploy.yml 파일명으로 작업을 완료했습니다.</details></think>
+
+_**Agent (default)**_
+
+`deploy.yml` 하나로 통합했습니다.
+
+## 변경 사항
+
+| 삭제 | 추가 |
+|------|------|
+| `ci-api.yml` | |
+| `ci-web.yml` | `.github/workflows/deploy.yml` |
+| `ci-ai.yml` | |
+
+## `deploy.yml` 구조
+
+```
+changes (paths-filter) → 변경된 영역만 감지
+  ├─ api          — Gradle test + bootJar (Postgres 포함)
+  ├─ build-web    — npm lint + build
+  ├─ build-admin  — npm lint + build
+  └─ ai (matrix)  — resume-ai / prompt-service / rag-service pytest
+```
+
+- **기존과 동일:** `resume-api`만 바꾸면 API job만, `docs/`만 바꾸면 job 안 돎
+- **워크플로 파일 수정 시:** API·프론트·AI 전부 실행 (`deploy.yml`이 각 filter에 포함)
+- **`concurrency`:** 같은 브랜치 중복 실행 시 이전 run 취소
+- **AI matrix:** `fail-fast: false` — 한 서비스 실패해도 나머지 결과 확인 가능
+
+파일명은 `deploy.yml`이지만 내용은 **빌드·테스트 CI**입니다. Ubuntu 서버 배포는 여전히 `resume-pilot.sh deploy` / `deploy-remote.ps1`로 합니다.
+
+커밋·푸시까지 진행할까요?
+
+---
+
+_**User**_
+
+main이 아니고 브랜치명을 master로 바꾸고싶어 mater로 커밋하면 디플로이 되도록 
+그리고 내가 다른프로젝트의 delpoy.yml을 들고와았는데 아래와 같아
+이렇게 짧은데 해당 프로젝트는 왜이리 길지??
+|name: Deploy Docker (Ubuntu self-hosted)
+
+# Tailscale/SSH 불필요 — Ubuntu 서버 Self-hosted Runner가 horizon.sh deploy 실행
+# master push · PR merge · workflow_dispatch 시 배포
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ubuntu
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    timeout-minutes: 45
+
+    steps:
+      - name: Deploy (git pull + docker compose)
+        run: bash /home/jeon/apps/horizon/scripts/horizon.sh deploy
+
+      - name: Health check
+        run: curl -sf http://localhost:9080/api/health
+
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+사용자는 기본 브랜치를 main에서 master로 변경하고 싶어합니다.
+
+master 브랜치 푸시 시 배포가 자동으로 실행되도록 설정해야 합니다. 현재 프로젝트의 deploy.yml은 CI 경로 필터와 다중 작업으로 인해 매우 길지만, 다른 프로젝트처럼 self-hosted runner를 사용하는 짧은 스크립트 방식으로 재작성하려고 합니다.
+
+배포 스크립트 경로는 `/home/jeon/apps/resume-pilot/scripts/resume-pilot.sh deploy`로 지정합니다. 로컬 헬스 체크 엔드포인트는 `localhost:9180/actuator/health`입니다. 프로젝트 내 `main` 참조를 `master`로 일괄 수정해야 합니다. `resume-pilot.sh`의 `git pull origin main` 명령과 관련 문서, README, SETUP 파일 등에 포함된 브랜치 이름을 변경해야 합니다. GitHub 기본 브랜치 변경은 사용자가 직접 처리해야 합니다.
+
+현재 deploy.yml이 긴 이유는 GitHub 클라우드 러너에서 빌드와 테스트를 수행하는 CI 설정 때문입니다. 짧은 버전은 실제 배포를 self-hosted runner에서 실행하는 방식입니다.
+
+기존 CI 로직을 보존하려면 별도의 CI 파일로 분리하는 것이 좋습니다. 그렇지 않으면 현재 deploy.yml을 완전히 교체할 때 기존 빌드 및 테스트 로직이 사라집니다.</details></think>
+
+_**Agent (default)**_
+
+Horizon처럼 self-hosted 배포용 `deploy.yml`로 바꾸고, 브랜치 참조를 `master`로 통일합니다.
+
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "glob": "*.{yml,yaml,sh,ps1,md,mdc}",
+  "path": "e:\\workspace\\resume-pilot",
+  "pattern": "\\bmain\\b"
+}
+```
 Status: **loading**
 
 
@@ -47288,7 +51014,20 @@ Status: **loading**
 _**Agent (default)**_
 
 <tool-use data-tool-type="read" data-tool-name="read_file_v2">
-<details><summary>Tool use: **read_file_v2** • Read file: </summary>
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\resume-pilot.sh</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\.github\workflows\deploy.yml</summary>
 
 </details>
 </tool-use>

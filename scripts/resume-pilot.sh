@@ -58,8 +58,8 @@ cmd_deploy() {
   exec > >(tee -a "$LOG_FILE") 2>&1
 
   echo "=== ResumePilot deploy ==="
-  echo "[1/3] git pull origin main"
-  git pull origin main
+  echo "[1/3] git pull origin master"
+  git pull origin master
   echo "[2/3] docker compose build"
   docker compose build
   echo "[3/3] docker compose up -d"

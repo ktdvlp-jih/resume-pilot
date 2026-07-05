@@ -1,0 +1,25 @@
+name: Deploy Docker (Ubuntu self-hosted)
+
+# Tailscale/SSH 불필요 — Ubuntu 서버 Self-hosted Runner가 resume-pilot.sh deploy 실행
+# master push · workflow_dispatch 시 배포
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ubuntu
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    timeout-minutes: 45
+
+    steps:
+      - name: Deploy (git pull + docker compose)
+        run: bash /home/jeon/apps/resume-pilot/scripts/resume-pilot.sh deploy
+
+      - name: Health check
+        run: curl -sf http://localhost:9180/
