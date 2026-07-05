@@ -3,7 +3,9 @@ package com.resumepilot.domain.user;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -27,6 +29,11 @@ public class UserProfile {
     private String name;
     private String phone;
     private String bio;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "career_portfolio", columnDefinition = "jsonb")
+    @Builder.Default
+    private CareerPortfolio careerPortfolio = new CareerPortfolio();
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

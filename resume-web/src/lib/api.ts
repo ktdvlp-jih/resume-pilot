@@ -17,6 +17,8 @@ export interface TokenResponse {
   role: string;
 }
 
+import type { CareerPortfolio } from './career-portfolio';
+
 export interface UserResponse {
   id: string;
   email: string;
@@ -24,6 +26,7 @@ export interface UserResponse {
   name?: string;
   phone?: string;
   bio?: string;
+  careerPortfolio?: CareerPortfolio;
   createdAt: string;
 }
 
@@ -170,7 +173,12 @@ export const api = {
       body: JSON.stringify({ email, password }),
     }),
   getMe: () => request<UserResponse>('/api/v1/users/me'),
-  updateMe: (data: { name?: string; phone?: string; bio?: string }) =>
+  updateMe: (data: {
+    name?: string;
+    phone?: string;
+    bio?: string;
+    careerPortfolio?: CareerPortfolio;
+  }) =>
     request<UserResponse>('/api/v1/users/me', { method: 'PATCH', body: JSON.stringify(data) }),
   changePassword: (currentPassword: string, newPassword: string) =>
     request<void>('/api/v1/auth/password', {

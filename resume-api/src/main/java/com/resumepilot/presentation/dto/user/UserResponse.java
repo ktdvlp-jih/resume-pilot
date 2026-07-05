@@ -10,5 +10,6 @@ public record UserResponse(
         String name,
         String phone,
         String bio,
+        CareerPortfolioDto careerPortfolio,
         Instant createdAt
 ) {}

@@ -11,9 +11,11 @@ export function ProtectedLayout() {
     return <Navigate to="/login" replace />;
   }
   return (
-    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-950">
-      <aside className="w-56 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 p-4 flex flex-col">
-        <h1 className="text-xl font-bold text-blue-600 mb-4">ResumePilot</h1>
+    <div className="min-h-screen flex bg-zinc-50 dark:bg-zinc-950">
+      <aside className="w-56 bg-white/80 dark:bg-zinc-900/90 backdrop-blur border-r border-zinc-200/80 dark:border-zinc-800 p-4 flex flex-col">
+        <h1 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent mb-4">
+          ResumePilot
+        </h1>
         <LanguageSwitcher className="mb-4 w-full" />
         <nav className="space-y-2 flex-1">
           <NavItem to="/dashboard">{t('nav.dashboard')}</NavItem>
@@ -23,7 +25,7 @@ export function ProtectedLayout() {
           <NavItem to="/workspace">{t('nav.workspace')}</NavItem>
           <NavItem to="/settings">{t('nav.settings')}</NavItem>
         </nav>
-        <button onClick={toggle} className="text-sm text-gray-500 hover:text-blue-600 mb-2">
+        <button onClick={toggle} className="text-sm text-zinc-500 hover:text-violet-600 mb-2">
           {theme === 'dark' ? `☀️ ${t('nav.lightMode')}` : `🌙 ${t('nav.darkMode')}`}
         </button>
         <button onClick={() => { clearTokens(); window.location.href = '/login'; }}
@@ -38,7 +40,7 @@ function NavItem({ to, children }: { to: string; children: React.ReactNode }) {
   return (
     <Link
       to={to}
-      className="block px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+      className="block px-3 py-2 rounded-xl hover:bg-violet-50 dark:hover:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 transition"
     >
       {children}
     </Link>
