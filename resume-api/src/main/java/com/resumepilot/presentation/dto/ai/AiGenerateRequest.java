@@ -1,0 +1,17 @@
+package com.resumepilot.presentation.dto.ai;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+public record AiGenerateRequest(
+        List<String> keywords,
+        int rewriteLevel,
+        Map<String, Object> jobAnalysis,
+        UUID jobPostingId
+) {
+    public AiGenerateRequest {
+        if (rewriteLevel < 0) rewriteLevel = 0;
+        if (rewriteLevel > 100) rewriteLevel = 100;
+    }
+}

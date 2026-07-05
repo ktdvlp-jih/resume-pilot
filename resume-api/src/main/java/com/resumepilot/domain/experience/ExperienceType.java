@@ -1,0 +1,6 @@
+package com.resumepilot.domain.experience;
+
+public enum ExperienceType {
+    PROJECT, ACHIEVEMENT, CAREER, EDUCATION, CERTIFICATION,
+    COLLABORATION, CONFLICT_RESOLUTION, PROBLEM_SOLVING, LEADERSHIP, TECHNOLOGY, OTHER
+}
