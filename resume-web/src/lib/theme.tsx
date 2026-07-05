@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 type Theme = 'light' | 'dark';
 
 const ThemeContext = createContext<{ theme: Theme; toggle: () => void }>({
-  theme: 'light',
+  theme: 'dark',
   toggle: () => {},
 });
 
@@ -12,11 +12,18 @@ function applyTheme(theme: Theme) {
   localStorage.setItem('theme', theme);
 }
 
+const DEFAULT_THEME: Theme = 'dark';
+
+function resolveTheme(stored: string | null): Theme {
+  if (stored === 'light' || stored === 'dark') return stored;
+  return DEFAULT_THEME;
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    const stored = (localStorage.getItem('theme') as Theme) || 'light';
-    applyTheme(stored);
-    return stored;
+    const initial = resolveTheme(localStorage.getItem('theme'));
+    applyTheme(initial);
+    return initial;
   });
 
   useEffect(() => {

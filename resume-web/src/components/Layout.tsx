@@ -2,6 +2,7 @@ import { Link, Navigate, Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { clearTokens, getAccessToken } from '../lib/api';
 import { useTheme } from '../lib/theme';
+import { Logo } from './Logo';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
 export function ProtectedLayout() {
@@ -13,9 +14,7 @@ export function ProtectedLayout() {
   return (
     <div className="min-h-screen flex bg-zinc-50 dark:bg-zinc-950">
       <aside className="w-56 bg-white/80 dark:bg-zinc-900/90 backdrop-blur border-r border-zinc-200/80 dark:border-zinc-800 p-4 flex flex-col">
-        <h1 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent mb-4">
-          ResumePilot
-        </h1>
+        <Logo to="/dashboard" />
         <LanguageSwitcher className="mb-4 w-full" />
         <nav className="space-y-2 flex-1">
           <NavItem to="/dashboard">{t('nav.dashboard')}</NavItem>
