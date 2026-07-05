@@ -4,7 +4,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,6 +25,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        if (isPublicAuthPath(request)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         String token = resolveToken(request);
         if (token != null) {
             if (!jwtTokenProvider.validateToken(token)) {
@@ -49,6 +52,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.getWriter().write(
                 "{\"success\":false,\"error\":{\"code\":\"INVALID_TOKEN\",\"message\":\"Invalid or expired token\"}}");
+    }
+
+    private boolean isPublicAuthPath(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return path != null && path.startsWith("/api/v1/auth/");
     }
 
     private String resolveToken(HttpServletRequest request) {
