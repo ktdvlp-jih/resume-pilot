@@ -1,7 +1,8 @@
 name: Deploy Docker (Ubuntu self-hosted)
 
-# Tailscale/SSH 불필요 — Ubuntu 서버 Self-hosted Runner가 resume-pilot.sh deploy 실행
-# master push · workflow_dispatch 시 배포
+# Ubuntu Self-hosted Runner — master push / workflow_dispatch 시 배포
+# 1) repo를 master로 동기화 (구 스크립트가 main pull 하는 문제 방지)
+# 2) resume-pilot.sh deploy
 
 on:
   push:
@@ -18,8 +19,16 @@ jobs:
     timeout-minutes: 45
 
     steps:
+      - name: Sync repo to master
+        working-directory: /home/jeon/apps/resume-pilot
+        run: |
+          git fetch origin master
+          git checkout master 2>/dev/null || git checkout -B master origin/master
+          git reset --hard origin/master
+          chmod +x scripts/resume-pilot.sh
+
       - name: Deploy (git pull + docker compose)
         run: bash /home/jeon/apps/resume-pilot/scripts/resume-pilot.sh deploy
 
       - name: Health check
-        run: curl -sf http://localhost:9180/
+        run: curl -sfL http://localhost:9180/swagger-ui.html

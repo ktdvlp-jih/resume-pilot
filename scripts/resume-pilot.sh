@@ -40,19 +40,25 @@ cmd_deploy() {
 
   wait_health() {
     local port="${APP_PORT:-9180}"
-    # actuator/health 는 DB indicator 등으로 500 가능 — SPA 루트로 확인 (deploy.yml 과 동일)
-    local url="${1:-http://localhost:${port}/}"
-    local deadline=$((SECONDS + 120))
+    local urls=(
+      "http://localhost:${port}/swagger-ui.html"
+      "http://localhost:${port}/"
+    )
+    local deadline=$((SECONDS + 180))
     local attempt=0
     while (( SECONDS < deadline )); do
       attempt=$((attempt + 1))
-      if curl -sf --max-time 15 "$url" >/dev/null 2>&1; then
-        echo "[ok] Health check passed (attempt $attempt) — $url"
-        return 0
-      fi
-      echo "[wait] App starting... attempt $attempt ($url)"
+      for url in "${urls[@]}"; do
+        if curl -sfL --max-time 15 "$url" >/dev/null 2>&1; then
+          echo "[ok] Health check passed (attempt $attempt) — $url"
+          return 0
+        fi
+      done
+      echo "[wait] App starting... attempt $attempt"
       sleep 5
     done
+    echo "[fail] Health check failed. app logs:"
+    docker compose logs app --tail 40 || true
     return 1
   }
 
