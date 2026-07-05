@@ -1,0 +1,15 @@
+---
+description: ResumePilot React/Vite 프론트 규칙
+globs: resume-web/**/*.{ts,tsx},resume-admin/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Frontend (resume-web · resume-admin)
+
+- UI: Tailwind + shadcn-style `@/components/ui` 패턴 유지
+- i18n: `src/i18n/locales/{ko,en,ja,zh}.json` — 사용자 문구 하드코딩 지양
+- API: `src/lib/api-base.ts`, dev 시 `VITE_API_URL=http://localhost:8080`
+- resume-admin: `VITE_BASE=/admin/` (vite.config.ts)
+- 상태: TanStack Query, 라우팅: react-router-dom
+
+변경 후 해당 앱에서 `npm run build` 로 타입·빌드 확인.
