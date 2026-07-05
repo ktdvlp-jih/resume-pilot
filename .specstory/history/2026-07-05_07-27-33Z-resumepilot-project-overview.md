@@ -53680,6 +53680,5160 @@ _**Agent (default)**_
 ```bash
 cd "e:\workspace\resume-pilot"; git add docs/deploy-test-cases.md .specstory/history/2026-07-05_07-27-33Z-resumepilot-project-overview.md; git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "chore: trigger deploy workflow (test)"; git push origin master
 ```
+
+```
+[master a8e609a] chore: trigger deploy workflow (test)
+ 2 files changed, 1503 insertions(+)
+To github.com:ktdvlp-jih/resume-pilot.git
+   1a4a3c9..a8e609a  master -&gt; master
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+커밋·푸시했습니다.
+
+| 항목 | 내용 |
+|------|------|
+| 커밋 | `a8e609a` — `chore: trigger deploy workflow (test)` |
+| 변경 | `docs/deploy-test-cases.md` 한 줄 추가 |
+| 브랜치 | `master` → push 완료 |
+
+GitHub **Actions**에서 새 run이 떠야 합니다. 순서는:
+
+1. **Sync repo to master** (`checkout -f -B master`)
+2. **Deploy** (`resume-pilot.sh deploy`)
+3. **Health check** (`swagger-ui.html`)
+
+실패하면 해당 step 로그를 보내 주세요.
+
+---
+
+_**User**_
+
+일단 CI는 완벽해
+이제 퀵터널만 하자
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+CI는 이미 완벽합니다. 이제 퀵터널을 설정하겠습니다.</details></think>
+
+_**Agent (default)**_
+
+CI는 완료됐습니다. 프로젝트의 터널·Cloudflare 관련 설정을 확인합니다.
+
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "glob": "*.{md,sh,ps1,yml,mdc}",
+  "path": "e:\\workspace\\resume-pilot",
+  "pattern": "cloudflare|cloudflared|quick.?tunnel|trycloudflare|tunnel"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "e:\\workspace\\resume-pilot",
+  "pattern": "cloudflare|cloudflared|quick.?tunnel|trycloudflare|tunnel",
+  "topFiles": [
+    {
+      "matchCount": 27,
+      "uri": ".\\.specstory\\history\\2026-07-05_07-27-33Z-resumepilot-project-overview.md"
+    },
+    {
+      "matchCount": 5,
+      "uri": ".\\scripts\\resume-pilot.sh"
+    },
+    {
+      "matchCount": 8,
+      "uri": ".\\scripts\\resume-pilot.ps1"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".\\docs\\INFRASTRUCTURE.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".\\.cursor\\skills\\deploy-smoke\\SKILL.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".\\.cursor\\rules\\secrets-handling.mdc"
+    }
+  ],
+  "totalFiles": 6,
+  "totalMatches": 43
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "path": "e:\\workspace\\resume-pilot\\docs",
+  "pattern": "tunnel|cloudflare"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "e:\\workspace\\resume-pilot\\docs",
+  "pattern": "tunnel|cloudflare",
+  "topFiles": [
+    {
+      "matchCount": 1,
+      "uri": "docs\\INFRASTRUCTURE.md"
+    }
+  ],
+  "totalFiles": 1,
+  "totalMatches": 1
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+CI는 완료되었다. 이제 퀵터널 설정을 진행한다.</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\docs\SETUP.md</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\docs\INFRASTRUCTURE.md</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "explanation": "",
+  "query": "How is cloudflared quick tunnel configured for horizon?",
+  "topK": 10
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 142,
+            "text": "---"
+          },
+          {
+            "lineNumber": 143
+          },
+          {
+            "lineNumber": 144,
+            "text": "## 9. 운영 명령 (Ubuntu)"
+          },
+          {
+            "lineNumber": 145
+          },
+          {
+            "lineNumber": 146,
+            "text": "&#96;&#96;&#96;bash"
+          },
+          {
+            "lineNumber": 147,
+            "text": "cd ~/apps/resume-pilot"
+          },
+          {
+            "lineNumber": 148,
+            "text": "docker compose ps"
+          },
+          {
+            "lineNumber": 149,
+            "text": "docker compose up -d --build"
+          },
+          {
+            "lineNumber": 150,
+            "text": "curl -sf http://localhost:9180/swagger-ui.html -o /dev/null \u0026\u0026 echo OK"
+          },
+          {
+            "lineNumber": 151,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 152
+          },
+          {
+            "lineNumber": 153,
+            "text": "&#96;&#96;&#96;bash"
+          },
+          {
+            "lineNumber": 154,
+            "text": "docker compose logs -f app"
+          },
+          {
+            "lineNumber": 155,
+            "text": "./scripts/server-down.sh"
+          },
+          {
+            "lineNumber": 156,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 157
+          },
+          {
+            "lineNumber": 158,
+            "text": "배포: [SETUP.md §3](SETUP.md#part-3-ubuntu-서버) · &#96;./scripts/resume-pilot.sh deploy&#96;"
+          },
+          {
+            "lineNumber": 159
+          },
+          {
+            "lineNumber": 160,
+            "text": "---"
+          },
+          {
+            "lineNumber": 161
+          },
+          {
+            "lineNumber": 162,
+            "text": "## 관련 문서"
+          },
+          {
+            "lineNumber": 163
+          },
+          {
+            "lineNumber": 164,
+            "text": "| 문서 | 내용 |"
+          },
+          {
+            "lineNumber": 165,
+            "text": "|------|------|"
+          },
+          {
+            "lineNumber": 166,
+            "text": "| [architecture.md](architecture.md) | 서비스 책임·디렉터리 |"
+          },
+          {
+            "lineNumber": 167,
+            "text": "| [SETUP.md](SETUP.md) | 설치·배포 진입 |"
+          },
+          {
+            "lineNumber": 168,
+            "text": "| [RUNNING.md](RUNNING.md) | 로컬 개발·E2E |"
+          },
+          {
+            "lineNumber": 169,
+            "text": "| [deployment.md](deployment.md) | 배포 트러블슈팅 |"
+          },
+          {
+            "lineNumber": 170,
+            "text": "| [server-coexistence.md](server-coexistence.md) | 동일 서버 포트 격리 |"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 170
+          },
+          "startPosition": {
+            "line": 140
+          }
+        },
+        "relativeWorkspacePath": ".\\docs\\INFRASTRUCTURE.md",
+        "signatures": {}
+      },
+      "score": 0.4049150049686432
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 1,
+            "text": "# ResumePilot 인프라"
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "lineNumber": 3,
+            "text": "\u003e **정본:** [&#96;docker-compose.yml&#96;](../docker-compose.yml), [&#96;resume-api/Dockerfile.prod&#96;](../resume-api/Dockerfile.prod)  "
+          },
+          {
+            "lineNumber": 4,
+            "text": "\u003e **설치·배포:** [SETUP.md](SETUP.md#part-3-ubuntu-서버) · **실행:** [RUNNING.md](RUNNING.md)"
+          },
+          {
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6,
+            "text": "프로덕션(Ubuntu Docker)은 **컨테이너 5개** + **호스트 Cloudflare Tunnel(선택)** 로 동작합니다.  "
+          },
+          {
+            "lineNumber": 7,
+            "text": "브라우저·Named Tunnel은 **&#96;APP_PORT&#96;(기본 9180) 하나**만 보면 됩니다."
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "lineNumber": 9,
+            "text": "---"
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 11,
+            "text": "## 1. 전체 그림"
+          },
+          {
+            "lineNumber": 12
+          },
+          {
+            "lineNumber": 13,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 14,
+            "text": "[인터넷 / 브라우저 / Tunnel]"
+          },
+          {
+            "lineNumber": 15,
+            "text": "        │"
+          },
+          {
+            "lineNumber": 16,
+            "text": "        ├─ https://your-domain.com  ── Cloudflare Named Tunnel (systemd, Docker 밖)"
+          },
+          {
+            "lineNumber": 17,
+            "text": "        ├─ http://\u003cLAN_HOST\u003e:9180   ── LAN"
+          },
+          {
+            "lineNumber": 18,
+            "text": "        │"
+          },
+          {
+            "lineNumber": 19,
+            "text": "        ▼"
+          },
+          {
+            "lineNumber": 20,
+            "text": "┌─────────────────────────────────────────────────────────┐"
+          },
+          {
+            "lineNumber": 21,
+            "text": "│  Ubuntu 서버                                             │"
+          },
+          {
+            "lineNumber": 22,
+            "text": "│                                                         │"
+          },
+          {
+            "lineNumber": 23,
+            "text": "│  cloudflared (systemd) ──► localhost:9180               │"
+          },
+          {
+            "lineNumber": 24,
+            "text": "│                                                         │"
+          },
+          {
+            "lineNumber": 25,
+            "text": "│  ┌─────────── Docker Compose (resume-pilot) ──────────┐  │"
+          },
+          {
+            "lineNumber": 26,
+            "text": "│  │                                                   │  │"
+          },
+          {
+            "lineNumber": 27,
+            "text": "│  │  resume-pilot-app (:8080 내부 → APP_PORT 호스트)   │  │"
+          },
+          {
+            "lineNumber": 28,
+            "text": "│  │    · Spring Boot API (/api/v1/**)                 │  │"
+          },
+          {
+            "lineNumber": 29,
+            "text": "│  │    · SPA 사용자 UI (/)                             │  │"
+          },
+          {
+            "lineNumber": 30,
+            "text": "│  │    · SPA 관리자 (/admin/)                          │  │"
+          },
+          {
+            "lineNumber": 31,
+            "text": "│  │                                                   │  │"
+          },
+          {
+            "lineNumber": 32,
+            "text": "│  │  resume-pilot-postgres (pgvector/pg17)            │  │"
+          },
+          {
+            "lineNumber": 33,
+            "text": "│  │    · POSTGRES_PORT 호스트 (기본 55532, 선택)       │  │"
+          },
+          {
+            "lineNumber": 34,
+            "text": "│  │                                                   │  │"
+          },
+          {
+            "lineNumber": 35,
+            "text": "│  │  resume-pilot-ai (:8000, 내부만)                  │  │"
+          },
+          {
+            "lineNumber": 36,
+            "text": "│  │  resume-pilot-prompt (:8001, 내부만)              │  │"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 36
+          },
+          "startPosition": {}
+        },
+        "relativeWorkspacePath": ".\\docs\\INFRASTRUCTURE.md",
+        "signatures": {}
+      },
+      "score": 0.3605833053588867
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 1,
+            "text": "# 동일 서버 포트 격리"
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "lineNumber": 3,
+            "text": "같은 Linux 호스트에서 **ResumePilot**과 다른 Docker 스택을 함께 돌릴 때, **호스트 포트만** 겹치지 않으면 됩니다. 컨테이너 내부 포트(8080, 5432, 8000…)는 각 스택마다 동일해도 됩니다."
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5,
+            "text": "## ResumePilot 기본 포트"
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "lineNumber": 7,
+            "text": "| 서비스 | 호스트 포트 | 컨테이너 포트 | 비고 |"
+          },
+          {
+            "lineNumber": 8,
+            "text": "|--------|-------------|---------------|------|"
+          },
+          {
+            "lineNumber": 9,
+            "text": "| **app** (SPA + API) | **9180** | 8080 | Named Tunnel origin |"
+          },
+          {
+            "lineNumber": 10,
+            "text": "| postgres | **55532** | 5432 | 선택 외부 노출 |"
+          },
+          {
+            "lineNumber": 11,
+            "text": "| resume-ai | *(내부)* | 8000 | prod에서 host 미노출 |"
+          },
+          {
+            "lineNumber": 12,
+            "text": "| prompt-service | *(내부)* | 8001 | |"
+          },
+          {
+            "lineNumber": 13,
+            "text": "| rag-service | *(내부)* | 8002 | |"
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "lineNumber": 15,
+            "text": "&#96;.env&#96;에서 변경:"
+          },
+          {
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17,
+            "text": "&#96;&#96;&#96;env"
+          },
+          {
+            "lineNumber": 18,
+            "text": "APP_PORT=9180"
+          },
+          {
+            "lineNumber": 19,
+            "text": "POSTGRES_PORT=55532"
+          },
+          {
+            "lineNumber": 20,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "lineNumber": 22,
+            "text": "## 격리 규칙"
+          },
+          {
+            "lineNumber": 23
+          },
+          {
+            "lineNumber": 24,
+            "text": "1. **&#96;COMPOSE_PROJECT_NAME=resume-pilot&#96;** — 네트워크·볼륨 이름 충돌 방지"
+          },
+          {
+            "lineNumber": 25,
+            "text": "2. **컨테이너명** — &#96;resume-pilot-*&#96; 고정 (&#96;docker-compose.yml&#96;)"
+          },
+          {
+            "lineNumber": 26,
+            "text": "3. **DB** — 전용 Postgres 인스턴스·볼륨 (&#96;resumepilot&#96; DB)"
+          },
+          {
+            "lineNumber": 27,
+            "text": "4. **&#96;.env&#96;** — [&#96;.env.production.example&#96;](../.env.production.example)에서 복사, 타 프로젝트 &#96;.env&#96; 재사용 금지"
+          },
+          {
+            "lineNumber": 28
+          },
+          {
+            "lineNumber": 29,
+            "text": "## 다른 스택과 포트 충돌 시"
+          },
+          {
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31,
+            "text": "호스트에서 이미 사용 중인 포트가 있으면 &#96;APP_PORT&#96;, &#96;POSTGRES_PORT&#96;를 빈 구간으로 옮깁니다."
+          },
+          {
+            "lineNumber": 32
+          },
+          {
+            "lineNumber": 33,
+            "text": "예: 호스트 &#96;9080&#96;·&#96;55432&#96;가 사용 중이면 ResumePilot은 **&#96;9180&#96;·&#96;55532&#96;** (기본값)을 씁니다."
+          },
+          {
+            "lineNumber": 34
+          },
+          {
+            "lineNumber": 35,
+            "text": "확인:"
+          },
+          {
+            "lineNumber": 36
+          },
+          {
+            "lineNumber": 37,
+            "text": "&#96;&#96;&#96;bash"
+          },
+          {
+            "lineNumber": 38,
+            "text": "docker ps --format \"table {{.Names}}\\t{{.Ports}}\""
+          },
+          {
+            "lineNumber": 39,
+            "text": "ss -tlnp | grep -E '9180|55532'"
+          },
+          {
+            "lineNumber": 40,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "lineNumber": 42,
+            "text": "## Named Tunnel"
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "lineNumber": 44,
+            "text": "origin **1개**:"
+          },
+          {
+            "lineNumber": 45
+          },
+          {
+            "lineNumber": 46,
+            "text": "&#96;&#96;&#96;text"
+          },
+          {
+            "lineNumber": 47,
+            "text": "http://127.0.0.1:\u003cAPP_PORT\u003e"
+          },
+          {
+            "lineNumber": 48,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50,
+            "text": "라우트: &#96;/&#96;, &#96;/admin/&#96;, &#96;/api/v1/...&#96; 모두 동일 origin."
+          },
+          {
+            "lineNumber": 51
+          },
+          {
+            "lineNumber": 52,
+            "text": "## 내부 vs 외부 URL"
+          },
+          {
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54,
+            "text": "| 맥락 | 예시 |"
+          },
+          {
+            "lineNumber": 55,
+            "text": "|------|------|"
+          },
+          {
+            "lineNumber": 56,
+            "text": "| 브라우저 (prod) | &#96;http://\u003cLAN_HOST\u003e:9180/&#96; |"
+          },
+          {
+            "lineNumber": 57,
+            "text": "| 컨테이너 → app | &#96;http://app:8080&#96; |"
+          },
+          {
+            "lineNumber": 58,
+            "text": "| 컨테이너 → AI | &#96;http://resume-ai:8000&#96; |"
+          },
+          {
+            "lineNumber": 59,
+            "text": "| 로컬 dev | Vite &#96;5173&#96;/&#96;5174&#96; → API &#96;8080&#96; (&#96;VITE_API_URL&#96;) |"
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "lineNumber": 61,
+            "text": "## 배포"
+          },
+          {
+            "lineNumber": 62
+          },
+          {
+            "lineNumber": 63,
+            "text": "[SETUP.md §3](SETUP.md#part-3-ubuntu-서버)"
+          },
+          {
+            "lineNumber": 64
+          },
+          {
+            "lineNumber": 65,
+            "text": "&#96;&#96;&#96;bash"
+          },
+          {
+            "lineNumber": 66,
+            "text": "cd ~/apps/resume-pilot"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 66
+          },
+          "startPosition": {}
+        },
+        "relativeWorkspacePath": ".\\docs\\server-coexistence.md",
+        "signatures": {}
+      },
+      "score": 0.33307504653930664
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 35,
+            "text": "│  │  resume-pilot-ai (:8000, 내부만)                  │  │"
+          },
+          {
+            "lineNumber": 36,
+            "text": "│  │  resume-pilot-prompt (:8001, 내부만)              │  │"
+          },
+          {
+            "lineNumber": 37,
+            "text": "│  │  resume-pilot-rag (:8002, 내부만)                 │  │"
+          },
+          {
+            "lineNumber": 38,
+            "text": "│  └───────────────────────────────────────────────────┘  │"
+          },
+          {
+            "lineNumber": 39,
+            "text": "└─────────────────────────────────────────────────────────┘"
+          },
+          {
+            "lineNumber": 40,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "lineNumber": 42,
+            "text": "**로컬 개발**은 Docker 5개가 아니라 **터미널**에서 서비스별 실행 — [RUNNING.md §1](RUNNING.md#1-로컬-개발-터미널)."
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "lineNumber": 44,
+            "text": "---"
+          },
+          {
+            "lineNumber": 45
+          },
+          {
+            "lineNumber": 46,
+            "text": "## 2. 프로덕션 컨테이너 (5개)"
+          },
+          {
+            "lineNumber": 47
+          },
+          {
+            "lineNumber": 48,
+            "text": "| 서비스 | 컨테이너명 | 이미지/빌드 | 역할 |"
+          },
+          {
+            "lineNumber": 49,
+            "text": "|--------|------------|-------------|------|"
+          },
+          {
+            "lineNumber": 50,
+            "text": "| &#96;postgres&#96; | &#96;resume-pilot-postgres&#96; | &#96;pgvector/pgvector:pg17&#96; | PostgreSQL + 벡터 검색 |"
+          },
+          {
+            "lineNumber": 51,
+            "text": "| &#96;app&#96; | &#96;resume-pilot-app&#96; | &#96;resume-api/Dockerfile.prod&#96; | Spring API + **내장 SPA** (/, /admin/) |"
+          },
+          {
+            "lineNumber": 52,
+            "text": "| &#96;resume-ai&#96; | &#96;resume-pilot-ai&#96; | &#96;./resume-ai&#96; | AI Gateway |"
+          },
+          {
+            "lineNumber": 53,
+            "text": "| &#96;prompt-service&#96; | &#96;resume-pilot-prompt&#96; | &#96;./prompt-service&#96; | 프롬프트 런타임 |"
+          },
+          {
+            "lineNumber": 54,
+            "text": "| &#96;rag-service&#96; | &#96;resume-pilot-rag&#96; | &#96;./rag-service&#96; | 임베딩·RAG |"
+          },
+          {
+            "lineNumber": 55
+          },
+          {
+            "lineNumber": 56,
+            "text": "&#96;COMPOSE_PROJECT_NAME=resume-pilot&#96; — 네트워크·볼륨 접두사 분리."
+          },
+          {
+            "lineNumber": 57
+          },
+          {
+            "lineNumber": 58,
+            "text": "---"
+          },
+          {
+            "lineNumber": 59
+          },
+          {
+            "lineNumber": 60,
+            "text": "## 3. 호스트 포트 (프로덕션)"
+          },
+          {
+            "lineNumber": 61
+          },
+          {
+            "lineNumber": 62,
+            "text": "| 역할 | 환경 변수 | 기본값 | 공개 |"
+          },
+          {
+            "lineNumber": 63,
+            "text": "|------|-----------|--------|------|"
+          },
+          {
+            "lineNumber": 64,
+            "text": "| App (SPA + API) | &#96;APP_PORT&#96; | &#96;9180&#96; | ✅ Tunnel / LAN |"
+          },
+          {
+            "lineNumber": 65,
+            "text": "| PostgreSQL | &#96;POSTGRES_PORT&#96; | &#96;55532&#96; | 선택 (DBeaver) |"
+          },
+          {
+            "lineNumber": 66,
+            "text": "| resume-ai | — | (내부) | ❌ |"
+          },
+          {
+            "lineNumber": 67,
+            "text": "| prompt-service | — | (내부) | ❌ |"
+          },
+          {
+            "lineNumber": 68,
+            "text": "| rag-service | — | (내부) | ❌ |"
+          },
+          {
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70,
+            "text": "같은 서버에 다른 Docker 스택이 있으면 **호스트 포트가 겹치지 않게** &#96;.env&#96;에서 조정 — [server-coexistence.md](server-coexistence.md)."
+          },
+          {
+            "lineNumber": 71
+          },
+          {
+            "lineNumber": 72,
+            "text": "---"
+          },
+          {
+            "lineNumber": 73
+          },
+          {
+            "lineNumber": 74,
+            "text": "## 4. SPA-in-JAR (단일 app)"
+          },
+          {
+            "lineNumber": 75
+          },
+          {
+            "lineNumber": 76,
+            "text": "Prod &#96;app&#96; 컨테이너는 빌드 시:"
+          },
+          {
+            "lineNumber": 77
+          },
+          {
+            "lineNumber": 78,
+            "text": "1. &#96;resume-web&#96; → Vite build → &#96;classpath:/static/&#96;"
+          },
+          {
+            "lineNumber": 79,
+            "text": "2. &#96;resume-admin&#96; → Vite build (&#96;base: /admin/&#96;) → &#96;classpath:/static/admin/&#96;"
+          },
+          {
+            "lineNumber": 80,
+            "text": "3. Spring Boot JAR — &#96;SPRING_PROFILES_ACTIVE=prod&#96;, &#96;app.spa.enabled=true&#96;"
+          },
+          {
+            "lineNumber": 81
+          },
+          {
+            "lineNumber": 82,
+            "text": "브라우저는 **한 포트**에서 &#96;/&#96;, &#96;/admin/&#96;, &#96;/api/v1&#96; 모두 접근 (same-origin)."
+          },
+          {
+            "lineNumber": 83
+          },
+          {
+            "lineNumber": 84,
+            "text": "Named Tunnel origin:"
+          },
+          {
+            "lineNumber": 85
+          },
+          {
+            "lineNumber": 86,
+            "text": "&#96;&#96;&#96;text"
+          },
+          {
+            "lineNumber": 87,
+            "text": "http://127.0.0.1:9180"
+          },
+          {
+            "lineNumber": 88,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 89
+          },
+          {
+            "lineNumber": 90,
+            "text": "---"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 91
+          },
+          "startPosition": {
+            "line": 34
+          }
+        },
+        "relativeWorkspacePath": ".\\docs\\INFRASTRUCTURE.md",
+        "signatures": {}
+      },
+      "score": 0.3245882987976074
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 1,
+            "text": "# ============================================================================="
+          },
+          {
+            "lineNumber": 2,
+            "text": "# ResumePilot — PRODUCTION / SERVER"
+          },
+          {
+            "lineNumber": 3,
+            "text": "#   cp .env.production.example .env"
+          },
+          {
+            "lineNumber": 4,
+            "text": "# Git: .env 제외 | 이 파일만 커밋"
+          },
+          {
+            "lineNumber": 5,
+            "text": "# ============================================================================="
+          },
+          {
+            "lineNumber": 6,
+            "text": "#"
+          },
+          {
+            "lineNumber": 7,
+            "text": "# Docker prod = 5 containers"
+          },
+          {
+            "lineNumber": 8,
+            "text": "#   1× app      — SPA / + /admin/ + /api/v1  → APP_PORT (9180)"
+          },
+          {
+            "lineNumber": 9,
+            "text": "#   1× postgres — pgvector                    → POSTGRES_PORT (55532, 선택)"
+          },
+          {
+            "lineNumber": 10,
+            "text": "#   3× AI       — resume-ai, prompt-service, rag-service (host 포트 없음)"
+          },
+          {
+            "lineNumber": 11,
+            "text": "#"
+          },
+          {
+            "lineNumber": 12,
+            "text": "# 동일 서버: APP_PORT·POSTGRES_PORT 는 docs/server-coexistence.md 참고"
+          },
+          {
+            "lineNumber": 13,
+            "text": "# Named Tunnel: cloudflared (systemd) → http://127.0.0.1:9180  (origin 1개)"
+          },
+          {
+            "lineNumber": 14,
+            "text": "#"
+          },
+          {
+            "lineNumber": 15,
+            "text": "# 불필요 (prod): VITE_*, WEB_PORT, AI_PORT/PROMPT_PORT/RAG_PORT (host 노출 없음)"
+          },
+          {
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17,
+            "text": "COMPOSE_PROJECT_NAME=resume-pilot"
+          },
+          {
+            "lineNumber": 18
+          },
+          {
+            "lineNumber": 19,
+            "text": "# ===== Network (서버 .env — LAN_HOST는 실제 값, example은 플레이스홀더) ====="
+          },
+          {
+            "lineNumber": 20,
+            "text": "TAILSCALE_HOST=100.x.x.x"
+          },
+          {
+            "lineNumber": 21,
+            "text": "LAN_HOST=your-lan-host"
+          },
+          {
+            "lineNumber": 22
+          },
+          {
+            "lineNumber": 23,
+            "text": "# ===== 1× Database ====="
+          },
+          {
+            "lineNumber": 24,
+            "text": "POSTGRES_DB=resumepilot"
+          },
+          {
+            "lineNumber": 25,
+            "text": "POSTGRES_USER=resumepilot"
+          },
+          {
+            "lineNumber": 26,
+            "text": "POSTGRES_PASSWORD=change-me-strong-password"
+          },
+          {
+            "lineNumber": 27,
+            "text": "POSTGRES_PORT=55532"
+          },
+          {
+            "lineNumber": 28
+          },
+          {
+            "lineNumber": 29,
+            "text": "SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/resumepilot"
+          },
+          {
+            "lineNumber": 30,
+            "text": "SPRING_DATASOURCE_USERNAME=resumepilot"
+          },
+          {
+            "lineNumber": 31,
+            "text": "SPRING_DATASOURCE_PASSWORD=change-me-strong-password"
+          },
+          {
+            "lineNumber": 32,
+            "text": "DATABASE_URL=postgresql://resumepilot:change-me-strong-password@postgres:5432/resumepilot"
+          },
+          {
+            "lineNumber": 33
+          },
+          {
+            "lineNumber": 34,
+            "text": "# ===== 1× App (SPA-in-JAR, 단일 공개 포트) ====="
+          },
+          {
+            "lineNumber": 35,
+            "text": "APP_PORT=9180"
+          },
+          {
+            "lineNumber": 36,
+            "text": "JWT_SECRET=change-me-to-a-secure-random-string-at-least-256-bits"
+          },
+          {
+            "lineNumber": 37,
+            "text": "JWT_ACCESS_EXPIRATION_MS=900000"
+          },
+          {
+            "lineNumber": 38,
+            "text": "JWT_REFRESH_EXPIRATION_MS=604800000"
+          },
+          {
+            "lineNumber": 39,
+            "text": "RESUME_CORS_ORIGINS=http://100.x.x.x:9180,http://your-lan-host:9180"
+          },
+          {
+            "lineNumber": 40
+          },
+          {
+            "lineNumber": 41,
+            "text": "# ===== 3× AI — Docker internal only ====="
+          },
+          {
+            "lineNumber": 42,
+            "text": "RESUME_AI_SERVICE_URL=http://resume-ai:8000"
+          },
+          {
+            "lineNumber": 43,
+            "text": "PROMPT_SERVICE_URL=http://prompt-service:8001"
+          },
+          {
+            "lineNumber": 44,
+            "text": "RAG_SERVICE_URL=http://rag-service:8002"
+          },
+          {
+            "lineNumber": 45
+          },
+          {
+            "lineNumber": 46,
+            "text": "# ===== LLM (Gemini 등 — 3× AI 공통, RAG 별도 키 없음) ====="
+          },
+          {
+            "lineNumber": 47,
+            "text": "OPENAI_API_KEY="
+          },
+          {
+            "lineNumber": 48,
+            "text": "OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/"
+          },
+          {
+            "lineNumber": 49,
+            "text": "OPENAI_MODEL=gemini-2.5-flash"
+          },
+          {
+            "lineNumber": 50,
+            "text": "EMBEDDING_MODEL=text-embedding-3-small"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 50
+          },
+          "startPosition": {}
+        },
+        "relativeWorkspacePath": ".\\.env.production.example",
+        "signatures": {}
+      },
+      "score": 0.2963416874408722
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 1,
+            "text": "# Linux Server Deployment"
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "lineNumber": 3,
+            "text": "서버 SSH·LAN 주소는 **Git에 넣지 않는다**. 로컬 &#96;.env&#96;의 &#96;DEPLOY_HOST&#96;, &#96;LAN_HOST&#96; 사용."
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5,
+            "text": "**진입 문서:** [SETUP.md § Part 3](SETUP.md#part-3-ubuntu-서버)"
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "lineNumber": 7,
+            "text": "## Target"
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "lineNumber": 9,
+            "text": "| Item | Value |"
+          },
+          {
+            "lineNumber": 10,
+            "text": "|------|-------|"
+          },
+          {
+            "lineNumber": 11,
+            "text": "| SSH | &#96;DEPLOY_HOST&#96; in local &#96;.env&#96; (e.g. &#96;user@your-lan-host&#96;) |"
+          },
+          {
+            "lineNumber": 12,
+            "text": "| Path | &#96;~/apps/resume-pilot&#96; |"
+          },
+          {
+            "lineNumber": 13,
+            "text": "| OS | Ubuntu 22.04 |"
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "lineNumber": 15,
+            "text": "## Quick deploy"
+          },
+          {
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17,
+            "text": "&#96;&#96;&#96;powershell"
+          },
+          {
+            "lineNumber": 18,
+            "text": "# Windows — DEPLOY_HOST in .env first"
+          },
+          {
+            "lineNumber": 19,
+            "text": ".\\scripts\\deploy-remote.ps1"
+          },
+          {
+            "lineNumber": 20,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "lineNumber": 22,
+            "text": "&#96;&#96;&#96;bash"
+          },
+          {
+            "lineNumber": 23,
+            "text": "export DEPLOY_HOST=user@your-lan-host"
+          },
+          {
+            "lineNumber": 24,
+            "text": "./scripts/deploy-remote.sh"
+          },
+          {
+            "lineNumber": 25,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27,
+            "text": "## Manual on server"
+          },
+          {
+            "lineNumber": 28
+          },
+          {
+            "lineNumber": 29,
+            "text": "&#96;&#96;&#96;bash"
+          },
+          {
+            "lineNumber": 30,
+            "text": "cd ~/apps/resume-pilot"
+          },
+          {
+            "lineNumber": 31,
+            "text": "cp .env.production.example .env"
+          },
+          {
+            "lineNumber": 32,
+            "text": "# Edit .env: POSTGRES_PASSWORD, JWT_SECRET, OPENAI_API_KEY, LAN_HOST"
+          },
+          {
+            "lineNumber": 33,
+            "text": "./scripts/server-up.sh"
+          },
+          {
+            "lineNumber": 34,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 35
+          },
+          {
+            "lineNumber": 36,
+            "text": "## Service URLs"
+          },
+          {
+            "lineNumber": 37
+          },
+          {
+            "lineNumber": 38,
+            "text": "&#96;http://\u003cLAN_HOST\u003e:\u003cAPP_PORT\u003e/&#96; — defaults &#96;APP_PORT=9180&#96;"
+          },
+          {
+            "lineNumber": 39
+          },
+          {
+            "lineNumber": 40,
+            "text": "| Service | Path |"
+          },
+          {
+            "lineNumber": 41,
+            "text": "|---------|------|"
+          },
+          {
+            "lineNumber": 42,
+            "text": "| Web (SPA) | &#96;/&#96; |"
+          },
+          {
+            "lineNumber": 43,
+            "text": "| Admin (SPA) | &#96;/admin/&#96; |"
+          },
+          {
+            "lineNumber": 44,
+            "text": "| API | &#96;/api/v1&#96; |"
+          },
+          {
+            "lineNumber": 45,
+            "text": "| Swagger | &#96;/swagger-ui.html&#96; |"
+          },
+          {
+            "lineNumber": 46
+          },
+          {
+            "lineNumber": 47,
+            "text": "**Named Tunnel:** &#96;http://127.0.0.1:9180&#96;"
+          },
+          {
+            "lineNumber": 48
+          },
+          {
+            "lineNumber": 49,
+            "text": "Co-located stacks: [server-coexistence.md](server-coexistence.md)"
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "lineNumber": 51,
+            "text": "## Production compose"
+          },
+          {
+            "lineNumber": 52
+          },
+          {
+            "lineNumber": 53,
+            "text": "&#96;&#96;&#96;bash"
+          },
+          {
+            "lineNumber": 54,
+            "text": "docker compose up -d --build"
+          },
+          {
+            "lineNumber": 55,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 56
+          },
+          {
+            "lineNumber": 57,
+            "text": "5 containers: app, postgres, resume-ai, prompt-service, rag-service"
+          },
+          {
+            "lineNumber": 58
+          },
+          {
+            "lineNumber": 59,
+            "text": "## GitHub Actions (auto deploy)"
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "lineNumber": 61,
+            "text": "&#96;master&#96; 브랜치 push 시 Ubuntu **self-hosted runner**가 배포합니다."
+          },
+          {
+            "lineNumber": 62
+          },
+          {
+            "lineNumber": 63,
+            "text": "- Workflow: [&#96;.github/workflows/deploy.yml&#96;](../.github/workflows/deploy.yml)"
+          },
+          {
+            "lineNumber": 64,
+            "text": "- 실행: &#96;bash /home/jeon/apps/resume-pilot/scripts/resume-pilot.sh deploy&#96;"
+          },
+          {
+            "lineNumber": 65,
+            "text": "- 사전: 서버에 GitHub Actions Runner 등록, 저장소 clone 경로 일치"
+          },
+          {
+            "lineNumber": 66
+          },
+          {
+            "lineNumber": 67,
+            "text": "수동 배포는 &#96;./scripts/resume-pilot.sh deploy&#96; 와 동일합니다."
+          },
+          {
+            "lineNumber": 68
+          },
+          {
+            "lineNumber": 69,
+            "text": "## Environment variables"
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "lineNumber": 71,
+            "text": "[&#96;.env.production.example&#96;](../.env.production.example) → server &#96;.env&#96;"
+          },
+          {
+            "lineNumber": 72
+          },
+          {
+            "lineNumber": 73,
+            "text": "| Variable | Description |"
+          },
+          {
+            "lineNumber": 74,
+            "text": "|----------|-------------|"
+          },
+          {
+            "lineNumber": 75,
+            "text": "| &#96;LAN_HOST&#96; | LAN hostname/IP for CORS·docs (not committed in real &#96;.env&#96; on server) |"
+          },
+          {
+            "lineNumber": 76,
+            "text": "| &#96;POSTGRES_PASSWORD&#96; | DB password |"
+          },
+          {
+            "lineNumber": 77,
+            "text": "| &#96;JWT_SECRET&#96; | JWT signing key |"
+          },
+          {
+            "lineNumber": 78,
+            "text": "| &#96;APP_PORT&#96; | Host port (default &#96;9180&#96;) |"
+          },
+          {
+            "lineNumber": 79,
+            "text": "| &#96;OPENAI_API_KEY&#96; | LLM API key |"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 79
+          },
+          "startPosition": {}
+        },
+        "relativeWorkspacePath": ".\\docs\\deployment.md",
+        "signatures": {}
+      },
+      "score": 0.29236680269241333
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 82,
+            "text": "브라우저는 **한 포트**에서 &#96;/&#96;, &#96;/admin/&#96;, &#96;/api/v1&#96; 모두 접근 (same-origin)."
+          },
+          {
+            "lineNumber": 83
+          },
+          {
+            "lineNumber": 84,
+            "text": "Named Tunnel origin:"
+          },
+          {
+            "lineNumber": 85
+          },
+          {
+            "lineNumber": 86,
+            "text": "&#96;&#96;&#96;text"
+          },
+          {
+            "lineNumber": 87,
+            "text": "http://127.0.0.1:9180"
+          },
+          {
+            "lineNumber": 88,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 89
+          },
+          {
+            "lineNumber": 90,
+            "text": "---"
+          },
+          {
+            "lineNumber": 91
+          },
+          {
+            "lineNumber": 92,
+            "text": "## 5. 내부 통신"
+          },
+          {
+            "lineNumber": 93
+          },
+          {
+            "lineNumber": 94,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 95,
+            "text": "Browser → app:8080"
+          },
+          {
+            "lineNumber": 96,
+            "text": "    → /api/v1/**     → Spring"
+          },
+          {
+            "lineNumber": 97,
+            "text": "    → resume-ai:8000 → prompt-service:8001"
+          },
+          {
+            "lineNumber": 98,
+            "text": "                    → rag-service:8002"
+          },
+          {
+            "lineNumber": 99,
+            "text": "    → postgres:5432  (JDBC + Python DATABASE_URL)"
+          },
+          {
+            "lineNumber": 100,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 101
+          },
+          {
+            "lineNumber": 102,
+            "text": "컨테이너 간 URL (&#96;.env.production.example&#96;):"
+          },
+          {
+            "lineNumber": 103
+          },
+          {
+            "lineNumber": 104,
+            "text": "- &#96;RESUME_AI_SERVICE_URL=http://resume-ai:8000&#96;"
+          },
+          {
+            "lineNumber": 105,
+            "text": "- &#96;PROMPT_SERVICE_URL=http://prompt-service:8001&#96;"
+          },
+          {
+            "lineNumber": 106,
+            "text": "- &#96;RAG_SERVICE_URL=http://rag-service:8002&#96;"
+          },
+          {
+            "lineNumber": 107
+          },
+          {
+            "lineNumber": 108,
+            "text": "---"
+          },
+          {
+            "lineNumber": 109
+          },
+          {
+            "lineNumber": 110,
+            "text": "## 6. 볼륨·데이터"
+          },
+          {
+            "lineNumber": 111
+          },
+          {
+            "lineNumber": 112,
+            "text": "| 볼륨 | 용도 |"
+          },
+          {
+            "lineNumber": 113,
+            "text": "|------|------|"
+          },
+          {
+            "lineNumber": 114,
+            "text": "| &#96;resume-pilot_postgres_data&#96; | PostgreSQL 데이터 영구 저장 |"
+          },
+          {
+            "lineNumber": 115
+          },
+          {
+            "lineNumber": 116,
+            "text": "&#96;docker compose down&#96;은 컨테이너만 제거. **볼륨을 지우지 않으면** DB 유지."
+          },
+          {
+            "lineNumber": 117
+          },
+          {
+            "lineNumber": 118,
+            "text": "Flyway 마이그레이션: **resume-api**만 소유 (&#96;db/migration/&#96;)."
+          },
+          {
+            "lineNumber": 119
+          },
+          {
+            "lineNumber": 120,
+            "text": "---"
+          },
+          {
+            "lineNumber": 121
+          },
+          {
+            "lineNumber": 122,
+            "text": "## 7. 설정 파일"
+          },
+          {
+            "lineNumber": 123
+          },
+          {
+            "lineNumber": 124,
+            "text": "| 파일 | 역할 |"
+          },
+          {
+            "lineNumber": 125,
+            "text": "|------|------|"
+          },
+          {
+            "lineNumber": 126,
+            "text": "| [&#96;docker-compose.yml&#96;](../docker-compose.yml) | prod 5서비스 정의 |"
+          },
+          {
+            "lineNumber": 127,
+            "text": "| [&#96;.env&#96;](../.env) | 실값 (Git 제외) |"
+          },
+          {
+            "lineNumber": 128,
+            "text": "| [&#96;.env.production.example&#96;](../.env.production.example) | 서버 템플릿 |"
+          },
+          {
+            "lineNumber": 129,
+            "text": "| [&#96;.env.example&#96;](../.env.example) | 로컬 터미널 개발 템플릿 |"
+          },
+          {
+            "lineNumber": 130,
+            "text": "| [&#96;resume-api/Dockerfile.prod&#96;](../resume-api/Dockerfile.prod) | app 이미지 (SPA 번들) |"
+          },
+          {
+            "lineNumber": 131
+          },
+          {
+            "lineNumber": 132,
+            "text": "---"
+          },
+          {
+            "lineNumber": 133
+          },
+          {
+            "lineNumber": 134,
+            "text": "## 8. Docker에 올라가지 않는 것 (개발)"
+          },
+          {
+            "lineNumber": 135
+          },
+          {
+            "lineNumber": 136,
+            "text": "| 항목 | 실행 위치 |"
+          },
+          {
+            "lineNumber": 137,
+            "text": "|------|-----------|"
+          },
+          {
+            "lineNumber": 138,
+            "text": "| Vite dev (5173/5174) | 개발 PC &#96;npm run dev&#96; |"
+          },
+          {
+            "lineNumber": 139,
+            "text": "| &#96;gradlew bootRun&#96; | 개발 PC |"
+          },
+          {
+            "lineNumber": 140,
+            "text": "| Cloudflare Tunnel | Ubuntu systemd (선택) |"
+          },
+          {
+            "lineNumber": 141
+          },
+          {
+            "lineNumber": 142,
+            "text": "---"
+          },
+          {
+            "lineNumber": 143
+          },
+          {
+            "lineNumber": 144,
+            "text": "## 9. 운영 명령 (Ubuntu)"
+          },
+          {
+            "lineNumber": 145
+          },
+          {
+            "lineNumber": 146,
+            "text": "&#96;&#96;&#96;bash"
+          },
+          {
+            "lineNumber": 147,
+            "text": "cd ~/apps/resume-pilot"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 147
+          },
+          "startPosition": {
+            "line": 81
+          }
+        },
+        "relativeWorkspacePath": ".\\docs\\INFRASTRUCTURE.md",
+        "signatures": {}
+      },
+      "score": 0.275001585483551
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 1,
+            "text": "# ResumePilot"
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "lineNumber": 3,
+            "text": "RAG 기반 기업 맞춤 자기소개서 작성 및 첨삭 플랫폼"
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5,
+            "text": "## 서비스 구조"
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "lineNumber": 7,
+            "text": "### 로컬 개발 (터미널)"
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "lineNumber": 9,
+            "text": "| 서비스 | 포트 | 설명 |"
+          },
+          {
+            "lineNumber": 10,
+            "text": "|--------|------|------|"
+          },
+          {
+            "lineNumber": 11,
+            "text": "| PostgreSQL | 5432 | &#96;docker run&#96; pgvector |"
+          },
+          {
+            "lineNumber": 12,
+            "text": "| app (Spring) | 8080 | &#96;gradlew bootRun&#96; |"
+          },
+          {
+            "lineNumber": 13,
+            "text": "| resume-web (Vite) | 5173 | &#96;npm run dev&#96; |"
+          },
+          {
+            "lineNumber": 14,
+            "text": "| resume-admin (Vite) | 5174 | &#96;npm run dev&#96; (&#96;/admin/&#96;) |"
+          },
+          {
+            "lineNumber": 15,
+            "text": "| resume-ai | 8000 | uvicorn |"
+          },
+          {
+            "lineNumber": 16,
+            "text": "| prompt-service | 8001 | uvicorn |"
+          },
+          {
+            "lineNumber": 17,
+            "text": "| rag-service | 8002 | uvicorn |"
+          },
+          {
+            "lineNumber": 18
+          },
+          {
+            "lineNumber": 19,
+            "text": "### 프로덕션 (Docker 5컨테이너)"
+          },
+          {
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21,
+            "text": "| 서비스 | 호스트 포트 | 설명 |"
+          },
+          {
+            "lineNumber": 22,
+            "text": "|--------|-------------|------|"
+          },
+          {
+            "lineNumber": 23,
+            "text": "| **app** | 9180 (서버) | SPA &#96;/&#96; + &#96;/admin/&#96; + API |"
+          },
+          {
+            "lineNumber": 24,
+            "text": "| postgres | 55532 (선택) | pgvector |"
+          },
+          {
+            "lineNumber": 25,
+            "text": "| AI 3개 | (내부) | Docker network only |"
+          },
+          {
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27,
+            "text": "Named Tunnel origin: &#96;http://127.0.0.1:APP_PORT&#96; 하나."
+          },
+          {
+            "lineNumber": 28
+          },
+          {
+            "lineNumber": 29,
+            "text": "## 빠른 시작"
+          },
+          {
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31,
+            "text": "**실행 가이드: [docs/RUNNING.md](docs/RUNNING.md)**"
+          },
+          {
+            "lineNumber": 32
+          },
+          {
+            "lineNumber": 33,
+            "text": "&#96;&#96;&#96;powershell"
+          },
+          {
+            "lineNumber": 34,
+            "text": "# 로컬 개발"
+          },
+          {
+            "lineNumber": 35,
+            "text": "copy .env.example .env"
+          },
+          {
+            "lineNumber": 36,
+            "text": ".\\scripts\\resume-pilot.ps1 setup"
+          },
+          {
+            "lineNumber": 37,
+            "text": ".\\scripts\\resume-pilot.ps1 db"
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "lineNumber": 39,
+            "text": "# 배포 (Linux 서버)"
+          },
+          {
+            "lineNumber": 40,
+            "text": "cp .env.production.example .env"
+          },
+          {
+            "lineNumber": 41,
+            "text": "./scripts/resume-pilot.sh deploy"
+          },
+          {
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43,
+            "text": "# 로컬 prod 스모크"
+          },
+          {
+            "lineNumber": 44,
+            "text": ".\\scripts\\local-prod-up.ps1"
+          },
+          {
+            "lineNumber": 45,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 46
+          },
+          {
+            "lineNumber": 47,
+            "text": "## 환경 변수"
+          },
+          {
+            "lineNumber": 48
+          },
+          {
+            "lineNumber": 49,
+            "text": "| 파일 | 용도 |"
+          },
+          {
+            "lineNumber": 50,
+            "text": "|------|------|"
+          },
+          {
+            "lineNumber": 51,
+            "text": "| &#96;.env.example&#96; | 로컬 터미널 개발 |"
+          },
+          {
+            "lineNumber": 52,
+            "text": "| &#96;.env.production.example&#96; | Docker 배포 |"
+          },
+          {
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54,
+            "text": "| 변수 | 설명 |"
+          },
+          {
+            "lineNumber": 55,
+            "text": "|------|------|"
+          },
+          {
+            "lineNumber": 56,
+            "text": "| &#96;JWT_SECRET&#96; | JWT 서명 키 (변경 필수) |"
+          },
+          {
+            "lineNumber": 57,
+            "text": "| &#96;OPENAI_API_KEY&#96; | LLM API 키 (Gemini 등) |"
+          },
+          {
+            "lineNumber": 58,
+            "text": "| &#96;VITE_API_URL&#96; | 프론트 → API (&#96;http://localhost:8080&#96;) |"
+          },
+          {
+            "lineNumber": 59
+          },
+          {
+            "lineNumber": 60,
+            "text": "## API 문서"
+          },
+          {
+            "lineNumber": 61
+          },
+          {
+            "lineNumber": 62,
+            "text": "- Swagger: http://localhost:8080/swagger-ui.html"
+          },
+          {
+            "lineNumber": 63,
+            "text": "- resume-ai: http://localhost:8000/docs"
+          },
+          {
+            "lineNumber": 64
+          },
+          {
+            "lineNumber": 65,
+            "text": "## 아키텍처"
+          },
+          {
+            "lineNumber": 66
+          },
+          {
+            "lineNumber": 67,
+            "text": "[docs/architecture.md](docs/architecture.md)"
+          },
+          {
+            "lineNumber": 68
+          },
+          {
+            "lineNumber": 69,
+            "text": "## Linux 서버 배포"
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "lineNumber": 71,
+            "text": "[docs/SETUP.md](docs/SETUP.md#part-3-ubuntu-서버) — &#96;DEPLOY_HOST&#96;는 로컬 &#96;.env&#96;에만 설정."
+          },
+          {
+            "lineNumber": 72
+          },
+          {
+            "lineNumber": 73,
+            "text": "&#96;&#96;&#96;powershell"
+          },
+          {
+            "lineNumber": 74,
+            "text": ".\\scripts\\deploy-remote.ps1"
+          },
+          {
+            "lineNumber": 75,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 76
+          },
+          {
+            "lineNumber": 77,
+            "text": "[docs/deployment.md](docs/deployment.md) · [docs/server-coexistence.md](docs/server-coexistence.md)"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 77
+          },
+          "startPosition": {}
+        },
+        "relativeWorkspacePath": ".\\README.md",
+        "signatures": {}
+      },
+      "score": 0.2577253580093384
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 1,
+            "text": "#!/usr/bin/env bash"
+          },
+          {
+            "lineNumber": 2,
+            "text": "# Run ON the Linux server (~/apps/resume-pilot)"
+          },
+          {
+            "lineNumber": 3,
+            "text": "set -euo pipefail"
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5,
+            "text": "cd \"$(dirname \"$0\")/..\""
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "lineNumber": 7,
+            "text": "if [ ! -f .env ]; then"
+          },
+          {
+            "lineNumber": 8,
+            "text": "  cp .env.production.example .env"
+          },
+          {
+            "lineNumber": 9,
+            "text": "  echo \"Created .env — edit POSTGRES_PASSWORD, JWT_SECRET, then re-run\""
+          },
+          {
+            "lineNumber": 10,
+            "text": "  exit 1"
+          },
+          {
+            "lineNumber": 11,
+            "text": "fi"
+          },
+          {
+            "lineNumber": 12
+          },
+          {
+            "lineNumber": 13,
+            "text": "docker compose up -d --build"
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "lineNumber": 15,
+            "text": "echo \"\""
+          },
+          {
+            "lineNumber": 16,
+            "text": "docker compose ps"
+          },
+          {
+            "lineNumber": 17,
+            "text": "HOST=\"${DEPLOY_HOST:-$(hostname -I | awk '{print $1}')}\""
+          },
+          {
+            "lineNumber": 18,
+            "text": "API=\"${APP_PORT:-9180}\""
+          },
+          {
+            "lineNumber": 19
+          },
+          {
+            "lineNumber": 20,
+            "text": "echo \"\""
+          },
+          {
+            "lineNumber": 21,
+            "text": "echo \"ResumePilot:\""
+          },
+          {
+            "lineNumber": 22,
+            "text": "echo \"  App:     http://${HOST}:${API}/\""
+          },
+          {
+            "lineNumber": 23,
+            "text": "echo \"  Admin:   http://${HOST}:${API}/admin/\""
+          },
+          {
+            "lineNumber": 24,
+            "text": "echo \"  API:     http://${HOST}:${API}/api/v1\""
+          },
+          {
+            "lineNumber": 25,
+            "text": "echo \"  Swagger: http://${HOST}:${API}/swagger-ui.html\""
+          },
+          {
+            "lineNumber": 26,
+            "text": "echo \"\""
+          },
+          {
+            "lineNumber": 27,
+            "text": "echo \"Named Tunnel origin: http://127.0.0.1:${API}\""
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 27
+          },
+          "startPosition": {}
+        },
+        "relativeWorkspacePath": ".\\scripts\\server-up.sh",
+        "signatures": {}
+      },
+      "score": 0.24922999739646912
+    },
+    {
+      "codeBlock": {
+        "range": {
+          "endPosition": {
+            "column": 1,
+            "line": 233
+          },
+          "startPosition": {
+            "column": 1,
+            "line": 197
+          }
+        },
+        "relativeWorkspacePath": ".\\docs\\INFRASTRUCTURE.md",
+        "signatures": {}
+      },
+      "score": 0.24795429408550262
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 72,
+            "text": "$env:RESUME_AI_URL=\"http://localhost:8000\""
+          },
+          {
+            "lineNumber": 73,
+            "text": "$env:RAG_SERVICE_URL=\"http://localhost:8002\""
+          },
+          {
+            "lineNumber": 74,
+            "text": ".\\gradlew.bat bootRun"
+          },
+          {
+            "lineNumber": 75,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 76
+          },
+          {
+            "lineNumber": 77,
+            "text": "&#96;.env&#96;를 쓰려면 [dotenv](https://github.com/gradle/gradle) 없이 PowerShell에서 &#96;Get-Content .env&#96;로 export하거나, IDE run configuration에 변수를 넣으면 됩니다."
+          },
+          {
+            "lineNumber": 78
+          },
+          {
+            "lineNumber": 79,
+            "text": "### 1-5. 프론트엔드 (터미널 2개)"
+          },
+          {
+            "lineNumber": 80
+          },
+          {
+            "lineNumber": 81,
+            "text": "&#96;&#96;&#96;powershell"
+          },
+          {
+            "lineNumber": 82,
+            "text": "cd resume-web"
+          },
+          {
+            "lineNumber": 83,
+            "text": "npm install"
+          },
+          {
+            "lineNumber": 84,
+            "text": "npm run dev"
+          },
+          {
+            "lineNumber": 85,
+            "text": "# → http://localhost:5173"
+          },
+          {
+            "lineNumber": 86
+          },
+          {
+            "lineNumber": 87,
+            "text": "cd resume-admin"
+          },
+          {
+            "lineNumber": 88,
+            "text": "npm install"
+          },
+          {
+            "lineNumber": 89,
+            "text": "npm run dev"
+          },
+          {
+            "lineNumber": 90,
+            "text": "# → http://localhost:5174/admin/"
+          },
+          {
+            "lineNumber": 91,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 92
+          },
+          {
+            "lineNumber": 93,
+            "text": "### 개발 접속 URL"
+          },
+          {
+            "lineNumber": 94
+          },
+          {
+            "lineNumber": 95,
+            "text": "| 서비스 | URL |"
+          },
+          {
+            "lineNumber": 96,
+            "text": "|--------|-----|"
+          },
+          {
+            "lineNumber": 97,
+            "text": "| Web | http://localhost:5173 |"
+          },
+          {
+            "lineNumber": 98,
+            "text": "| Admin | http://localhost:5174/admin/ |"
+          },
+          {
+            "lineNumber": 99,
+            "text": "| API / Swagger | http://localhost:8080/swagger-ui.html |"
+          },
+          {
+            "lineNumber": 100,
+            "text": "| resume-ai | http://localhost:8000/docs |"
+          },
+          {
+            "lineNumber": 101,
+            "text": "| prompt-service | http://localhost:8001/docs |"
+          },
+          {
+            "lineNumber": 102,
+            "text": "| rag-service | http://localhost:8002/docs |"
+          },
+          {
+            "lineNumber": 103
+          },
+          {
+            "lineNumber": 104,
+            "text": "### 포트 정리 (개발)"
+          },
+          {
+            "lineNumber": 105
+          },
+          {
+            "lineNumber": 106,
+            "text": "| 서비스 | 포트 |"
+          },
+          {
+            "lineNumber": 107,
+            "text": "|--------|------|"
+          },
+          {
+            "lineNumber": 108,
+            "text": "| PostgreSQL | 5432 |"
+          },
+          {
+            "lineNumber": 109,
+            "text": "| Spring API | 8080 |"
+          },
+          {
+            "lineNumber": 110,
+            "text": "| resume-web (Vite) | 5173 |"
+          },
+          {
+            "lineNumber": 111,
+            "text": "| resume-admin (Vite) | 5174 |"
+          },
+          {
+            "lineNumber": 112,
+            "text": "| resume-ai | 8000 |"
+          },
+          {
+            "lineNumber": 113,
+            "text": "| prompt-service | 8001 |"
+          },
+          {
+            "lineNumber": 114,
+            "text": "| rag-service | 8002 |"
+          },
+          {
+            "lineNumber": 115
+          },
+          {
+            "lineNumber": 116,
+            "text": "---"
+          },
+          {
+            "lineNumber": 117
+          },
+          {
+            "lineNumber": 118,
+            "text": "## 2. 배포 (Docker Compose)"
+          },
+          {
+            "lineNumber": 119
+          },
+          {
+            "lineNumber": 120,
+            "text": "프로덕션은 **5개 컨테이너**만 사용합니다."
+          },
+          {
+            "lineNumber": 121
+          },
+          {
+            "lineNumber": 122,
+            "text": "| 컨테이너 | 역할 | 호스트 노출 |"
+          },
+          {
+            "lineNumber": 123,
+            "text": "|----------|------|-------------|"
+          },
+          {
+            "lineNumber": 124,
+            "text": "| app | Spring + SPA &#96;/&#96; + &#96;/admin/&#96; + API | &#96;APP_PORT&#96; |"
+          },
+          {
+            "lineNumber": 125,
+            "text": "| postgres | pgvector | &#96;POSTGRES_PORT&#96; (선택) |"
+          },
+          {
+            "lineNumber": 126,
+            "text": "| resume-ai | AI Gateway | 내부만 |"
+          },
+          {
+            "lineNumber": 127,
+            "text": "| prompt-service | Prompt runtime | 내부만 |"
+          },
+          {
+            "lineNumber": 128,
+            "text": "| rag-service | RAG / embedding | 내부만 |"
+          },
+          {
+            "lineNumber": 129
+          },
+          {
+            "lineNumber": 130,
+            "text": "### 2-1. Linux 서버"
+          },
+          {
+            "lineNumber": 131
+          },
+          {
+            "lineNumber": 132,
+            "text": "[SETUP.md § Part 3](SETUP.md#part-3-ubuntu-서버) 참고. 로컬 &#96;.env&#96;에 &#96;DEPLOY_HOST&#96;, &#96;LAN_HOST&#96; 설정."
+          },
+          {
+            "lineNumber": 133
+          },
+          {
+            "lineNumber": 134,
+            "text": "&#96;&#96;&#96;bash"
+          },
+          {
+            "lineNumber": 135,
+            "text": "cd ~/apps/resume-pilot"
+          },
+          {
+            "lineNumber": 136,
+            "text": "cp .env.production.example .env"
+          },
+          {
+            "lineNumber": 137,
+            "text": "./scripts/server-up.sh"
+          },
+          {
+            "lineNumber": 138,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 139
+          },
+          {
+            "lineNumber": 140,
+            "text": "### 2-2. Windows에서 원격 배포"
+          },
+          {
+            "lineNumber": 141
+          },
+          {
+            "lineNumber": 142,
+            "text": "&#96;&#96;&#96;powershell"
+          },
+          {
+            "lineNumber": 143,
+            "text": "# .env 에 DEPLOY_HOST 설정 후"
+          },
+          {
+            "lineNumber": 144,
+            "text": ".\\scripts\\deploy-remote.ps1"
+          },
+          {
+            "lineNumber": 145,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 146
+          },
+          {
+            "lineNumber": 147,
+            "text": "### 2-3. 로컬에서 prod 스모크 테스트"
+          },
+          {
+            "lineNumber": 148
+          },
+          {
+            "lineNumber": 149,
+            "text": "배포 전에 prod와 동일한 단일 app 컨테이너(SPA 번들 포함)를 띄울 때:"
+          },
+          {
+            "lineNumber": 150
+          },
+          {
+            "lineNumber": 151,
+            "text": "&#96;&#96;&#96;powershell"
+          },
+          {
+            "lineNumber": 152,
+            "text": ".\\scripts\\local-prod-up.ps1"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 152
+          },
+          "startPosition": {
+            "line": 71
+          }
+        },
+        "relativeWorkspacePath": ".\\docs\\RUNNING.md",
+        "signatures": {}
+      },
+      "score": 0.2416445016860962
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 1,
+            "text": "#!/usr/bin/env bash"
+          },
+          {
+            "lineNumber": 2,
+            "text": "# Deploy ResumePilot to Linux server via rsync + docker compose"
+          },
+          {
+            "lineNumber": 3,
+            "text": "#"
+          },
+          {
+            "lineNumber": 4,
+            "text": "# Usage:"
+          },
+          {
+            "lineNumber": 5,
+            "text": "#   export DEPLOY_HOST=jeon@your-lan-host"
+          },
+          {
+            "lineNumber": 6,
+            "text": "#   ./scripts/deploy-remote.sh"
+          },
+          {
+            "lineNumber": 7,
+            "text": "#   ./scripts/deploy-remote.sh jeon@your-lan-host"
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "lineNumber": 9,
+            "text": "set -euo pipefail"
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 11,
+            "text": "ROOT=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/..\" \u0026\u0026 pwd)\""
+          },
+          {
+            "lineNumber": 12,
+            "text": "cd \"$ROOT\""
+          },
+          {
+            "lineNumber": 13
+          },
+          {
+            "lineNumber": 14,
+            "text": "# Load DEPLOY_HOST / LAN_HOST from .env if present"
+          },
+          {
+            "lineNumber": 15,
+            "text": "if [[ -f .env ]]; then"
+          },
+          {
+            "lineNumber": 16,
+            "text": "  # shellcheck disable=SC1091"
+          },
+          {
+            "lineNumber": 17,
+            "text": "  set -a \u0026\u0026 source .env \u0026\u0026 set +a"
+          },
+          {
+            "lineNumber": 18,
+            "text": "fi"
+          },
+          {
+            "lineNumber": 19
+          },
+          {
+            "lineNumber": 20,
+            "text": "DEPLOY_HOST=\"${1:-${DEPLOY_HOST:-}}\""
+          },
+          {
+            "lineNumber": 21,
+            "text": "REMOTE_DIR=\"${REMOTE_DIR:-~/apps/resume-pilot}\""
+          },
+          {
+            "lineNumber": 22,
+            "text": "APP_PORT=\"${APP_PORT:-9180}\""
+          },
+          {
+            "lineNumber": 23
+          },
+          {
+            "lineNumber": 24,
+            "text": "if [[ -z \"$DEPLOY_HOST\" ]]; then"
+          },
+          {
+            "lineNumber": 25,
+            "text": "  echo \"DEPLOY_HOST not set. Add to .env or pass as argument. See docs/SETUP.md#part-3-ubuntu-서버\" \u003e\u00262"
+          },
+          {
+            "lineNumber": 26,
+            "text": "  exit 1"
+          },
+          {
+            "lineNumber": 27,
+            "text": "fi"
+          },
+          {
+            "lineNumber": 28
+          },
+          {
+            "lineNumber": 29,
+            "text": "LAN_HOST=\"${LAN_HOST:-${DEPLOY_HOST#*@}}\""
+          },
+          {
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31,
+            "text": "echo \"==\u003e Deploying ResumePilot to ${DEPLOY_HOST}:${REMOTE_DIR}\""
+          },
+          {
+            "lineNumber": 32
+          },
+          {
+            "lineNumber": 33,
+            "text": "ssh \"${DEPLOY_HOST}\" \"mkdir -p ${REMOTE_DIR}\""
+          },
+          {
+            "lineNumber": 34
+          },
+          {
+            "lineNumber": 35,
+            "text": "rsync -avz --delete \\"
+          },
+          {
+            "lineNumber": 36,
+            "text": "  --exclude '.git' \\"
+          },
+          {
+            "lineNumber": 37,
+            "text": "  --exclude 'node_modules' \\"
+          },
+          {
+            "lineNumber": 38,
+            "text": "  --exclude 'dist' \\"
+          },
+          {
+            "lineNumber": 39,
+            "text": "  --exclude 'build' \\"
+          },
+          {
+            "lineNumber": 40,
+            "text": "  --exclude '.gradle' \\"
+          },
+          {
+            "lineNumber": 41,
+            "text": "  --exclude '__pycache__' \\"
+          },
+          {
+            "lineNumber": 42,
+            "text": "  --exclude '.pytest_cache' \\"
+          },
+          {
+            "lineNumber": 43,
+            "text": "  --exclude '.venv' \\"
+          },
+          {
+            "lineNumber": 44,
+            "text": "  --exclude 'venv' \\"
+          },
+          {
+            "lineNumber": 45,
+            "text": "  --exclude '.env' \\"
+          },
+          {
+            "lineNumber": 46,
+            "text": "  --exclude '.specstory' \\"
+          },
+          {
+            "lineNumber": 47,
+            "text": "  \"${ROOT}/\" \"${DEPLOY_HOST}:${REMOTE_DIR}/\""
+          },
+          {
+            "lineNumber": 48
+          },
+          {
+            "lineNumber": 49,
+            "text": "echo \"==\u003e Setting up .env on remote (if missing)\""
+          },
+          {
+            "lineNumber": 50,
+            "text": "ssh \"${DEPLOY_HOST}\" \"cd ${REMOTE_DIR} \u0026\u0026 \\"
+          },
+          {
+            "lineNumber": 51,
+            "text": "  if [ ! -f .env ]; then cp .env.production.example .env \u0026\u0026 echo 'Created .env — edit secrets before production use!'; fi\""
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 51
+          },
+          "startPosition": {}
+        },
+        "relativeWorkspacePath": ".\\scripts\\deploy-remote.sh",
+        "signatures": {}
+      },
+      "score": 0.23976725339889526
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 76,
+            "text": "| &#96;POSTGRES_PASSWORD&#96; | DB password |"
+          },
+          {
+            "lineNumber": 77,
+            "text": "| &#96;JWT_SECRET&#96; | JWT signing key |"
+          },
+          {
+            "lineNumber": 78,
+            "text": "| &#96;APP_PORT&#96; | Host port (default &#96;9180&#96;) |"
+          },
+          {
+            "lineNumber": 79,
+            "text": "| &#96;OPENAI_API_KEY&#96; | LLM API key |"
+          },
+          {
+            "lineNumber": 80
+          },
+          {
+            "lineNumber": 81,
+            "text": "## Useful commands (on server)"
+          },
+          {
+            "lineNumber": 82
+          },
+          {
+            "lineNumber": 83,
+            "text": "&#96;&#96;&#96;bash"
+          },
+          {
+            "lineNumber": 84,
+            "text": "cd ~/apps/resume-pilot"
+          },
+          {
+            "lineNumber": 85,
+            "text": "docker compose ps"
+          },
+          {
+            "lineNumber": 86,
+            "text": "docker compose logs -f app"
+          },
+          {
+            "lineNumber": 87,
+            "text": "./scripts/server-down.sh"
+          },
+          {
+            "lineNumber": 88,
+            "text": "docker compose up -d --build app"
+          },
+          {
+            "lineNumber": 89,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 90
+          },
+          {
+            "lineNumber": 91,
+            "text": "## Firewall (optional)"
+          },
+          {
+            "lineNumber": 92
+          },
+          {
+            "lineNumber": 93,
+            "text": "&#96;&#96;&#96;bash"
+          },
+          {
+            "lineNumber": 94,
+            "text": "sudo ufw allow 9180/tcp"
+          },
+          {
+            "lineNumber": 95,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 96
+          },
+          {
+            "lineNumber": 97,
+            "text": "## Troubleshooting"
+          },
+          {
+            "lineNumber": 98
+          },
+          {
+            "lineNumber": 99,
+            "text": "See [SETUP.md](SETUP.md) and [RUNNING.md](RUNNING.md)."
+          },
+          {
+            "lineNumber": 100
+          },
+          {
+            "lineNumber": 101,
+            "text": "**SPA routes 404** — &#96;SPRING_PROFILES_ACTIVE=prod&#96;, rebuild app container."
+          },
+          {
+            "lineNumber": 102
+          },
+          {
+            "lineNumber": 103,
+            "text": "**CORS (local dev only)** — &#96;RESUME_CORS_ORIGINS&#96; with Vite &#96;5173&#96;/&#96;5174&#96;."
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 103
+          },
+          "startPosition": {
+            "line": 75
+          }
+        },
+        "relativeWorkspacePath": ".\\docs\\deployment.md",
+        "signatures": {}
+      },
+      "score": 0.23233884572982788
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 59,
+            "text": "| 로컬 dev | Vite &#96;5173&#96;/&#96;5174&#96; → API &#96;8080&#96; (&#96;VITE_API_URL&#96;) |"
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "lineNumber": 61,
+            "text": "## 배포"
+          },
+          {
+            "lineNumber": 62
+          },
+          {
+            "lineNumber": 63,
+            "text": "[SETUP.md §3](SETUP.md#part-3-ubuntu-서버)"
+          },
+          {
+            "lineNumber": 64
+          },
+          {
+            "lineNumber": 65,
+            "text": "&#96;&#96;&#96;bash"
+          },
+          {
+            "lineNumber": 66,
+            "text": "cd ~/apps/resume-pilot"
+          },
+          {
+            "lineNumber": 67,
+            "text": "cp .env.production.example .env"
+          },
+          {
+            "lineNumber": 68,
+            "text": "./scripts/server-up.sh"
+          },
+          {
+            "lineNumber": 69,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "lineNumber": 71,
+            "text": "## 검증"
+          },
+          {
+            "lineNumber": 72
+          },
+          {
+            "lineNumber": 73,
+            "text": "&#96;&#96;&#96;bash"
+          },
+          {
+            "lineNumber": 74,
+            "text": "curl -s -o /dev/null -w \"%{http_code}\" http://localhost:9180/"
+          },
+          {
+            "lineNumber": 75,
+            "text": "curl -s -o /dev/null -w \"%{http_code}\" http://localhost:9180/admin/"
+          },
+          {
+            "lineNumber": 76,
+            "text": "docker compose ps"
+          },
+          {
+            "lineNumber": 77,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 78
+          },
+          {
+            "lineNumber": 79,
+            "text": "## 방화벽 (선택)"
+          },
+          {
+            "lineNumber": 80
+          },
+          {
+            "lineNumber": 81,
+            "text": "&#96;&#96;&#96;bash"
+          },
+          {
+            "lineNumber": 82,
+            "text": "sudo ufw allow 9180/tcp"
+          },
+          {
+            "lineNumber": 83,
+            "text": "sudo ufw allow 55532/tcp   # DB 외부 접속 시, IP 제한 권장"
+          },
+          {
+            "lineNumber": 84,
+            "text": "&#96;&#96;&#96;"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 84
+          },
+          "startPosition": {
+            "line": 58
+          }
+        },
+        "relativeWorkspacePath": ".\\docs\\server-coexistence.md",
+        "signatures": {}
+      },
+      "score": 0.23009485006332397
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 1,
+            "text": "prompt-service:"
+          },
+          {
+            "lineNumber": 2,
+            "text": "  url: ${PROMPT_SERVICE_URL:http://localhost:8001}"
+          },
+          {
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4,
+            "text": "spring:"
+          },
+          {
+            "lineNumber": 5,
+            "text": "  application:"
+          },
+          {
+            "lineNumber": 6,
+            "text": "    name: resume-api"
+          },
+          {
+            "lineNumber": 7,
+            "text": "  datasource:"
+          },
+          {
+            "lineNumber": 8,
+            "text": "    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/resumepilot}"
+          },
+          {
+            "lineNumber": 9,
+            "text": "    username: ${SPRING_DATASOURCE_USERNAME:resumepilot}"
+          },
+          {
+            "lineNumber": 10,
+            "text": "    password: ${SPRING_DATASOURCE_PASSWORD:resumepilot}"
+          },
+          {
+            "lineNumber": 11,
+            "text": "  jpa:"
+          },
+          {
+            "lineNumber": 12,
+            "text": "    hibernate:"
+          },
+          {
+            "lineNumber": 13,
+            "text": "      ddl-auto: validate"
+          },
+          {
+            "lineNumber": 14,
+            "text": "    open-in-view: false"
+          },
+          {
+            "lineNumber": 15,
+            "text": "    properties:"
+          },
+          {
+            "lineNumber": 16,
+            "text": "      hibernate:"
+          },
+          {
+            "lineNumber": 17,
+            "text": "        dialect: org.hibernate.dialect.PostgreSQLDialect"
+          },
+          {
+            "lineNumber": 18,
+            "text": "        format_sql: true"
+          },
+          {
+            "lineNumber": 19,
+            "text": "  flyway:"
+          },
+          {
+            "lineNumber": 20,
+            "text": "    enabled: true"
+          },
+          {
+            "lineNumber": 21,
+            "text": "    locations: classpath:db/migration"
+          },
+          {
+            "lineNumber": 22
+          },
+          {
+            "lineNumber": 23,
+            "text": "server:"
+          },
+          {
+            "lineNumber": 24,
+            "text": "  port: 8080"
+          },
+          {
+            "lineNumber": 25
+          },
+          {
+            "lineNumber": 26,
+            "text": "jwt:"
+          },
+          {
+            "lineNumber": 27,
+            "text": "  secret: ${JWT_SECRET:change-me-to-a-secure-random-string-at-least-256-bits-long}"
+          },
+          {
+            "lineNumber": 28,
+            "text": "  access-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS:900000}"
+          },
+          {
+            "lineNumber": 29,
+            "text": "  refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}"
+          },
+          {
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31,
+            "text": "ai:"
+          },
+          {
+            "lineNumber": 32,
+            "text": "  resume-ai-url: ${RESUME_AI_SERVICE_URL:${RESUME_AI_URL:http://localhost:8000}}"
+          },
+          {
+            "lineNumber": 33,
+            "text": "  rag-service-url: ${RAG_SERVICE_URL:http://localhost:8002}"
+          },
+          {
+            "lineNumber": 34
+          },
+          {
+            "lineNumber": 35,
+            "text": "cors:"
+          },
+          {
+            "lineNumber": 36,
+            "text": "  allowed-origins: ${RESUME_CORS_ORIGINS:http://localhost:5173,http://localhost:5174}"
+          },
+          {
+            "lineNumber": 37
+          },
+          {
+            "lineNumber": 38,
+            "text": "app:"
+          },
+          {
+            "lineNumber": 39,
+            "text": "  spa:"
+          },
+          {
+            "lineNumber": 40,
+            "text": "    enabled: false"
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "lineNumber": 42,
+            "text": "springdoc:"
+          },
+          {
+            "lineNumber": 43,
+            "text": "  api-docs:"
+          },
+          {
+            "lineNumber": 44,
+            "text": "    path: /api-docs"
+          },
+          {
+            "lineNumber": 45,
+            "text": "  swagger-ui:"
+          },
+          {
+            "lineNumber": 46,
+            "text": "    path: /swagger-ui.html"
+          },
+          {
+            "lineNumber": 47
+          },
+          {
+            "lineNumber": 48,
+            "text": "logging:"
+          },
+          {
+            "lineNumber": 49,
+            "text": "  level:"
+          },
+          {
+            "lineNumber": 50,
+            "text": "    com.resumepilot: DEBUG"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 50
+          },
+          "startPosition": {}
+        },
+        "relativeWorkspacePath": ".\\resume-api\\src\\main\\resources\\application.yml",
+        "signatures": {}
+      },
+      "score": 0.2272661328315735
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 73,
+            "text": "&#96;&#96;&#96;powershell"
+          },
+          {
+            "lineNumber": 74,
+            "text": ".\\scripts\\deploy-remote.ps1"
+          },
+          {
+            "lineNumber": 75,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 76
+          },
+          {
+            "lineNumber": 77,
+            "text": "[docs/deployment.md](docs/deployment.md) · [docs/server-coexistence.md](docs/server-coexistence.md)"
+          },
+          {
+            "lineNumber": 78
+          },
+          {
+            "lineNumber": 79,
+            "text": "## 라이선스"
+          },
+          {
+            "lineNumber": 80
+          },
+          {
+            "lineNumber": 81,
+            "text": "Private"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 81
+          },
+          "startPosition": {
+            "line": 71
+          }
+        },
+        "relativeWorkspacePath": ".\\README.md",
+        "signatures": {}
+      },
+      "score": 0.21102990210056305
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 1,
+            "text": "# ResumePilot — production deployment (5 containers)"
+          },
+          {
+            "lineNumber": 2,
+            "text": "#"
+          },
+          {
+            "lineNumber": 3,
+            "text": "#   docker compose up -d --build"
+          },
+          {
+            "lineNumber": 4,
+            "text": "#   Linux server: ./scripts/server-up.sh  (.env from .env.production.example)"
+          },
+          {
+            "lineNumber": 5,
+            "text": "#   Local smoke:  .\\scripts\\local-prod-up.ps1"
+          },
+          {
+            "lineNumber": 6,
+            "text": "#"
+          },
+          {
+            "lineNumber": 7,
+            "text": "# Local development: run services in terminals — see docs/RUNNING.md"
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "lineNumber": 9,
+            "text": "name: resume-pilot"
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 11,
+            "text": "services:"
+          },
+          {
+            "lineNumber": 12,
+            "text": "  postgres:"
+          },
+          {
+            "lineNumber": 13,
+            "text": "    image: pgvector/pgvector:pg17"
+          },
+          {
+            "lineNumber": 14,
+            "text": "    container_name: resume-pilot-postgres"
+          },
+          {
+            "lineNumber": 15,
+            "text": "    restart: unless-stopped"
+          },
+          {
+            "lineNumber": 16,
+            "text": "    environment:"
+          },
+          {
+            "lineNumber": 17,
+            "text": "      POSTGRES_DB: ${POSTGRES_DB:-resumepilot}"
+          },
+          {
+            "lineNumber": 18,
+            "text": "      POSTGRES_USER: ${POSTGRES_USER:-resumepilot}"
+          },
+          {
+            "lineNumber": 19,
+            "text": "      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-resumepilot}"
+          },
+          {
+            "lineNumber": 20,
+            "text": "    volumes:"
+          },
+          {
+            "lineNumber": 21,
+            "text": "      - postgres_data:/var/lib/postgresql/data"
+          },
+          {
+            "lineNumber": 22,
+            "text": "    healthcheck:"
+          },
+          {
+            "lineNumber": 23,
+            "text": "      test: [\"CMD-SHELL\", \"pg_isready -U ${POSTGRES_USER:-resumepilot} -d ${POSTGRES_DB:-resumepilot}\"]"
+          },
+          {
+            "lineNumber": 24,
+            "text": "      interval: 5s"
+          },
+          {
+            "lineNumber": 25,
+            "text": "      timeout: 5s"
+          },
+          {
+            "lineNumber": 26,
+            "text": "      retries: 10"
+          },
+          {
+            "lineNumber": 27,
+            "text": "    ports:"
+          },
+          {
+            "lineNumber": 28,
+            "text": "      - \"${POSTGRES_PORT:-55532}:5432\""
+          },
+          {
+            "lineNumber": 29
+          },
+          {
+            "lineNumber": 30,
+            "text": "  app:"
+          },
+          {
+            "lineNumber": 31,
+            "text": "    build:"
+          },
+          {
+            "lineNumber": 32,
+            "text": "      context: ."
+          },
+          {
+            "lineNumber": 33,
+            "text": "      dockerfile: resume-api/Dockerfile.prod"
+          },
+          {
+            "lineNumber": 34,
+            "text": "    container_name: resume-pilot-app"
+          },
+          {
+            "lineNumber": 35,
+            "text": "    restart: unless-stopped"
+          },
+          {
+            "lineNumber": 36,
+            "text": "    depends_on:"
+          },
+          {
+            "lineNumber": 37,
+            "text": "      postgres:"
+          },
+          {
+            "lineNumber": 38,
+            "text": "        condition: service_healthy"
+          },
+          {
+            "lineNumber": 39,
+            "text": "    environment:"
+          },
+          {
+            "lineNumber": 40,
+            "text": "      SPRING_PROFILES_ACTIVE: prod"
+          },
+          {
+            "lineNumber": 41,
+            "text": "      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/${POSTGRES_DB:-resumepilot}}"
+          },
+          {
+            "lineNumber": 42,
+            "text": "      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-${POSTGRES_USER:-resumepilot}}"
+          },
+          {
+            "lineNumber": 43,
+            "text": "      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-${POSTGRES_PASSWORD:-resumepilot}}"
+          },
+          {
+            "lineNumber": 44,
+            "text": "      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-secure-random-string-at-least-256-bits}"
+          },
+          {
+            "lineNumber": 45,
+            "text": "      RESUME_AI_SERVICE_URL: ${RESUME_AI_SERVICE_URL:-http://resume-ai:8000}"
+          },
+          {
+            "lineNumber": 46,
+            "text": "      RESUME_AI_URL: ${RESUME_AI_SERVICE_URL:-http://resume-ai:8000}"
+          },
+          {
+            "lineNumber": 47,
+            "text": "      RAG_SERVICE_URL: ${RAG_SERVICE_URL:-http://rag-service:8002}"
+          },
+          {
+            "lineNumber": 48,
+            "text": "      RESUME_CORS_ORIGINS: ${RESUME_CORS_ORIGINS:-}"
+          },
+          {
+            "lineNumber": 49,
+            "text": "    ports:"
+          },
+          {
+            "lineNumber": 50,
+            "text": "      - \"${APP_PORT:-9180}:8080\""
+          },
+          {
+            "lineNumber": 51
+          },
+          {
+            "lineNumber": 52,
+            "text": "  resume-ai:"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 52
+          },
+          "startPosition": {}
+        },
+        "relativeWorkspacePath": ".\\docker-compose.yml",
+        "signatures": {}
+      },
+      "score": 0.20649200677871704
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 151,
+            "text": "&#96;&#96;&#96;powershell"
+          },
+          {
+            "lineNumber": 152,
+            "text": ".\\scripts\\local-prod-up.ps1"
+          },
+          {
+            "lineNumber": 153,
+            "text": "# → http://localhost:8080/  http://localhost:8080/admin/"
+          },
+          {
+            "lineNumber": 154,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 155
+          },
+          {
+            "lineNumber": 156,
+            "text": "### 배포 접속 URL"
+          },
+          {
+            "lineNumber": 157
+          },
+          {
+            "lineNumber": 158,
+            "text": "&#96;http://\u003cLAN_HOST\u003e:\u003cAPP_PORT\u003e/&#96; — &#96;LAN_HOST&#96;·&#96;APP_PORT&#96;는 서버 &#96;.env&#96; 참고 (기본 9180)."
+          },
+          {
+            "lineNumber": 159
+          },
+          {
+            "lineNumber": 160,
+            "text": "| 서비스 | Path |"
+          },
+          {
+            "lineNumber": 161,
+            "text": "|--------|------|"
+          },
+          {
+            "lineNumber": 162,
+            "text": "| Web | &#96;/&#96; |"
+          },
+          {
+            "lineNumber": 163,
+            "text": "| Admin | &#96;/admin/&#96; |"
+          },
+          {
+            "lineNumber": 164,
+            "text": "| API | &#96;/api/v1&#96; |"
+          },
+          {
+            "lineNumber": 165,
+            "text": "| Swagger | &#96;/swagger-ui.html&#96; |"
+          },
+          {
+            "lineNumber": 166
+          },
+          {
+            "lineNumber": 167,
+            "text": "### 유용한 명령 (서버)"
+          },
+          {
+            "lineNumber": 168
+          },
+          {
+            "lineNumber": 169,
+            "text": "&#96;&#96;&#96;bash"
+          },
+          {
+            "lineNumber": 170,
+            "text": "cd ~/apps/resume-pilot"
+          },
+          {
+            "lineNumber": 171,
+            "text": "docker compose ps"
+          },
+          {
+            "lineNumber": 172,
+            "text": "docker compose logs -f app"
+          },
+          {
+            "lineNumber": 173,
+            "text": "docker compose up -d --build app    # app만 재빌드"
+          },
+          {
+            "lineNumber": 174,
+            "text": "./scripts/server-down.sh"
+          },
+          {
+            "lineNumber": 175,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 176
+          },
+          {
+            "lineNumber": 177,
+            "text": "---"
+          },
+          {
+            "lineNumber": 178
+          },
+          {
+            "lineNumber": 179,
+            "text": "## 3. 환경 변수 파일 정리"
+          },
+          {
+            "lineNumber": 180
+          },
+          {
+            "lineNumber": 181,
+            "text": "| 파일 | 용도 |"
+          },
+          {
+            "lineNumber": 182,
+            "text": "|------|------|"
+          },
+          {
+            "lineNumber": 183,
+            "text": "| &#96;.env.example&#96; | 로컬 터미널 개발 (&#96;localhost&#96; URL) |"
+          },
+          {
+            "lineNumber": 184,
+            "text": "| &#96;.env.production.example&#96; | Docker 배포 (컨테이너 간 &#96;postgres&#96; 호스트명) |"
+          },
+          {
+            "lineNumber": 185,
+            "text": "| &#96;.env&#96; | 실제 값 (Git 제외) |"
+          },
+          {
+            "lineNumber": 186
+          },
+          {
+            "lineNumber": 187,
+            "text": "---"
+          },
+          {
+            "lineNumber": 188
+          },
+          {
+            "lineNumber": 189,
+            "text": "## 4. 문제 해결"
+          },
+          {
+            "lineNumber": 190
+          },
+          {
+            "lineNumber": 191,
+            "text": "| 증상 | 확인 |"
+          },
+          {
+            "lineNumber": 192,
+            "text": "|------|------|"
+          },
+          {
+            "lineNumber": 193,
+            "text": "| API 401 | 로그인·토큰 만료 |"
+          },
+          {
+            "lineNumber": 194,
+            "text": "| AI 생성 실패 | resume-ai(8000), rag(8002) 실행 여부 |"
+          },
+          {
+            "lineNumber": 195,
+            "text": "| RAG 결과 없음 | 경험 저장 후 임베딩 생성 여부 |"
+          },
+          {
+            "lineNumber": 196,
+            "text": "| CORS | &#96;RESUME_CORS_ORIGINS&#96;에 &#96;localhost:5173&#96; 포함 |"
+          },
+          {
+            "lineNumber": 197,
+            "text": "| Flyway 오류 | PostgreSQL 재시작, 필요 시 &#96;docker compose down -v&#96; |"
+          },
+          {
+            "lineNumber": 198,
+            "text": "| 포트 충돌 | &#96;.\\scripts\\kill-dev-ports.ps1&#96; |"
+          },
+          {
+            "lineNumber": 199
+          },
+          {
+            "lineNumber": 200,
+            "text": "---"
+          },
+          {
+            "lineNumber": 201
+          },
+          {
+            "lineNumber": 202,
+            "text": "## 5. E2E 테스트 시나리오"
+          },
+          {
+            "lineNumber": 203
+          },
+          {
+            "lineNumber": 204,
+            "text": "### 회원가입 → 자소서 (Phase 1)"
+          },
+          {
+            "lineNumber": 205
+          },
+          {
+            "lineNumber": 206,
+            "text": "1. http://localhost:5173 → 회원가입"
+          },
+          {
+            "lineNumber": 207,
+            "text": "2. 경험 라이브러리에 프로젝트 2~3개 등록"
+          },
+          {
+            "lineNumber": 208,
+            "text": "3. 대시보드에서 자소서 생성 → 버전 diff 확인"
+          },
+          {
+            "lineNumber": 209
+          },
+          {
+            "lineNumber": 210,
+            "text": "### 공고 분석 (Phase 2)"
+          },
+          {
+            "lineNumber": 211
+          },
+          {
+            "lineNumber": 212,
+            "text": "1. 채용 공고 메뉴 → 텍스트/URL/PDF 업로드"
+          },
+          {
+            "lineNumber": 213,
+            "text": "2. 분석 결과·문체 분석 확인"
+          },
+          {
+            "lineNumber": 214
+          },
+          {
+            "lineNumber": 215,
+            "text": "### RAG + AI 생성 (Phase 3~4)"
+          },
+          {
+            "lineNumber": 216
+          },
+          {
+            "lineNumber": 217,
+            "text": "1. 워크스페이스 → 관련 경험 추천 → 자소서 생성"
+          },
+          {
+            "lineNumber": 218,
+            "text": "2. 품질 점수, AI 흔적, 첨삭, 면접 질문 확인"
+          },
+          {
+            "lineNumber": 219
+          },
+          {
+            "lineNumber": 220,
+            "text": "### 관리자 (Phase 5)"
+          },
+          {
+            "lineNumber": 221
+          },
+          {
+            "lineNumber": 222,
+            "text": "1. DB에서 role을 &#96;ADMIN&#96;으로 변경"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 222
+          },
+          "startPosition": {
+            "line": 149
+          }
+        },
+        "relativeWorkspacePath": ".\\docs\\RUNNING.md",
+        "signatures": {}
+      },
+      "score": 0.20492680370807648
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 1,
+            "text": "# ============================================================================="
+          },
+          {
+            "lineNumber": 2,
+            "text": "# ResumePilot — LOCAL DEVELOPMENT (터미널 실행용)"
+          },
+          {
+            "lineNumber": 3,
+            "text": "#   cp .env.example .env"
+          },
+          {
+            "lineNumber": 4,
+            "text": "#"
+          },
+          {
+            "lineNumber": 5,
+            "text": "# Docker compose(배포)는 .env.production.example 을 사용합니다."
+          },
+          {
+            "lineNumber": 6,
+            "text": "# 실행 가이드: docs/RUNNING.md"
+          },
+          {
+            "lineNumber": 7,
+            "text": "# ============================================================================="
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "lineNumber": 9,
+            "text": "COMPOSE_PROJECT_NAME=resume-pilot"
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 11,
+            "text": "# ===== PostgreSQL (docker run 또는 로컬 PG) ====="
+          },
+          {
+            "lineNumber": 12,
+            "text": "POSTGRES_DB=resumepilot"
+          },
+          {
+            "lineNumber": 13,
+            "text": "POSTGRES_USER=resumepilot"
+          },
+          {
+            "lineNumber": 14,
+            "text": "POSTGRES_PASSWORD=resumepilot"
+          },
+          {
+            "lineNumber": 15
+          },
+          {
+            "lineNumber": 16,
+            "text": "SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/resumepilot"
+          },
+          {
+            "lineNumber": 17,
+            "text": "SPRING_DATASOURCE_USERNAME=resumepilot"
+          },
+          {
+            "lineNumber": 18,
+            "text": "SPRING_DATASOURCE_PASSWORD=resumepilot"
+          },
+          {
+            "lineNumber": 19,
+            "text": "DATABASE_URL=postgresql://resumepilot:resumepilot@localhost:5432/resumepilot"
+          },
+          {
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21,
+            "text": "# ===== Spring API (gradlew bootRun) ====="
+          },
+          {
+            "lineNumber": 22,
+            "text": "JWT_SECRET=change-me-to-a-secure-random-string-at-least-256-bits"
+          },
+          {
+            "lineNumber": 23,
+            "text": "JWT_ACCESS_EXPIRATION_MS=900000"
+          },
+          {
+            "lineNumber": 24,
+            "text": "JWT_REFRESH_EXPIRATION_MS=604800000"
+          },
+          {
+            "lineNumber": 25,
+            "text": "RESUME_CORS_ORIGINS=http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173"
+          },
+          {
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27,
+            "text": "# ===== AI 서비스 (uvicorn, localhost) ====="
+          },
+          {
+            "lineNumber": 28,
+            "text": "RESUME_AI_SERVICE_URL=http://localhost:8000"
+          },
+          {
+            "lineNumber": 29,
+            "text": "RESUME_AI_URL=http://localhost:8000"
+          },
+          {
+            "lineNumber": 30,
+            "text": "PROMPT_SERVICE_URL=http://localhost:8001"
+          },
+          {
+            "lineNumber": 31,
+            "text": "RAG_SERVICE_URL=http://localhost:8002"
+          },
+          {
+            "lineNumber": 32
+          },
+          {
+            "lineNumber": 33,
+            "text": "# ===== LLM (Gemini 등) ====="
+          },
+          {
+            "lineNumber": 34,
+            "text": "OPENAI_API_KEY="
+          },
+          {
+            "lineNumber": 35,
+            "text": "OPENAI_BASE_URL="
+          },
+          {
+            "lineNumber": 36,
+            "text": "OPENAI_MODEL=gpt-4o-mini"
+          },
+          {
+            "lineNumber": 37,
+            "text": "EMBEDDING_MODEL=text-embedding-3-small"
+          },
+          {
+            "lineNumber": 38,
+            "text": "EMBEDDING_DIMENSION=1536"
+          },
+          {
+            "lineNumber": 39
+          },
+          {
+            "lineNumber": 40,
+            "text": "# ===== Vite (npm run dev) ====="
+          },
+          {
+            "lineNumber": 41,
+            "text": "VITE_API_URL=http://localhost:8080"
+          },
+          {
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43,
+            "text": "# ===== Deploy (로컬 PC → 서버, Git 커밋 금지) ====="
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 43
+          },
+          "startPosition": {}
+        },
+        "relativeWorkspacePath": ".\\.env.example",
+        "signatures": {}
+      },
+      "score": 0.20387700200080872
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 1,
+            "text": "# Stages: dev (Vite HMR) | build | runtime (nginx, legacy standalone)"
+          },
+          {
+            "lineNumber": 2,
+            "text": "# Prod bundles SPA into app via resume-api/Dockerfile.prod"
+          },
+          {
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4,
+            "text": "FROM node:22-alpine AS dev"
+          },
+          {
+            "lineNumber": 5,
+            "text": "WORKDIR /app"
+          },
+          {
+            "lineNumber": 6,
+            "text": "COPY package.json package-lock.json* ./"
+          },
+          {
+            "lineNumber": 7,
+            "text": "RUN npm ci"
+          },
+          {
+            "lineNumber": 8,
+            "text": "COPY . ."
+          },
+          {
+            "lineNumber": 9,
+            "text": "EXPOSE 5173"
+          },
+          {
+            "lineNumber": 10,
+            "text": "CMD [\"npm\", \"run\", \"dev\", \"--\", \"--host\", \"0.0.0.0\", \"--port\", \"5173\"]"
+          },
+          {
+            "lineNumber": 11
+          },
+          {
+            "lineNumber": 12,
+            "text": "FROM node:22-alpine AS build"
+          },
+          {
+            "lineNumber": 13,
+            "text": "WORKDIR /app"
+          },
+          {
+            "lineNumber": 14,
+            "text": "COPY package.json package-lock.json* ./"
+          },
+          {
+            "lineNumber": 15,
+            "text": "RUN npm ci"
+          },
+          {
+            "lineNumber": 16,
+            "text": "COPY . ."
+          },
+          {
+            "lineNumber": 17,
+            "text": "ARG VITE_API_URL="
+          },
+          {
+            "lineNumber": 18,
+            "text": "ENV VITE_API_URL=$VITE_API_URL"
+          },
+          {
+            "lineNumber": 19,
+            "text": "RUN npm run build"
+          },
+          {
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21,
+            "text": "FROM nginx:1.27-alpine AS runtime"
+          },
+          {
+            "lineNumber": 22,
+            "text": "COPY --from=build /app/dist /usr/share/nginx/html"
+          },
+          {
+            "lineNumber": 23,
+            "text": "COPY nginx.conf /etc/nginx/conf.d/default.conf"
+          },
+          {
+            "lineNumber": 24,
+            "text": "EXPOSE 80"
+          },
+          {
+            "lineNumber": 25,
+            "text": "CMD [\"nginx\", \"-g\", \"daemon off;\"]"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 25
+          },
+          "startPosition": {}
+        },
+        "relativeWorkspacePath": ".\\resume-web\\Dockerfile",
+        "signatures": {}
+      },
+      "score": 0.19980794191360474
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 1,
+            "text": "# ResumePilot 실행 가이드"
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "lineNumber": 3,
+            "text": "개발은 **터미널에서 각 서비스를 직접 실행**하고, 배포는 **&#96;docker-compose.yml&#96; 하나**로 합니다."
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5,
+            "text": "---"
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "lineNumber": 7,
+            "text": "## 사전 요구사항"
+          },
+          {
+            "lineNumber": 8
+          },
+          {
+            "lineNumber": 9,
+            "text": "| 도구 | 용도 |"
+          },
+          {
+            "lineNumber": 10,
+            "text": "|------|------|"
+          },
+          {
+            "lineNumber": 11,
+            "text": "| Docker Desktop | PostgreSQL 컨테이너 (개발) / 전체 스택 (배포) |"
+          },
+          {
+            "lineNumber": 12,
+            "text": "| Java JDK 21 | &#96;resume-api&#96; |"
+          },
+          {
+            "lineNumber": 13,
+            "text": "| Node.js 22 | &#96;resume-web&#96;, &#96;resume-admin&#96; |"
+          },
+          {
+            "lineNumber": 14,
+            "text": "| Python 3.12+ | AI 서비스 3개 |"
+          },
+          {
+            "lineNumber": 15
+          },
+          {
+            "lineNumber": 16,
+            "text": "---"
+          },
+          {
+            "lineNumber": 17
+          },
+          {
+            "lineNumber": 18,
+            "text": "## 1. 로컬 개발 (터미널)"
+          },
+          {
+            "lineNumber": 19
+          },
+          {
+            "lineNumber": 20,
+            "text": "### 1-1. 환경 변수"
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "lineNumber": 22,
+            "text": "&#96;&#96;&#96;powershell"
+          },
+          {
+            "lineNumber": 23,
+            "text": "cd e:\\workspace\\resume-pilot"
+          },
+          {
+            "lineNumber": 24,
+            "text": "copy .env.example .env"
+          },
+          {
+            "lineNumber": 25,
+            "text": "# OPENAI_API_KEY, JWT_SECRET 등 필요 시 수정"
+          },
+          {
+            "lineNumber": 26,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "lineNumber": 28,
+            "text": "### 1-2. PostgreSQL"
+          },
+          {
+            "lineNumber": 29
+          },
+          {
+            "lineNumber": 30,
+            "text": "&#96;&#96;&#96;powershell"
+          },
+          {
+            "lineNumber": 31,
+            "text": "docker run -d --name resume-pilot-db -p 5432:5432 &#96;"
+          },
+          {
+            "lineNumber": 32,
+            "text": "  -e POSTGRES_DB=resumepilot &#96;"
+          },
+          {
+            "lineNumber": 33,
+            "text": "  -e POSTGRES_USER=resumepilot &#96;"
+          },
+          {
+            "lineNumber": 34,
+            "text": "  -e POSTGRES_PASSWORD=resumepilot &#96;"
+          },
+          {
+            "lineNumber": 35,
+            "text": "  pgvector/pgvector:pg17"
+          },
+          {
+            "lineNumber": 36,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 37
+          },
+          {
+            "lineNumber": 38,
+            "text": "이미 실행 중이면 &#96;docker start resume-pilot-db&#96;"
+          },
+          {
+            "lineNumber": 39
+          },
+          {
+            "lineNumber": 40,
+            "text": "### 1-3. AI 서비스 (터미널 3개)"
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "lineNumber": 42,
+            "text": "&#96;&#96;&#96;powershell"
+          },
+          {
+            "lineNumber": 43,
+            "text": "# 터미널 1 — RAG"
+          },
+          {
+            "lineNumber": 44,
+            "text": "cd rag-service"
+          },
+          {
+            "lineNumber": 45,
+            "text": "pip install -r requirements.txt"
+          },
+          {
+            "lineNumber": 46,
+            "text": "$env:DATABASE_URL=\"postgresql://resumepilot:resumepilot@localhost:5432/resumepilot\""
+          },
+          {
+            "lineNumber": 47,
+            "text": "uvicorn app.main:app --reload --port 8002"
+          },
+          {
+            "lineNumber": 48
+          },
+          {
+            "lineNumber": 49,
+            "text": "# 터미널 2 — Prompt"
+          },
+          {
+            "lineNumber": 50,
+            "text": "cd prompt-service"
+          },
+          {
+            "lineNumber": 51,
+            "text": "pip install -r requirements.txt"
+          },
+          {
+            "lineNumber": 52,
+            "text": "$env:DATABASE_URL=\"postgresql://resumepilot:resumepilot@localhost:5432/resumepilot\""
+          },
+          {
+            "lineNumber": 53,
+            "text": "uvicorn app.main:app --reload --port 8001"
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "lineNumber": 55,
+            "text": "# 터미널 3 — AI Gateway"
+          },
+          {
+            "lineNumber": 56,
+            "text": "cd resume-ai"
+          },
+          {
+            "lineNumber": 57,
+            "text": "pip install -r requirements.txt"
+          },
+          {
+            "lineNumber": 58,
+            "text": "$env:DATABASE_URL=\"postgresql://resumepilot:resumepilot@localhost:5432/resumepilot\""
+          },
+          {
+            "lineNumber": 59,
+            "text": "$env:RAG_SERVICE_URL=\"http://localhost:8002\""
+          },
+          {
+            "lineNumber": 60,
+            "text": "$env:PROMPT_SERVICE_URL=\"http://localhost:8001\""
+          },
+          {
+            "lineNumber": 61,
+            "text": "uvicorn app.main:app --reload --port 8000"
+          },
+          {
+            "lineNumber": 62,
+            "text": "&#96;&#96;&#96;"
+          },
+          {
+            "lineNumber": 63
+          },
+          {
+            "lineNumber": 64,
+            "text": "### 1-4. Spring API (터미널 1개)"
+          },
+          {
+            "lineNumber": 65
+          },
+          {
+            "lineNumber": 66,
+            "text": "&#96;&#96;&#96;powershell"
+          },
+          {
+            "lineNumber": 67,
+            "text": "cd resume-api"
+          },
+          {
+            "lineNumber": 68,
+            "text": "$env:SPRING_DATASOURCE_URL=\"jdbc:postgresql://localhost:5432/resumepilot\""
+          },
+          {
+            "lineNumber": 69,
+            "text": "$env:SPRING_DATASOURCE_USERNAME=\"resumepilot\""
+          },
+          {
+            "lineNumber": 70,
+            "text": "$env:SPRING_DATASOURCE_PASSWORD=\"resumepilot\""
+          },
+          {
+            "lineNumber": 71,
+            "text": "$env:JWT_SECRET=\"local-dev-secret-key-must-be-at-least-256-bits-long\""
+          },
+          {
+            "lineNumber": 72,
+            "text": "$env:RESUME_AI_URL=\"http://localhost:8000\""
+          },
+          {
+            "lineNumber": 73,
+            "text": "$env:RAG_SERVICE_URL=\"http://localhost:8002\""
+          },
+          {
+            "lineNumber": 74,
+            "text": ".\\gradlew.bat bootRun"
+          },
+          {
+            "lineNumber": 75,
+            "text": "&#96;&#96;&#96;"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 76
+          },
+          "startPosition": {}
+        },
+        "relativeWorkspacePath": ".\\docs\\RUNNING.md",
+        "signatures": {}
+      },
+      "score": 0.1938718557357788
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 1,
+            "text": "#Requires -Version 5.1"
+          },
+          {
+            "lineNumber": 2,
+            "text": "\u003c#"
+          },
+          {
+            "lineNumber": 3,
+            "text": ".SYNOPSIS"
+          },
+          {
+            "lineNumber": 4,
+            "text": "  Deploy ResumePilot to Linux server via tar + scp + ssh"
+          },
+          {
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6,
+            "text": ".USAGE"
+          },
+          {
+            "lineNumber": 7,
+            "text": "  # .env 에 DEPLOY_HOST=jeon@your-lan-host 설정 후"
+          },
+          {
+            "lineNumber": 8,
+            "text": "  .\\scripts\\deploy-remote.ps1"
+          },
+          {
+            "lineNumber": 9,
+            "text": "  .\\scripts\\deploy-remote.ps1 -DeployHost jeon@your-lan-host"
+          },
+          {
+            "lineNumber": 10,
+            "text": "#\u003e"
+          },
+          {
+            "lineNumber": 11,
+            "text": "param("
+          },
+          {
+            "lineNumber": 12,
+            "text": "    [string]$DeployHost = $env:DEPLOY_HOST,"
+          },
+          {
+            "lineNumber": 13,
+            "text": "    [string]$RemoteDir = \"${env:REMOTE_DIR:-~/apps/resume-pilot}\""
+          },
+          {
+            "lineNumber": 14,
+            "text": ")"
+          },
+          {
+            "lineNumber": 15
+          },
+          {
+            "lineNumber": 16,
+            "text": "$ErrorActionPreference = \"Stop\""
+          },
+          {
+            "lineNumber": 17,
+            "text": "$Root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)"
+          },
+          {
+            "lineNumber": 18,
+            "text": "Set-Location $Root"
+          },
+          {
+            "lineNumber": 19
+          },
+          {
+            "lineNumber": 20,
+            "text": "# Load .env for DEPLOY_HOST / LAN_HOST if present"
+          },
+          {
+            "lineNumber": 21,
+            "text": "if (Test-Path .env) {"
+          },
+          {
+            "lineNumber": 22,
+            "text": "    Get-Content .env | ForEach-Object {"
+          },
+          {
+            "lineNumber": 23,
+            "text": "        if ($_ -match '^\\s*([^#][^=]+)=(.*)$') {"
+          },
+          {
+            "lineNumber": 24,
+            "text": "            $k = $Matches[1].Trim(); $v = $Matches[2].Trim()"
+          },
+          {
+            "lineNumber": 25,
+            "text": "            if ($k -eq 'DEPLOY_HOST' -and -not $DeployHost) { $DeployHost = $v }"
+          },
+          {
+            "lineNumber": 26,
+            "text": "            if ($k -eq 'LAN_HOST' -and -not $env:LAN_HOST) { Set-Item -Path \"env:LAN_HOST\" -Value $v }"
+          },
+          {
+            "lineNumber": 27,
+            "text": "            if ($k -eq 'APP_PORT' -and -not $env:APP_PORT) { Set-Item -Path \"env:APP_PORT\" -Value $v }"
+          },
+          {
+            "lineNumber": 28,
+            "text": "        }"
+          },
+          {
+            "lineNumber": 29,
+            "text": "    }"
+          },
+          {
+            "lineNumber": 30,
+            "text": "}"
+          },
+          {
+            "lineNumber": 31
+          },
+          {
+            "lineNumber": 32,
+            "text": "if (-not $DeployHost) {"
+          },
+          {
+            "lineNumber": 33,
+            "text": "    Write-Error \"DEPLOY_HOST not set. Add to .env or pass -DeployHost. See docs/SETUP.md#part-3-ubuntu-서버\""
+          },
+          {
+            "lineNumber": 34,
+            "text": "}"
+          },
+          {
+            "lineNumber": 35
+          },
+          {
+            "lineNumber": 36,
+            "text": "$Archive = Join-Path $env:TEMP \"resume-pilot-deploy.tar.gz\""
+          },
+          {
+            "lineNumber": 37,
+            "text": "$AppPort = if ($env:APP_PORT) { $env:APP_PORT } else { \"9180\" }"
+          },
+          {
+            "lineNumber": 38,
+            "text": "$LanHost = if ($env:LAN_HOST) { $env:LAN_HOST } elseif ($DeployHost -match '@(.+)$') { $Matches[1] } else { \"localhost\" }"
+          },
+          {
+            "lineNumber": 39
+          },
+          {
+            "lineNumber": 40,
+            "text": "Write-Host \"==\u003e Packaging project...\" -ForegroundColor Cyan"
+          },
+          {
+            "lineNumber": 41,
+            "text": "Push-Location $Root"
+          },
+          {
+            "lineNumber": 42,
+            "text": "try {"
+          },
+          {
+            "lineNumber": 43,
+            "text": "    if (Test-Path $Archive) { Remove-Item $Archive -Force }"
+          },
+          {
+            "lineNumber": 44
+          },
+          {
+            "lineNumber": 45,
+            "text": "    tar -czf $Archive &#96;"
+          },
+          {
+            "lineNumber": 46,
+            "text": "        --exclude=.git &#96;"
+          },
+          {
+            "lineNumber": 47,
+            "text": "        --exclude=node_modules &#96;"
+          },
+          {
+            "lineNumber": 48,
+            "text": "        --exclude=dist &#96;"
+          },
+          {
+            "lineNumber": 49,
+            "text": "        --exclude=build &#96;"
+          },
+          {
+            "lineNumber": 50,
+            "text": "        --exclude=.gradle &#96;"
+          },
+          {
+            "lineNumber": 51,
+            "text": "        --exclude=__pycache__ &#96;"
+          },
+          {
+            "lineNumber": 52,
+            "text": "        --exclude=.pytest_cache &#96;"
+          },
+          {
+            "lineNumber": 53,
+            "text": "        --exclude=.venv &#96;"
+          },
+          {
+            "lineNumber": 54,
+            "text": "        --exclude=venv &#96;"
+          },
+          {
+            "lineNumber": 55,
+            "text": "        --exclude=.env &#96;"
+          },
+          {
+            "lineNumber": 56,
+            "text": "        --exclude=.specstory &#96;"
+          },
+          {
+            "lineNumber": 57,
+            "text": "        ."
+          },
+          {
+            "lineNumber": 58,
+            "text": "} finally {"
+          },
+          {
+            "lineNumber": 59,
+            "text": "    Pop-Location"
+          },
+          {
+            "lineNumber": 60,
+            "text": "}"
+          },
+          {
+            "lineNumber": 61
+          },
+          {
+            "lineNumber": 62,
+            "text": "Write-Host \"==\u003e Deploying to ${DeployHost}:${RemoteDir}...\" -ForegroundColor Cyan"
+          },
+          {
+            "lineNumber": 63,
+            "text": "ssh $DeployHost \"mkdir -p ${RemoteDir}\""
+          },
+          {
+            "lineNumber": 64
+          },
+          {
+            "lineNumber": 65,
+            "text": "Write-Host \"==\u003e Uploading archive...\" -ForegroundColor Cyan"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 65
+          },
+          "startPosition": {}
+        },
+        "relativeWorkspacePath": ".\\scripts\\deploy-remote.ps1",
+        "signatures": {}
+      },
+      "score": 0.19011500477790833
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 1,
+            "text": "import { defineConfig } from 'vite'"
+          },
+          {
+            "lineNumber": 2,
+            "text": "import react from '@vitejs/plugin-react'"
+          },
+          {
+            "lineNumber": 3,
+            "text": "import tailwindcss from '@tailwindcss/vite'"
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5,
+            "text": "export default defineConfig({"
+          },
+          {
+            "lineNumber": 6,
+            "text": "  plugins: [react(), tailwindcss()],"
+          },
+          {
+            "lineNumber": 7,
+            "text": "  server: {"
+          },
+          {
+            "lineNumber": 8,
+            "text": "    port: 5173,"
+          },
+          {
+            "lineNumber": 9,
+            "text": "    host: true,"
+          },
+          {
+            "lineNumber": 10,
+            "text": "  },"
+          },
+          {
+            "lineNumber": 11,
+            "text": "})"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "column": 2,
+            "line": 10
+          },
+          "startPosition": {}
+        },
+        "relativeWorkspacePath": ".\\resume-web\\vite.config.ts",
+        "signatures": {}
+      },
+      "score": 0.18944525718688965
+    },
+    {
+      "codeBlock": {
+        "detailedLines": [
+          {
+            "lineNumber": 1,
+            "text": "# ResumePilot 로컬 개발 안내 (터미널 실행)"
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "lineNumber": 3,
+            "text": "Write-Host \"Starting PostgreSQL...\" -ForegroundColor Cyan"
+          },
+          {
+            "lineNumber": 4,
+            "text": "docker start resume-pilot-db 2\u003e$null"
+          },
+          {
+            "lineNumber": 5,
+            "text": "if ($LASTEXITCODE -ne 0) {"
+          },
+          {
+            "lineNumber": 6,
+            "text": "  docker run -d --name resume-pilot-db -p 5432:5432 &#96;"
+          },
+          {
+            "lineNumber": 7,
+            "text": "    -e POSTGRES_DB=resumepilot -e POSTGRES_USER=resumepilot -e POSTGRES_PASSWORD=resumepilot &#96;"
+          },
+          {
+            "lineNumber": 8,
+            "text": "    pgvector/pgvector:pg17"
+          },
+          {
+            "lineNumber": 9,
+            "text": "}"
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 11,
+            "text": "Write-Host @\""
+          },
+          {
+            "lineNumber": 12
+          },
+          {
+            "lineNumber": 13,
+            "text": "ResumePilot — 로컬 개발 (터미널)"
+          },
+          {
+            "lineNumber": 14,
+            "text": "================================"
+          },
+          {
+            "lineNumber": 15,
+            "text": "1. AI (3 terminals):"
+          },
+          {
+            "lineNumber": 16,
+            "text": "   rag-service      → uvicorn app.main:app --reload --port 8002"
+          },
+          {
+            "lineNumber": 17,
+            "text": "   prompt-service   → uvicorn app.main:app --reload --port 8001"
+          },
+          {
+            "lineNumber": 18,
+            "text": "   resume-ai        → uvicorn app.main:app --reload --port 8000"
+          },
+          {
+            "lineNumber": 19
+          },
+          {
+            "lineNumber": 20,
+            "text": "2. API:"
+          },
+          {
+            "lineNumber": 21,
+            "text": "   resume-api       → .\\gradlew.bat bootRun"
+          },
+          {
+            "lineNumber": 22
+          },
+          {
+            "lineNumber": 23,
+            "text": "3. Frontend:"
+          },
+          {
+            "lineNumber": 24,
+            "text": "   resume-web       → npm run dev   (5173)"
+          },
+          {
+            "lineNumber": 25,
+            "text": "   resume-admin     → npm run dev   (5174/admin/)"
+          },
+          {
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27,
+            "text": "상세: docs/RUNNING.md"
+          },
+          {
+            "lineNumber": 28
+          },
+          {
+            "lineNumber": 29,
+            "text": "배포(Docker):  .\\scripts\\local-prod-up.ps1  또는  ./scripts/server-up.sh"
+          },
+          {
+            "lineNumber": 30,
+            "text": "\"@ -ForegroundColor Green"
+          }
+        ],
+        "range": {
+          "endPosition": {
+            "line": 30
+          },
+          "startPosition": {}
+        },
+        "relativeWorkspacePath": ".\\scripts\\start-local.ps1",
+        "signatures": {}
+      },
+      "score": 0.18222826719284058
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full"><details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "path": "e:\\workspace\\resume-pilot\\.specstory",
+  "pattern": "quick.?tunnel|trycloudflare|cloudflared tunnel"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "e:\\workspace\\resume-pilot\\.specstory",
+  "pattern": "quick.?tunnel|trycloudflare|cloudflared tunnel",
+  "topFiles": [],
+  "totalFiles": 0,
+  "totalMatches": 0
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "glob": "scripts/*",
+  "path": "e:\\workspace\\resume-pilot",
+  "pattern": "cloudflared|quick"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "e:\\workspace\\resume-pilot",
+  "pattern": "cloudflared|quick",
+  "topFiles": [],
+  "totalFiles": 0,
+  "totalMatches": 0
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+resume-pilot에 기존 퀵터널이 없다.
+
+Cloudflare Quick Tunnel 설정을 준비하고 있다. resume-pilot.sh에 quick-tunnel 명령을 추가하고, systemd 서비스나 스크립트로 cloudflared를 실행할 계획이다. SETUP.md와 INFRASTRUCTURE.md에 문서화할 것이다. 퀵터널은 임시라 URL이 매번 바뀐다.
+
+사용자가 퀵터널만 원한다. 네임드 터널은 아니다. Ubuntu 서버에서 9180 포트로 cloudflared 터널을 실행하는 방식을 검토 중이다.
+
+cloudflared 실행 시 로그를 파일에 저장하거나 systemd 서비스로 관리하는 방식을 검토 중이다. CORS는 동일 출처로 처리되므로 서버의 RESUME_CORS_ORIGINS 설정에 별도 수정이 필요 없다.
+
+SPA가 JAR 내부에 있어 Vite와는 무관하다. APP_PORT로 cloudflared를 실행하는 quick-tunnel 명령을 resume-pilot.sh에 추가할 예정이다. 스크립트는 별도 파일로 분리하거나 스크립트 안에 넣을지 검토 중이다. SETUP.md 3-9절에 quick-tunnel 설정을 문서화할 것이다. Ubuntu에서 cloudflared 설치 방법도 확인하고 있다.
+
+Ubuntu에서 cloudflared를 deb 패키지로 설치하는 방법을 확인했다. 사용자가 퀵터널만 원하므로 systemd 서비스 대신 간단한 foreground 실행 방식으로 구현하기로 했다. resume-pilot.sh에 quick-tunnel 명령을 추가하며, APP_PORT 환경변수를 읽어 127.0.0.1:${port}로 cloudflared를 실행하는 구조를 설계 중이다.
+
+exec cloudflared tunnel --url "$url" 구조를 확정했다. systemd 백그라운드 서비스 파일 예시와 설치 헬퍼를 추가할지 검토 중이다. quick-tunnel URL은 재시작마다 변경되므로 이 점을 문서에 명시할 예정이다. .env.production도 함께 업데이트할 것이다.</details></think>
+
+_**Agent (default)**_
+
+Quick Tunnel용 `resume-pilot.sh` 명령과 문서를 추가합니다.
+
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\scripts\resume-pilot.sh</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: e:\workspace\resume-pilot\docs\SETUP.md</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+load_env가 cmd_deploy 내부에 정의되어 있어 잘못된 스코프를 갖는다.
+
+load_env를 상위 레벨로 옮겨 quick-tunnel 명령을 추가할 것이다. systemd용 설치 스크립트도 함께 작성 중이다.
+
+systemd 서비스 파일은 APP_PORT를 환경변수에서 가져와 9180 포트로 실행하도록 구성했다. quick-tunnel 명령은 포그라운드 실행, quick-tunnel-install은 systemd 서비스 설치, quick-tunnel-status는 로그 확인을 담당한다. cloudflared 경로는 /usr/local/bin/cloudflared로 가정하고 있다.
+
+quick-tunnel 명령은 cloudflared 설치 여부를 먼저 확인한다. 설치되지 않았다면 quick-tunnel-install-deps로 cloudflared를 다운로드하여 설치한다. 사용자는 서버에서 SSH로 직접 실행한다.
+
+load_env를 파일 최상위로 옮겨 cmd_deploy 내부 중첩 함수를 제거할 것이다. 이 함수는 cmd_deploy와 cmd_quick_tunnel 모두에서 공유된다. git_sync와 wait_health는 아직 cmd_deploy 내부에 남아있다.
+
+cmd_deploy 내부의 load_env 중복을 제거하고 상위 레벨 함수만 사용하기로 했다. systemd 서비스 파일은 scripts/cloudflared-quick-tunnel.service 템플릿으로 별도 관리할 것이다. quick-tunnel-install 명령은 APP_PORT를 환경변수에서 읽어 9180 포트로 실행한다.
+
+quick-tunnel-install은 템플릿의 @APP_PORT@를 실제 포트로 치환한 뒤 /etc/systemd/system/에 서비스 파일을 배치한다. 이후 daemon-reload와 enable --now로 systemd에 등록하고, URL 확인은 journalctl -u resume-pilot-quick-tunnel -f로 한다.</details></think>
+
+_**Agent (default)**_
+
+`load_env`를 공통으로 빼고 Quick Tunnel 명령·systemd 템플릿·문서를 추가합니다.
+
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.sh</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.sh</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.sh</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.sh</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\resume-pilot.sh</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\scripts\cloudflared-quick-tunnel.service</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\docs\SETUP.md</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\docs\INFRASTRUCTURE.md</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: e:\workspace\resume-pilot\docs\INFRASTRUCTURE.md</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+cloudflared 경로가 시스템별로 다를 수 있다. 일부에서는 /usr/local/bin을 사용하고 systemd는 /usr/bin/cloudflared를 사용한다.</details></think>
+
+_**Agent (default)**_
+
+Quick Tunnel 설정을 추가했습니다. **Ubuntu 서버**에서 아래 순서로 진행하세요.
+
+## 서버에서 실행 (지금 바로)
+
+### 1) cloudflared 없으면 설치 (Horizon 쓰셨으면 이미 있을 수 있음)
+
+```bash
+cloudflared --version
+# 없으면:
+curl -fsSL -o /tmp/cloudflared.deb \
+  https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+sudo dpkg -i /tmp/cloudflared.deb
+```
+
+### 2) 앱이 떠 있는지 확인
+
+```bash
+curl -sfL http://localhost:9180/swagger-ui.html -o /dev/null && echo OK
+```
+
+### 3-A) 테스트 (foreground)
+
+```bash
+cloudflared tunnel --url http://127.0.0.1:9180
+```
+
+출력되는 `https://….trycloudflare.com` 으로 `/`, `/admin/` 접속.
+
+### 3-B) 백그라운드 (systemd)
+
+코드 반영 후 (`git pull`):
+
+```bash
+cd ~/apps/resume-pilot
+./scripts/resume-pilot.sh quick-tunnel-install
+sudo journalctl -u resume-pilot-quick-tunnel -f
+```
+
+로그에 `https://….trycloudflare.com` URL이 나옵니다.
+
+---
+
+## 추가된 파일/명령
+
+| 항목 | 내용 |
+|------|------|
+| `resume-pilot.sh quick-tunnel` | foreground Quick Tunnel |
+| `resume-pilot.sh quick-tunnel-install` | systemd 등록 |
+| `scripts/cloudflared-quick-tunnel.service` | unit 템플릿 |
+| `docs/SETUP.md` §3-9 | 가이드 |
+
+**origin:** `http://127.0.0.1:9180` 하나 — `/`, `/admin/`, `/api/v1` 모두 동일.
+
+**참고:** Quick Tunnel URL은 **재시작할 때마다 바뀝니다.** 고정 도메인은 나중에 Named Tunnel.
+
+---
+
+로컬 변경은 아직 커밋하지 않았습니다. `master` push로 배포·반영까지 할까요, 아니면 서버에서 `cloudflared tunnel --url …` 로 먼저 테스트할까요?
+
+---
+
+_**User**_
+
+@c:\Users\전일훈\.cursor\projects\e-workspace-resume-pilot\terminals\8.txt:951-1026  이렇게 진행했어
+
+---
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+Status: **loading**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "e:\workspace\resume-pilot"; git status --short</summary>
+
+```bash
+cd "e:\workspace\resume-pilot"; git status --short
+```
 </details>
 </tool-use>
 
