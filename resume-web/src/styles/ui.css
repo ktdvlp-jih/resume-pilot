@@ -1,0 +1,167 @@
+/**
+ * ResumePilot 공통 UI 스타일
+ * — hover, cursor, 버튼·링크·폼·탭·카드는 여기서만 정의하고 컴포넌트에 클래스명으로 재사용
+ */
+@layer components {
+  /* ── 인터랙션 베이스 ── */
+  .ui-interactive {
+    @apply cursor-pointer transition;
+  }
+
+  .ui-interactive:disabled,
+  .ui-interactive[aria-disabled='true'] {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  /* ── 사이드바 ── */
+  .ui-nav-link {
+    @apply cursor-pointer transition block px-3 py-2 rounded-xl
+      text-zinc-700 dark:text-zinc-300
+      hover:bg-violet-50 dark:hover:bg-zinc-800/80;
+  }
+
+  .ui-sidebar-action {
+    @apply cursor-pointer transition text-sm text-zinc-500
+      hover:text-violet-600 dark:hover:text-violet-400;
+  }
+
+  .ui-sidebar-action-danger {
+    @apply cursor-pointer transition text-sm text-zinc-500
+      hover:text-red-500 dark:hover:text-red-400;
+  }
+
+  /* ── 버튼 ── */
+  .ui-btn {
+    @apply cursor-pointer transition inline-flex items-center justify-center
+      rounded-xl px-4 py-2 text-sm font-medium
+      disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .ui-btn-primary {
+    @apply cursor-pointer transition inline-flex items-center justify-center
+      rounded-xl px-4 py-2 text-sm font-medium
+      bg-gradient-to-r from-violet-600 to-indigo-600 text-white
+      hover:opacity-90
+      disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .ui-btn-primary-lg {
+    @apply cursor-pointer transition inline-flex items-center justify-center
+      rounded-xl px-6 py-3 font-medium
+      bg-gradient-to-r from-violet-600 to-indigo-600 text-white
+      hover:opacity-90
+      disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .ui-btn-secondary {
+    @apply cursor-pointer transition inline-flex items-center justify-center
+      rounded-xl px-4 py-2 text-sm
+      bg-zinc-800 dark:bg-zinc-100 text-white dark:text-zinc-900
+      hover:opacity-90
+      disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .ui-btn-outline {
+    @apply cursor-pointer transition inline-flex items-center justify-center
+      rounded-xl px-4 py-2 text-sm
+      border border-zinc-200/80 dark:border-zinc-700/80
+      bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800/80
+      disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .ui-btn-ghost {
+    @apply cursor-pointer transition inline-flex items-center justify-center
+      rounded-lg px-3 py-1 text-sm
+      border border-zinc-200 dark:border-zinc-700
+      hover:bg-zinc-50 dark:hover:bg-zinc-800/80
+      disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .ui-btn-dashed {
+    @apply cursor-pointer transition w-full py-2.5 rounded-xl text-sm
+      border border-dashed border-zinc-300 dark:border-zinc-600
+      text-zinc-600 dark:text-zinc-400
+      hover:border-violet-400 hover:text-violet-600 dark:hover:text-violet-300;
+  }
+
+  .ui-btn-icon-danger {
+    @apply cursor-pointer transition text-xs text-red-500 hover:text-red-400;
+  }
+
+  .ui-btn-glass {
+    @apply cursor-pointer transition px-4 py-2 rounded-xl text-sm font-medium
+      bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur;
+  }
+
+  .ui-btn-accent {
+    @apply cursor-pointer transition shrink-0 px-4 py-2 rounded-xl
+      bg-violet-600 text-white text-sm hover:bg-violet-500
+      disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* ── 탭 ── */
+  .ui-tab {
+    @apply cursor-pointer transition flex-1 py-2.5 rounded-xl text-sm font-medium
+      text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300;
+  }
+
+  .ui-tab-active {
+    @apply cursor-pointer transition flex-1 py-2.5 rounded-xl text-sm font-medium
+      bg-white dark:bg-zinc-800 text-violet-600 dark:text-violet-300 shadow-sm;
+  }
+
+  /* ── 링크 ── */
+  .ui-link {
+    @apply cursor-pointer transition text-violet-600 dark:text-violet-400
+      hover:underline hover:opacity-80;
+  }
+
+  .ui-link-danger {
+    @apply cursor-pointer transition text-red-500 hover:text-red-400;
+  }
+
+  /* ── 폼 ── */
+  .ui-input {
+    @apply w-full px-3 py-2.5 rounded-xl text-sm
+      border border-zinc-200/80 dark:border-zinc-700/80
+      bg-white/80 dark:bg-zinc-900/80
+      focus:outline-none focus:ring-2 focus:ring-violet-500/40 transition;
+  }
+
+  .ui-textarea {
+    @apply w-full px-3 py-2.5 rounded-xl text-sm resize-y min-h-[100px]
+      border border-zinc-200/80 dark:border-zinc-700/80
+      bg-white/80 dark:bg-zinc-900/80
+      focus:outline-none focus:ring-2 focus:ring-violet-500/40 transition;
+  }
+
+  .ui-select {
+    @apply w-full px-3 py-2.5 rounded-xl text-sm cursor-pointer
+      border border-zinc-200/80 dark:border-zinc-700/80
+      bg-white/80 dark:bg-zinc-900/80
+      focus:outline-none focus:ring-2 focus:ring-violet-500/40 transition;
+  }
+
+  /* ── 카드 ── */
+  .ui-card {
+    @apply rounded-2xl border border-zinc-200/60 dark:border-zinc-800
+      bg-white/60 dark:bg-zinc-900/40 p-6 shadow-sm;
+  }
+
+  .ui-card-bento {
+    @apply rounded-2xl border border-zinc-200/60 dark:border-zinc-800/80
+      bg-white/70 dark:bg-zinc-900/50 backdrop-blur-md p-5 shadow-sm
+      hover:shadow-md transition-shadow;
+  }
+
+  .ui-card-clickable {
+    @apply cursor-pointer transition rounded-2xl border p-4
+      hover:border-violet-400 hover:shadow-md
+      bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800;
+  }
+
+  .ui-section-card {
+    @apply rounded-2xl border border-zinc-200/60 dark:border-zinc-800/80
+      bg-white/60 dark:bg-zinc-900/40 backdrop-blur-sm p-5 shadow-sm;
+  }
+}

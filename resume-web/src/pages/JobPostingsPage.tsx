@@ -148,7 +148,7 @@ export default function JobPostingsPage() {
         <button
           type="submit"
           disabled={uploadMutation.isPending}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="ui-btn-primary px-6"
         >
           {uploadMutation.isPending ? t('common.analyzing') : t('jobPostings.uploadAnalyze')}
         </button>
@@ -165,7 +165,7 @@ export default function JobPostingsPage() {
                 <div
                   key={p.id}
                   onClick={() => handleSelect(p)}
-                  className={`p-4 border rounded-xl cursor-pointer hover:border-blue-400 ${selectedId === p.id ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' : 'bg-white dark:bg-gray-900'}`}
+                  className={`ui-card-clickable ${selectedId === p.id ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40' : ''}`}
                 >
                   <div className="flex justify-between">
                     <div>
@@ -175,7 +175,7 @@ export default function JobPostingsPage() {
                     </div>
                     <button
                       onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(p.id); }}
-                      className="text-red-500 text-sm"
+                      className="ui-link-danger text-sm"
                     >{t('common.delete')}</button>
                   </div>
                 </div>

@@ -7,12 +7,7 @@ import {
   SKILL_LEVELS,
 } from '../../lib/career-portfolio';
 
-const inputClass =
-  'w-full px-3 py-2.5 rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-white/80 dark:bg-zinc-900/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/40 transition';
-const textareaClass = `${inputClass} resize-y min-h-[100px]`;
 const labelClass = 'text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block';
-const cardClass =
-  'rounded-2xl border border-zinc-200/60 dark:border-zinc-800/80 bg-white/60 dark:bg-zinc-900/40 backdrop-blur-sm p-5 shadow-sm';
 
 interface Props {
   value: CareerPortfolio;
@@ -76,7 +71,7 @@ export function CareerPortfolioEditor({ value, onChange }: Props) {
             </span>
           ))}
         </div>
-        <div className={`${cardClass} grid sm:grid-cols-3 gap-3`}>
+        <div className="ui-section-card grid sm:grid-cols-3 gap-3">
           <SkillInput
             placeholder={t('portfolio.skillName')}
             onAdd={(name, level, category) => {
@@ -89,7 +84,7 @@ export function CareerPortfolioEditor({ value, onChange }: Props) {
 
       <Section title={t('portfolio.careerStatement')} subtitle={t('portfolio.careerStatementHint')}>
         <textarea
-          className={textareaClass}
+          className="ui-textarea"
           rows={8}
           value={value.careerStatement}
           onChange={(e) => patch({ careerStatement: e.target.value })}
@@ -144,9 +139,9 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
 function ItemCard({ children, onRemove }: { children: React.ReactNode; onRemove: () => void }) {
   const { t } = useTranslation();
   return (
-    <div className={cardClass}>
+    <div className="ui-section-card">
       <div className="flex justify-end mb-2">
-        <button type="button" onClick={onRemove} className="text-xs text-red-500 hover:text-red-400">
+        <button type="button" onClick={onRemove} className="ui-btn-icon-danger">
           {t('common.delete')}
         </button>
       </div>
@@ -160,7 +155,7 @@ function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full py-2.5 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-600 text-sm text-zinc-600 dark:text-zinc-400 hover:border-violet-400 hover:text-violet-600 dark:hover:text-violet-300 transition"
+      className="ui-btn-dashed"
     >
       + {label}
     </button>
@@ -178,7 +173,7 @@ function CareerFields({ item, onChange }: { item: CareerItem; onChange: (v: Care
       <Field label={t('portfolio.endDate')} value={item.endDate} onChange={(v) => set('endDate', v)} placeholder={t('portfolio.present')} />
       <div className="sm:col-span-2">
         <label className={labelClass}>{t('portfolio.description')}</label>
-        <textarea className={textareaClass} rows={3} value={item.description} onChange={(e) => set('description', e.target.value)} />
+        <textarea className="ui-textarea" rows={3} value={item.description} onChange={(e) => set('description', e.target.value)} />
       </div>
     </div>
   );
@@ -206,7 +201,7 @@ function Field({
   return (
     <div className={className}>
       <label className={labelClass}>{label}</label>
-      <input readOnly={readOnly} className={inputClass} value={value} placeholder={placeholder}
+      <input readOnly={readOnly} className="ui-input" value={value} placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)} />
     </div>
   );
@@ -220,18 +215,18 @@ function SkillInput({ placeholder, onAdd }: { placeholder: string; onAdd: (name:
 
   return (
     <>
-      <input className={inputClass} placeholder={placeholder} value={name} onChange={(e) => setName(e.target.value)} />
-      <select className={inputClass} value={level} onChange={(e) => setLevel(e.target.value)}>
+      <input className="ui-input" placeholder={placeholder} value={name} onChange={(e) => setName(e.target.value)} />
+      <select className="ui-input" value={level} onChange={(e) => setLevel(e.target.value)}>
         {SKILL_LEVELS.map((l) => (
           <option key={l} value={l}>{t(`portfolio.skillLevel.${l}`)}</option>
         ))}
       </select>
       <div className="flex gap-2">
-        <input className={inputClass} placeholder={t('portfolio.skillCategory')} value={category} onChange={(e) => setCategory(e.target.value)} />
+        <input className="ui-input" placeholder={t('portfolio.skillCategory')} value={category} onChange={(e) => setCategory(e.target.value)} />
         <button
           type="button"
           onClick={() => { onAdd(name, level, category); setName(''); setCategory(''); }}
-          className="shrink-0 px-4 py-2 rounded-xl bg-violet-600 text-white text-sm hover:bg-violet-500"
+          className="ui-btn-accent"
         >
           {t('common.save')}
         </button>
@@ -242,9 +237,9 @@ function SkillInput({ placeholder, onAdd }: { placeholder: string; onAdd: (name:
 
 function CoverField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
-    <div className={cardClass}>
+    <div className="ui-section-card">
       <label className="text-sm font-medium text-violet-600 dark:text-violet-400 mb-2 block">{label}</label>
-      <textarea className={textareaClass} rows={4} value={value} onChange={(e) => onChange(e.target.value)} />
+      <textarea className="ui-textarea" rows={4} value={value} onChange={(e) => onChange(e.target.value)} />
     </div>
   );
 }

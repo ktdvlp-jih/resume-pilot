@@ -25,17 +25,13 @@ export function ProtectedLayout() {
           <NavItem to="/workspace">{t('nav.workspace')}</NavItem>
           <NavItem to="/settings">{t('nav.settings')}</NavItem>
         </nav>
-        <button
-          type="button"
-          onClick={toggle}
-          className="text-sm text-zinc-500 hover:text-violet-600 dark:hover:text-violet-400 mb-2 cursor-pointer transition"
-        >
+        <button type="button" onClick={toggle} className="ui-sidebar-action mb-2">
           {theme === 'dark' ? `☀️ ${t('nav.lightMode')}` : `🌙 ${t('nav.darkMode')}`}
         </button>
         <button
           type="button"
           onClick={() => { clearTokens(); window.location.href = '/login'; }}
-          className="text-sm text-zinc-500 hover:text-red-500 dark:hover:text-red-400 cursor-pointer transition"
+          className="ui-sidebar-action-danger"
         >
           {t('nav.logout')}
         </button>
@@ -47,10 +43,7 @@ export function ProtectedLayout() {
 
 function NavItem({ to, children }: { to: string; children: React.ReactNode }) {
   return (
-    <Link
-      to={to}
-      className="block px-3 py-2 rounded-xl hover:bg-violet-50 dark:hover:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 transition cursor-pointer"
-    >
+    <Link to={to} className="ui-nav-link">
       {children}
     </Link>
   );

@@ -8,8 +8,7 @@ interface Props {
   portfolio: CareerPortfolio;
 }
 
-const bento =
-  'rounded-2xl border border-zinc-200/60 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/50 backdrop-blur-md p-5 shadow-sm hover:shadow-md transition-shadow';
+const bento = 'ui-card-bento';
 
 export function CareerPortfolioOverview({ name, portfolio }: Props) {
   const { t } = useTranslation();
@@ -33,10 +32,10 @@ export function CareerPortfolioOverview({ name, portfolio }: Props) {
               <div className="text-3xl font-bold">{pct}%</div>
               <div className="text-xs text-violet-200">{t('portfolio.completion')}</div>
             </div>
-            <Link
-              to="/settings"
-              className="px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-sm font-medium backdrop-blur"
-            >
+        <Link
+          to="/settings"
+          className="ui-btn-glass"
+        >
               {t('portfolio.edit')}
             </Link>
           </div>

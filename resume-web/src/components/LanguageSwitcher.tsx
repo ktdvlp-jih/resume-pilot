@@ -9,7 +9,7 @@ export function LanguageSwitcher({ className = '' }: { className?: string }) {
       aria-label={t('language.label')}
       value={SUPPORTED_LOCALES.includes(i18n.language as Locale) ? i18n.language : 'ko'}
       onChange={(e) => setLocale(e.target.value as Locale)}
-      className={`text-sm px-2 py-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 ${className}`}
+      className={`text-sm px-2 py-1 rounded-lg border ui-select ${className}`}
     >
       {SUPPORTED_LOCALES.map((code) => (
         <option key={code} value={code}>

@@ -76,32 +76,33 @@ export default function SettingsPage() {
         <div className="space-y-6">
           <CareerPortfolioEditor value={portfolio} onChange={setPortfolio} />
           <button
+            type="button"
             onClick={() => updateMutation.mutate()}
             disabled={updateMutation.isPending}
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-medium hover:opacity-90 transition disabled:opacity-50"
+            className="ui-btn-primary-lg w-full sm:w-auto"
           >
             {updateMutation.isPending ? t('common.loading') : t('portfolio.saveAll')}
           </button>
         </div>
       ) : (
         <div className="space-y-6">
-          <section className="rounded-2xl border border-zinc-200/60 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/40 p-6 space-y-3">
+          <section className="ui-card space-y-3">
             <h3 className="font-semibold">{t('settings.profile')}</h3>
             <p className="text-sm text-zinc-500">{user?.email}</p>
-            <input placeholder={t('auth.name')} value={name} onChange={(e) => setName(e.target.value)} className={inputCls} />
-            <input placeholder={t('settings.phone')} value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} />
-            <textarea placeholder={t('settings.bio')} value={bio} onChange={(e) => setBio(e.target.value)} className={inputCls} rows={2} />
-            <button onClick={() => updateMutation.mutate()} className="px-4 py-2 bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 text-white rounded-xl text-sm">
+            <input placeholder={t('auth.name')} value={name} onChange={(e) => setName(e.target.value)} className="ui-input" />
+            <input placeholder={t('settings.phone')} value={phone} onChange={(e) => setPhone(e.target.value)} className="ui-input" />
+            <textarea placeholder={t('settings.bio')} value={bio} onChange={(e) => setBio(e.target.value)} className="ui-input" rows={2} />
+            <button type="button" onClick={() => updateMutation.mutate()} className="ui-btn-secondary">
               {t('common.save')}
             </button>
           </section>
-          <section className="rounded-2xl border border-zinc-200/60 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/40 p-6 space-y-3">
+          <section className="ui-card space-y-3">
             <h3 className="font-semibold">{t('settings.changePassword')}</h3>
             <input type="password" placeholder={t('settings.currentPassword')} value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)} className={inputCls} />
+              onChange={(e) => setCurrentPassword(e.target.value)} className="ui-input" />
             <input type="password" placeholder={t('settings.newPassword')} value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)} className={inputCls} />
-            <button onClick={() => passwordMutation.mutate()} className="px-4 py-2 bg-zinc-700 text-white rounded-xl text-sm">
+              onChange={(e) => setNewPassword(e.target.value)} className="ui-input" />
+            <button type="button" onClick={() => passwordMutation.mutate()} className="ui-btn-secondary">
               {t('settings.change')}
             </button>
           </section>
@@ -111,20 +112,9 @@ export default function SettingsPage() {
   );
 }
 
-const inputCls =
-  'w-full px-3 py-2.5 rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-white/80 dark:bg-zinc-900/80 text-sm';
-
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition ${
-        active
-          ? 'bg-white dark:bg-zinc-800 text-violet-600 dark:text-violet-300 shadow-sm'
-          : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-      }`}
-    >
+    <button type="button" onClick={onClick} className={active ? 'ui-tab-active' : 'ui-tab'}>
       {children}
     </button>
   );
