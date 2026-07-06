@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "ResumePilot",
-    "tagline": "企業向けカスタム志望動機プラットフォーム"
+    "tagline": "企業向けカスタム志望動機プラットフォーム",
+    "footer": "© {{name}}. All rights reserved."
   },
   "language": {
     "label": "言語",
@@ -11,15 +12,26 @@
     "zh": "中文"
   },
   "nav": {
+    "main": "メインナビゲーション",
+    "menu": "メニュー",
+    "openMenu": "メニューを開く",
+    "intro": "紹介",
+    "features": "機能",
+    "pricing": "料金",
     "dashboard": "ダッシュボード",
     "jobPostings": "求人票",
     "experiences": "経験ライブラリ",
     "writingStyle": "文体分析",
     "workspace": "ワークスペース",
-    "settings": "マイページ",
+    "settings": "設定",
+    "profile": "プロフィール",
     "logout": "ログアウト",
     "lightMode": "ライトモード",
-    "darkMode": "ダークモード"
+    "darkMode": "ダークモード",
+    "groupOverview": "概要",
+    "groupPrepare": "準備",
+    "groupCreate": "作成",
+    "groupAccount": "アカウント"
   },
   "common": {
     "loading": "読み込み中...",
@@ -29,7 +41,12 @@
     "none": "なし",
     "vs": "vs",
     "analyzing": "分析中...",
-    "generating": "生成中..."
+    "generating": "生成中...",
+    "confirmDelete": "本当に削除しますか？",
+    "confirmDeleteDesc": "この操作は元に戻せません。",
+    "deleted": "削除しました。",
+    "saved": "保存しました。",
+    "error": "エラーが発生しました。"
   },
   "experienceType": {
     "PROJECT": "プロジェクト",

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { PageHeader } from '@/components/PageHeader';
+import { PageHeader } from '@/components/common/page-header';
+import { PageShell } from '@/components/common/page-shell';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,7 +31,7 @@ export default function WritingStylePage() {
   });
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <PageShell size="md">
       <PageHeader title={t('writingStyle.title')} description={t('writingStyle.description')} />
 
       {resumes.length > 0 && (
@@ -87,7 +88,7 @@ export default function WritingStylePage() {
           </CardContent>
         </Card>
       ) : null}
-    </div>
+    </PageShell>
   );
 }
 

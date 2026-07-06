@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { CareerPortfolioEditor } from '@/components/career/CareerPortfolioEditor';
 import { normalizeCareerPortfolio, portfolioCompletion, type CareerPortfolio } from '@/lib/career-portfolio';
-import { PageHeader } from '@/components/PageHeader';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { PageHeader } from '@/components/common/page-header';
+import { PageShell } from '@/components/common/page-shell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -24,7 +25,6 @@ export default function SettingsPage() {
   const [portfolio, setPortfolio] = useState<CareerPortfolio>(normalizeCareerPortfolio());
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [msg, setMsg] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -39,31 +39,26 @@ export default function SettingsPage() {
     mutationFn: () => api.updateMe({ name, phone, bio, careerPortfolio: portfolio }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['me'] });
-      setMsg(t('settings.profileSaved'));
+      toast.success(t('settings.profileSaved'));
     },
+    onError: () => toast.error(t('common.error')),
   });
 
   const passwordMutation = useMutation({
     mutationFn: () => api.changePassword(currentPassword, newPassword),
     onSuccess: () => {
-      setMsg(t('settings.passwordChanged'));
+      toast.success(t('settings.passwordChanged'));
       setCurrentPassword('');
       setNewPassword('');
     },
-    onError: (err) => setMsg(err instanceof Error ? err.message : t('settings.passwordChangeFailed')),
+    onError: (err) => toast.error(err instanceof Error ? err.message : t('settings.passwordChangeFailed')),
   });
 
   const pct = portfolioCompletion(portfolio);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <PageShell size="md">
       <PageHeader title={t('settings.myPage')} description={t('settings.myPageSubtitle')} />
-
-      {msg && (
-        <Alert>
-          <AlertDescription>{msg}</AlertDescription>
-        </Alert>
-      )}
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="w-full">
@@ -127,6 +122,6 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageShell>
   );
 }

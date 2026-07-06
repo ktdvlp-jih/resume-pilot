@@ -1,8 +1,14 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { api, type JobAnalysisResponse, type JobPostingResponse } from '@/lib/api';
-import { PageHeader } from '@/components/PageHeader';
+import { PageHeader } from '@/components/common/page-header';
+import { PageShell } from '@/components/common/page-shell';
+import { Section } from '@/components/common/section';
+import { EmptyState } from '@/components/common/empty-state';
+import { LoadingSpinner } from '@/components/common/loading-state';
+import { ConfirmDialog } from '@/components/common/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -57,7 +63,9 @@ export default function JobPostingsPage() {
         setSelectedId(null);
         setAnalysis(null);
       }
+      toast.success(t('common.deleted'));
     },
+    onError: () => toast.error(t('common.error')),
   });
 
   const fileUploadMutation = useMutation({
@@ -105,7 +113,7 @@ export default function JobPostingsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <PageShell size="lg">
       <PageHeader title={t('jobPostings.title')} />
 
       <Card>
@@ -160,19 +168,17 @@ export default function JobPostingsPage() {
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <section className="space-y-3">
-          <h3 className="font-medium">{t('jobPostings.saved')}</h3>
+        <Section title={t('jobPostings.saved')}>
           {isLoading ? (
-            <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+            <LoadingSpinner label={t('common.loading')} />
           ) : postings.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t('jobPostings.empty')}</p>
+            <EmptyState title={t('jobPostings.empty')} />
           ) : (
             <div className="space-y-2">
               {postings.map((p) => (
                 <Card
                   key={p.id}
-                  size="sm"
-                  className={cn('cursor-pointer transition-colors hover:bg-accent/50', selectedId === p.id && 'ring-2 ring-primary')}
+                  className={cn('cursor-pointer transition-all hover:bg-accent/50 hover:shadow-sm', selectedId === p.id && 'ring-2 ring-primary')}
                   onClick={() => handleSelect(p)}
                 >
                   <CardContent className="flex justify-between gap-2 pt-4">
@@ -183,28 +189,34 @@ export default function JobPostingsPage() {
                         {p.sourceType} · {new Date(p.createdAt).toLocaleDateString()}
                       </CardDescription>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive shrink-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteMutation.mutate(p.id);
-                      }}
-                    >
-                      {t('common.delete')}
-                    </Button>
+                    <ConfirmDialog
+                      trigger={
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="shrink-0 text-destructive"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {t('common.delete')}
+                        </Button>
+                      }
+                      title={t('common.confirmDelete')}
+                      description={t('common.confirmDeleteDesc')}
+                      confirmLabel={t('common.delete')}
+                      cancelLabel={t('common.cancel')}
+                      destructive
+                      onConfirm={() => deleteMutation.mutate(p.id)}
+                    />
                   </CardContent>
                 </Card>
               ))}
             </div>
           )}
-        </section>
+        </Section>
 
-        <section className="space-y-3">
-          <h3 className="font-medium">{t('jobPostings.analysis')}</h3>
+        <Section title={t('jobPostings.analysis')}>
           {!analysis ? (
-            <p className="text-sm text-muted-foreground">{t('jobPostings.selectOrUpload')}</p>
+            <EmptyState title={t('jobPostings.selectOrUpload')} className="py-10" />
           ) : (
             <Card>
               <CardContent className="space-y-4 pt-6 text-sm">
@@ -230,9 +242,9 @@ export default function JobPostingsPage() {
               </CardContent>
             </Card>
           )}
-        </section>
+        </Section>
       </div>
-    </div>
+    </PageShell>
   );
 }
 

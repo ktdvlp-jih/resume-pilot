@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "ResumePilot",
-    "tagline": "기업 맞춤 자기소개서 플랫폼"
+    "tagline": "기업 맞춤 자기소개서 플랫폼",
+    "footer": "© {{name}}. All rights reserved."
   },
   "language": {
     "label": "언어",
@@ -11,15 +12,26 @@
     "zh": "中文"
   },
   "nav": {
+    "main": "주 메뉴",
+    "menu": "메뉴",
+    "openMenu": "메뉴 열기",
+    "intro": "소개",
+    "features": "기능",
+    "pricing": "가격",
     "dashboard": "대시보드",
     "jobPostings": "채용 공고",
     "experiences": "경험 라이브러리",
     "writingStyle": "문체 분석",
     "workspace": "워크스페이스",
-    "settings": "마이페이지",
+    "settings": "설정",
+    "profile": "프로필",
     "logout": "로그아웃",
     "lightMode": "라이트 모드",
-    "darkMode": "다크 모드"
+    "darkMode": "다크 모드",
+    "groupOverview": "개요",
+    "groupPrepare": "준비",
+    "groupCreate": "작성",
+    "groupAccount": "계정"
   },
   "common": {
     "loading": "로딩 중...",
@@ -29,7 +41,12 @@
     "none": "없음",
     "vs": "vs",
     "analyzing": "분석 중...",
-    "generating": "생성 중..."
+    "generating": "생성 중...",
+    "confirmDelete": "정말 삭제하시겠습니까?",
+    "confirmDeleteDesc": "이 작업은 되돌릴 수 없습니다.",
+    "deleted": "삭제되었습니다.",
+    "saved": "저장되었습니다.",
+    "error": "오류가 발생했습니다."
   },
   "experienceType": {
     "PROJECT": "프로젝트",

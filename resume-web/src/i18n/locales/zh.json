@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "ResumePilot",
-    "tagline": "企业定制求职信平台"
+    "tagline": "企业定制求职信平台",
+    "footer": "© {{name}}. All rights reserved."
   },
   "language": {
     "label": "语言",
@@ -11,15 +12,26 @@
     "zh": "中文"
   },
   "nav": {
+    "main": "主导航",
+    "menu": "菜单",
+    "openMenu": "打开菜单",
+    "intro": "介绍",
+    "features": "功能",
+    "pricing": "价格",
     "dashboard": "仪表盘",
     "jobPostings": "招聘公告",
     "experiences": "经历库",
     "writingStyle": "文风分析",
     "workspace": "工作区",
-    "settings": "我的页面",
+    "settings": "设置",
+    "profile": "个人资料",
     "logout": "退出登录",
     "lightMode": "浅色模式",
-    "darkMode": "深色模式"
+    "darkMode": "深色模式",
+    "groupOverview": "概览",
+    "groupPrepare": "准备",
+    "groupCreate": "创作",
+    "groupAccount": "账户"
   },
   "common": {
     "loading": "加载中...",
@@ -29,7 +41,12 @@
     "none": "无",
     "vs": "vs",
     "analyzing": "分析中...",
-    "generating": "生成中..."
+    "generating": "生成中...",
+    "confirmDelete": "确定要删除吗？",
+    "confirmDeleteDesc": "此操作无法撤销。",
+    "deleted": "已删除。",
+    "saved": "已保存。",
+    "error": "发生错误。"
   },
   "experienceType": {
     "PROJECT": "项目",

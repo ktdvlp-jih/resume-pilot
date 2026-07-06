@@ -2,7 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { PageHeader } from '@/components/PageHeader';
+import { PageHeader } from '@/components/common/page-header';
+import { PageShell } from '@/components/common/page-shell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
@@ -44,7 +45,7 @@ export default function VersionComparePage() {
   const rows = va && vb ? diffLines(va.content, vb.content) : [];
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <PageShell size="lg">
       <PageHeader title={t('versionCompare.title')} />
 
       <div className="flex flex-wrap items-center gap-4">
@@ -105,6 +106,6 @@ export default function VersionComparePage() {
           </Card>
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }

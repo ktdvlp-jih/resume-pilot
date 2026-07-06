@@ -32,8 +32,10 @@ export function AdminSidebar() {
 
   return (
     <Sidebar variant="inset" collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border p-4">
-        <h1 className="font-semibold text-lg group-data-[collapsible=icon]:hidden">{t('admin.title')}</h1>
+      <SidebarHeader className="border-b border-sidebar-border">
+        <a href="/" className="flex items-center gap-2 px-2 py-1 font-semibold tracking-tight hover:text-primary">
+          ResumePilot
+        </a>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

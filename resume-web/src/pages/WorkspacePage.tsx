@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { api, type JobPostingResponse } from '@/lib/api';
 import { HighlightedContent } from '@/components/HighlightedContent';
-import { PageHeader } from '@/components/PageHeader';
+import { PageHeader } from '@/components/common/page-header';
+import { PageShell } from '@/components/common/page-shell';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -88,7 +89,7 @@ export default function WorkspacePage() {
   const scores = result?.quality_scores as Record<string, number> | undefined;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <PageShell size="lg">
       <PageHeader title={t('workspace.title')} />
 
       {error && (
@@ -237,6 +238,6 @@ export default function WorkspacePage() {
           )}
         </>
       )}
-    </div>
+    </PageShell>
   );
 }

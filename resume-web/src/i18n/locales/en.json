@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "ResumePilot",
-    "tagline": "Tailored cover letter platform"
+    "tagline": "Tailored cover letter platform",
+    "footer": "© {{name}}. All rights reserved."
   },
   "language": {
     "label": "Language",
@@ -11,15 +12,26 @@
     "zh": "中文"
   },
   "nav": {
+    "main": "Main navigation",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "intro": "About",
+    "features": "Features",
+    "pricing": "Pricing",
     "dashboard": "Dashboard",
     "jobPostings": "Job Postings",
     "experiences": "Experience Library",
     "writingStyle": "Writing Style",
     "workspace": "Workspace",
-    "settings": "My page",
+    "settings": "Settings",
+    "profile": "Profile",
     "logout": "Log out",
     "lightMode": "Light mode",
-    "darkMode": "Dark mode"
+    "darkMode": "Dark mode",
+    "groupOverview": "Overview",
+    "groupPrepare": "Prepare",
+    "groupCreate": "Create",
+    "groupAccount": "Account"
   },
   "common": {
     "loading": "Loading...",
@@ -29,7 +41,12 @@
     "none": "None",
     "vs": "vs",
     "analyzing": "Analyzing...",
-    "generating": "Generating..."
+    "generating": "Generating...",
+    "confirmDelete": "Are you sure you want to delete?",
+    "confirmDeleteDesc": "This action cannot be undone.",
+    "deleted": "Deleted successfully.",
+    "saved": "Saved successfully.",
+    "error": "Something went wrong."
   },
   "experienceType": {
     "PROJECT": "Project",

@@ -46,7 +46,7 @@ interface LogoProps {
   className?: string;
 }
 
-export function Logo({ to = '/dashboard', showText = true, className }: LogoProps) {
+export function Logo({ to = '/', showText = true, className }: LogoProps) {
   const content = (
     <>
       <LogoMark size={32} className="shrink-0" />

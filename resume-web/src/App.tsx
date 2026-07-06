@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './lib/theme';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { Toaster } from '@/components/ui/sonner';
 import { ProtectedLayout } from './components/Layout';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -39,6 +40,7 @@ export default function App() {
             </Routes>
           </BrowserRouter>
         </QueryClientProvider>
+        <Toaster richColors closeButton position="top-right" />
       </TooltipProvider>
     </ThemeProvider>
   );
