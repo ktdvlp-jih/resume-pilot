@@ -21,8 +21,8 @@ GitHub Actions `deploy.yml` (master push) 또는 `./scripts/resume-pilot.sh depl
 
 **UI 공통 스타일**
 
-- 정의: `resume-web/src/styles/ui.css`
-- hover·pointer·버튼·링크·폼은 `ui-*` 클래스로 통일 (컴포넌트에 인라인 hover 중복 금지)
+- shadcn/ui (Radix nova) + violet CSS 변수 테마 — `resume-web/src/index.css`, `resume-admin/src/index.css`
+- 컴포넌트: `src/components/ui/*` (Button, Card, Input, Sidebar 등)
 
 ---
 
@@ -93,13 +93,13 @@ curl -s -o /dev/null -w "admin:%{http_code}\n" "http://localhost:${APP_PORT}/adm
 
 ---
 
-## TC-06 — UI 공통 (`ui.css`)
+## TC-06 — UI 공통 (shadcn/Radix)
 
 | # | 대상 | 기대 |
 |---|------|------|
-| 1 | `ui-nav-link`, `ui-sidebar-action` | pointer + hover 배경/색상 |
-| 2 | `ui-btn-primary`, `ui-link` | pointer + hover |
-| 3 | `ui-btn-*:disabled` | not-allowed |
+| 1 | Button, Input, Card | Radix 스타일·violet primary |
+| 2 | Sidebar (앱 셸) | 접기·네비·다크모드 |
+| 3 | disabled 상태 | not-allowed·opacity |
 | 4 | 본문 텍스트 | 기본 커서 유지 |
 
 ---

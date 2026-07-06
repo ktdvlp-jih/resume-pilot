@@ -4,6 +4,39 @@
 
 ResumePilot is a RAG-based cover letter writing and review platform with a multi-service monorepo architecture.
 
+## 2. 기술 스택 요약
+
+```
+Backend  : Java 21 · Spring Boot 3.5 · Gradle 8 (Groovy DSL) · PostgreSQL 17 + pgvector
+           · Spring Data JPA · QueryDSL 5 · MapStruct · Lombok · Flyway
+           · Spring Security · JWT · SpringDoc OpenAPI · WebFlux · PDFBox
+Frontend : React 19 · TypeScript 6 · Vite 8 · Tailwind CSS 4
+           · TanStack React Query 5 · React Router 7 · Axios
+           · i18next / react-i18next · oxlint
+           · Radix UI (shadcn/ui nova) · Lucide Icons · Geist font
+AI       : Python 3.12 · FastAPI · Uvicorn · pip (requirements.txt)
+           · Pydantic v2 · httpx · OpenAI SDK (LLM·임베딩)
+           · asyncpg · NumPy (rag-service) · PyPDF · Tesseract OCR (resume-ai)
+Infra    : Docker · Docker Compose (prod 5컨테이너) · Eclipse Temurin 21 · python:3.12-slim
+           · node:22-alpine (SPA 빌드 스테이지)
+           · Tailscale (원격 SSH·DB 터널)
+           · GitHub Actions self-hosted runner (ubuntu-server, master push → deploy)
+           · Cloudflare Quick Tunnel (cloudflared-quick-resume → :9180, 외부 데모·선택)
+           · SpecStory / .cursor (Cursor 대화 git 동기화)
+```
+
+| 영역 | 서비스 | 포트 (dev) |
+|------|--------|------------|
+| API | resume-api | 8080 |
+| 사용자 UI | resume-web | 5173 |
+| 관리자 UI | resume-admin | 5174 (`/admin/`) |
+| AI Gateway | resume-ai | 8000 |
+| Prompt | prompt-service | 8001 |
+| RAG | rag-service | 8002 |
+| DB | PostgreSQL + pgvector | 5432 |
+
+Prod: SPA + API 단일 **app** 포트 (`APP_PORT`, 기본 9180) — [INFRASTRUCTURE.md](INFRASTRUCTURE.md).
+
 ## Service Diagram
 
 **Local dev**
@@ -31,12 +64,12 @@ Browser ──> app (9180): SPA / + /admin + /api/v1
 
 | Service | Stack | Role |
 |---------|-------|------|
-| resume-api | Spring Boot 3.4, Java 21 | JWT auth, domain CRUD, AI orchestration, Flyway migrations |
+| resume-api | Spring Boot 3.5, Java 21 | JWT auth, domain CRUD, AI orchestration, Flyway migrations |
 | resume-ai | FastAPI | AI gateway: generation, detection, review, interview questions |
 | prompt-service | FastAPI | Prompt template runtime (render, version, test) |
 | rag-service | FastAPI | Embedding, vector search, context assembly |
-| resume-web | React 19, Vite, Tailwind | User-facing UI |
-| resume-admin | React 19, Vite, Tailwind | Admin UI |
+| resume-web | React 19, Vite, Tailwind, shadcn/Radix | User-facing UI |
+| resume-admin | React 19, Vite, Tailwind, shadcn/Radix | Admin UI |
 
 ## Data Strategy
 

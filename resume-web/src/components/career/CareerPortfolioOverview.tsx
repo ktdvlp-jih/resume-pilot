@@ -1,14 +1,16 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { CareerPortfolio } from '../../lib/career-portfolio';
-import { portfolioCompletion } from '../../lib/career-portfolio';
+import type { CareerPortfolio } from '@/lib/career-portfolio';
+import { portfolioCompletion } from '@/lib/career-portfolio';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 
 interface Props {
   name?: string;
   portfolio: CareerPortfolio;
 }
-
-const bento = 'ui-card-bento';
 
 export function CareerPortfolioOverview({ name, portfolio }: Props) {
   const { t } = useTranslation();
@@ -16,94 +18,106 @@ export function CareerPortfolioOverview({ name, portfolio }: Props) {
   const cl = portfolio.coverLetter;
 
   return (
-    <div className="space-y-6 mb-10">
-      <div className="relative overflow-hidden rounded-3xl border border-zinc-200/50 dark:border-zinc-800 bg-gradient-to-br from-violet-600/90 via-indigo-600/85 to-blue-700/80 p-8 text-white shadow-lg">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.12),transparent_50%)]" />
-        <div className="relative flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-violet-200 text-sm font-medium mb-1">{t('portfolio.overviewLabel')}</p>
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
-              {name || t('portfolio.defaultName')}
-            </h2>
-            <p className="text-violet-100/90 mt-2 text-sm max-w-xl">{t('portfolio.overviewSubtitle')}</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold">{pct}%</div>
-              <div className="text-xs text-violet-200">{t('portfolio.completion')}</div>
+    <div className="mb-10 space-y-6">
+      <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/90 via-primary/80 to-primary/70 text-primary-foreground">
+        <CardContent className="relative pt-6">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-sm text-primary-foreground/80">{t('portfolio.overviewLabel')}</p>
+              <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">
+                {name || t('portfolio.defaultName')}
+              </h2>
+              <p className="mt-2 max-w-xl text-sm text-primary-foreground/90">{t('portfolio.overviewSubtitle')}</p>
             </div>
-        <Link
-          to="/settings"
-          className="ui-btn-glass"
-        >
-              {t('portfolio.edit')}
-            </Link>
+            <div className="flex items-center gap-4">
+              <div className="text-center">
+                <div className="text-3xl font-bold">{pct}%</div>
+                <div className="text-xs text-primary-foreground/80">{t('portfolio.completion')}</div>
+              </div>
+              <Button variant="secondary" asChild>
+                <Link to="/settings">{t('portfolio.edit')}</Link>
+              </Button>
+            </div>
           </div>
-        </div>
-        <div className="relative mt-4 h-1.5 rounded-full bg-white/20 overflow-hidden">
-          <div className="h-full rounded-full bg-white/90 transition-all" style={{ width: `${pct}%` }} />
-        </div>
-      </div>
+          <Progress value={pct} className="mt-4 h-1.5 bg-primary-foreground/20 [&>div]:bg-primary-foreground" />
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <div className={`${bento} lg:col-span-1`}>
-          <h3 className="text-sm font-semibold text-violet-600 dark:text-violet-400 mb-3">{t('portfolio.careers')}</h3>
-          {portfolio.careers.length === 0 ? (
-            <EmptyHint text={t('portfolio.emptyCareers')} />
-          ) : (
-            <ul className="space-y-3">
-              {portfolio.careers.slice(0, 3).map((c, i) => (
-                <li key={i} className="border-l-2 border-violet-500/50 pl-3">
-                  <p className="font-medium text-sm">{c.company || '—'}</p>
-                  <p className="text-xs text-zinc-500">{c.position}</p>
-                  <p className="text-xs text-zinc-400 mt-0.5">{c.startDate} — {c.endDate || t('portfolio.present')}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <Card size="sm">
+          <CardHeader>
+            <CardTitle className="text-primary text-sm">{t('portfolio.careers')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {portfolio.careers.length === 0 ? (
+              <EmptyHint text={t('portfolio.emptyCareers')} />
+            ) : (
+              <ul className="space-y-3">
+                {portfolio.careers.slice(0, 3).map((c, i) => (
+                  <li key={i} className="border-l-2 border-primary/40 pl-3">
+                    <p className="text-sm font-medium">{c.company || '—'}</p>
+                    <p className="text-xs text-muted-foreground">{c.position}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {c.startDate} — {c.endDate || t('portfolio.present')}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
 
-        <div className={bento}>
-          <h3 className="text-sm font-semibold text-violet-600 dark:text-violet-400 mb-3">{t('portfolio.educations')}</h3>
-          {portfolio.educations.length === 0 ? (
-            <EmptyHint text={t('portfolio.emptyEducations')} />
-          ) : (
-            <ul className="space-y-2">
-              {portfolio.educations.map((e, i) => (
-                <li key={i}>
-                  <p className="font-medium text-sm">{e.school}</p>
-                  <p className="text-xs text-zinc-500">{e.major} · {e.degree}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <Card size="sm">
+          <CardHeader>
+            <CardTitle className="text-primary text-sm">{t('portfolio.educations')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {portfolio.educations.length === 0 ? (
+              <EmptyHint text={t('portfolio.emptyEducations')} />
+            ) : (
+              <ul className="space-y-2">
+                {portfolio.educations.map((e, i) => (
+                  <li key={i}>
+                    <p className="text-sm font-medium">{e.school}</p>
+                    <p className="text-xs text-muted-foreground">{e.major} · {e.degree}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
 
-        <div className={bento}>
-          <h3 className="text-sm font-semibold text-violet-600 dark:text-violet-400 mb-3">{t('portfolio.skills')}</h3>
-          {portfolio.skills.length === 0 ? (
-            <EmptyHint text={t('portfolio.emptySkills')} />
-          ) : (
-            <div className="flex flex-wrap gap-1.5">
-              {portfolio.skills.map((s, i) => (
-                <span key={i} className="px-2.5 py-1 rounded-lg text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
-                  {s.name}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+        <Card size="sm">
+          <CardHeader>
+            <CardTitle className="text-primary text-sm">{t('portfolio.skills')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {portfolio.skills.length === 0 ? (
+              <EmptyHint text={t('portfolio.emptySkills')} />
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {portfolio.skills.map((s, i) => (
+                  <Badge key={i} variant="secondary">{s.name}</Badge>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-        <div className={`${bento} md:col-span-2 lg:col-span-3`}>
-          <h3 className="text-sm font-semibold text-violet-600 dark:text-violet-400 mb-2">{t('portfolio.careerStatement')}</h3>
-          {portfolio.careerStatement?.trim() ? (
-            <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap line-clamp-6">
-              {portfolio.careerStatement}
-            </p>
-          ) : (
-            <EmptyHint text={t('portfolio.emptyStatement')} />
-          )}
-        </div>
+        <Card className="md:col-span-2 lg:col-span-3" size="sm">
+          <CardHeader>
+            <CardTitle className="text-primary text-sm">{t('portfolio.careerStatement')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {portfolio.careerStatement?.trim() ? (
+              <p className="line-clamp-6 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                {portfolio.careerStatement}
+              </p>
+            ) : (
+              <EmptyHint text={t('portfolio.emptyStatement')} />
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
@@ -118,16 +132,18 @@ export function CareerPortfolioOverview({ name, portfolio }: Props) {
 }
 
 function EmptyHint({ text }: { text: string }) {
-  return <p className="text-sm text-zinc-400 italic">{text}</p>;
+  return <p className="text-sm italic text-muted-foreground">{text}</p>;
 }
 
 function CoverCard({ title, text, className = '' }: { title: string; text?: string; className?: string }) {
   return (
-    <div className={`${bento} ${className}`}>
-      <h4 className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 mb-2">{title}</h4>
-      <p className="text-sm text-zinc-600 dark:text-zinc-300 line-clamp-4 whitespace-pre-wrap">
-        {text?.trim() || '—'}
-      </p>
-    </div>
+    <Card size="sm" className={className}>
+      <CardHeader>
+        <CardTitle className="text-xs text-muted-foreground">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="line-clamp-4 whitespace-pre-wrap text-sm text-muted-foreground">{text?.trim() || '—'}</p>
+      </CardContent>
+    </Card>
   );
 }

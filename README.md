@@ -2,6 +2,12 @@
 
 RAG 기반 기업 맞춤 자기소개서 작성 및 첨삭 플랫폼
 
+## 기술 스택
+
+Spring Boot 3.5 · React 19 · FastAPI × 3 · PostgreSQL 17 + pgvector · Docker (prod 5컨테이너)
+
+상세: [docs/architecture.md §2](docs/architecture.md#2-기술-스택-요약)
+
 ## 서비스 구조
 
 ### 로컬 개발 (터미널)

@@ -1,7 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../lib/api';
+import { api } from '@/lib/api';
+import { PageHeader } from '@/components/PageHeader';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function WritingStylePage() {
   const { t } = useTranslation();
@@ -23,82 +29,64 @@ export default function WritingStylePage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['writingStyle'] }),
   });
 
-  useEffect(() => {
-    if (style && !content) return;
-  }, [style, content]);
-
-  const loadFromResume = (resumeContent: string) => {
-    setContent(resumeContent);
-  };
-
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <h2 className="text-2xl font-bold">{t('writingStyle.title')}</h2>
-      <p className="text-gray-500 text-sm">{t('writingStyle.description')}</p>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <PageHeader title={t('writingStyle.title')} description={t('writingStyle.description')} />
 
       {resumes.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {resumes.filter((r) => r.latestContent).map((r) => (
-            <button
-              key={r.id}
-              onClick={() => loadFromResume(r.latestContent!)}
-              className="px-3 py-1 text-sm border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
+            <Button key={r.id} variant="outline" size="sm" onClick={() => setContent(r.latestContent!)}>
               {r.title} {t('writingStyle.loadFrom')}
-            </button>
+            </Button>
           ))}
         </div>
       )}
 
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder={t('writingStyle.placeholder')}
-        className="w-full h-48 px-3 py-2 border rounded-xl dark:bg-gray-900"
-      />
+      <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder={t('writingStyle.placeholder')} className="min-h-48" />
 
-      <button
-        onClick={() => analyzeMutation.mutate(content)}
-        disabled={!content || analyzeMutation.isPending}
-        className="px-6 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50"
-      >
+      <Button onClick={() => analyzeMutation.mutate(content)} disabled={!content || analyzeMutation.isPending}>
         {analyzeMutation.isPending ? t('common.analyzing') : t('writingStyle.analyze')}
-      </button>
+      </Button>
 
-      {isLoading ? <p>{t('common.loading')}</p> : style && (
-        <div className="bg-white dark:bg-gray-900 border rounded-xl p-6 space-y-4">
-          <h3 className="font-semibold">{t('writingStyle.result')}</h3>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <Info label={t('writingStyle.sentenceStyle')} value={style.sentenceStyle} />
-            <Info label={t('writingStyle.tone')} value={style.tone} />
-            <Info label={t('writingStyle.formalSpeech')} value={style.usesFormalSpeech ? t('writingStyle.formalYes') : t('writingStyle.formalMixed')} />
-            <Info label={t('writingStyle.avgSentenceLength')} value={style.avgSentenceLength ? `${style.avgSentenceLength}${t('writingStyle.chars')}` : '-'} />
-          </div>
-          {style.expressionStyle && (
-            <p className="text-sm text-gray-600 dark:text-gray-400">{style.expressionStyle}</p>
-          )}
-          {style.frequentWords.length > 0 && (
-            <div>
-              <p className="text-gray-500 text-sm mb-1">{t('writingStyle.frequentWords')}</p>
-              <div className="flex flex-wrap gap-1">
-                {style.frequentWords.map((w) => (
-                  <span key={w} className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">{w}</span>
-                ))}
-              </div>
+      {isLoading ? (
+        <Skeleton className="h-48 rounded-xl" />
+      ) : style ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('writingStyle.result')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <Info label={t('writingStyle.sentenceStyle')} value={style.sentenceStyle} />
+              <Info label={t('writingStyle.tone')} value={style.tone} />
+              <Info label={t('writingStyle.formalSpeech')} value={style.usesFormalSpeech ? t('writingStyle.formalYes') : t('writingStyle.formalMixed')} />
+              <Info label={t('writingStyle.avgSentenceLength')} value={style.avgSentenceLength ? `${style.avgSentenceLength}${t('writingStyle.chars')}` : '-'} />
             </div>
-          )}
-          {style.connectors.length > 0 && (
-            <div>
-              <p className="text-gray-500 text-sm mb-1">{t('writingStyle.connectors')}</p>
-              <div className="flex flex-wrap gap-1">
-                {style.connectors.map((c) => (
-                  <span key={c} className="px-2 py-0.5 bg-gray-100 text-gray-800 rounded text-xs">{c}</span>
-                ))}
+            {style.expressionStyle && <p className="text-sm text-muted-foreground">{style.expressionStyle}</p>}
+            {style.frequentWords.length > 0 && (
+              <div>
+                <p className="mb-1 text-sm text-muted-foreground">{t('writingStyle.frequentWords')}</p>
+                <div className="flex flex-wrap gap-1">
+                  {style.frequentWords.map((w) => (
+                    <Badge key={w} variant="secondary">{w}</Badge>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+            {style.connectors.length > 0 && (
+              <div>
+                <p className="mb-1 text-sm text-muted-foreground">{t('writingStyle.connectors')}</p>
+                <div className="flex flex-wrap gap-1">
+                  {style.connectors.map((c) => (
+                    <Badge key={c} variant="outline">{c}</Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }
@@ -106,7 +94,7 @@ export default function WritingStylePage() {
 function Info({ label, value }: { label: string; value?: string | null }) {
   return (
     <div>
-      <p className="text-gray-500">{label}</p>
+      <p className="text-muted-foreground">{label}</p>
       <p className="font-medium">{value || '-'}</p>
     </div>
   );

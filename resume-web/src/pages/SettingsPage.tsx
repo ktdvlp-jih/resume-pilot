@@ -1,17 +1,22 @@
-import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../lib/api';
-import { CareerPortfolioEditor } from '../components/career/CareerPortfolioEditor';
-import { normalizeCareerPortfolio, portfolioCompletion, type CareerPortfolio } from '../lib/career-portfolio';
-
-type Tab = 'portfolio' | 'account';
+import { api } from '@/lib/api';
+import { CareerPortfolioEditor } from '@/components/career/CareerPortfolioEditor';
+import { normalizeCareerPortfolio, portfolioCompletion, type CareerPortfolio } from '@/lib/career-portfolio';
+import { PageHeader } from '@/components/PageHeader';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function SettingsPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<Tab>('portfolio');
+  const [tab, setTab] = useState('portfolio');
   const { data: user } = useQuery({ queryKey: ['me'], queryFn: api.getMe });
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -51,71 +56,77 @@ export default function SettingsPage() {
   const pct = portfolioCompletion(portfolio);
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold tracking-tight">{t('settings.myPage')}</h2>
-        <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">{t('settings.myPageSubtitle')}</p>
-      </div>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <PageHeader title={t('settings.myPage')} description={t('settings.myPageSubtitle')} />
 
       {msg && (
-        <p className="mb-4 text-sm text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-2">
-          {msg}
-        </p>
+        <Alert>
+          <AlertDescription>{msg}</AlertDescription>
+        </Alert>
       )}
 
-      <div className="flex gap-2 mb-6 p-1 rounded-2xl bg-zinc-100/80 dark:bg-zinc-900/80 border border-zinc-200/60 dark:border-zinc-800">
-        <TabButton active={tab === 'portfolio'} onClick={() => setTab('portfolio')}>
-          {t('portfolio.tab')} · {pct}%
-        </TabButton>
-        <TabButton active={tab === 'account'} onClick={() => setTab('account')}>
-          {t('settings.accountTab')}
-        </TabButton>
-      </div>
+      <Tabs value={tab} onValueChange={setTab}>
+        <TabsList className="w-full">
+          <TabsTrigger value="portfolio" className="flex-1">
+            {t('portfolio.tab')} · {pct}%
+          </TabsTrigger>
+          <TabsTrigger value="account" className="flex-1">
+            {t('settings.accountTab')}
+          </TabsTrigger>
+        </TabsList>
 
-      {tab === 'portfolio' ? (
-        <div className="space-y-6">
+        <TabsContent value="portfolio" className="mt-6 space-y-6">
           <CareerPortfolioEditor value={portfolio} onChange={setPortfolio} />
-          <button
-            type="button"
-            onClick={() => updateMutation.mutate()}
-            disabled={updateMutation.isPending}
-            className="ui-btn-primary-lg w-full sm:w-auto"
-          >
+          <Button size="lg" onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
             {updateMutation.isPending ? t('common.loading') : t('portfolio.saveAll')}
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          <section className="ui-card space-y-3">
-            <h3 className="font-semibold">{t('settings.profile')}</h3>
-            <p className="text-sm text-zinc-500">{user?.email}</p>
-            <input placeholder={t('auth.name')} value={name} onChange={(e) => setName(e.target.value)} className="ui-input" />
-            <input placeholder={t('settings.phone')} value={phone} onChange={(e) => setPhone(e.target.value)} className="ui-input" />
-            <textarea placeholder={t('settings.bio')} value={bio} onChange={(e) => setBio(e.target.value)} className="ui-input" rows={2} />
-            <button type="button" onClick={() => updateMutation.mutate()} className="ui-btn-secondary">
-              {t('common.save')}
-            </button>
-          </section>
-          <section className="ui-card space-y-3">
-            <h3 className="font-semibold">{t('settings.changePassword')}</h3>
-            <input type="password" placeholder={t('settings.currentPassword')} value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)} className="ui-input" />
-            <input type="password" placeholder={t('settings.newPassword')} value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)} className="ui-input" />
-            <button type="button" onClick={() => passwordMutation.mutate()} className="ui-btn-secondary">
-              {t('settings.change')}
-            </button>
-          </section>
-        </div>
-      )}
-    </div>
-  );
-}
+          </Button>
+        </TabsContent>
 
-function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
-  return (
-    <button type="button" onClick={onClick} className={active ? 'ui-tab-active' : 'ui-tab'}>
-      {children}
-    </button>
+        <TabsContent value="account" className="mt-6 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('settings.profile')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
+              <div className="space-y-2">
+                <Label>{t('auth.name')}</Label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('settings.phone')}</Label>
+                <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('settings.bio')}</Label>
+                <Textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={2} />
+              </div>
+              <Button variant="secondary" onClick={() => updateMutation.mutate()}>
+                {t('common.save')}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('settings.changePassword')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>{t('settings.currentPassword')}</Label>
+                <Input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('settings.newPassword')}</Label>
+                <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+              </div>
+              <Button variant="secondary" onClick={() => passwordMutation.mutate()}>
+                {t('settings.change')}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

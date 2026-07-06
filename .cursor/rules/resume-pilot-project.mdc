@@ -7,7 +7,7 @@ alwaysApply: true
 
 **정체성:** RAG 기반 기업 맞춤 자기소개서 작성·첨삭 플랫폼. 경험 라이브러리 → 공고 분석 → RAG 추천 → AI 생성·첨삭·흔적 탐지.
 
-**스택:** Spring Boot 3.4 (Java 21) · React 19 / Vite · FastAPI × 3 · PostgreSQL 17 + pgvector · Docker prod 5컨테이너
+**스택:** Spring Boot 3.5 (Java 21) · React 19 / shadcn·Radix UI / Vite 8 · FastAPI × 3 · PostgreSQL 17 + pgvector · Docker prod 5컨테이너
 
 **개발:** 터미널에서 각 서비스 실행 (`docs/RUNNING.md`)
 **배포:** `docker-compose.yml` · `docs/SETUP.md#part-3-ubuntu-서버` (`DEPLOY_HOST`는 로컬 `.env`만)

@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 interface LogoMarkProps {
   size?: number;
   className?: string;
 }
 
-/** ResumePilot 로고 마크 — 문서 + 파일럿(날개) */
 export function LogoMark({ size = 32, className = '' }: LogoMarkProps) {
   return (
     <svg
@@ -43,27 +43,30 @@ export function LogoMark({ size = 32, className = '' }: LogoMarkProps) {
 interface LogoProps {
   to?: string;
   showText?: boolean;
+  className?: string;
 }
 
-export function Logo({ to = '/dashboard', showText = true }: LogoProps) {
+export function Logo({ to = '/dashboard', showText = true, className }: LogoProps) {
   const content = (
     <>
-      <LogoMark size={34} className="shrink-0" />
+      <LogoMark size={32} className="shrink-0" />
       {showText && (
-        <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-400 dark:to-indigo-400 bg-clip-text text-transparent">
+        <span className="font-semibold text-base tracking-tight group-data-[collapsible=icon]:hidden">
           ResumePilot
         </span>
       )}
     </>
   );
 
+  const wrapperClass = cn('flex items-center gap-2.5 rounded-lg p-2 -ml-2 transition-colors hover:bg-sidebar-accent', className);
+
   if (to) {
     return (
-      <Link to={to} className="ui-brand" aria-label="ResumePilot 홈">
+      <Link to={to} className={wrapperClass} aria-label="ResumePilot">
         {content}
       </Link>
     );
   }
 
-  return <div className="ui-brand-static flex items-center gap-2.5">{content}</div>;
+  return <div className={wrapperClass}>{content}</div>;
 }

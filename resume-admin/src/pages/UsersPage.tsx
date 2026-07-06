@@ -1,46 +1,61 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
-import { api } from '../lib/api';
-
-export default function UsersPage() {
-  const { t } = useTranslation();
-  const queryClient = useQueryClient();
-  const { data = [], isLoading } = useQuery({ queryKey: ['admin-users'], queryFn: api.listUsers });
-
-  return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">{t('users.title')}</h2>
-      {isLoading ? <p>{t('common.loading')}</p> : (
-        <table className="w-full text-sm bg-gray-800 rounded-xl">
-          <thead>
-            <tr className="border-b border-gray-700 text-left">
-              <th className="p-3">{t('users.email')}</th>
-              <th className="p-3">{t('users.role')}</th>
-              <th className="p-3">{t('users.status')}</th>
-              <th className="p-3">{t('users.action')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(data as Array<{ id: string; email: string; role: string; enabled: boolean }>).map(u => (
-              <tr key={u.id} className="border-b border-gray-700">
-                <td className="p-3">{u.email}</td>
-                <td className="p-3">
-                  <select value={u.role} onChange={e => api.updateUserRole(u.id, e.target.value).then(() => queryClient.invalidateQueries({ queryKey: ['admin-users'] }))}
-                    className="bg-gray-700 rounded px-2 py-1">
-                    <option value="USER">USER</option>
-                    <option value="ADMIN">ADMIN</option>
-                  </select>
-                </td>
-                <td className="p-3">{u.enabled ? t('common.active') : t('common.inactive')}</td>
-                <td className="p-3">
-                  <button onClick={() => api.updateUserEnabled(u.id, !u.enabled).then(() => queryClient.invalidateQueries({ queryKey: ['admin-users'] }))}
-                    className="text-xs text-blue-400">{u.enabled ? t('common.deactivate') : t('common.activate')}</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
-  );
-}
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { api } from '@/lib/api';
+import { PageHeader } from '@/components/PageHeader';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
+
+export default function UsersPage() {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const { data = [], isLoading } = useQuery({ queryKey: ['admin-users'], queryFn: api.listUsers });
+
+  return (
+    <div className="space-y-4">
+      <PageHeader title={t('users.title')} />
+      {isLoading ? (
+        <Skeleton className="h-48 rounded-xl" />
+      ) : (
+        <Card>
+          <CardContent className="pt-6">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('users.email')}</TableHead>
+                  <TableHead>{t('users.role')}</TableHead>
+                  <TableHead>{t('users.status')}</TableHead>
+                  <TableHead>{t('users.action')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(data as Array<{ id: string; email: string; role: string; enabled: boolean }>).map((u) => (
+                  <TableRow key={u.id}>
+                    <TableCell>{u.email}</TableCell>
+                    <TableCell>
+                      <Select value={u.role} onValueChange={(role) => api.updateUserRole(u.id, role).then(() => queryClient.invalidateQueries({ queryKey: ['admin-users'] }))}>
+                        <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="USER">USER</SelectItem>
+                          <SelectItem value="ADMIN">ADMIN</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>{u.enabled ? t('common.active') : t('common.inactive')}</TableCell>
+                    <TableCell>
+                      <Button variant="link" size="sm" className="h-auto p-0" onClick={() => api.updateUserEnabled(u.id, !u.enabled).then(() => queryClient.invalidateQueries({ queryKey: ['admin-users'] }))}>
+                        {u.enabled ? t('common.deactivate') : t('common.activate')}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
