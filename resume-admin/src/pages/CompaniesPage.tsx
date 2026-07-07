@@ -1,29 +1,62 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import { PageHeader } from '@/components/PageHeader';
+import { SearchBar } from '@/components/common/search-bar';
+import { DataTableCard } from '@/components/common/data-table-card';
+import { PaginationControls } from '@/components/common/pagination-controls';
+import { SortableTableHead } from '@/components/common/sortable-table-head';
+import { TableSkeletonRows } from '@/components/common/table-skeleton';
+import { EmptyState } from '@/components/common/empty-state';
+import { usePagination } from '@/hooks/use-pagination';
+import { useSort } from '@/hooks/use-sort';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
+
+type CompanyRow = { id: string; name: string; culture?: string; hiringKeywords: string[] };
 
 export default function CompaniesPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [search, setSearch] = useState('');
   const [editId, setEditId] = useState<string | null>(null);
   const [culture, setCulture] = useState('');
   const [keywords, setKeywords] = useState('');
 
   const { data = [], isLoading } = useQuery({ queryKey: ['admin-companies'], queryFn: api.listCompanies });
 
-  const updateMutation = useMutation({
-    mutationFn: (id: string) => api.updateCompany(id, {
-      culture,
-      hiringKeywords: keywords.split(',').map((k) => k.trim()).filter(Boolean),
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return data as CompanyRow[];
+    return (data as CompanyRow[]).filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        (c.culture?.toLowerCase().includes(q) ?? false) ||
+        c.hiringKeywords?.some((k) => k.toLowerCase().includes(q)),
+    );
+  }, [data, search]);
+
+  const comparators = useMemo(
+    () => ({
+      name: (a: CompanyRow, b: CompanyRow) => a.name.localeCompare(b.name),
+      culture: (a: CompanyRow, b: CompanyRow) => (a.culture ?? '').localeCompare(b.culture ?? ''),
     }),
+    [],
+  );
+
+  const { sorted, sortKey, direction, toggleSort } = useSort(filtered, comparators, 'name');
+  const { page, setPage, totalPages, paginated, from, to, total } = usePagination(sorted, 10);
+
+  const updateMutation = useMutation({
+    mutationFn: (id: string) =>
+      api.updateCompany(id, {
+        culture,
+        hiringKeywords: keywords.split(',').map((k) => k.trim()).filter(Boolean),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-companies'] });
       setEditId(null);
@@ -34,27 +67,55 @@ export default function CompaniesPage() {
     <div className="space-y-4">
       <PageHeader title={t('companies.title')} />
       {isLoading ? (
-        <Skeleton className="h-48 rounded-xl" />
+        <DataTableCard>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('companies.name')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableSkeletonRows rows={5} cols={4} />
+          </Table>
+        </DataTableCard>
+      ) : (data as CompanyRow[]).length === 0 ? (
+        <EmptyState title={t('companies.empty', { defaultValue: t('aiLogs.empty') })} />
       ) : (
-        <Card>
-          <CardContent className="pt-6">
+        <DataTableCard
+          toolbar={<SearchBar value={search} onChange={setSearch} placeholder={t('common.searchPlaceholder')} />}
+          footer={
+            <PaginationControls page={page} totalPages={totalPages} from={from} to={to} total={total} onPageChange={setPage} className="w-full" />
+          }
+        >
+          {paginated.length === 0 ? (
+            <p className="p-8 text-center text-sm text-muted-foreground">{t('common.noResults')}</p>
+          ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('companies.name')}</TableHead>
-                  <TableHead>{t('companies.culture')}</TableHead>
+                  <SortableTableHead label={t('companies.name')} sortKey="name" activeKey={sortKey} direction={direction} onSort={toggleSort} />
+                  <SortableTableHead label={t('companies.culture')} sortKey="culture" activeKey={sortKey} direction={direction} onSort={toggleSort} />
                   <TableHead>{t('companies.hiringKeywords')}</TableHead>
-                  <TableHead />
+                  <TableHead className="text-right">{t('common.edit')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(data as Array<{ id: string; name: string; culture?: string; hiringKeywords: string[] }>).map((c) => (
+                {paginated.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{c.culture || '-'}</TableCell>
-                    <TableCell className="text-muted-foreground">{c.hiringKeywords?.join(', ') || '-'}</TableCell>
-                    <TableCell>
-                      <Button variant="link" size="sm" className="h-auto p-0" onClick={() => { setEditId(c.id); setCulture(c.culture || ''); setKeywords((c.hiringKeywords || []).join(', ')); }}>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{c.culture || '—'}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[240px] truncate">
+                      {c.hiringKeywords?.join(', ') || '—'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditId(c.id);
+                          setCulture(c.culture || '');
+                          setKeywords((c.hiringKeywords || []).join(', '));
+                        }}
+                      >
                         {t('common.edit')}
                       </Button>
                     </TableCell>
@@ -62,14 +123,21 @@ export default function CompaniesPage() {
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+          )}
+        </DataTableCard>
       )}
 
       {editId && (
         <Card className="max-w-lg">
-          <CardHeader><CardTitle>{t('companies.editCompany')}</CardTitle></CardHeader>
-          <form onSubmit={(e) => { e.preventDefault(); updateMutation.mutate(editId); }}>
+          <CardHeader>
+            <CardTitle>{t('companies.editCompany')}</CardTitle>
+          </CardHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              updateMutation.mutate(editId);
+            }}
+          >
             <CardContent className="space-y-3">
               <div className="space-y-2">
                 <Label>{t('companies.orgCulture')}</Label>

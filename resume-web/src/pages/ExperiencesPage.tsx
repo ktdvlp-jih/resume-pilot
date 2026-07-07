@@ -14,8 +14,8 @@ import { PaginationControls } from '@/components/common/pagination-controls';
 import { SortableTableHead } from '@/components/common/sortable-table-head';
 import { TableSkeletonRows } from '@/components/common/table-skeleton';
 import { StatusChip } from '@/components/common/status-chip';
-import { usePagination } from '@/hooks/use-pagination';
-import { useSort } from '@/hooks/use-sort';
+import { useUrlPagination } from '@/hooks/use-url-pagination';
+import { useUrlSort } from '@/hooks/use-url-sort';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -63,8 +63,8 @@ export default function ExperiencesPage() {
     [],
   );
 
-  const { sorted, sortKey, direction, toggleSort } = useSort(filtered, comparators, 'title');
-  const { page, setPage, totalPages, paginated, from, to, total } = usePagination(sorted, 10);
+  const { sorted, sortKey, direction, toggleSort } = useUrlSort(filtered, comparators, 'title');
+  const { page, setPage, totalPages, paginated, from, to, total } = useUrlPagination(sorted, 10);
 
   const createMutation = useMutation({
     mutationFn: api.createExperience,

@@ -81,6 +81,19 @@
     "next": "次へ",
     "all": "すべて"
   },
+  "onboarding": {
+    "title": "はじめに",
+    "progress": "{{done}} / {{total}} ステップ完了",
+    "step1Title": "経験を登録",
+    "step1Desc": "プロジェクト・成果をライブラリに追加します。",
+    "step1Cta": "経験を追加",
+    "step2Title": "求人を分析",
+    "step2Desc": "志望求人票をアップロード・分析します。",
+    "step2Cta": "求人をアップロード",
+    "step3Title": "志望動機を作成",
+    "step3Desc": "ワークスペースでAI生成します。",
+    "step3Cta": "ワークスペースを開く"
+  },
   "experienceType": {
     "PROJECT": "プロジェクト",
     "ACHIEVEMENT": "成果",

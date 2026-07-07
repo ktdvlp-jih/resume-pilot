@@ -81,6 +81,19 @@
     "next": "Next",
     "all": "All"
   },
+  "onboarding": {
+    "title": "Getting started",
+    "progress": "{{done}} of {{total}} steps complete",
+    "step1Title": "Add experiences",
+    "step1Desc": "Store projects and achievements in your library.",
+    "step1Cta": "Add experience",
+    "step2Title": "Analyze postings",
+    "step2Desc": "Upload and analyze target job postings.",
+    "step2Cta": "Upload posting",
+    "step3Title": "Write cover letter",
+    "step3Desc": "Generate your letter in the workspace.",
+    "step3Cta": "Open workspace"
+  },
   "experienceType": {
     "PROJECT": "Project",
     "ACHIEVEMENT": "Achievement",

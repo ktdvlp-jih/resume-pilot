@@ -27,7 +27,12 @@
     "inactive": "無効",
     "activate": "有効化",
     "deactivate": "無効化",
-    "test": "テスト"
+    "test": "テスト",
+    "searchPlaceholder": "検索...",
+    "noResults": "結果がありません。",
+    "paginationSummary": "{{from}}–{{to}} / 全{{total}}件",
+    "previous": "前へ",
+    "next": "次へ"
   },
   "auth": {
     "loginTitle": "Admin Login",

@@ -27,7 +27,12 @@
     "inactive": "비활성",
     "activate": "활성화",
     "deactivate": "비활성화",
-    "test": "테스트"
+    "test": "테스트",
+    "searchPlaceholder": "검색...",
+    "noResults": "검색 결과가 없습니다.",
+    "paginationSummary": "{{from}}–{{to}} / 총 {{total}}건",
+    "previous": "이전",
+    "next": "다음"
   },
   "auth": {
     "loginTitle": "Admin Login",

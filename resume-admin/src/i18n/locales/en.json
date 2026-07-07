@@ -27,7 +27,12 @@
     "inactive": "Inactive",
     "activate": "Activate",
     "deactivate": "Deactivate",
-    "test": "Test"
+    "test": "Test",
+    "searchPlaceholder": "Search...",
+    "noResults": "No results found.",
+    "paginationSummary": "{{from}}–{{to}} of {{total}}",
+    "previous": "Previous",
+    "next": "Next"
   },
   "auth": {
     "loginTitle": "Admin Login",

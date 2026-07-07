@@ -81,6 +81,19 @@
     "next": "下一页",
     "all": "全部"
   },
+  "onboarding": {
+    "title": "入门指南",
+    "progress": "已完成 {{done}} / {{total}} 步",
+    "step1Title": "添加经历",
+    "step1Desc": "将项目与成果存入经历库。",
+    "step1Cta": "添加经历",
+    "step2Title": "分析公告",
+    "step2Desc": "上传并分析目标招聘公告。",
+    "step2Cta": "上传公告",
+    "step3Title": "撰写求职信",
+    "step3Desc": "在工作区中 AI 生成。",
+    "step3Cta": "打开工作区"
+  },
   "experienceType": {
     "PROJECT": "项目",
     "ACHIEVEMENT": "成就",

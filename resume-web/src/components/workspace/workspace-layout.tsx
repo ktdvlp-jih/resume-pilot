@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PanelLeft, PanelRight, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sparkles } from 'lucide-react';
+import { PanelResizeHandle, useResizablePanels } from '@/hooks/use-resizable-panels';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
@@ -15,10 +14,10 @@ type WorkspaceLayoutProps = {
 
 export function WorkspaceLayout({ left, center, right, className }: WorkspaceLayoutProps) {
   const { t } = useTranslation();
+  const { widths, startResize, isResizing } = useResizablePanels();
 
   return (
     <div className={cn('-mx-4 md:-mx-6 lg:-mx-8', className)}>
-      {/* Mobile / tablet: tabbed panels */}
       <div className="xl:hidden">
         <Tabs defaultValue="center" className="flex flex-col">
           <TabsList className="mx-4 mt-1 grid w-auto grid-cols-3 md:mx-6">
@@ -38,11 +37,20 @@ export function WorkspaceLayout({ left, center, right, className }: WorkspaceLay
         </Tabs>
       </div>
 
-      {/* Desktop: 3-pane */}
-      <div className="hidden min-h-[calc(100svh-7rem)] xl:grid xl:grid-cols-[280px_minmax(0,1fr)_320px] xl:border-y">
-        <aside className="overflow-y-auto border-r bg-muted/20 p-4">{left}</aside>
+      <div
+        className={cn(
+          'hidden min-h-[calc(100svh-7rem)] xl:grid xl:border-y',
+          isResizing && 'select-none',
+        )}
+        style={{
+          gridTemplateColumns: `${widths.left}px 4px minmax(0, 1fr) 4px ${widths.right}px`,
+        }}
+      >
+        <aside className="overflow-y-auto bg-muted/20 p-4">{left}</aside>
+        <PanelResizeHandle onMouseDown={() => startResize('left')} />
         <main className="overflow-y-auto p-6">{center}</main>
-        <aside className="overflow-y-auto border-l bg-muted/10 p-4">{right}</aside>
+        <PanelResizeHandle onMouseDown={() => startResize('right')} />
+        <aside className="overflow-y-auto bg-muted/10 p-4">{right}</aside>
       </div>
     </div>
   );
@@ -54,42 +62,5 @@ export function WorkspacePanelTitle({ icon: Icon, children }: { icon?: typeof Sp
       {Icon && <Icon className="size-4" />}
       {children}
     </h2>
-  );
-}
-
-/** Compact triggers for md-only (optional enhancement) */
-export function WorkspaceMobileActions({ left, right }: { left: ReactNode; right: ReactNode }) {
-  const { t } = useTranslation();
-  return (
-    <div className="hidden md:flex xl:hidden gap-2 mb-4 px-4 md:px-6">
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="outline" size="sm">
-            <PanelLeft className="size-4" />
-            {t('workspace.panelSetup')}
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-80">
-          <SheetHeader>
-            <SheetTitle>{t('workspace.panelSetup')}</SheetTitle>
-          </SheetHeader>
-          <div className="mt-4">{left}</div>
-        </SheetContent>
-      </Sheet>
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="outline" size="sm">
-            <PanelRight className="size-4" />
-            {t('workspace.panelResults')}
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="right" className="w-96">
-          <SheetHeader>
-            <SheetTitle>{t('workspace.panelResults')}</SheetTitle>
-          </SheetHeader>
-          <div className="mt-4">{right}</div>
-        </SheetContent>
-      </Sheet>
-    </div>
   );
 }

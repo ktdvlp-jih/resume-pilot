@@ -7,38 +7,49 @@
 
 | Phase | 상태 | 내용 |
 |-------|------|------|
-| **Phase 0** | ✅ 완료 | shadcn/Radix 마이그레이션, 디자인 토큰, Public/App 레이아웃 |
-| **Phase 1** | ✅ 완료 | Logo→Home, Dashboard 분리, Sidebar 그룹, Empty/Toast/Confirm |
-| **Phase 2A** | ✅ 완료 | DataTable + Search + Pagination |
-| **Phase 2B** | ✅ 완료 | Workspace 3-pane |
-| **Phase 3** | ✅ 완료 | Landing hero·preview, split auth, footer links |
-| **Phase 4** | ✅ 완료 | ⌘K, Breadcrumb, column sort, table skeleton, page transitions |
+| **Phase 0–1** | ✅ | shadcn, Layout, Nav, 공통 UI |
+| **Phase 2A–B** | ✅ | DataTable, Workspace 3-pane |
+| **Phase 3–4** | ✅ | Landing/Auth, ⌘K, Breadcrumb, Sort |
+| **Phase 5** | ✅ | Admin DataTable, URL sort/page, Workspace resize, Onboarding |
 
 ---
 
-## Phase 5 — 다음 스프린트 (제안)
+## Phase 5 — 완료 항목
+
+| 항목 | 내용 |
+|------|------|
+| **Admin DataTable** | Users, AI Logs, Companies, Forbidden — Search + Sort + Pagination |
+| **URL sort/page** | web Dashboard, Experiences, JobPostings — `?sort=&dir=&page=` |
+| **Workspace resize** | xl+ 드래그 리사이즈 + localStorage |
+| **Onboarding guide** | Dashboard 3단계 CTA (경험 → 공고 → 워크스페이스) |
+
+---
+
+## Phase 6 — 다음 스프린트 (제안)
 
 | 항목 | 참고 | 우선순위 |
 |------|------|----------|
-| resume-admin DataTable toolbar 통일 | Supabase | P1 |
-| Workspace 패널 리사이즈 | Cursor | P2 |
-| 테이블 컬럼 정렬 URL 쿼리 유지 | Supabase | P2 |
-| 온보딩 empty state 가이드 | Clerk | P2 |
-| 실제 요금제·결제 | — | Out of scope |
-| 소셜 로그인 | Clerk | Out of scope |
+| **E2E / deploy smoke** | Quick Tunnel `:9180` | P1 |
+| **Admin ⌘K + page transition** | web Phase 4 패리티 | P2 |
+| **WritingStyle / Settings UX** | Notion form polish | P2 |
+| **VersionCompare diff UI** | GitHub diff 스타일 | P2 |
+| **Performance** | code-split, lazy routes | P3 |
+| **Analytics / error tracking** | Sentry 등 | P3 |
+
+**Out of scope:** 결제, 소셜 로그인
 
 ---
 
 ## 벤치마크 매핑
 
-| ResumePilot 영역 | Primary benchmark | 상태 |
-|------------------|-------------------|------|
-| App shell | Linear | ✅ |
-| List / CRUD | Supabase | ✅ |
-| Workspace | Cursor | ✅ (리사이즈 제외) |
-| Landing | Vercel | ✅ |
-| Auth | Clerk | ✅ (split layout) |
-| Admin | Supabase | ⏳ Phase 5 |
+| 영역 | 상태 |
+|------|------|
+| App shell | ✅ |
+| List / CRUD (web) | ✅ |
+| List / CRUD (admin) | ✅ |
+| Workspace | ✅ (리사이즈 포함) |
+| Landing / Auth | ✅ |
+| Onboarding | ✅ |
 
 ---
 
@@ -49,14 +60,9 @@ gantt
     title ResumePilot UI Roadmap
     dateFormat YYYY-MM-DD
     section Foundation
-    Phase 0-1           :done, 2026-06-01, 2026-07-06
-    section Core UX
-    Phase 2A DataTable  :done, 2026-07-07, 2026-07-07
-    Phase 2B Workspace  :done, 2026-07-07, 2026-07-07
-    section Growth
-    Phase 3 Landing     :done, 2026-07-07, 2026-07-07
-    section Polish
-    Phase 4 CmdK etc    :done, 2026-07-07, 2026-07-07
+    Phase 0-4           :done, 2026-06-01, 2026-07-07
+    section Scale
+    Phase 5               :done, 2026-07-07, 2026-07-07
     section Next
-    Phase 5 Admin UX    :active, 2026-07-08, 2026-07-15
+    Phase 6 smoke polish  :active, 2026-07-08, 2026-07-20
 ```

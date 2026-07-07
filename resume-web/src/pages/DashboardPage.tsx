@@ -15,8 +15,9 @@ import { DataTableCard } from '@/components/common/data-table-card';
 import { PaginationControls } from '@/components/common/pagination-controls';
 import { SortableTableHead } from '@/components/common/sortable-table-head';
 import { TableSkeletonRows } from '@/components/common/table-skeleton';
-import { usePagination } from '@/hooks/use-pagination';
-import { useSort } from '@/hooks/use-sort';
+import { useUrlPagination } from '@/hooks/use-url-pagination';
+import { useUrlSort } from '@/hooks/use-url-sort';
+import { OnboardingGuide } from '@/components/common/onboarding-guide';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -26,6 +27,8 @@ export default function DashboardPage() {
   const [search, setSearch] = useState('');
   const { data: user } = useQuery({ queryKey: ['me'], queryFn: api.getMe });
   const { data: resumes = [], isLoading } = useQuery({ queryKey: ['resumes'], queryFn: api.listResumes });
+  const { data: experiences = [] } = useQuery({ queryKey: ['experiences'], queryFn: () => api.listExperiences() });
+  const { data: jobPostings = [] } = useQuery({ queryKey: ['job-postings'], queryFn: api.listJobPostings });
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -49,8 +52,8 @@ export default function DashboardPage() {
     [],
   );
 
-  const { sorted, sortKey, direction, toggleSort } = useSort(filtered, comparators, 'updated');
-  const { page, setPage, totalPages, paginated, from, to, total } = usePagination(sorted, 8);
+  const { sorted, sortKey, direction, toggleSort } = useUrlSort(filtered, comparators, 'updated');
+  const { page, setPage, totalPages, paginated, from, to, total } = useUrlPagination(sorted, 8);
 
   const deleteMutation = useMutation({
     mutationFn: api.deleteResume,
@@ -65,6 +68,11 @@ export default function DashboardPage() {
 
   return (
     <PageShell className="space-y-8">
+      <OnboardingGuide
+        experiencesCount={experiences.length}
+        jobPostingsCount={jobPostings.length}
+        resumesCount={resumes.length}
+      />
       <CareerPortfolioOverview name={user?.name} portfolio={portfolio} />
 
       <PageHeader

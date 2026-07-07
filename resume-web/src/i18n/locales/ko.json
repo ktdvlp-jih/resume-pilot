@@ -81,6 +81,19 @@
     "next": "다음",
     "all": "전체"
   },
+  "onboarding": {
+    "title": "시작 가이드",
+    "progress": "{{done}} / {{total}} 단계 완료",
+    "step1Title": "경험 등록",
+    "step1Desc": "프로젝트·성과를 경험 라이브러리에 추가하세요.",
+    "step1Cta": "경험 추가",
+    "step2Title": "공고 분석",
+    "step2Desc": "지원할 채용 공고를 업로드·분석하세요.",
+    "step2Cta": "공고 업로드",
+    "step3Title": "자소서 작성",
+    "step3Desc": "워크스페이스에서 AI 자기소개서를 생성하세요.",
+    "step3Cta": "워크스페이스 열기"
+  },
   "experienceType": {
     "PROJECT": "프로젝트",
     "ACHIEVEMENT": "성과",
