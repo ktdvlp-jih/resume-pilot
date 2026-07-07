@@ -4,13 +4,12 @@ import { useTranslation } from 'react-i18next';
 import {
   BookOpen,
   Briefcase,
-  LayoutDashboard,
   PenLine,
   Search,
   Settings,
   Sparkles,
 } from 'lucide-react';
-import { appHeaderNav, appSidebarGroups } from '@/config/navigation';
+import { appSidebarGroups } from '@/config/navigation';
 import {
   Dialog,
   DialogContent,
@@ -36,16 +35,9 @@ export function CommandMenu() {
   const [query, setQuery] = useState('');
 
   const items: CommandItem[] = useMemo(() => {
-    const nav: CommandItem[] = appHeaderNav.map((item) => ({
-      id: item.to,
-      label: t(item.labelKey),
-      to: item.to,
-      icon: LayoutDashboard,
-      group: t('nav.groupOverview'),
-    }));
+    const nav: CommandItem[] = [];
     appSidebarGroups.forEach((group) => {
       group.items.forEach((item) => {
-        if (nav.some((n) => n.to === item.to)) return;
         nav.push({
           id: item.to,
           label: t(item.labelKey),

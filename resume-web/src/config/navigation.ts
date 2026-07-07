@@ -27,13 +27,19 @@ export const publicHeaderLinks = [
   { href: '/#pricing', labelKey: 'nav.pricing' },
 ] as const;
 
-/** App top header — Logo is separate (always /) */
-export const appHeaderNav: NavItem[] = [
-  { to: '/dashboard', labelKey: 'nav.dashboard' },
-  { to: '/job-postings', labelKey: 'nav.jobPostings' },
-  { to: '/workspace', labelKey: 'nav.workspace' },
-  { to: '/settings', labelKey: 'nav.profile' },
-];
+/** Flat nav list derived from sidebar (command palette, etc.) */
+export function flattenAppNav(): NavItem[] {
+  const seen = new Set<string>();
+  const items: NavItem[] = [];
+  for (const group of appSidebarGroups) {
+    for (const item of group.items) {
+      if (seen.has(item.to)) continue;
+      seen.add(item.to);
+      items.push(item);
+    }
+  }
+  return items;
+}
 
 /** App sidebar groups */
 export const appSidebarGroups: NavGroup[] = [
