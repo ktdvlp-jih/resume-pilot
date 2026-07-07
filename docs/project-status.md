@@ -107,8 +107,8 @@ UI Phase 0–8 완료: [ui-roadmap.md](ui-roadmap.md)
 | R5 | Sentry prod (`VITE_SENTRY_DSN`) | P3 | 3.x | 🔲 |
 | R6 | Named Tunnel 고정 도메인 (Quick Tunnel 대체) | P3 | 3.x | ⏸️ 패스 |
 | R7 | API 통합 테스트 보강 (`/users/me` 등) | P2 | 1.x | ✅ |
-| R8 | 사용자 가이드·온보딩 문서 | P3 | 4.x | 🔲 |
-| R9 | 부하·보안 점검 | P3 | 5.x | 🔲 |
+| R8 | 사용자/관리자 가이드·온보딩 문서 | P3 | 4.x | ✅ |
+| R9 | 부하·보안 점검 | P3 | 5.x | ✅ (1차) |
 
 **범위 외:** 결제, 소셜 로그인
 
@@ -124,9 +124,12 @@ UI Phase 0–8 완료: [ui-roadmap.md](ui-roadmap.md)
 | [SETUP.md](SETUP.md) | 설치·Ubuntu 배포 |
 | [deployment.md](deployment.md) | 배포·CI 상세 |
 | [deploy-test-cases.md](deploy-test-cases.md) | QA 체크리스트 |
+| [user-guide.md](user-guide.md) | 일반 사용자 온보딩/사용 가이드 |
+| [admin-guide.md](admin-guide.md) | 관리자 운영 가이드 |
 | [ui-roadmap.md](ui-roadmap.md) | UI Phase 이력 |
 | [reports/ui-work-2026-07-07.md](reports/ui-work-2026-07-07.md) | UI 작업 보고 |
 | [reports/deploy-ci-incidents-2026-07-07.md](reports/deploy-ci-incidents-2026-07-07.md) | CI 장애 보고 |
+| [reports/security-load-check-2026-07-07.md](reports/security-load-check-2026-07-07.md) | 보안·부하 점검 리포트 |
 
 ---
 
