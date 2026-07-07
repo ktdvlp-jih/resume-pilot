@@ -27,16 +27,13 @@ jobs:
           git checkout -f -B master origin/master
           chmod +x scripts/resume-pilot.sh
           chmod +x scripts/deploy-smoke.sh
+          chmod +x scripts/deploy-smoke-e2e.sh
 
       - name: Deploy (git pull + docker compose)
         run: bash /home/jeon/apps/resume-pilot/scripts/resume-pilot.sh deploy
 
-      - name: HTTP smoke (/, /admin/, swagger)
+      - name: HTTP + API smoke
         run: bash /home/jeon/apps/resume-pilot/scripts/deploy-smoke.sh
 
-      - name: E2E smoke (Playwright, localhost)
-        working-directory: /home/jeon/apps/resume-pilot/e2e
-        run: |
-          npm ci
-          npx playwright install chromium
-          PLAYWRIGHT_BASE_URL=http://127.0.0.1:${APP_PORT:-9180} npx playwright test tests/smoke.spec.ts
+      - name: E2E smoke (Playwright via Docker)
+        run: bash /home/jeon/apps/resume-pilot/scripts/deploy-smoke-e2e.sh

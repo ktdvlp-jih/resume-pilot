@@ -67,7 +67,7 @@ curl -s -o /dev/null -w "admin:%{http_code}\n" "http://localhost:${APP_PORT}/adm
 | # | 검증 | 기대 |
 |---|------|------|
 | 1 | master push → Actions | Deploy Docker 성공 |
-| 2 | Health check | `swagger-ui.html` 200 |
+| 2 | Health + smoke | `deploy-smoke.sh` HTTP/API + Playwright Docker E2E |
 
 ---
 
