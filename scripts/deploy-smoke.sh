@@ -8,7 +8,8 @@ BASE="${SMOKE_BASE_URL:-http://127.0.0.1:${PORT}}"
 http_check() {
   local path="$1"
   local code
-  code="$(curl -s -o /dev/null -w "%{http_code}" "${BASE}${path}")"
+  # -L: springdoc redirects /swagger-ui.html -> /swagger-ui/index.html (302)
+  code="$(curl -sL -o /dev/null -w "%{http_code}" "${BASE}${path}")"
   if [[ "${code}" != "200" ]]; then
     echo "SMOKE FAIL HTTP ${path} -> ${code}"
     exit 1
