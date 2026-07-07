@@ -26,5 +26,5 @@ docker run --rm --network host \
   -w /e2e \
   -e PLAYWRIGHT_BASE_URL="${BASE_URL}" \
   "${IMAGE}" \
-  bash -lc "npm ci && npx playwright test tests/smoke.spec.ts --reporter=list"
-echo "SMOKE OK   E2E Playwright smoke passed."
+  bash -lc "npm ci && npx playwright test tests/smoke.spec.ts tests/user-journey.spec.ts --reporter=list"
+echo "SMOKE OK   E2E Playwright smoke + user journey passed."

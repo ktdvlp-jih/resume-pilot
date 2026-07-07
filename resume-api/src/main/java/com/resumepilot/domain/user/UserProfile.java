@@ -31,7 +31,7 @@ public class UserProfile {
     private String bio;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "career_portfolio", columnDefinition = "jsonb")
+    @Column(name = "career_portfolio")
     @Builder.Default
     private CareerPortfolio careerPortfolio = new CareerPortfolio();
 

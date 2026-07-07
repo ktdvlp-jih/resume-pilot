@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sparkles } from 'lucide-react';
+import { useIsXl } from '@/hooks/use-mobile';
 import { PanelResizeHandle, useResizablePanels } from '@/hooks/use-resizable-panels';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -14,11 +15,16 @@ type WorkspaceLayoutProps = {
 
 export function WorkspaceLayout({ left, center, right, className }: WorkspaceLayoutProps) {
   const { t } = useTranslation();
+  const isXl = useIsXl();
   const { widths, startResize, isResizing } = useResizablePanels();
 
-  return (
-    <div className={cn('-mx-4 md:-mx-6 lg:-mx-8', className)}>
-      <div className="xl:hidden">
+  if (isXl === undefined) {
+    return <div className={cn('-mx-4 md:-mx-6 lg:-mx-8 min-h-[calc(100svh-7rem)]', className)} />;
+  }
+
+  if (!isXl) {
+    return (
+      <div className={cn('-mx-4 md:-mx-6 lg:-mx-8', className)}>
         <Tabs defaultValue="center" className="flex flex-col">
           <TabsList className="mx-4 mt-1 grid w-auto grid-cols-3 md:mx-6">
             <TabsTrigger value="left">{t('workspace.panelSetup')}</TabsTrigger>
@@ -36,10 +42,14 @@ export function WorkspaceLayout({ left, center, right, className }: WorkspaceLay
           </TabsContent>
         </Tabs>
       </div>
+    );
+  }
 
+  return (
+    <div className={cn('-mx-4 md:-mx-6 lg:-mx-8', className)}>
       <div
         className={cn(
-          'hidden min-h-[calc(100svh-7rem)] xl:grid xl:border-y',
+          'min-h-[calc(100svh-7rem)] grid border-y',
           isResizing && 'select-none',
         )}
         style={{

@@ -39,9 +39,9 @@ test.describe('user journey', () => {
     const jobInput = page.getByTestId('workspace-job-input').or(page.locator('textarea').first());
     await jobInput.fill('Backend engineer position. Java, Spring Boot, PostgreSQL.');
 
-    const autosave = page.getByTestId('workspace-autosave');
+    const autosave = page.getByTestId('workspace-page').getByTestId('workspace-autosave');
     if (await autosave.count()) {
-      await expect(autosave).toContainText(/저장|Saved|保存|已保存/i, { timeout: 5_000 });
+      await expect(autosave.first()).toContainText(/저장|Saved|保存|已保存/i, { timeout: 5_000 });
     }
   });
 });

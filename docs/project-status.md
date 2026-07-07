@@ -85,7 +85,7 @@ UI Phase 0–8 완료: [ui-roadmap.md](ui-roadmap.md)
 |------|------|---------|
 | API 통합 | `resume-api` tests | ❌ (로컬 Gradle) |
 | E2E smoke | `e2e/tests/smoke.spec.ts` | ✅ |
-| E2E user journey | `e2e/tests/user-journey.spec.ts` | ❌ (수동) |
+| E2E user journey | `e2e/tests/user-journey.spec.ts` | ✅ (`deploy-smoke-e2e.sh`) |
 | 배포 TC | [deploy-test-cases.md](deploy-test-cases.md) | 일부 자동화 |
 
 ---
@@ -100,13 +100,13 @@ UI Phase 0–8 완료: [ui-roadmap.md](ui-roadmap.md)
 
 | ID | 항목 | 우선순위 | WBS | 상태 |
 |----|------|----------|-----|------|
-| R1 | User journey E2E → CI | P2 | 1.x | 🔲 |
+| R1 | User journey E2E → CI | P2 | 1.x | ✅ |
 | R2 | AI E2E 브라우저 플로우 (TC-AI-05) 검증·자동화 | P2 | 1.x | 🔲 |
 | R3 | Workspace draft clear 버튼 | P3 | 2.x | ✅ |
 | R4 | Admin Prompts 버전 diff 미리보기 | P3 | 2.x | ✅ |
 | R5 | Sentry prod (`VITE_SENTRY_DSN`) | P3 | 3.x | 🔲 |
-| R6 | Named Tunnel 고정 도메인 (Quick Tunnel 대체) | P3 | 3.x | 🔲 |
-| R7 | API 통합 테스트 보강 (`/users/me` 등) | P2 | 1.x | 🔲 |
+| R6 | Named Tunnel 고정 도메인 (Quick Tunnel 대체) | P3 | 3.x | ⏸️ 패스 |
+| R7 | API 통합 테스트 보강 (`/users/me` 등) | P2 | 1.x | ✅ |
 | R8 | 사용자 가이드·온보딩 문서 | P3 | 4.x | 🔲 |
 | R9 | 부하·보안 점검 | P3 | 5.x | 🔲 |
 
