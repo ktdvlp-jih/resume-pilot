@@ -6,7 +6,7 @@ RAG 기반 기업 맞춤 자기소개서 작성 및 첨삭 플랫폼
 
 Spring Boot 3.5 · React 19 · FastAPI × 3 · PostgreSQL 17 + pgvector · Docker (prod 5컨테이너)
 
-상세: [docs/architecture.md §2](docs/architecture.md#2-기술-스택-요약)
+상세: [docs/아키텍처.md §2](docs/아키텍처.md#2-기술-스택-요약)
 
 ## 서비스 구조
 
@@ -34,7 +34,7 @@ Named Tunnel origin: `http://127.0.0.1:APP_PORT` 하나.
 
 ## 빠른 시작
 
-**실행 가이드: [docs/RUNNING.md](docs/RUNNING.md)**
+**실행 가이드: [docs/실행-가이드.md](docs/실행-가이드.md)**
 
 ```powershell
 # 로컬 개발
@@ -70,22 +70,22 @@ cp .env.production.example .env
 
 ## 아키텍처
 
-[docs/architecture.md](docs/architecture.md)
+[docs/아키텍처.md](docs/아키텍처.md)
 
 ## 프로젝트 현황 · WBS
 
-- [docs/project-status.md](docs/project-status.md) — 완료/잔여 현황 (2026-07-07)
-- [docs/planning/wbs-resume-pilot.md](docs/planning/wbs-resume-pilot.md) — 잔여 일정 WBS
+- [docs/프로젝트-현황.md](docs/프로젝트-현황.md) — 완료/잔여 현황 (2026-07-07)
+- [docs/planning/잔여-WBS.md](docs/planning/잔여-WBS.md) — 잔여 일정 WBS
 
 ## Linux 서버 배포
 
-[docs/SETUP.md](docs/SETUP.md#part-3-ubuntu-서버) — `DEPLOY_HOST`는 로컬 `.env`에만 설정.
+[docs/설치-가이드.md](docs/설치-가이드.md#part-3-ubuntu-서버) — `DEPLOY_HOST`는 로컬 `.env`에만 설정.
 
 ```powershell
 .\scripts\deploy-remote.ps1
 ```
 
-[docs/deployment.md](docs/deployment.md) · [docs/server-coexistence.md](docs/server-coexistence.md)
+[docs/리눅스-서버-배포-가이드.md](docs/리눅스-서버-배포-가이드.md) · [docs/서버-공존-가이드.md](docs/서버-공존-가이드.md)
 
 ## 라이선스
 

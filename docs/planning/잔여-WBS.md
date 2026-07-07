@@ -2,7 +2,7 @@
 
 > **문서 버전:** 3.0  
 > **작성일:** 2026-07-07  
-> **정본 현황:** [project-status.md](../project-status.md)  
+> **정본 현황:** [프로젝트-현황.md](../프로젝트-현황.md)  
 > **프로젝트 착수:** 2026-07-05  
 > **WBS 기준일:** 2026-07-08 (MVP·CI 완료 다음날)  
 > **목표 마감:** 2026-09-05 (착수 후 2개월)
@@ -16,7 +16,7 @@
 | **2026-07-08 이후** 남은 작업 | 이미 완료된 백엔드·UI·Docker·CI (§완료 참조만) |
 | Phase 9+ · QA 확장 · 운영 | 결제·소셜 로그인 |
 
-**완료된 것 (WBS 작업 아님):** API 6서비스, Flyway V11, UI Phase 0–8, Docker 5컨테이너, `deploy.yml` HTTP+API+E2E smoke green — [project-status.md §2](../project-status.md#2-완료-산출물-2026-07-07-기준)
+**완료된 것 (WBS 작업 아님):** API 6서비스, Flyway V11, UI Phase 0–8, Docker 5컨테이너, `deploy.yml` HTTP+API+E2E smoke green — [프로젝트-현황.md §2](../프로젝트-현황.md#2-완료-산출물-2026-07-07-기준)
 
 ---
 
@@ -104,7 +104,7 @@ gantt
 |-----|--------|--------|-----|------|------|------|------|
 | 3.1 | Sentry prod DSN 설정 | `.env.production.example` + 문서 | 2 | 08-04 | 08-05 | — | ⏸️ 보류 |
 | 3.2 | AI `ai_usage_logs` 대시보드 점검 | admin `/ai-logs` QA | 2 | 08-06 | 08-07 | — | 🔲 |
-| 3.3 | Cloudflare **Named Tunnel** (Quick 대체) | SETUP.md 절 + systemd | 4 | 08-08 | 08-13 | — | 🔲 |
+| 3.3 | Cloudflare **Named Tunnel** (Quick 대체) | 설치-가이드.md 절 + systemd | 4 | 08-08 | 08-13 | — | 🔲 |
 | 3.4 | deploy 실패 알림 (선택) | Actions notification / webhook | 2 | 08-14 | 08-15 | — | 🔲 |
 | 3.5 | postgres 백업 절차 문서 | SETUP 또는 INFRASTRUCTURE | 2 | 08-18 | 08-19 | — | 🔲 |
 | 3.6 | 운영 런북 1페이지 | incident 대응 요약 | 2 | 08-20 | 08-22 | 3.1 | 🔲 |
@@ -115,11 +115,11 @@ gantt
 
 | WBS | 작업명 | 산출물 | 일 | 시작 | 종료 | 선행 | 상태 |
 |-----|--------|--------|-----|------|------|------|------|
-| 4.1 | **사용자 가이드** (첫 실행→자소서 생성) | `docs/user-guide.md` | 4 | 08-11 | 08-14 | — | ✅ |
-| 4.2 | 관리자 가이드 (프롬프트·금지어) | `docs/admin-guide.md` | 3 | 08-15 | 08-19 | — | ✅ |
+| 4.1 | **사용자 가이드** (첫 실행→자소서 생성) | `docs/사용자-가이드.md` | 4 | 08-11 | 08-14 | — | ✅ |
+| 4.2 | 관리자 가이드 (프롬프트·금지어) | `docs/관리자-가이드.md` | 3 | 08-15 | 08-19 | — | ✅ |
 | 4.3 | OnboardingGuide ↔ 가이드 링크 | web UI | 1 | 08-20 | 08-20 | 4.1 | 🔲 |
 | 4.4 | deploy-test-cases 결과 기록 채우기 | TC 표 PASS/FAIL | 2 | 08-25 | 08-26 | 1.x | 🔲 |
-| 4.5 | project-status.md 분기 갱신 | 현황 문서 | 1 | 08-29 | 08-29 | 4.4 | 🔲 |
+| 4.5 | 프로젝트-현황.md 분기 갱신 | 현황 문서 | 1 | 08-29 | 08-29 | 4.4 | 🔲 |
 
 ---
 
@@ -184,11 +184,11 @@ WBS	작업명	기간(일)	계획시작	계획종료	선행	Phase	상태
 
 ## 관련 문서
 
-- [project-status.md](../project-status.md) — 완료/잔여 정본
-- [ui-roadmap.md](../ui-roadmap.md) — UI Phase 이력
-- [deploy-test-cases.md](../deploy-test-cases.md) — QA TC
-- [deployment.md](../deployment.md) — CI 파이프라인
-- [reports/deploy-ci-incidents-2026-07-07.md](../reports/deploy-ci-incidents-2026-07-07.md)
+- [프로젝트-현황.md](../프로젝트-현황.md) — 완료/잔여 정본
+- [UI-로드맵.md](../UI-로드맵.md) — UI Phase 이력
+- [배포-테스트-케이스.md](../배포-테스트-케이스.md) — QA TC
+- [리눅스-서버-배포-가이드.md](../리눅스-서버-배포-가이드.md) — CI 파이프라인
+- [reports/배포-CI-장애-보고-2026-07-07.md](../reports/배포-CI-장애-보고-2026-07-07.md)
 
 ---
 
