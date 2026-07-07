@@ -6,13 +6,20 @@ import { api } from '@/lib/api';
 import { PageHeader } from '@/components/PageHeader';
 import { SearchBar } from '@/components/common/search-bar';
 import { DataTableCard } from '@/components/common/data-table-card';
+import { PaginationControls } from '@/components/common/pagination-controls';
+import { SortableTableHead } from '@/components/common/sortable-table-head';
+import { TableSkeletonRows } from '@/components/common/table-skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { useUrlPagination } from '@/hooks/use-url-pagination';
+import { useUrlSort } from '@/hooks/use-url-sort';
 import { cn } from '@/lib/utils';
 
 type PromptRow = { id: string; name: string; type: string };
+type VersionRow = { id: string; versionNumber: number; active: boolean };
 
 export default function PromptsPage() {
   const { t } = useTranslation();
@@ -25,7 +32,7 @@ export default function PromptsPage() {
   const [testResult, setTestResult] = useState('');
 
   const { data: prompts = [] } = useQuery({ queryKey: ['admin-prompts'], queryFn: api.listPrompts });
-  const { data: versions = [] } = useQuery({
+  const { data: versions = [], isLoading: versionsLoading } = useQuery({
     queryKey: ['admin-prompt-versions', selectedId],
     queryFn: () => api.listPromptVersions(selectedId),
     enabled: !!selectedId,
@@ -53,12 +60,31 @@ export default function PromptsPage() {
     );
   }, [prompts, search]);
 
+  const versionComparators = useMemo(
+    () => ({
+      version: (a: VersionRow, b: VersionRow) => a.versionNumber - b.versionNumber,
+      status: (a: VersionRow, b: VersionRow) => Number(b.active) - Number(a.active),
+    }),
+    [],
+  );
+
+  const { sorted: sortedVersions, sortKey, direction, toggleSort } = useUrlSort(
+    versions as VersionRow[],
+    versionComparators,
+    'version',
+    'desc',
+  );
+  const { page, setPage, totalPages, paginated, from, to, total } = useUrlPagination(sortedVersions, 10);
+
   const selectPrompt = (id: string) => {
     setParams(
       (prev) => {
         const next = new URLSearchParams(prev);
         if (id) next.set('prompt', id);
         else next.delete('prompt');
+        next.delete('page');
+        next.delete('sort');
+        next.delete('dir');
         return next;
       },
       { replace: true },
@@ -96,11 +122,7 @@ export default function PromptsPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <DataTableCard
           toolbar={
-            <SearchBar
-              value={search}
-              onChange={setSearch}
-              placeholder={t('common.searchPlaceholder')}
-            />
+            <SearchBar value={search} onChange={setSearch} placeholder={t('common.searchPlaceholder')} />
           }
         >
           {filtered.length === 0 ? (
@@ -127,39 +149,91 @@ export default function PromptsPage() {
 
         {selectedId && (
           <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('prompts.versions', { name: selected?.name })}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {(versions as Array<{ id: string; versionNumber: number; active: boolean }>).map((v) => (
-                  <div key={v.id} className="flex items-center justify-between border-b py-2 last:border-0">
-                    <span className="text-sm">
-                      v{v.versionNumber}{' '}
-                      {v.active && (
-                        <Badge variant="secondary" className="ml-1">
-                          {t('common.active')}
-                        </Badge>
-                      )}
-                    </span>
-                    {!v.active && (
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="h-auto p-0"
-                        onClick={() =>
-                          api.activatePromptVersion(selectedId, v.id).then(() =>
-                            queryClient.invalidateQueries({ queryKey: ['admin-prompt-versions', selectedId] }),
-                          )
-                        }
-                      >
-                        {t('common.activate')}
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold tracking-tight">
+                {t('prompts.versions', { name: selected?.name })}
+              </h3>
+              <DataTableCard
+              footer={
+                total > 10 ? (
+                  <PaginationControls
+                    page={page}
+                    totalPages={totalPages}
+                    from={from}
+                    to={to}
+                    total={total}
+                    onPageChange={setPage}
+                    className="w-full"
+                  />
+                ) : undefined
+              }
+            >
+              {versionsLoading ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('prompts.versionColumn')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableSkeletonRows rows={3} cols={3} />
+                </Table>
+              ) : sortedVersions.length === 0 ? (
+                <p className="p-8 text-center text-sm text-muted-foreground">{t('common.noResults')}</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <SortableTableHead
+                        label={t('prompts.versionColumn')}
+                        sortKey="version"
+                        activeKey={sortKey}
+                        direction={direction}
+                        onSort={toggleSort}
+                      />
+                      <SortableTableHead
+                        label={t('prompts.statusColumn')}
+                        sortKey="status"
+                        activeKey={sortKey}
+                        direction={direction}
+                        onSort={toggleSort}
+                      />
+                      <TableHead className="text-right">{t('users.action')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginated.map((v) => (
+                      <TableRow key={v.id}>
+                        <TableCell className="font-medium">v{v.versionNumber}</TableCell>
+                        <TableCell>
+                          {v.active ? (
+                            <Badge variant="secondary">{t('common.active')}</Badge>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">{t('common.inactive')}</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {!v.active && (
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="h-auto p-0"
+                              onClick={() =>
+                                api.activatePromptVersion(selectedId, v.id).then(() =>
+                                  queryClient.invalidateQueries({ queryKey: ['admin-prompt-versions', selectedId] }),
+                                )
+                              }
+                            >
+                              {t('common.activate')}
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </DataTableCard>
+            </div>
 
             <Card>
               <CardHeader>

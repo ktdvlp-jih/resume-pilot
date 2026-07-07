@@ -229,7 +229,8 @@
     "panelResults": "결과",
     "draftSaving": "임시 저장 중…",
     "draftSaved": "임시 저장됨",
-    "draftRestored": "이전에 작성하던 내용을 불러왔습니다."
+    "draftRestored": "이전에 작성하던 내용을 불러왔습니다.",
+    "resultRestored": "이전 AI 생성 결과를 불러왔습니다."
   },
   "settings": {
     "title": "계정 설정",

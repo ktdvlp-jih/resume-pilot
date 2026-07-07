@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Briefcase, Sparkles, Wand2 } from 'lucide-react';
 import { api, type JobPostingResponse } from '@/lib/api';
 import { useWorkspaceDraft } from '@/hooks/use-workspace-draft';
+import { useWorkspaceResult } from '@/hooks/use-workspace-result';
 import { HighlightedContent } from '@/components/HighlightedContent';
 import { AutosaveIndicator } from '@/components/common/autosave-indicator';
 import { PageHeader } from '@/components/common/page-header';
@@ -25,6 +26,7 @@ import {
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
+import type { DraftSaveStatus } from '@/hooks/use-workspace-draft';
 
 const LEVEL_VARIANT: Record<string, 'success' | 'warning' | 'destructive'> = {
   GREEN: 'success',
@@ -32,16 +34,29 @@ const LEVEL_VARIANT: Record<string, 'success' | 'warning' | 'destructive'> = {
   RED: 'destructive',
 };
 
+function mergeSaveStatus(a: DraftSaveStatus, b: DraftSaveStatus): DraftSaveStatus {
+  if (a === 'saving' || b === 'saving') return 'saving';
+  if (a === 'saved' || b === 'saved') return 'saved';
+  return 'idle';
+}
+
 export default function WorkspacePage() {
   const { t } = useTranslation();
-  const { draft, setDraft, saveStatus, wasRestored } = useWorkspaceDraft();
+  const { draft, setDraft, saveStatus: draftSaveStatus, wasRestored } = useWorkspaceDraft();
+  const {
+    result,
+    recommended,
+    interview,
+    keywords,
+    setBundle,
+    saveStatus: resultSaveStatus,
+    wasResultRestored,
+  } = useWorkspaceResult();
   const { selectedPostingId, jobText, rewriteLevel } = draft;
-  const [result, setResult] = useState<Record<string, unknown> | null>(null);
-  const [recommended, setRecommended] = useState<Array<{ id: string; title: string; score: number }>>([]);
-  const [interview, setInterview] = useState<Array<{ category: string; question: string }>>([]);
-  const [keywords, setKeywords] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const saveStatus = mergeSaveStatus(draftSaveStatus, resultSaveStatus);
 
   const { data: postings = [] } = useQuery({ queryKey: ['job-postings'], queryFn: api.listJobPostings });
 
@@ -65,7 +80,7 @@ export default function WorkspacePage() {
   const handleRecommend = async () => {
     const { keywords: kw } = await getJobContext();
     const rec = await api.recommendExperiences(kw);
-    setRecommended(rec.map((r) => ({ id: r.id, title: r.title, score: r.score })));
+    setBundle({ recommended: rec.map((r) => ({ id: r.id, title: r.title, score: r.score })) });
   };
 
   const handleGenerate = async () => {
@@ -74,13 +89,14 @@ export default function WorkspacePage() {
     try {
       const { jobAnalysis, keywords: kw, jobPostingId } = await getJobContext();
       const res = await api.generateAi({ keywords: kw, rewriteLevel, jobAnalysis, jobPostingId });
-      setResult(res);
+      let nextInterview: typeof interview = [];
+      let nextKeywords: Record<string, unknown> | null = null;
       if (res.content) {
         const iq = await api.interviewQuestions(String(res.content));
-        setInterview((iq.questions as typeof interview) || []);
-        const kc = await api.compareKeywords(kw, String(res.content));
-        setKeywords(kc);
+        nextInterview = (iq.questions as typeof interview) || [];
+        nextKeywords = await api.compareKeywords(kw, String(res.content));
       }
+      setBundle({ result: res, interview: nextInterview, keywords: nextKeywords });
     } catch (err) {
       setError(err instanceof Error ? err.message : t('workspace.generateFailed'));
     } finally {
@@ -157,6 +173,9 @@ export default function WorkspacePage() {
 
       {wasRestored && jobText && (
         <p className="text-xs text-muted-foreground">{t('workspace.draftRestored')}</p>
+      )}
+      {wasResultRestored && !!result?.content && (
+        <p className="text-xs text-muted-foreground">{t('workspace.resultRestored')}</p>
       )}
 
       {error && (

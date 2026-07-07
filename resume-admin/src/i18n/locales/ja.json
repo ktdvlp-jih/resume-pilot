@@ -57,7 +57,9 @@
     "systemPrompt": "System prompt",
     "userPrompt": "User prompt",
     "saveAndActivate": "保存して有効化",
-    "testResult": "テスト結果"
+    "testResult": "テスト結果",
+    "versionColumn": "バージョン",
+    "statusColumn": "状態"
   },
   "forbidden": {
     "title": "禁止表現管理",

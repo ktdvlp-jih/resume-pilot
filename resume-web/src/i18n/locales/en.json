@@ -229,7 +229,8 @@
     "panelResults": "Results",
     "draftSaving": "Saving draft…",
     "draftSaved": "Draft saved",
-    "draftRestored": "Restored your previous draft."
+    "draftRestored": "Restored your previous draft.",
+    "resultRestored": "Restored your previous AI generation result."
   },
   "settings": {
     "title": "Account settings",

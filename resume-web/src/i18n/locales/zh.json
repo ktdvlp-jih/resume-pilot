@@ -229,7 +229,8 @@
     "panelResults": "结果",
     "draftSaving": "正在保存草稿…",
     "draftSaved": "草稿已保存",
-    "draftRestored": "已恢复上次草稿内容。"
+    "draftRestored": "已恢复上次草稿内容。",
+    "resultRestored": "已恢复上次 AI 生成结果。"
   },
   "settings": {
     "title": "账户设置",

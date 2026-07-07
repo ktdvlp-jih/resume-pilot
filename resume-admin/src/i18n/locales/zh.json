@@ -57,7 +57,9 @@
     "systemPrompt": "System prompt",
     "userPrompt": "User prompt",
     "saveAndActivate": "保存并启用",
-    "testResult": "测试结果"
+    "testResult": "测试结果",
+    "versionColumn": "版本",
+    "statusColumn": "状态"
   },
   "forbidden": {
     "title": "禁用表达管理",

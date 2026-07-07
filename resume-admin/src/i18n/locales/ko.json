@@ -57,7 +57,9 @@
     "systemPrompt": "System prompt",
     "userPrompt": "User prompt",
     "saveAndActivate": "저장 및 활성화",
-    "testResult": "테스트 결과"
+    "testResult": "테스트 결과",
+    "versionColumn": "버전",
+    "statusColumn": "상태"
   },
   "forbidden": {
     "title": "금지 표현 관리",

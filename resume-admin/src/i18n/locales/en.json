@@ -57,7 +57,9 @@
     "systemPrompt": "System prompt",
     "userPrompt": "User prompt",
     "saveAndActivate": "Save & activate",
-    "testResult": "Test result"
+    "testResult": "Test result",
+    "versionColumn": "Version",
+    "statusColumn": "Status"
   },
   "forbidden": {
     "title": "Forbidden Expressions",
