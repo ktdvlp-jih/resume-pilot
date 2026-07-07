@@ -1,7 +1,7 @@
 # ResumePilot UI 로드맵
 
 > **프로젝트 현황:** [프로젝트-현황.md](프로젝트-현황.md)  
-> **작업 보고:** `docs/reports/UI-작업-보고-2026-07-07.md`  
+> **작업 보고:** `docs/reports/통합-작업-일지-2026-07-07.md`  
 > **잔여 WBS:** [planning/잔여-WBS.md](planning/잔여-WBS.md)
 
 ## 현재 단계 (2026-07)
