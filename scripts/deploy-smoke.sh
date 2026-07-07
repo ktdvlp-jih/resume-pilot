@@ -58,7 +58,7 @@ SIGNUP_JSON="{\"email\":\"${EMAIL}\",\"password\":\"${PASS}\",\"name\":\"Smoke $
 
 api_check "POST /auth/signup" POST /api/v1/auth/signup "${SIGNUP_JSON}"
 
-TOKEN="$(python3 -c "import json; print(json.load(open('/tmp/smoke-body.json'))['data']['accessToken']")"
+TOKEN="$(python3 -c "import json; print(json.load(open('/tmp/smoke-body.json'))['data']['accessToken'])")"
 api_check "POST /auth/login" POST /api/v1/auth/login "{\"email\":\"${EMAIL}\",\"password\":\"${PASS}\"}"
 api_check "GET /users/me (auth)" GET /api/v1/users/me "" "${TOKEN}"
 api_check "GET /experiences" GET /api/v1/experiences "" "${TOKEN}"
