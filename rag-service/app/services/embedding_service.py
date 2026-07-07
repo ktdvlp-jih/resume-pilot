@@ -1,10 +1,13 @@
 import hashlib
+import logging
 from typing import Any
 
 import numpy as np
 from openai import OpenAI
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class EmbeddingService:
@@ -19,11 +22,14 @@ class EmbeddingService:
 
     def embed(self, text: str) -> list[float]:
         if self._client:
-            response = self._client.embeddings.create(
-                model=settings.embedding_model,
-                input=text,
-            )
-            return response.data[0].embedding
+            try:
+                response = self._client.embeddings.create(
+                    model=settings.embedding_model,
+                    input=text,
+                )
+                return response.data[0].embedding
+            except Exception as exc:
+                logger.warning("Embedding API failed (%s), using hash fallback", exc)
         return self._hash_fallback(text)
 
     def _hash_fallback(self, text: str) -> list[float]:

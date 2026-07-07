@@ -101,7 +101,7 @@ UI Phase 0–8 완료: [ui-roadmap.md](ui-roadmap.md)
 | ID | 항목 | 우선순위 | WBS | 상태 |
 |----|------|----------|-----|------|
 | R1 | User journey E2E → CI | P2 | 1.x | ✅ |
-| R2 | AI E2E 브라우저 플로우 (TC-AI-05) 검증·자동화 | P2 | 1.x | 🔲 |
+| R2 | AI E2E 브라우저 플로우 (TC-AI-05) 검증·자동화 | P2 | 1.x | ✅ |
 | R3 | Workspace draft clear 버튼 | P3 | 2.x | ✅ |
 | R4 | Admin Prompts 버전 diff 미리보기 | P3 | 2.x | ✅ |
 | R5 | Sentry prod (`VITE_SENTRY_DSN`) | P3 | 3.x | 🔲 |

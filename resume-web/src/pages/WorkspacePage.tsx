@@ -158,7 +158,7 @@ export default function WorkspacePage() {
           className="min-h-32 resize-none"
         />
       </div>
-      <Button variant="secondary" className="w-full" onClick={handleRecommend}>
+      <Button variant="secondary" className="w-full" data-testid="workspace-recommend-btn" onClick={handleRecommend}>
         {t('workspace.recommend')}
       </Button>
 
@@ -225,7 +225,7 @@ export default function WorkspacePage() {
         </div>
       )}
 
-      <Button className="w-full" size="lg" onClick={handleGenerate} disabled={loading || (!jobText && !selectedPostingId)}>
+      <Button className="w-full" size="lg" data-testid="workspace-generate-btn" onClick={handleGenerate} disabled={loading || (!jobText && !selectedPostingId)}>
         {loading ? t('common.generating') : t('workspace.generate')}
       </Button>
 

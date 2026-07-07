@@ -1,7 +1,10 @@
+import logging
 from typing import Any
 
 from app.clients.service_clients import prompt_client, rag_client
 from app.services.llm_service import llm_service, rule_based
+
+logger = logging.getLogger(__name__)
 
 
 class GenerationService:
@@ -11,17 +14,30 @@ class GenerationService:
         rewrite_level = request.get("rewrite_level", 40)
         job_analysis = request.get("job_analysis")
 
-        rag_context = await rag_client.build_context(user_id, keywords, job_analysis)
+        rag_context: dict[str, Any] = {"context": {"experiences": [], "writing_styles": []}}
+        try:
+            rag_context = await rag_client.build_context(user_id, keywords, job_analysis)
+        except Exception as exc:
+            logger.warning("RAG context build failed: %s", exc)
         experiences = rag_context.get("context", {}).get("experiences", [])
         writing_styles = rag_context.get("context", {}).get("writing_styles", [])
         style_text = writing_styles[0].get("content", "") if writing_styles else ""
-
-        prompt = await prompt_client.render("RESUME_GENERATION", {
-            "experiences": str(experiences),
-            "job_analysis": str(job_analysis),
-            "writing_style": style_text,
-            "rewrite_level": rewrite_level,
-        })
+        try:
+            prompt = await prompt_client.render("RESUME_GENERATION", {
+                "experiences": str(experiences),
+                "job_analysis": str(job_analysis),
+                "writing_style": style_text,
+                "rewrite_level": rewrite_level,
+            })
+        except Exception as exc:
+            logger.warning("Prompt render failed: %s", exc)
+            prompt = {
+                "system_prompt": "You rewrite cover letters using ONLY the user's provided experiences.",
+                "user_prompt": (
+                    f"Experiences:\n{experiences}\n\nJob:\n{job_analysis}\n\n"
+                    f"Style:\n{style_text}\n\nRewrite level: {rewrite_level}%"
+                ),
+            }
 
         result = llm_service.generate_with_context(
             experiences=experiences,

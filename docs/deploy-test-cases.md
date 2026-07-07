@@ -364,6 +364,8 @@ curl -s "$BASE/api/v1/ai/generations" -H "Authorization: Bearer $TOKEN" | jq .
 
 **OPENAI_API_KEY 미설정 시:** TC-AI-03~05 중 LLM 호출 단계 FAIL 예상 — prompt `test`, `generate/resume`부터 확인
 
+**자동화 (CI):** `e2e/tests/ai-flow.spec.ts` — `deploy-smoke-e2e-ai.sh` (master push 4단계). Gemini 등 OpenAI 호환 API 사용 시 RAG 임베딩은 hash fallback으로 동작.
+
 ---
 
 ## TC-10 — Quick Tunnel (선택)

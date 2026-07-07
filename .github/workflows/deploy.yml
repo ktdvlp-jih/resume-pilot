@@ -28,6 +28,7 @@ jobs:
           chmod +x scripts/resume-pilot.sh
           chmod +x scripts/deploy-smoke.sh
           chmod +x scripts/deploy-smoke-e2e.sh
+          chmod +x scripts/deploy-smoke-e2e-ai.sh
 
       - name: Deploy (git pull + docker compose)
         run: bash /home/jeon/apps/resume-pilot/scripts/resume-pilot.sh deploy
@@ -37,3 +38,6 @@ jobs:
 
       - name: E2E smoke (Playwright via Docker)
         run: bash /home/jeon/apps/resume-pilot/scripts/deploy-smoke-e2e.sh
+
+      - name: AI E2E TC-AI-05 (Playwright via Docker)
+        run: bash /home/jeon/apps/resume-pilot/scripts/deploy-smoke-e2e-ai.sh

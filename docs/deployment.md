@@ -70,7 +70,8 @@ docker compose up -d --build
 |---|------|------|------|
 | 1 | Sync + Deploy | `git checkout -f origin/master` → `resume-pilot.sh deploy` | Docker 5컨테이너 Up |
 | 2 | HTTP + API smoke | `scripts/deploy-smoke.sh` | 12 checks (HTTP 5 + API 7) |
-| 3 | E2E smoke | `scripts/deploy-smoke-e2e.sh` | Playwright 4/4 (Docker 이미지) |
+| 3 | E2E smoke | `scripts/deploy-smoke-e2e.sh` | Playwright 4/4 + user journey (Docker) |
+| 4 | AI E2E TC-AI-05 | `scripts/deploy-smoke-e2e-ai.sh` | Playwright `ai-flow.spec.ts` (LLM, `OPENAI_API_KEY` 필요) |
 
 **주의:** self-hosted runner 호스트에 **npm 없음** — E2E는 Playwright Docker 컨테이너에서 실행.
 

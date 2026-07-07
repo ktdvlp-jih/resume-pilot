@@ -165,7 +165,7 @@ export default function JobPostingsPage() {
 
             <div className="space-y-2">
               <Label>{t('jobPostings.titleOptional')}</Label>
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+              <Input data-testid="job-posting-title-input" value={title} onChange={(e) => setTitle(e.target.value)} />
             </div>
 
             {sourceType === 'TEXT' ? (
@@ -175,6 +175,7 @@ export default function JobPostingsPage() {
                 className="rounded-lg border border-dashed p-4"
               >
                 <Textarea
+                  data-testid="job-posting-content-input"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder={t('jobPostings.contentPlaceholder')}
@@ -194,7 +195,7 @@ export default function JobPostingsPage() {
             )}
           </CardContent>
           <CardContent className="pt-0">
-            <Button type="submit" disabled={uploadMutation.isPending}>
+            <Button type="submit" data-testid="job-posting-upload-btn" disabled={uploadMutation.isPending}>
               {uploadMutation.isPending ? t('common.analyzing') : t('jobPostings.uploadAnalyze')}
             </Button>
           </CardContent>

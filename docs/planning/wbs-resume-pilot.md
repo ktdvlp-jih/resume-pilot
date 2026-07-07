@@ -81,8 +81,8 @@ gantt
 | 1.2 | journey 실패 시 아티팩트 (screenshot/trace) | CI 설정 | 1 | 07-11 | 07-11 | 1.1 | 🔲 |
 | 1.3 | `AuthIntegrationTest` `/users/me` 수정 | Gradle test green | 2 | 07-14 | 07-15 | — | ✅ |
 | 1.4 | API smoke signup→login 동시성 회귀 테스트 | deploy-smoke 보강 | 1 | 07-15 | 07-15 | — | 🔲 |
-| 1.5 | TC-AI-05 브라우저 시나리오 문서화 | deploy-test-cases 갱신 | 2 | 07-18 | 07-19 | — | 🔲 |
-| 1.6 | AI E2E 수동→반자동 체크리스트 | `e2e/tests/ai-flow.spec.ts` (선택) | 5 | 07-20 | 07-25 | 1.5 | 🔲 |
+| 1.5 | TC-AI-05 브라우저 시나리오 문서화 | deploy-test-cases 갱신 | 2 | 07-18 | 07-19 | — | ✅ |
+| 1.6 | AI E2E `ai-flow.spec.ts` + CI | `deploy-smoke-e2e-ai.sh` | 5 | 07-20 | 07-25 | 1.5 | ✅ |
 
 ---
 
