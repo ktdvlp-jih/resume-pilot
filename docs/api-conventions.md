@@ -1,4 +1,4 @@
-# API Conventions
+# API 규약
 
 ## Base URL
 

@@ -104,7 +104,7 @@ UI Phase 0–8 완료: [ui-roadmap.md](ui-roadmap.md)
 | R2 | AI E2E 브라우저 플로우 (TC-AI-05) 검증·자동화 | P2 | 1.x | ✅ |
 | R3 | Workspace draft clear 버튼 | P3 | 2.x | ✅ |
 | R4 | Admin Prompts 버전 diff 미리보기 | P3 | 2.x | ✅ |
-| R5 | Sentry prod (`VITE_SENTRY_DSN`) | P3 | 3.x | 🔲 |
+| R5 | Sentry prod (`VITE_SENTRY_DSN`) | P3 | 3.x | ⏸️ 보류 |
 | R6 | Named Tunnel 고정 도메인 (Quick Tunnel 대체) | P3 | 3.x | ⏸️ 패스 |
 | R7 | API 통합 테스트 보강 (`/users/me` 등) | P2 | 1.x | ✅ |
 | R8 | 사용자/관리자 가이드·온보딩 문서 | P3 | 4.x | ✅ |
@@ -130,6 +130,8 @@ UI Phase 0–8 완료: [ui-roadmap.md](ui-roadmap.md)
 | [reports/ui-work-2026-07-07.md](reports/ui-work-2026-07-07.md) | UI 작업 보고 |
 | [reports/deploy-ci-incidents-2026-07-07.md](reports/deploy-ci-incidents-2026-07-07.md) | CI 장애 보고 |
 | [reports/security-load-check-2026-07-07.md](reports/security-load-check-2026-07-07.md) | 보안·부하 점검 리포트 |
+| [reports/ai-e2e-recheck-criteria.md](reports/ai-e2e-recheck-criteria.md) | AI E2E 재실행 기준 |
+| [reports/daily-work-2026-07-07.md](reports/daily-work-2026-07-07.md) | 2026-07-07 일일 작업 보고 |
 
 ---
 

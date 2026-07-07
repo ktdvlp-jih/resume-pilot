@@ -102,7 +102,7 @@ gantt
 
 | WBS | 작업명 | 산출물 | 일 | 시작 | 종료 | 선행 | 상태 |
 |-----|--------|--------|-----|------|------|------|------|
-| 3.1 | Sentry prod DSN 설정 | `.env.production.example` + 문서 | 2 | 08-04 | 08-05 | — | 🔲 |
+| 3.1 | Sentry prod DSN 설정 | `.env.production.example` + 문서 | 2 | 08-04 | 08-05 | — | ⏸️ 보류 |
 | 3.2 | AI `ai_usage_logs` 대시보드 점검 | admin `/ai-logs` QA | 2 | 08-06 | 08-07 | — | 🔲 |
 | 3.3 | Cloudflare **Named Tunnel** (Quick 대체) | SETUP.md 절 + systemd | 4 | 08-08 | 08-13 | — | 🔲 |
 | 3.4 | deploy 실패 알림 (선택) | Actions notification / webhook | 2 | 08-14 | 08-15 | — | 🔲 |

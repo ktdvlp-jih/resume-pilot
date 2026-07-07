@@ -1,4 +1,4 @@
-# Linux Server Deployment
+# 리눅스 서버 배포 가이드
 
 서버 SSH·LAN 주소는 **Git에 넣지 않는다**. 로컬 `.env`의 `DEPLOY_HOST`, `LAN_HOST` 사용.
 
@@ -64,7 +64,7 @@ docker compose up -d --build
 - Runner 경로: `/home/jeon/apps/resume-pilot`
 - 동시 실행: `concurrency: deploy-ubuntu` (진행 중 배포 취소)
 
-### 파이프라인 (3단계)
+### 파이프라인 (4단계)
 
 | # | Step | 명령 | 검증 |
 |---|------|------|------|
@@ -81,6 +81,7 @@ docker compose up -d --build
 |----------|------|
 | `deploy-smoke.sh` | CI·서버 localhost (`SMOKE_BASE_URL` optional) |
 | `deploy-smoke-e2e.sh` | CI Playwright (`PLAYWRIGHT_BASE_URL`, lockfile 버전 → Docker tag) |
+| `deploy-smoke-e2e-ai.sh` | CI AI E2E (`ai-flow.spec.ts`, `OPENAI_API_KEY` 필요) |
 | `deploy-smoke.ps1` | Windows / Quick Tunnel URL 수동 검증 |
 
 수동 배포: `./scripts/resume-pilot.sh deploy` (스모크는 CI에서만 자동).

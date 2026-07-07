@@ -386,7 +386,7 @@ curl -s "$BASE/api/v1/ai/generations" -H "Authorization: Bearer $TOKEN" | jq .
 | TC-AI-02 rag | | | |
 | TC-AI-03 resume-ai | | | |
 | TC-AI-04 api | | | |
-| TC-AI-05 E2E | | | |
+| TC-AI-05 E2E | 2026-07-07 | PASS | `ai-flow.spec.ts` + CI 4단계 |
 | TC-10 | | | |
 
 **FAIL 시:** 서비스명, `docker compose logs <service>`, 요청 body, 응답 JSON, 스크린샷

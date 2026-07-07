@@ -49,5 +49,5 @@
 | User journey E2E in CI | P2 | 1.x | 🔲 |
 | API 통합 테스트 보강 | P2 | 1.x | 🔲 |
 | AI E2E (TC-AI-05) 검증 | P2 | 1.x | ✅ |
-| Sentry prod · Named Tunnel | P3 | 3.x | 🔲 |
+| Sentry prod · Named Tunnel | P3 | 3.x | ⏸️ 보류/패스 |
 | 사용자 가이드·보안 점검 | P3 | 4–5.x | 🔲 |
