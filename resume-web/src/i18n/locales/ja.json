@@ -92,7 +92,8 @@
     "step2Cta": "求人をアップロード",
     "step3Title": "志望動機を作成",
     "step3Desc": "ワークスペースでAI生成します。",
-    "step3Cta": "ワークスペースを開く"
+    "step3Cta": "ワークスペースを開く",
+    "dismiss": "ガイドを閉じる"
   },
   "experienceType": {
     "PROJECT": "プロジェクト",
@@ -197,7 +198,12 @@
     "avgSentenceLength": "平均文長",
     "chars": "文字",
     "frequentWords": "頻出語",
-    "connectors": "接続語"
+    "connectors": "接続語",
+    "loadSection": "保存済み志望動機を読み込む",
+    "loadSectionDesc": "既存の志望動機からテキストを取り込みます。",
+    "inputSection": "分析するテキスト",
+    "inputSectionDesc": "文体分析に使う本文を入力してください。",
+    "resultDesc": "AI生成時に参照する文体特性です。"
   },
   "workspace": {
     "title": "ワークスペース",
@@ -236,7 +242,10 @@
     "changePassword": "パスワード変更",
     "currentPassword": "現在のパスワード",
     "newPassword": "新しいパスワード",
-    "change": "変更"
+    "change": "変更",
+    "portfolioSectionDesc": "経歴情報を入力するとAI生成の品質が向上します。",
+    "profileSectionDesc": "基本プロフィール情報を編集します。",
+    "passwordSectionDesc": "セキュリティのため定期的にパスワードを変更してください。"
   },
   "portfolio": {
     "tab": "経歴ポートフォリオ",
@@ -288,6 +297,10 @@
   },
   "versionCompare": {
     "title": "バージョン比較",
-    "needTwo": "比較には2つ以上のバージョンが必要です。"
+    "needTwo": "比較には2つ以上のバージョンが必要です。",
+    "splitView": "分割",
+    "unifiedView": "統合",
+    "linesChanged": "{{count}}行変更",
+    "versionLabel": "v{{version}}"
   }
 }

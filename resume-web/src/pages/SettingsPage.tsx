@@ -7,8 +7,9 @@ import { CareerPortfolioEditor } from '@/components/career/CareerPortfolioEditor
 import { normalizeCareerPortfolio, portfolioCompletion, type CareerPortfolio } from '@/lib/career-portfolio';
 import { PageHeader } from '@/components/common/page-header';
 import { PageShell } from '@/components/common/page-shell';
+import { Section } from '@/components/common/section';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -71,55 +72,72 @@ export default function SettingsPage() {
         </TabsList>
 
         <TabsContent value="portfolio" className="mt-6 space-y-6">
-          <CareerPortfolioEditor value={portfolio} onChange={setPortfolio} />
+          <Section title={t('portfolio.tab')} description={t('settings.portfolioSectionDesc')}>
+            <CareerPortfolioEditor value={portfolio} onChange={setPortfolio} />
+          </Section>
           <Button size="lg" onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
             {updateMutation.isPending ? t('common.loading') : t('portfolio.saveAll')}
           </Button>
         </TabsContent>
 
         <TabsContent value="account" className="mt-6 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('settings.profile')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
-              <div className="space-y-2">
-                <Label>{t('auth.name')}</Label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('settings.phone')}</Label>
-                <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('settings.bio')}</Label>
-                <Textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={2} />
-              </div>
-              <Button variant="secondary" onClick={() => updateMutation.mutate()}>
-                {t('common.save')}
-              </Button>
-            </CardContent>
-          </Card>
+          <Section title={t('settings.profile')} description={t('settings.profileSectionDesc')}>
+            <Card>
+              <CardContent className="space-y-4 pt-6">
+                <div className="space-y-1">
+                  <Label className="text-muted-foreground">{t('auth.email')}</Label>
+                  <p className="text-sm font-medium">{user?.email}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="name">{t('auth.name')}</Label>
+                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">{t('settings.phone')}</Label>
+                  <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bio">{t('settings.bio')}</Label>
+                  <Textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value)} rows={3} />
+                </div>
+                <Button variant="secondary" onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
+                  {t('common.save')}
+                </Button>
+              </CardContent>
+            </Card>
+          </Section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('settings.changePassword')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>{t('settings.currentPassword')}</Label>
-                <Input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('settings.newPassword')}</Label>
-                <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-              </div>
-              <Button variant="secondary" onClick={() => passwordMutation.mutate()}>
-                {t('settings.change')}
-              </Button>
-            </CardContent>
-          </Card>
+          <Section title={t('settings.changePassword')} description={t('settings.passwordSectionDesc')}>
+            <Card>
+              <CardContent className="space-y-4 pt-6">
+                <div className="space-y-2">
+                  <Label htmlFor="current-password">{t('settings.currentPassword')}</Label>
+                  <Input
+                    id="current-password"
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">{t('settings.newPassword')}</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+                <Button
+                  variant="secondary"
+                  onClick={() => passwordMutation.mutate()}
+                  disabled={!currentPassword || !newPassword || passwordMutation.isPending}
+                >
+                  {t('settings.change')}
+                </Button>
+              </CardContent>
+            </Card>
+          </Section>
         </TabsContent>
       </Tabs>
     </PageShell>

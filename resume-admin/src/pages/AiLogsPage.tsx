@@ -9,8 +9,8 @@ import { PaginationControls } from '@/components/common/pagination-controls';
 import { SortableTableHead } from '@/components/common/sortable-table-head';
 import { TableSkeletonRows } from '@/components/common/table-skeleton';
 import { EmptyState } from '@/components/common/empty-state';
-import { usePagination } from '@/hooks/use-pagination';
-import { useSort } from '@/hooks/use-sort';
+import { useUrlPagination } from '@/hooks/use-url-pagination';
+import { useUrlSort } from '@/hooks/use-url-sort';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -50,8 +50,8 @@ export default function AiLogsPage() {
     [],
   );
 
-  const { sorted, sortKey, direction, toggleSort } = useSort(filtered, comparators, 'time');
-  const { page, setPage, totalPages, paginated, from, to, total } = usePagination(sorted, 15);
+  const { sorted, sortKey, direction, toggleSort } = useUrlSort(filtered, comparators, 'time', 'desc');
+  const { page, setPage, totalPages, paginated, from, to, total } = useUrlPagination(sorted, 15);
 
   return (
     <div className="space-y-4">

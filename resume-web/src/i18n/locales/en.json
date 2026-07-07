@@ -92,7 +92,8 @@
     "step2Cta": "Upload posting",
     "step3Title": "Write cover letter",
     "step3Desc": "Generate your letter in the workspace.",
-    "step3Cta": "Open workspace"
+    "step3Cta": "Open workspace",
+    "dismiss": "Dismiss guide"
   },
   "experienceType": {
     "PROJECT": "Project",
@@ -197,7 +198,12 @@
     "avgSentenceLength": "Avg. sentence length",
     "chars": "chars",
     "frequentWords": "Frequent words",
-    "connectors": "Connectors"
+    "connectors": "Connectors",
+    "loadSection": "Load from saved letter",
+    "loadSectionDesc": "Import text from an existing cover letter.",
+    "inputSection": "Text to analyze",
+    "inputSectionDesc": "Paste the cover letter body for style analysis.",
+    "resultDesc": "Traits used as reference when AI generates content."
   },
   "workspace": {
     "title": "Workspace",
@@ -236,7 +242,10 @@
     "changePassword": "Change password",
     "currentPassword": "Current password",
     "newPassword": "New password",
-    "change": "Change"
+    "change": "Change",
+    "portfolioSectionDesc": "Career details improve AI-generated letters.",
+    "profileSectionDesc": "Update your basic profile information.",
+    "passwordSectionDesc": "Change your password periodically for security."
   },
   "portfolio": {
     "tab": "Career portfolio",
@@ -288,6 +297,10 @@
   },
   "versionCompare": {
     "title": "Version compare",
-    "needTwo": "Need at least two versions to compare."
+    "needTwo": "Need at least two versions to compare.",
+    "splitView": "Split",
+    "unifiedView": "Unified",
+    "linesChanged": "{{count}} lines changed",
+    "versionLabel": "v{{version}}"
   }
 }

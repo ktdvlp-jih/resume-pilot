@@ -2,6 +2,12 @@
   "admin": {
     "title": "ResumePilot Admin"
   },
+  "command": {
+    "title": "命令面板",
+    "description": "快速跳转到管理页面",
+    "placeholder": "搜索页面...",
+    "shortcut": "⌘K"
+  },
   "language": {
     "label": "语言",
     "ko": "한국어",

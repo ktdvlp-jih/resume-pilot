@@ -2,6 +2,12 @@
   "admin": {
     "title": "ResumePilot Admin"
   },
+  "command": {
+    "title": "Command palette",
+    "description": "Jump to admin pages",
+    "placeholder": "Search pages...",
+    "shortcut": "⌘K"
+  },
   "language": {
     "label": "Language",
     "ko": "한국어",

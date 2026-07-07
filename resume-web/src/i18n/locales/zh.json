@@ -92,7 +92,8 @@
     "step2Cta": "上传公告",
     "step3Title": "撰写求职信",
     "step3Desc": "在工作区中 AI 生成。",
-    "step3Cta": "打开工作区"
+    "step3Cta": "打开工作区",
+    "dismiss": "关闭指南"
   },
   "experienceType": {
     "PROJECT": "项目",
@@ -197,7 +198,12 @@
     "avgSentenceLength": "平均句长",
     "chars": "字",
     "frequentWords": "常用词",
-    "connectors": "连接词"
+    "connectors": "连接词",
+    "loadSection": "从已保存求职信加载",
+    "loadSectionDesc": "从现有求职信导入文本。",
+    "inputSection": "待分析文本",
+    "inputSectionDesc": "输入用于文体分析的求职信正文。",
+    "resultDesc": "AI 生成时参考的文体特征。"
   },
   "workspace": {
     "title": "工作区",
@@ -236,7 +242,10 @@
     "changePassword": "更改密码",
     "currentPassword": "当前密码",
     "newPassword": "新密码",
-    "change": "更改"
+    "change": "更改",
+    "portfolioSectionDesc": "填写经历信息可提升 AI 生成质量。",
+    "profileSectionDesc": "修改基本个人资料。",
+    "passwordSectionDesc": "请定期更改密码以保障安全。"
   },
   "portfolio": {
     "tab": "履历作品集",
@@ -288,6 +297,10 @@
   },
   "versionCompare": {
     "title": "版本对比",
-    "needTwo": "需要至少两个版本才能对比。"
+    "needTwo": "需要至少两个版本才能对比。",
+    "splitView": "分栏",
+    "unifiedView": "统一",
+    "linesChanged": "{{count}} 行变更",
+    "versionLabel": "v{{version}}"
   }
 }

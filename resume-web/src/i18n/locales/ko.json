@@ -92,7 +92,8 @@
     "step2Cta": "공고 업로드",
     "step3Title": "자소서 작성",
     "step3Desc": "워크스페이스에서 AI 자기소개서를 생성하세요.",
-    "step3Cta": "워크스페이스 열기"
+    "step3Cta": "워크스페이스 열기",
+    "dismiss": "가이드 닫기"
   },
   "experienceType": {
     "PROJECT": "프로젝트",
@@ -197,7 +198,12 @@
     "avgSentenceLength": "평균 문장 길이",
     "chars": "자",
     "frequentWords": "자주 사용하는 단어",
-    "connectors": "연결어"
+    "connectors": "연결어",
+    "loadSection": "기존 자소서 불러오기",
+    "loadSectionDesc": "저장된 자기소개서에서 텍스트를 가져옵니다.",
+    "inputSection": "분석할 텍스트",
+    "inputSectionDesc": "문체 분석에 사용할 자기소개서 본문을 입력하세요.",
+    "resultDesc": "AI 생성 시 참고하는 문체 특성입니다."
   },
   "workspace": {
     "title": "워크스페이스",
@@ -236,7 +242,10 @@
     "changePassword": "비밀번호 변경",
     "currentPassword": "현재 비밀번호",
     "newPassword": "새 비밀번호",
-    "change": "변경"
+    "change": "변경",
+    "portfolioSectionDesc": "경력·학력·스킬 정보를 입력하면 AI 작성 품질이 향상됩니다.",
+    "profileSectionDesc": "기본 프로필 정보를 수정합니다.",
+    "passwordSectionDesc": "보안을 위해 주기적으로 비밀번호를 변경하세요."
   },
   "portfolio": {
     "tab": "경력기술서",
@@ -288,6 +297,10 @@
   },
   "versionCompare": {
     "title": "버전 비교",
-    "needTwo": "비교할 버전이 2개 이상 필요합니다."
+    "needTwo": "비교할 버전이 2개 이상 필요합니다.",
+    "splitView": "분할",
+    "unifiedView": "통합",
+    "linesChanged": "{{count}}줄 변경",
+    "versionLabel": "v{{version}}"
   }
 }

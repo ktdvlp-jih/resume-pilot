@@ -2,6 +2,12 @@
   "admin": {
     "title": "ResumePilot Admin"
   },
+  "command": {
+    "title": "명령 팔레트",
+    "description": "관리 페이지로 빠르게 이동",
+    "placeholder": "페이지 검색...",
+    "shortcut": "⌘K"
+  },
   "language": {
     "label": "언어",
     "ko": "한국어",

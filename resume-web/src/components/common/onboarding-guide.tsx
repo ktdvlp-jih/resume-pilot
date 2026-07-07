@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, Briefcase, Check, Sparkles } from 'lucide-react';
+import { BookOpen, Briefcase, Check, Sparkles, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+
+const DISMISS_KEY = 'resume-pilot-onboarding-dismissed';
 
 type OnboardingGuideProps = {
   experiencesCount: number;
@@ -11,8 +14,17 @@ type OnboardingGuideProps = {
   resumesCount: number;
 };
 
+function isDismissed() {
+  try {
+    return localStorage.getItem(DISMISS_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 export function OnboardingGuide({ experiencesCount, jobPostingsCount, resumesCount }: OnboardingGuideProps) {
   const { t } = useTranslation();
+  const [dismissed, setDismissed] = useState(isDismissed);
 
   const steps = [
     {
@@ -44,12 +56,31 @@ export function OnboardingGuide({ experiencesCount, jobPostingsCount, resumesCou
     },
   ];
 
-  if (steps.every((s) => s.done)) return null;
+  if (steps.every((s) => s.done) || dismissed) return null;
 
   const completed = steps.filter((s) => s.done).length;
 
+  const dismiss = () => {
+    try {
+      localStorage.setItem(DISMISS_KEY, '1');
+    } catch {
+      /* ignore */
+    }
+    setDismissed(true);
+  };
+
   return (
-    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+    <Card className="relative border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        className="absolute right-3 top-3 text-muted-foreground"
+        onClick={dismiss}
+        aria-label={t('onboarding.dismiss')}
+      >
+        <X className="size-4" />
+      </Button>
       <CardHeader>
         <CardTitle className="text-lg">{t('onboarding.title')}</CardTitle>
         <p className="text-sm text-muted-foreground">

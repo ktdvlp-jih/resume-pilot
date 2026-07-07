@@ -4,9 +4,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { PageHeader } from '@/components/common/page-header';
 import { PageShell } from '@/components/common/page-shell';
+import { Section } from '@/components/common/section';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -30,73 +31,101 @@ export default function WritingStylePage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['writingStyle'] }),
   });
 
+  const resumesWithContent = resumes.filter((r) => r.latestContent);
+
   return (
     <PageShell size="md">
       <PageHeader title={t('writingStyle.title')} description={t('writingStyle.description')} />
 
-      {resumes.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {resumes.filter((r) => r.latestContent).map((r) => (
-            <Button key={r.id} variant="outline" size="sm" onClick={() => setContent(r.latestContent!)}>
-              {r.title} {t('writingStyle.loadFrom')}
-            </Button>
-          ))}
-        </div>
+      {resumesWithContent.length > 0 && (
+        <Section title={t('writingStyle.loadSection')} description={t('writingStyle.loadSectionDesc')}>
+          <div className="flex flex-wrap gap-2">
+            {resumesWithContent.map((r) => (
+              <Button key={r.id} variant="outline" size="sm" onClick={() => setContent(r.latestContent!)}>
+                {r.title} {t('writingStyle.loadFrom')}
+              </Button>
+            ))}
+          </div>
+        </Section>
       )}
 
-      <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder={t('writingStyle.placeholder')} className="min-h-48" />
+      <Section title={t('writingStyle.inputSection')} description={t('writingStyle.inputSectionDesc')}>
+        <Textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder={t('writingStyle.placeholder')}
+          className="min-h-48 resize-y"
+        />
+        <Button onClick={() => analyzeMutation.mutate(content)} disabled={!content || analyzeMutation.isPending}>
+          {analyzeMutation.isPending ? t('common.analyzing') : t('writingStyle.analyze')}
+        </Button>
+      </Section>
 
-      <Button onClick={() => analyzeMutation.mutate(content)} disabled={!content || analyzeMutation.isPending}>
-        {analyzeMutation.isPending ? t('common.analyzing') : t('writingStyle.analyze')}
-      </Button>
-
-      {isLoading ? (
-        <Skeleton className="h-48 rounded-xl" />
-      ) : style ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('writingStyle.result')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <Info label={t('writingStyle.sentenceStyle')} value={style.sentenceStyle} />
-              <Info label={t('writingStyle.tone')} value={style.tone} />
-              <Info label={t('writingStyle.formalSpeech')} value={style.usesFormalSpeech ? t('writingStyle.formalYes') : t('writingStyle.formalMixed')} />
-              <Info label={t('writingStyle.avgSentenceLength')} value={style.avgSentenceLength ? `${style.avgSentenceLength}${t('writingStyle.chars')}` : '-'} />
-            </div>
-            {style.expressionStyle && <p className="text-sm text-muted-foreground">{style.expressionStyle}</p>}
-            {style.frequentWords.length > 0 && (
-              <div>
-                <p className="mb-1 text-sm text-muted-foreground">{t('writingStyle.frequentWords')}</p>
-                <div className="flex flex-wrap gap-1">
-                  {style.frequentWords.map((w) => (
-                    <Badge key={w} variant="secondary">{w}</Badge>
-                  ))}
+      {(isLoading || style) && (
+        <Section title={t('writingStyle.result')} description={t('writingStyle.resultDesc')}>
+          {isLoading ? (
+            <Skeleton className="h-48 rounded-xl" />
+          ) : style ? (
+            <Card>
+              <CardContent className="space-y-6 pt-6">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Info label={t('writingStyle.sentenceStyle')} value={style.sentenceStyle} />
+                  <Info label={t('writingStyle.tone')} value={style.tone} />
+                  <Info
+                    label={t('writingStyle.formalSpeech')}
+                    value={style.usesFormalSpeech ? t('writingStyle.formalYes') : t('writingStyle.formalMixed')}
+                  />
+                  <Info
+                    label={t('writingStyle.avgSentenceLength')}
+                    value={style.avgSentenceLength ? `${style.avgSentenceLength}${t('writingStyle.chars')}` : '-'}
+                  />
                 </div>
-              </div>
-            )}
-            {style.connectors.length > 0 && (
-              <div>
-                <p className="mb-1 text-sm text-muted-foreground">{t('writingStyle.connectors')}</p>
-                <div className="flex flex-wrap gap-1">
-                  {style.connectors.map((c) => (
-                    <Badge key={c} variant="outline">{c}</Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      ) : null}
+                {style.expressionStyle && (
+                  <p className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">{style.expressionStyle}</p>
+                )}
+                {style.frequentWords.length > 0 && (
+                  <TagGroup label={t('writingStyle.frequentWords')} items={style.frequentWords} variant="secondary" />
+                )}
+                {style.connectors.length > 0 && (
+                  <TagGroup label={t('writingStyle.connectors')} items={style.connectors} variant="outline" />
+                )}
+              </CardContent>
+            </Card>
+          ) : null}
+        </Section>
+      )}
     </PageShell>
   );
 }
 
 function Info({ label, value }: { label: string; value?: string | null }) {
   return (
+    <div className="rounded-lg border bg-muted/20 p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-1 font-medium">{value || '-'}</p>
+    </div>
+  );
+}
+
+function TagGroup({
+  label,
+  items,
+  variant,
+}: {
+  label: string;
+  items: string[];
+  variant: 'secondary' | 'outline';
+}) {
+  return (
     <div>
-      <p className="text-muted-foreground">{label}</p>
-      <p className="font-medium">{value || '-'}</p>
+      <p className="mb-2 text-sm font-medium text-muted-foreground">{label}</p>
+      <div className="flex flex-wrap gap-1.5">
+        {items.map((w) => (
+          <Badge key={w} variant={variant}>
+            {w}
+          </Badge>
+        ))}
+      </div>
     </div>
   );
 }
