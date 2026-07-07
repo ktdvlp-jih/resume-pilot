@@ -226,7 +226,10 @@
     "interview": "예상 면접 질문",
     "panelSetup": "설정",
     "panelEditor": "작성",
-    "panelResults": "결과"
+    "panelResults": "결과",
+    "draftSaving": "임시 저장 중…",
+    "draftSaved": "임시 저장됨",
+    "draftRestored": "이전에 작성하던 내용을 불러왔습니다."
   },
   "settings": {
     "title": "계정 설정",

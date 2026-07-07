@@ -21,7 +21,9 @@
     "companies": "기업 데이터",
     "users": "사용자",
     "aiLogs": "AI 로그",
-    "logout": "로그아웃"
+    "logout": "로그아웃",
+    "lightMode": "라이트 모드",
+    "darkMode": "다크 모드"
   },
   "common": {
     "loading": "로딩...",

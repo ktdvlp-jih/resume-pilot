@@ -226,7 +226,10 @@
     "interview": "想定面接質問",
     "panelSetup": "設定",
     "panelEditor": "作成",
-    "panelResults": "結果"
+    "panelResults": "結果",
+    "draftSaving": "下書き保存中…",
+    "draftSaved": "下書き保存済み",
+    "draftRestored": "前回の下書きを読み込みました。"
   },
   "settings": {
     "title": "アカウント設定",

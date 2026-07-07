@@ -226,7 +226,10 @@
     "interview": "Interview questions",
     "panelSetup": "Setup",
     "panelEditor": "Editor",
-    "panelResults": "Results"
+    "panelResults": "Results",
+    "draftSaving": "Saving draft…",
+    "draftSaved": "Draft saved",
+    "draftRestored": "Restored your previous draft."
   },
   "settings": {
     "title": "Account settings",

@@ -2,6 +2,7 @@ import path from 'node:path'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { VitePWA } from 'vite-plugin-pwa'
 
 /** SPA-in-JAR(same-origin) — crossorigin 태그는 Quick Tunnel 등에서 CORS 403 유발 */
 function stripCrossorigin(): Plugin {
@@ -14,7 +15,31 @@ function stripCrossorigin(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), stripCrossorigin()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    stripCrossorigin(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg'],
+      manifest: {
+        name: 'ResumePilot',
+        short_name: 'ResumePilot',
+        description: 'RAG 기반 기업 맞춤 자기소개서 작성·첨삭',
+        theme_color: '#7c3aed',
+        background_color: '#0a0a0a',
+        display: 'standalone',
+        start_url: '/',
+        icons: [
+          { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
+        ],
+      },
+      workbox: {
+        navigateFallback: '/index.html',
+        globPatterns: ['**/*.{js,css,html,ico,svg,woff2}'],
+      },
+    }),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

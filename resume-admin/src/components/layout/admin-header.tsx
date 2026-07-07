@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next';
-import { ExternalLink, Search } from 'lucide-react';
+import { ExternalLink, Moon, Search, Sun } from 'lucide-react';
+import { useTheme } from '@/lib/theme';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 
 export function AdminHeader() {
   const { t } = useTranslation();
+  const { theme, toggle } = useTheme();
 
   return (
     <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 border-b bg-background/80 px-4 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
@@ -21,6 +23,9 @@ export function AdminHeader() {
         >
           <Search className="size-3.5" />
           <span className="text-xs">{t('command.shortcut')}</span>
+        </Button>
+        <Button variant="ghost" size="icon" onClick={toggle} aria-label={theme === 'dark' ? t('nav.lightMode') : t('nav.darkMode')}>
+          {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
         </Button>
         <Button variant="ghost" size="sm" asChild>
           <a href="/" target="_blank" rel="noopener noreferrer" className="gap-2">

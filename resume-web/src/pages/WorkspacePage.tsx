@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Briefcase, Sparkles, Wand2 } from 'lucide-react';
 import { api, type JobPostingResponse } from '@/lib/api';
+import { useWorkspaceDraft } from '@/hooks/use-workspace-draft';
 import { HighlightedContent } from '@/components/HighlightedContent';
+import { AutosaveIndicator } from '@/components/common/autosave-indicator';
 import { PageHeader } from '@/components/common/page-header';
 import { WorkspaceLayout, WorkspacePanelTitle } from '@/components/workspace/workspace-layout';
 import { StatusChip } from '@/components/common/status-chip';
@@ -32,9 +34,8 @@ const LEVEL_VARIANT: Record<string, 'success' | 'warning' | 'destructive'> = {
 
 export default function WorkspacePage() {
   const { t } = useTranslation();
-  const [selectedPostingId, setSelectedPostingId] = useState('');
-  const [jobText, setJobText] = useState('');
-  const [rewriteLevel, setRewriteLevel] = useState(40);
+  const { draft, setDraft, saveStatus, wasRestored } = useWorkspaceDraft();
+  const { selectedPostingId, jobText, rewriteLevel } = draft;
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
   const [recommended, setRecommended] = useState<Array<{ id: string; title: string; score: number }>>([]);
   const [interview, setInterview] = useState<Array<{ category: string; question: string }>>([]);
@@ -97,7 +98,10 @@ export default function WorkspacePage() {
       {postings.length > 0 && (
         <div className="space-y-2">
           <Label>{t('jobPostings.saved')}</Label>
-          <Select value={selectedPostingId || '__none__'} onValueChange={(v) => setSelectedPostingId(v === '__none__' ? '' : v)}>
+          <Select
+            value={selectedPostingId || '__none__'}
+            onValueChange={(v) => setDraft({ selectedPostingId: v === '__none__' ? '' : v })}
+          >
             <SelectTrigger>
               <SelectValue placeholder={t('workspace.newOrManual')} />
             </SelectTrigger>
@@ -115,8 +119,9 @@ export default function WorkspacePage() {
       <div className="space-y-2">
         <Label>{t('workspace.jobPlaceholder')}</Label>
         <Textarea
+          data-testid="workspace-job-input"
           value={jobText}
-          onChange={(e) => setJobText(e.target.value)}
+          onChange={(e) => setDraft({ jobText: e.target.value })}
           placeholder={t('workspace.jobPlaceholder')}
           className="min-h-32 resize-none"
         />
@@ -127,7 +132,13 @@ export default function WorkspacePage() {
 
       <div className="space-y-3 border-t pt-6">
         <WorkspacePanelTitle icon={Wand2}>{t('workspace.step2', { level: rewriteLevel })}</WorkspacePanelTitle>
-        <Slider value={[rewriteLevel]} onValueChange={([v]) => setRewriteLevel(v)} min={0} max={100} step={20} />
+        <Slider
+          value={[rewriteLevel]}
+          onValueChange={([v]) => setDraft({ rewriteLevel: v })}
+          min={0}
+          max={100}
+          step={20}
+        />
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>0%</span>
           <span>{rewriteLevel}%</span>
@@ -139,7 +150,14 @@ export default function WorkspacePage() {
 
   const editorPanel = (
     <div className="flex h-full flex-col gap-4">
-      <PageHeader title={t('workspace.title')} className="mb-0" />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <PageHeader title={t('workspace.title')} className="mb-0" />
+        <AutosaveIndicator status={saveStatus} />
+      </div>
+
+      {wasRestored && jobText && (
+        <p className="text-xs text-muted-foreground">{t('workspace.draftRestored')}</p>
+      )}
 
       {error && (
         <Alert variant="destructive">
@@ -259,7 +277,7 @@ export default function WorkspacePage() {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="workspace-page">
       <div className="px-0 xl:hidden">
         <PageHeader title={t('workspace.title')} />
       </div>

@@ -21,7 +21,9 @@
     "companies": "企業データ",
     "users": "ユーザー",
     "aiLogs": "AIログ",
-    "logout": "ログアウト"
+    "logout": "ログアウト",
+    "lightMode": "ライトモード",
+    "darkMode": "ダークモード"
   },
   "common": {
     "loading": "読み込み中...",

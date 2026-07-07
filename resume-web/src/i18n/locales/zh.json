@@ -226,7 +226,10 @@
     "interview": "预期面试问题",
     "panelSetup": "设置",
     "panelEditor": "编辑",
-    "panelResults": "结果"
+    "panelResults": "结果",
+    "draftSaving": "正在保存草稿…",
+    "draftSaved": "草稿已保存",
+    "draftRestored": "已恢复上次草稿内容。"
   },
   "settings": {
     "title": "账户设置",

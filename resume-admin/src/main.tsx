@@ -5,8 +5,6 @@ import './index.css';
 import { initErrorTracking } from '@/lib/error-tracking';
 import App from './App.tsx';
 
-document.documentElement.classList.add('dark');
-
 initErrorTracking('admin');
 
 createRoot(document.getElementById('root')!).render(

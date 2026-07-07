@@ -21,7 +21,9 @@
     "companies": "企业数据",
     "users": "用户",
     "aiLogs": "AI 日志",
-    "logout": "退出登录"
+    "logout": "退出登录",
+    "lightMode": "浅色模式",
+    "darkMode": "深色模式"
   },
   "common": {
     "loading": "加载中...",

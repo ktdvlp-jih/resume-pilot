@@ -21,7 +21,9 @@
     "companies": "Companies",
     "users": "Users",
     "aiLogs": "AI Logs",
-    "logout": "Log out"
+    "logout": "Log out",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode"
   },
   "common": {
     "loading": "Loading...",

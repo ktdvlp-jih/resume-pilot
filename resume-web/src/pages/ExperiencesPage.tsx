@@ -91,7 +91,7 @@ export default function ExperiencesPage() {
       <PageHeader
         title={t('experiences.title')}
         action={
-          <Button variant={showForm ? 'outline' : 'default'} onClick={() => setShowForm(!showForm)}>
+          <Button variant={showForm ? 'outline' : 'default'} data-testid="experience-add-btn" onClick={() => setShowForm(!showForm)}>
             {showForm ? t('common.cancel') : t('experiences.add')}
           </Button>
         }
@@ -126,11 +126,11 @@ export default function ExperiencesPage() {
               </div>
               <div className="space-y-2">
                 <Label>{t('experiences.titlePlaceholder')}</Label>
-                <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+                <Input data-testid="experience-title-input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
               </div>
               <div className="space-y-2">
                 <Label>{t('experiences.descriptionPlaceholder')}</Label>
-                <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
+                <Textarea data-testid="experience-description-input" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
               </div>
               <div className="space-y-2">
                 <Label>{t('experiences.rolePlaceholder')}</Label>
