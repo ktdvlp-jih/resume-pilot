@@ -28,11 +28,11 @@ public class JwtTokenProvider {
     }
 
     public String createAccessToken(UUID userId, String email, String role) {
-        return buildToken(userId, email, role, accessExpirationMs);
+        return buildToken(userId, email, role, accessExpirationMs, true);
     }
 
     public String createRefreshToken(UUID userId, String email, String role) {
-        return buildToken(userId, email, role, refreshExpirationMs);
+        return buildToken(userId, email, role, refreshExpirationMs, true);
     }
 
     public long getRefreshExpirationMs() {
@@ -60,17 +60,19 @@ public class JwtTokenProvider {
         }
     }
 
-    private String buildToken(UUID userId, String email, String role, long expirationMs) {
+    private String buildToken(UUID userId, String email, String role, long expirationMs, boolean unique) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationMs);
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(userId.toString())
                 .claim("email", email)
                 .claim("role", role)
                 .issuedAt(now)
-                .expiration(expiry)
-                .signWith(key)
-                .compact();
+                .expiration(expiry);
+        if (unique) {
+            builder.id(UUID.randomUUID().toString());
+        }
+        return builder.signWith(key).compact();
     }
 
     private Claims parseClaims(String token) {

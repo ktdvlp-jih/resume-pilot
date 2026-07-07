@@ -6,8 +6,6 @@ import com.resumepilot.global.exception.ErrorCode;
 import com.resumepilot.infrastructure.security.JwtTokenProvider;
 import com.resumepilot.presentation.dto.auth.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +25,6 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
-    private final AuthenticationManager authenticationManager;
 
     @Transactional
     public TokenResponse signup(SignupRequest request) {
@@ -51,10 +48,14 @@ public class AuthService {
 
     @Transactional
     public TokenResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.email(), request.password()));
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_CREDENTIALS));
+        if (!user.isEnabled()) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "Account is disabled");
+        }
+        if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
+        }
         return issueTokens(user);
     }
 
