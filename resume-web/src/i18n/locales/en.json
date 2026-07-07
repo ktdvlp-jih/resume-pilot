@@ -4,6 +4,32 @@
     "tagline": "Tailored cover letter platform",
     "footer": "© {{name}}. All rights reserved."
   },
+  "landing": {
+    "badge": "RAG · AI cover letters",
+    "heroSubtitle": "Build company-tailored cover letters with your experience library and job analysis.",
+    "featuresSubtitle": "From prep to writing and review — in one place",
+    "pricingSubtitle": "Start free today",
+    "feature1Title": "Experience library",
+    "feature1Desc": "Structure projects and achievements for AI-powered retrieval.",
+    "feature2Title": "Job posting analysis",
+    "feature2Desc": "Extract skills and keywords from postings for tailored writing.",
+    "feature3Title": "AI workspace",
+    "feature3Desc": "RAG, generation, review, and interview prep in a 3-pane layout.",
+    "tierFree": "Free",
+    "tierPro": "Pro",
+    "comingSoon": "Coming soon",
+    "authPitch": "Faster, sharper cover letters tailored to each company.",
+    "authBullet1": "Experience-based RAG recommendations",
+    "authBullet2": "Job keyword matching",
+    "authBullet3": "AI trace detection & review",
+    "backHome": "Back to home"
+  },
+  "command": {
+    "title": "Command menu",
+    "description": "Navigate quickly",
+    "placeholder": "Search pages...",
+    "shortcut": "⌘K"
+  },
   "language": {
     "label": "Language",
     "ko": "한국어",
@@ -46,7 +72,14 @@
     "confirmDeleteDesc": "This action cannot be undone.",
     "deleted": "Deleted successfully.",
     "saved": "Saved successfully.",
-    "error": "Something went wrong."
+    "error": "Something went wrong.",
+    "search": "Search",
+    "searchPlaceholder": "Search...",
+    "noResults": "No results found.",
+    "paginationSummary": "{{from}}–{{to}} of {{total}}",
+    "previous": "Previous",
+    "next": "Next",
+    "all": "All"
   },
   "experienceType": {
     "PROJECT": "Project",
@@ -81,16 +114,31 @@
     "empty": "No cover letters yet.",
     "startWorkspace": "Start in workspace",
     "noContent": "No content",
-    "versions": "Versions"
+    "versions": "Versions",
+    "columns": {
+      "title": "Title",
+      "company": "Company",
+      "updated": "Updated",
+      "actions": "Actions"
+    }
   },
   "experiences": {
     "title": "Experience Library",
     "add": "+ Add experience",
+    "empty": "No experiences yet.",
+    "typeLabel": "Type",
     "titlePlaceholder": "Title",
     "descriptionPlaceholder": "Description",
     "rolePlaceholder": "Role",
     "resultPlaceholder": "Outcome",
-    "resultLabel": "Outcome"
+    "resultLabel": "Outcome",
+    "columns": {
+      "type": "Type",
+      "title": "Title",
+      "role": "Role",
+      "result": "Outcome",
+      "actions": "Actions"
+    }
   },
   "jobPostings": {
     "title": "Job Postings",
@@ -112,7 +160,14 @@
     "techKeywords": "Tech keywords",
     "talentProfile": "Ideal candidate",
     "coreCompetencies": "Core competencies",
-    "orgCulture": "Culture"
+    "orgCulture": "Culture",
+    "columns": {
+      "title": "Title",
+      "company": "Company",
+      "source": "Source",
+      "date": "Created",
+      "actions": "Actions"
+    }
   },
   "writingStyle": {
     "title": "Writing Style",
@@ -149,7 +204,10 @@
     "review": "Review",
     "strengths": "Strengths",
     "weaknesses": "Weaknesses",
-    "interview": "Interview questions"
+    "interview": "Interview questions",
+    "panelSetup": "Setup",
+    "panelEditor": "Editor",
+    "panelResults": "Results"
   },
   "settings": {
     "title": "Account settings",

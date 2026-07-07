@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -7,14 +7,22 @@ import { PageHeader } from '@/components/common/page-header';
 import { PageShell } from '@/components/common/page-shell';
 import { Section } from '@/components/common/section';
 import { EmptyState } from '@/components/common/empty-state';
-import { LoadingSpinner } from '@/components/common/loading-state';
 import { ConfirmDialog } from '@/components/common/confirm-dialog';
+import { SearchBar } from '@/components/common/search-bar';
+import { DataTableCard } from '@/components/common/data-table-card';
+import { PaginationControls } from '@/components/common/pagination-controls';
+import { SortableTableHead } from '@/components/common/sortable-table-head';
+import { TableSkeletonRows } from '@/components/common/table-skeleton';
+import { StatusChip } from '@/components/common/status-chip';
+import { usePagination } from '@/hooks/use-pagination';
+import { useSort } from '@/hooks/use-sort';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 
 type SourceType = 'TEXT' | 'URL';
@@ -36,6 +44,7 @@ export default function JobPostingsPage() {
   const [title, setTitle] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<JobAnalysisResponse | null>(null);
+  const [search, setSearch] = useState('');
 
   const { data: postings = [], isLoading } = useQuery({
     queryKey: ['job-postings'],
@@ -112,6 +121,31 @@ export default function JobPostingsPage() {
     }
   };
 
+  const filteredPostings = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return postings;
+    return postings.filter(
+      (p) =>
+        (p.title?.toLowerCase().includes(q) ?? false) ||
+        (p.companyName?.toLowerCase().includes(q) ?? false) ||
+        p.sourceType.toLowerCase().includes(q),
+    );
+  }, [postings, search]);
+
+  const comparators = useMemo(
+    () => ({
+      title: (a: JobPostingResponse, b: JobPostingResponse) =>
+        (a.title || a.companyName || '').localeCompare(b.title || b.companyName || ''),
+      company: (a: JobPostingResponse, b: JobPostingResponse) => (a.companyName ?? '').localeCompare(b.companyName ?? ''),
+      date: (a: JobPostingResponse, b: JobPostingResponse) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    }),
+    [],
+  );
+
+  const { sorted, sortKey, direction, toggleSort } = useSort(filteredPostings, comparators, 'date');
+  const { page, setPage, totalPages, paginated, from, to, total } = usePagination(sorted, 8);
+
   return (
     <PageShell size="lg">
       <PageHeader title={t('jobPostings.title')} />
@@ -170,47 +204,92 @@ export default function JobPostingsPage() {
       <div className="grid gap-6 md:grid-cols-2">
         <Section title={t('jobPostings.saved')}>
           {isLoading ? (
-            <LoadingSpinner label={t('common.loading')} />
+            <DataTableCard>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <SortableTableHead label={t('jobPostings.columns.title')} sortKey="title" activeKey={sortKey} direction={direction} onSort={toggleSort} />
+                  </TableRow>
+                </TableHeader>
+                <TableSkeletonRows rows={4} cols={5} />
+              </Table>
+            </DataTableCard>
           ) : postings.length === 0 ? (
             <EmptyState title={t('jobPostings.empty')} />
           ) : (
-            <div className="space-y-2">
-              {postings.map((p) => (
-                <Card
-                  key={p.id}
-                  className={cn('cursor-pointer transition-all hover:bg-accent/50 hover:shadow-sm', selectedId === p.id && 'ring-2 ring-primary')}
-                  onClick={() => handleSelect(p)}
-                >
-                  <CardContent className="flex justify-between gap-2 pt-4">
-                    <div>
-                      <p className="font-medium">{p.title || p.companyName || t('jobPostings.noTitle')}</p>
-                      <p className="text-sm text-primary">{p.companyName}</p>
-                      <CardDescription className="mt-1">
-                        {p.sourceType} · {new Date(p.createdAt).toLocaleDateString()}
-                      </CardDescription>
-                    </div>
-                    <ConfirmDialog
-                      trigger={
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="shrink-0 text-destructive"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {t('common.delete')}
-                        </Button>
-                      }
-                      title={t('common.confirmDelete')}
-                      description={t('common.confirmDeleteDesc')}
-                      confirmLabel={t('common.delete')}
-                      cancelLabel={t('common.cancel')}
-                      destructive
-                      onConfirm={() => deleteMutation.mutate(p.id)}
-                    />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <DataTableCard
+              toolbar={<SearchBar value={search} onChange={setSearch} placeholder={t('common.searchPlaceholder')} />}
+              footer={
+                <PaginationControls
+                  page={page}
+                  totalPages={totalPages}
+                  from={from}
+                  to={to}
+                  total={total}
+                  onPageChange={setPage}
+                  className="w-full"
+                />
+              }
+            >
+              {paginated.length === 0 ? (
+                <p className="p-8 text-center text-sm text-muted-foreground">{t('common.noResults')}</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <SortableTableHead label={t('jobPostings.columns.title')} sortKey="title" activeKey={sortKey} direction={direction} onSort={toggleSort} />
+                      <SortableTableHead label={t('jobPostings.columns.company')} sortKey="company" activeKey={sortKey} direction={direction} onSort={toggleSort} className="hidden sm:table-cell" />
+                      <TableHead>{t('jobPostings.columns.source')}</TableHead>
+                      <SortableTableHead label={t('jobPostings.columns.date')} sortKey="date" activeKey={sortKey} direction={direction} onSort={toggleSort} className="hidden md:table-cell" />
+                      <TableHead className="text-right">{t('jobPostings.columns.actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginated.map((p) => (
+                      <TableRow
+                        key={p.id}
+                        data-state={selectedId === p.id ? 'selected' : undefined}
+                        className={cn('cursor-pointer', selectedId === p.id && 'bg-accent/50')}
+                        onClick={() => handleSelect(p)}
+                      >
+                        <TableCell className="font-medium max-w-[200px] truncate">
+                          {p.title || p.companyName || t('jobPostings.noTitle')}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell text-muted-foreground">
+                          {p.companyName || '—'}
+                        </TableCell>
+                        <TableCell>
+                          <StatusChip label={p.sourceType} variant="default" />
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-muted-foreground">
+                          {new Date(p.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <ConfirmDialog
+                            trigger={
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {t('common.delete')}
+                              </Button>
+                            }
+                            title={t('common.confirmDelete')}
+                            description={t('common.confirmDeleteDesc')}
+                            confirmLabel={t('common.delete')}
+                            cancelLabel={t('common.cancel')}
+                            destructive
+                            onConfirm={() => deleteMutation.mutate(p.id)}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </DataTableCard>
           )}
         </Section>
 

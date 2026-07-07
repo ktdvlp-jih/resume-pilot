@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { PageBreadcrumb } from '@/components/common/page-breadcrumb';
 import { PageHeader } from '@/components/common/page-header';
 import { PageShell } from '@/components/common/page-shell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,6 +35,9 @@ export default function VersionComparePage() {
   const versionA = Number(params.get('a') || 1);
   const versionB = Number(params.get('b') || 2);
 
+  const { data: resumes = [] } = useQuery({ queryKey: ['resumes'], queryFn: api.listResumes });
+  const resume = resumes.find((r) => r.id === id);
+
   const { data: versions = [] } = useQuery({
     queryKey: ['resume-versions', id],
     queryFn: () => api.listResumeVersions(id!),
@@ -46,6 +50,12 @@ export default function VersionComparePage() {
 
   return (
     <PageShell size="lg">
+      <PageBreadcrumb
+        items={[
+          { label: t('nav.dashboard'), href: '/dashboard' },
+          { label: resume?.title ?? t('versionCompare.title') },
+        ]}
+      />
       <PageHeader title={t('versionCompare.title')} />
 
       <div className="flex flex-wrap items-center gap-4">

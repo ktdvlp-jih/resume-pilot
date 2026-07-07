@@ -4,6 +4,32 @@
     "tagline": "企业定制求职信平台",
     "footer": "© {{name}}. All rights reserved."
   },
+  "landing": {
+    "badge": "RAG · AI 求职信",
+    "heroSubtitle": "用经历库与招聘公告分析，撰写贴合企业的求职信。",
+    "featuresSubtitle": "从准备到撰写与润色，一站完成",
+    "pricingSubtitle": "现在免费开始",
+    "feature1Title": "经历库",
+    "feature1Desc": "结构化项目与成果，供 AI 检索使用。",
+    "feature2Title": "招聘公告分析",
+    "feature2Desc": "提取必备技能与关键词，用于定制撰写。",
+    "feature3Title": "AI 工作区",
+    "feature3Desc": "RAG、生成、润色与面试题，三栏布局。",
+    "tierFree": "Free",
+    "tierPro": "Pro",
+    "comingSoon": "即将推出",
+    "authPitch": "更快、更准地撰写企业定制求职信。",
+    "authBullet1": "基于经历的 RAG 推荐",
+    "authBullet2": "公告关键词匹配",
+    "authBullet3": "AI 痕迹检测与润色",
+    "backHome": "返回首页"
+  },
+  "command": {
+    "title": "命令面板",
+    "description": "快速导航",
+    "placeholder": "搜索页面...",
+    "shortcut": "⌘K"
+  },
   "language": {
     "label": "语言",
     "ko": "한국어",
@@ -46,7 +72,14 @@
     "confirmDeleteDesc": "此操作无法撤销。",
     "deleted": "已删除。",
     "saved": "已保存。",
-    "error": "发生错误。"
+    "error": "发生错误。",
+    "search": "搜索",
+    "searchPlaceholder": "搜索...",
+    "noResults": "未找到结果。",
+    "paginationSummary": "{{from}}–{{to}} / 共 {{total}} 条",
+    "previous": "上一页",
+    "next": "下一页",
+    "all": "全部"
   },
   "experienceType": {
     "PROJECT": "项目",
@@ -81,16 +114,31 @@
     "empty": "还没有求职信。",
     "startWorkspace": "在工作区开始",
     "noContent": "无内容",
-    "versions": "版本管理"
+    "versions": "版本管理",
+    "columns": {
+      "title": "标题",
+      "company": "公司",
+      "updated": "更新日期",
+      "actions": "操作"
+    }
   },
   "experiences": {
     "title": "经历库",
     "add": "+ 添加经历",
+    "empty": "暂无经历。",
+    "typeLabel": "类型",
     "titlePlaceholder": "标题",
     "descriptionPlaceholder": "描述",
     "rolePlaceholder": "角色",
     "resultPlaceholder": "成果",
-    "resultLabel": "成果"
+    "resultLabel": "成果",
+    "columns": {
+      "type": "类型",
+      "title": "标题",
+      "role": "角色",
+      "result": "成果",
+      "actions": "操作"
+    }
   },
   "jobPostings": {
     "title": "招聘公告",
@@ -112,7 +160,14 @@
     "techKeywords": "技术关键词",
     "talentProfile": "人才画像",
     "coreCompetencies": "核心能力",
-    "orgCulture": "组织文化"
+    "orgCulture": "组织文化",
+    "columns": {
+      "title": "标题",
+      "company": "公司",
+      "source": "来源",
+      "date": "创建日期",
+      "actions": "操作"
+    }
   },
   "writingStyle": {
     "title": "文风分析",
@@ -149,7 +204,10 @@
     "review": "修改建议",
     "strengths": "优点",
     "weaknesses": "缺点",
-    "interview": "预期面试问题"
+    "interview": "预期面试问题",
+    "panelSetup": "设置",
+    "panelEditor": "编辑",
+    "panelResults": "结果"
   },
   "settings": {
     "title": "账户设置",

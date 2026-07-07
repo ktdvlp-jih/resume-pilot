@@ -121,10 +121,24 @@ export function PublicHeader() {
 
 export function AppFooter({ className }: { className?: string }) {
   const { t } = useTranslation();
+  const links = [
+    { href: '/#features', label: t('nav.features') },
+    { href: '/#pricing', label: t('nav.pricing') },
+    { href: '/login', label: t('auth.login') },
+    { href: '/signup', label: t('auth.signup') },
+  ];
+
   return (
-    <footer className={cn('border-t py-8', className)}>
-      <div className="mx-auto max-w-6xl px-4 text-center text-sm text-muted-foreground md:px-6">
-        <p>{t('app.footer', { name: t('app.name') })}</p>
+    <footer className={cn('border-t py-10', className)}>
+      <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 md:px-6">
+        <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground" aria-label={t('nav.main')}>
+          {links.map(({ href, label }) => (
+            <a key={href} href={href} className="transition-colors hover:text-foreground">
+              {label}
+            </a>
+          ))}
+        </nav>
+        <p className="text-center text-sm text-muted-foreground">{t('app.footer', { name: t('app.name') })}</p>
       </div>
     </footer>
   );

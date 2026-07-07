@@ -4,6 +4,32 @@
     "tagline": "기업 맞춤 자기소개서 플랫폼",
     "footer": "© {{name}}. All rights reserved."
   },
+  "landing": {
+    "badge": "RAG · AI 자기소개서",
+    "heroSubtitle": "경험 라이브러리와 채용 공고 분석으로, 기업에 맞는 자기소개서를 작성하세요.",
+    "featuresSubtitle": "준비부터 작성·첨삭까지 한 곳에서",
+    "pricingSubtitle": "지금은 Free로 시작하세요",
+    "feature1Title": "경험 라이브러리",
+    "feature1Desc": "프로젝트·성과·경력을 구조화해 AI가 활용할 수 있게 저장합니다.",
+    "feature2Title": "채용 공고 분석",
+    "feature2Desc": "공고에서 필수 역량·키워드를 추출해 맞춤 작성에 반영합니다.",
+    "feature3Title": "AI 워크스페이스",
+    "feature3Desc": "RAG 추천·생성·첨삭·면접 질문까지 3-pane에서 작업합니다.",
+    "tierFree": "Free",
+    "tierPro": "Pro",
+    "comingSoon": "준비 중",
+    "authPitch": "기업 맞춤 자기소개서를 더 빠르고 정확하게.",
+    "authBullet1": "경험 기반 RAG 추천",
+    "authBullet2": "공고 키워드 매칭 분석",
+    "authBullet3": "AI 흔적 탐지·첨삭",
+    "backHome": "홈으로 돌아가기"
+  },
+  "command": {
+    "title": "명령 팔레트",
+    "description": "페이지로 빠르게 이동",
+    "placeholder": "페이지 검색...",
+    "shortcut": "⌘K"
+  },
   "language": {
     "label": "언어",
     "ko": "한국어",
@@ -46,7 +72,14 @@
     "confirmDeleteDesc": "이 작업은 되돌릴 수 없습니다.",
     "deleted": "삭제되었습니다.",
     "saved": "저장되었습니다.",
-    "error": "오류가 발생했습니다."
+    "error": "오류가 발생했습니다.",
+    "search": "검색",
+    "searchPlaceholder": "검색...",
+    "noResults": "검색 결과가 없습니다.",
+    "paginationSummary": "{{from}}–{{to}} / 총 {{total}}건",
+    "previous": "이전",
+    "next": "다음",
+    "all": "전체"
   },
   "experienceType": {
     "PROJECT": "프로젝트",
@@ -81,16 +114,31 @@
     "empty": "아직 자기소개서가 없습니다.",
     "startWorkspace": "워크스페이스에서 시작하기",
     "noContent": "내용 없음",
-    "versions": "버전 관리"
+    "versions": "버전 관리",
+    "columns": {
+      "title": "제목",
+      "company": "기업",
+      "updated": "수정일",
+      "actions": "작업"
+    }
   },
   "experiences": {
     "title": "경험 라이브러리",
     "add": "+ 경험 추가",
+    "empty": "등록된 경험이 없습니다.",
+    "typeLabel": "유형",
     "titlePlaceholder": "제목",
     "descriptionPlaceholder": "설명",
     "rolePlaceholder": "역할",
     "resultPlaceholder": "성과",
-    "resultLabel": "성과"
+    "resultLabel": "성과",
+    "columns": {
+      "type": "유형",
+      "title": "제목",
+      "role": "역할",
+      "result": "성과",
+      "actions": "작업"
+    }
   },
   "jobPostings": {
     "title": "채용 공고",
@@ -112,7 +160,14 @@
     "techKeywords": "기술 키워드",
     "talentProfile": "인재상",
     "coreCompetencies": "핵심 역량",
-    "orgCulture": "조직 문화"
+    "orgCulture": "조직 문화",
+    "columns": {
+      "title": "제목",
+      "company": "기업",
+      "source": "출처",
+      "date": "등록일",
+      "actions": "작업"
+    }
   },
   "writingStyle": {
     "title": "문체 분석",
@@ -149,7 +204,10 @@
     "review": "첨삭",
     "strengths": "장점",
     "weaknesses": "단점",
-    "interview": "예상 면접 질문"
+    "interview": "예상 면접 질문",
+    "panelSetup": "설정",
+    "panelEditor": "작성",
+    "panelResults": "결과"
   },
   "settings": {
     "title": "계정 설정",

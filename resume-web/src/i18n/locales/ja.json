@@ -4,6 +4,32 @@
     "tagline": "企業向けカスタム志望動機プラットフォーム",
     "footer": "© {{name}}. All rights reserved."
   },
+  "landing": {
+    "badge": "RAG · AI 志望動機",
+    "heroSubtitle": "経験ライブラリと求人分析で、企業に合った志望動機を作成。",
+    "featuresSubtitle": "準備から作成・添削まで一元管理",
+    "pricingSubtitle": "まずは無料で始めましょう",
+    "feature1Title": "経験ライブラリ",
+    "feature1Desc": "プロジェクト・成果を構造化し、AIが活用できる形で保存。",
+    "feature2Title": "求人票分析",
+    "feature2Desc": "必須スキル・キーワードを抽出し、カスタム作成に反映。",
+    "feature3Title": "AIワークスペース",
+    "feature3Desc": "RAG・生成・添削・面接質問を3ペインで。",
+    "tierFree": "Free",
+    "tierPro": "Pro",
+    "comingSoon": "準備中",
+    "authPitch": "企業に合わせた志望動機を、より速く正確に。",
+    "authBullet1": "経験ベースRAG推薦",
+    "authBullet2": "求人キーワードマッチング",
+    "authBullet3": "AI痕跡検出・添削",
+    "backHome": "ホームに戻る"
+  },
+  "command": {
+    "title": "コマンドパレット",
+    "description": "ページへ素早く移動",
+    "placeholder": "ページを検索...",
+    "shortcut": "⌘K"
+  },
   "language": {
     "label": "言語",
     "ko": "한국어",
@@ -46,7 +72,14 @@
     "confirmDeleteDesc": "この操作は元に戻せません。",
     "deleted": "削除しました。",
     "saved": "保存しました。",
-    "error": "エラーが発生しました。"
+    "error": "エラーが発生しました。",
+    "search": "検索",
+    "searchPlaceholder": "検索...",
+    "noResults": "結果がありません。",
+    "paginationSummary": "{{from}}–{{to}} / 全{{total}}件",
+    "previous": "前へ",
+    "next": "次へ",
+    "all": "すべて"
   },
   "experienceType": {
     "PROJECT": "プロジェクト",
@@ -81,16 +114,31 @@
     "empty": "志望動機がまだありません。",
     "startWorkspace": "ワークスペースで始める",
     "noContent": "内容なし",
-    "versions": "バージョン"
+    "versions": "バージョン",
+    "columns": {
+      "title": "タイトル",
+      "company": "企業",
+      "updated": "更新日",
+      "actions": "操作"
+    }
   },
   "experiences": {
     "title": "経験ライブラリ",
     "add": "+ 経験を追加",
+    "empty": "登録された経験がありません。",
+    "typeLabel": "種類",
     "titlePlaceholder": "タイトル",
     "descriptionPlaceholder": "説明",
     "rolePlaceholder": "役割",
     "resultPlaceholder": "成果",
-    "resultLabel": "成果"
+    "resultLabel": "成果",
+    "columns": {
+      "type": "種類",
+      "title": "タイトル",
+      "role": "役割",
+      "result": "成果",
+      "actions": "操作"
+    }
   },
   "jobPostings": {
     "title": "求人票",
@@ -112,7 +160,14 @@
     "techKeywords": "技術キーワード",
     "talentProfile": "求める人材",
     "coreCompetencies": "核心能力",
-    "orgCulture": "組織文化"
+    "orgCulture": "組織文化",
+    "columns": {
+      "title": "タイトル",
+      "company": "企業",
+      "source": "ソース",
+      "date": "登録日",
+      "actions": "操作"
+    }
   },
   "writingStyle": {
     "title": "文体分析",
@@ -149,7 +204,10 @@
     "review": "添削",
     "strengths": "長所",
     "weaknesses": "短所",
-    "interview": "想定面接質問"
+    "interview": "想定面接質問",
+    "panelSetup": "設定",
+    "panelEditor": "作成",
+    "panelResults": "結果"
   },
   "settings": {
     "title": "アカウント設定",

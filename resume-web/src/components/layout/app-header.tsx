@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LogOut, Moon, Sun, User } from 'lucide-react';
+import { LogOut, Moon, Search, Sun, User } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { clearTokens } from '@/lib/api';
@@ -45,6 +45,15 @@ export function AppHeader() {
       </nav>
 
       <div className="ml-auto flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="hidden gap-2 text-muted-foreground md:flex"
+          onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+        >
+          <Search className="size-3.5" />
+          <span className="text-xs">{t('command.shortcut')}</span>
+        </Button>
         <LanguageSwitcher className="hidden w-28 sm:block" />
         <Button variant="ghost" size="icon" onClick={toggle} aria-label={theme === 'dark' ? t('nav.lightMode') : t('nav.darkMode')}>
           {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}

@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -8,16 +9,48 @@ import { normalizeCareerPortfolio } from '@/lib/career-portfolio';
 import { PageHeader } from '@/components/common/page-header';
 import { PageShell } from '@/components/common/page-shell';
 import { EmptyState } from '@/components/common/empty-state';
-import { LoadingCardList } from '@/components/common/loading-state';
 import { ConfirmDialog } from '@/components/common/confirm-dialog';
+import { SearchBar } from '@/components/common/search-bar';
+import { DataTableCard } from '@/components/common/data-table-card';
+import { PaginationControls } from '@/components/common/pagination-controls';
+import { SortableTableHead } from '@/components/common/sortable-table-head';
+import { TableSkeletonRows } from '@/components/common/table-skeleton';
+import { usePagination } from '@/hooks/use-pagination';
+import { useSort } from '@/hooks/use-sort';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [search, setSearch] = useState('');
   const { data: user } = useQuery({ queryKey: ['me'], queryFn: api.getMe });
   const { data: resumes = [], isLoading } = useQuery({ queryKey: ['resumes'], queryFn: api.listResumes });
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return resumes;
+    return resumes.filter(
+      (r) =>
+        r.title.toLowerCase().includes(q) ||
+        (r.companyName?.toLowerCase().includes(q) ?? false) ||
+        (r.description?.toLowerCase().includes(q) ?? false),
+    );
+  }, [resumes, search]);
+
+  const comparators = useMemo(
+    () => ({
+      title: (a: (typeof resumes)[0], b: (typeof resumes)[0]) => a.title.localeCompare(b.title),
+      company: (a: (typeof resumes)[0], b: (typeof resumes)[0]) =>
+        (a.companyName ?? '').localeCompare(b.companyName ?? ''),
+      updated: (a: (typeof resumes)[0], b: (typeof resumes)[0]) =>
+        new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime(),
+    }),
+    [],
+  );
+
+  const { sorted, sortKey, direction, toggleSort } = useSort(filtered, comparators, 'updated');
+  const { page, setPage, totalPages, paginated, from, to, total } = usePagination(sorted, 8);
 
   const deleteMutation = useMutation({
     mutationFn: api.deleteResume,
@@ -44,7 +77,18 @@ export default function DashboardPage() {
       />
 
       {isLoading ? (
-        <LoadingCardList />
+        <DataTableCard>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <SortableTableHead label={t('dashboard.columns.title')} sortKey="title" activeKey={sortKey} direction={direction} onSort={toggleSort} />
+                <SortableTableHead label={t('dashboard.columns.company')} sortKey="company" activeKey={sortKey} direction={direction} onSort={toggleSort} className="hidden sm:table-cell" />
+                <SortableTableHead label={t('dashboard.columns.updated')} sortKey="updated" activeKey={sortKey} direction={direction} onSort={toggleSort} className="hidden md:table-cell" />
+              </TableRow>
+            </TableHeader>
+            <TableSkeletonRows rows={5} cols={4} />
+          </Table>
+        </DataTableCard>
       ) : resumes.length === 0 ? (
         <EmptyState
           title={t('dashboard.empty')}
@@ -55,39 +99,59 @@ export default function DashboardPage() {
           }
         />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {resumes.map((r) => (
-            <Card key={r.id} className="transition-shadow hover:shadow-md">
-              <CardHeader>
-                <CardTitle className="line-clamp-1">{r.title}</CardTitle>
-                {r.companyName && <p className="text-sm text-primary">{r.companyName}</p>}
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {r.latestContent || r.description || t('dashboard.noContent')}
-                </p>
-              </CardContent>
-              <CardFooter className="gap-3">
-                <Button variant="link" size="sm" className="h-auto p-0" asChild>
-                  <Link to={`/resumes/${r.id}/versions`}>{t('dashboard.versions')}</Link>
-                </Button>
-                <ConfirmDialog
-                  trigger={
-                    <Button variant="link" size="sm" className="h-auto p-0 text-destructive">
-                      {t('common.delete')}
-                    </Button>
-                  }
-                  title={t('common.confirmDelete')}
-                  description={t('common.confirmDeleteDesc')}
-                  confirmLabel={t('common.delete')}
-                  cancelLabel={t('common.cancel')}
-                  destructive
-                  onConfirm={() => deleteMutation.mutate(r.id)}
-                />
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+        <DataTableCard
+          toolbar={<SearchBar value={search} onChange={setSearch} placeholder={t('common.searchPlaceholder')} />}
+          footer={
+            <PaginationControls page={page} totalPages={totalPages} from={from} to={to} total={total} onPageChange={setPage} className="w-full" />
+          }
+        >
+          {paginated.length === 0 ? (
+            <p className="p-8 text-center text-sm text-muted-foreground">{t('common.noResults')}</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <SortableTableHead label={t('dashboard.columns.title')} sortKey="title" activeKey={sortKey} direction={direction} onSort={toggleSort} />
+                  <SortableTableHead label={t('dashboard.columns.company')} sortKey="company" activeKey={sortKey} direction={direction} onSort={toggleSort} className="hidden sm:table-cell" />
+                  <SortableTableHead label={t('dashboard.columns.updated')} sortKey="updated" activeKey={sortKey} direction={direction} onSort={toggleSort} className="hidden md:table-cell" />
+                  <TableHead className="text-right">{t('dashboard.columns.actions')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginated.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell>
+                      <div className="max-w-xs">
+                        <p className="font-medium truncate">{r.title}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1 sm:hidden">{r.companyName || '—'}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell text-muted-foreground">{r.companyName || '—'}</TableCell>
+                    <TableCell className="hidden md:table-cell text-muted-foreground">
+                      {new Date(r.updatedAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link to={`/resumes/${r.id}/versions`}>{t('dashboard.versions')}</Link>
+                        </Button>
+                        <ConfirmDialog
+                          trigger={<Button variant="ghost" size="sm" className="text-destructive">{t('common.delete')}</Button>}
+                          title={t('common.confirmDelete')}
+                          description={t('common.confirmDeleteDesc')}
+                          confirmLabel={t('common.delete')}
+                          cancelLabel={t('common.cancel')}
+                          destructive
+                          onConfirm={() => deleteMutation.mutate(r.id)}
+                        />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </DataTableCard>
       )}
     </PageShell>
   );
