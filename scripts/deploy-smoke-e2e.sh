@@ -12,14 +12,15 @@ fi
 
 PORT="${APP_PORT:-9180}"
 BASE_URL="${PLAYWRIGHT_BASE_URL:-http://127.0.0.1:${PORT}}"
-IMAGE="${PLAYWRIGHT_IMAGE:-mcr.microsoft.com/playwright:v1.52.0-jammy}"
+PLAYWRIGHT_VERSION="$(python3 -c "import json; print(json.load(open('${ROOT}/e2e/package-lock.json'))['packages']['node_modules/@playwright/test']['version'])")"
+IMAGE="${PLAYWRIGHT_IMAGE:-mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-jammy}"
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "SMOKE FAIL E2E: docker not found"
   exit 1
 fi
 
-echo "== E2E smoke (Playwright Docker, ${BASE_URL}) =="
+echo "== E2E smoke (Playwright Docker ${PLAYWRIGHT_VERSION}, ${BASE_URL}) =="
 docker run --rm --network host \
   -v "${ROOT}/e2e:/e2e" \
   -w /e2e \
