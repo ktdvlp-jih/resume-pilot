@@ -161,6 +161,34 @@ docker compose logs -f app
 
 ---
 
+## 10. CI/CD (GitHub Actions)
+
+| 항목 | 내용 |
+|------|------|
+| 트리거 | `master` push, `workflow_dispatch` |
+| Runner | Ubuntu self-hosted (`/home/jeon/apps/resume-pilot`) |
+| Workflow | [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) |
+
+```
+push master
+  → git sync (origin/master 강제 일치)
+  → resume-pilot.sh deploy (docker compose build/up)
+  → deploy-smoke.sh (HTTP 5 + API 7)
+  → deploy-smoke-e2e.sh (Playwright Docker, smoke 4 tests)
+```
+
+| 스모크 | 대상 | 기대 |
+|--------|------|------|
+| HTTP | `/`, `/admin/`, `/swagger-ui.html`, `/actuator/health`, `/api-docs` | 200 (swagger는 curl `-L`) |
+| API | signup → login → me, experiences, job-postings, resumes | 200/401 |
+| E2E | `e2e/tests/smoke.spec.ts` | 4/4 pass |
+
+**미포함 (수동):** `user-journey.spec.ts`, TC-AI-01~05 전체
+
+현황·잔여: [project-status.md](project-status.md)
+
+---
+
 ## 관련 문서
 
 | 문서 | 내용 |

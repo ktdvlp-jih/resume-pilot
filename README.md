@@ -72,6 +72,11 @@ cp .env.production.example .env
 
 [docs/architecture.md](docs/architecture.md)
 
+## 프로젝트 현황 · WBS
+
+- [docs/project-status.md](docs/project-status.md) — 완료/잔여 현황 (2026-07-07)
+- [docs/planning/wbs-resume-pilot.md](docs/planning/wbs-resume-pilot.md) — 잔여 일정 WBS
+
 ## Linux 서버 배포
 
 [docs/SETUP.md](docs/SETUP.md#part-3-ubuntu-서버) — `DEPLOY_HOST`는 로컬 `.env`에만 설정.

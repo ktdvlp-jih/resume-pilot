@@ -59,6 +59,13 @@ export function useWorkspaceDraft() {
     [persist],
   );
 
+  const clearDraft = useCallback(() => {
+    if (timer.current) clearTimeout(timer.current);
+    setDraftState(DEFAULTS);
+    localStorage.removeItem(STORAGE_KEY);
+    setSaveStatus('idle');
+  }, []);
+
   useEffect(
     () => () => {
       if (timer.current) clearTimeout(timer.current);
@@ -66,5 +73,5 @@ export function useWorkspaceDraft() {
     [],
   );
 
-  return { draft, setDraft, saveStatus, wasRestored };
+  return { draft, setDraft, clearDraft, saveStatus, wasRestored };
 }

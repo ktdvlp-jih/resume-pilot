@@ -86,8 +86,11 @@ public class JobPostingService {
                 doc.fileBase64(),
                 doc.mimeType()
         );
-        if (doc.text() != null && posting.getRawContent() == null) {
-            posting.setRawContent(String.valueOf(aiResult.getOrDefault("raw_content", doc.text())));
+        Object rawFromAi = aiResult.get("raw_content");
+        if (rawFromAi != null && !String.valueOf(rawFromAi).isBlank()) {
+            posting.setRawContent(String.valueOf(rawFromAi));
+        } else if (doc.text() != null && !doc.text().isBlank()) {
+            posting.setRawContent(doc.text());
         }
         posting.setParsedJson(aiResult);
         if (aiResult.get("title") != null && posting.getTitle() == null) {

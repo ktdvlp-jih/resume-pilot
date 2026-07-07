@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { Briefcase, Sparkles, Wand2 } from 'lucide-react';
+import { Briefcase, RotateCcw, Sparkles, Wand2 } from 'lucide-react';
 import { api, type JobPostingResponse } from '@/lib/api';
 import { useWorkspaceDraft } from '@/hooks/use-workspace-draft';
 import { useWorkspaceResult } from '@/hooks/use-workspace-result';
 import { HighlightedContent } from '@/components/HighlightedContent';
 import { AutosaveIndicator } from '@/components/common/autosave-indicator';
+import { ConfirmDialog } from '@/components/common/confirm-dialog';
 import { PageHeader } from '@/components/common/page-header';
 import { WorkspaceLayout, WorkspacePanelTitle } from '@/components/workspace/workspace-layout';
 import { StatusChip } from '@/components/common/status-chip';
@@ -42,13 +43,14 @@ function mergeSaveStatus(a: DraftSaveStatus, b: DraftSaveStatus): DraftSaveStatu
 
 export default function WorkspacePage() {
   const { t } = useTranslation();
-  const { draft, setDraft, saveStatus: draftSaveStatus, wasRestored } = useWorkspaceDraft();
+  const { draft, setDraft, clearDraft, saveStatus: draftSaveStatus, wasRestored } = useWorkspaceDraft();
   const {
     result,
     recommended,
     interview,
     keywords,
     setBundle,
+    clearResult,
     saveStatus: resultSaveStatus,
     wasResultRestored,
   } = useWorkspaceResult();
@@ -57,6 +59,20 @@ export default function WorkspacePage() {
   const [error, setError] = useState('');
 
   const saveStatus = mergeSaveStatus(draftSaveStatus, resultSaveStatus);
+  const hasSavedContent =
+    !!jobText ||
+    !!selectedPostingId ||
+    rewriteLevel !== 40 ||
+    !!result?.content ||
+    recommended.length > 0 ||
+    interview.length > 0 ||
+    !!keywords;
+
+  const handleClearDraft = () => {
+    clearDraft();
+    clearResult();
+    setError('');
+  };
 
   const { data: postings = [] } = useQuery({ queryKey: ['job-postings'], queryFn: api.listJobPostings });
 
@@ -168,7 +184,25 @@ export default function WorkspacePage() {
     <div className="flex h-full flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <PageHeader title={t('workspace.title')} className="mb-0" />
-        <AutosaveIndicator status={saveStatus} />
+        <div className="flex items-center gap-2">
+          <AutosaveIndicator status={saveStatus} />
+          {hasSavedContent && (
+            <ConfirmDialog
+              trigger={
+                <Button type="button" variant="outline" size="sm" className="gap-1.5">
+                  <RotateCcw className="size-3.5" />
+                  {t('workspace.clearDraft')}
+                </Button>
+              }
+              title={t('workspace.clearDraft')}
+              description={t('workspace.clearDraftDesc')}
+              confirmLabel={t('workspace.clearDraftConfirm')}
+              cancelLabel={t('common.cancel')}
+              onConfirm={handleClearDraft}
+              destructive
+            />
+          )}
+        </div>
       </div>
 
       {wasRestored && jobText && (

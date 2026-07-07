@@ -1,0 +1,288 @@
+# ResumePilot 배포·CI 스모크 장애 보고 (2026-07-07)
+
+> **작성일:** 2026-07-07  
+> **범위:** Phase 8 배포 파이프라인 확장 이후 `master` push → GitHub Actions (Ubuntu self-hosted) 실패·수정 이력  
+> **프로덕션 URL:** https://suite-pic-heaven-sacrifice.trycloudflare.com  
+> **관련 문서:** [deploy-test-cases.md](../deploy-test-cases.md), [ui-work-2026-07-07.md](./ui-work-2026-07-07.md)
+
+---
+
+## 요약
+
+Docker Compose 기동 자체는 대체로 성공했으나, **Phase 8에서 추가한 배포 후 스모크 검증** 단계에서 연속 실패가 발생했다. 원인은 Docker 이미지 결함이라기보다 **스크립트·러너 환경·Playwright 버전 불일치**에 집중되어 있었다. 당일 말모 모든 스모크 단계(HTTP + API + E2E) 통과 및 배포 완료.
+
+| 구분 | 결과 |
+|------|------|
+| Docker 5컨테이너 deploy | ✅ 정상 |
+| HTTP + API smoke (`deploy-smoke.sh`) | ✅ 수정 후 통과 |
+| E2E smoke (`deploy-smoke-e2e.sh`) | ✅ 수정 후 통과 |
+| Push (workflow scope) | ✅ PAT `workflow` 권한으로 해결 |
+
+---
+
+## 배포 파이프라인 구조
+
+`master` push 시 GitHub Actions `deploy.yml` (self-hosted runner, `/home/jeon/apps/resume-pilot`):
+
+```
+1. git fetch + checkout origin/master
+2. resume-pilot.sh deploy     → docker compose build/up (5 containers)
+3. deploy-smoke.sh          → HTTP + API curl 검증
+4. deploy-smoke-e2e.sh      → Playwright E2E (Docker 컨테이너 내 실행)
+```
+
+| 컨테이너 | 포트 (host) |
+|----------|-------------|
+| resume-pilot-app | `9180` → `8080` |
+| resume-pilot-postgres | `55532` |
+| resume-ai / prompt-service / rag-service | 내부망 only |
+
+---
+
+## 장애 타임라인
+
+| 순서 | 단계 | 증상 | 커밋(수정) |
+|------|------|------|------------|
+| 0 | `git push` | `workflow scope` 거절 | PAT 재발급 (사용자) |
+| 1 | HTTP smoke | `/swagger-ui.html` → 302 FAIL | `eb662cc` |
+| 2 | API smoke | Python `SyntaxError` (토큰 파싱) | `7c02410` |
+| 3 | E2E smoke | `npm: command not found` | `da9b379` |
+| 4 | E2E smoke | Playwright 1.61.1 vs Docker 1.52.0 | `9f2eb63` |
+| 5 | — | 전 단계 통과, 배포 완료 | — |
+
+---
+
+## 장애 0 — Push 거절 (workflow scope)
+
+### 증상
+
+```
+refusing to allow an OAuth App to create or update workflow
+`.github/workflows/deploy.yml` without `workflow` scope
+```
+
+### 원인
+
+- Phase 8 (`e4c67d7`)에서 `deploy.yml` **내용 변경** (헬스체크 1줄 → HTTP/API/E2E 스모크)
+- GitHub는 workflow 파일 **수정** push 시 OAuth/PAT에 `workflow` scope 필수
+- 기존 HTTPS 토큰은 `repo`만 있어 거절
+
+### 조치
+
+- GitHub Classic PAT 재발급: `repo` + **`workflow`**
+- Windows 자격 증명 관리자에서 예전 `github.com` 토큰 삭제 후 `git push`
+
+### 비고
+
+- 강제 push(`--force`)로는 해결 불가 (히스토리 문제 아님)
+- 서버 SSH 접속 불필요
+
+---
+
+## 장애 1 — HTTP smoke: swagger 302
+
+### 증상
+
+```
+SMOKE FAIL HTTP /swagger-ui.html -> 302
+```
+
+### 원인
+
+- SpringDoc(springdoc-openapi 2.x)이 `/swagger-ui.html` → `/swagger-ui/index.html`로 **302 리다이렉트** (정상)
+- 신규 `deploy-smoke.sh`의 `http_check`가 `curl` **리다이렉트 미추적** → 첫 응답 302를 실패 처리
+- 기존 `resume-pilot.sh` `wait_health`는 `curl -sfL` (**-L** 포함)이라 deploy 단계는 통과
+
+### 조치
+
+`scripts/deploy-smoke.sh`:
+
+```bash
+# 변경 전
+curl -s -o /dev/null -w "%{http_code}" ...
+
+# 변경 후
+curl -sL -o /dev/null -w "%{http_code}" ...
+```
+
+### 판정
+
+**앱/Docker 장애 아님** — 스모크 스크립트 검사 방식 문제.
+
+---
+
+## 장애 2 — API smoke: Python SyntaxError
+
+### 증상
+
+```
+signup HTTP 200 성공 후
+SyntaxError: '(' was never closed
+```
+
+### 원인
+
+`deploy-smoke.sh` 61번 줄 — signup 응답에서 `accessToken` 추출용 Python 한 줄에 `print(` **닫는 괄호 누락**:
+
+```python
+# 잘못됨
+print(json.load(open('/tmp/smoke-body.json'))['data']['accessToken']
+
+# 올바름
+print(json.load(open('/tmp/smoke-body.json'))['data']['accessToken'])
+```
+
+### 영향
+
+토큰 파싱 실패 → `login`, 인증 API 검사 미실행.
+
+### 조치
+
+`7c02410` — 괄호 수정.
+
+---
+
+## 장애 3 — E2E smoke: npm 없음
+
+### 증상
+
+```
+npm: command not found
+exit code 127
+```
+
+### 원인
+
+- Ubuntu **self-hosted runner 호스트**에 Node.js/npm **미설치**
+- Node는 `resume-api/Dockerfile.prod` **컨테이너 빌드 단계**에서만 사용 (SPA → JAR)
+- Phase 8 `deploy.yml`이 호스트에서 직접 `npm ci` 실행하도록 작성됨
+
+### 조치
+
+`scripts/deploy-smoke-e2e.sh` 신규 — Playwright **공식 Docker 이미지** 내에서 `npm ci` + 테스트:
+
+```bash
+docker run --rm --network host \
+  -v "${ROOT}/e2e:/e2e" \
+  -w /e2e \
+  -e PLAYWRIGHT_BASE_URL="http://127.0.0.1:9180" \
+  "mcr.microsoft.com/playwright:v${VERSION}-jammy" \
+  bash -lc "npm ci && npx playwright test tests/smoke.spec.ts"
+```
+
+- `--network host`: 컨테이너가 호스트 `localhost:9180` 앱에 접근
+
+---
+
+## 장애 4 — E2E smoke: Playwright 버전 불일치
+
+### 증상
+
+```
+Executable doesn't exist at /ms-playwright/chromium_headless_shell-1228/...
+Looks like Playwright was just updated to 1.61.1.
+  current: mcr.microsoft.com/playwright:v1.52.0-jammy
+  required: mcr.microsoft.com/playwright:v1.61.1-jammy
+```
+
+3 failed (browser tests) / 1 passed (`request.get` only)
+
+### 원인
+
+| 항목 | 버전 |
+|------|------|
+| `e2e/package-lock.json` (`npm ci`) | `@playwright/test` **1.61.1** (`^1.52.0` → 최신 resolve) |
+| Docker 이미지 (초기 설정) | **v1.52.0-jammy** (1.52 브라우저 바이너리만 포함) |
+
+npm 패키지가 요구하는 Chromium 바이너리와 이미지 내장 바이너리 불일치.
+
+### 조치
+
+1. `e2e/package.json` — `"@playwright/test": "1.61.1"` (caret 제거, 고정)
+2. `deploy-smoke-e2e.sh` — `package-lock.json`에서 버전 읽어 이미지 태그 자동 결정:
+
+```bash
+PLAYWRIGHT_VERSION="$(python3 -c "... package-lock ...")"
+IMAGE="mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-jammy"
+```
+
+---
+
+## (참고) 배포 전 발견·수정된 앱 버그
+
+스모크 확장 과정에서 프로덕션 API에서도 확인된 이슈. Docker와 별개로 **resume-api** 코드 수정.
+
+| 증상 | 원인 | 수정 커밋 |
+|------|------|-----------|
+| `POST /auth/login` 500 (signup 직후) | 동일 초 signup+login 시 refresh JWT 동일 → `token_hash` UNIQUE 위반 | `4be2823` — JWT `jti` 추가 |
+| `GET /actuator/health` 500 | Security permit만 있고 actuator 의존성 없음 | `4be2823` — `spring-boot-starter-actuator` |
+
+---
+
+## UI 수정 (동일일, 별도 커밋)
+
+| 커밋 | 내용 |
+|------|------|
+| `c56dca3` | 헤더 로고·중복 네비 제거, 사이드바 단일 네비 통일 |
+
+---
+
+## 최종 커밋 체인 (배포·스모크 관련)
+
+```
+e4c67d7  Phase 8 — deploy smoke CI, workspace AI draft, Prompts version table
+4be2823  fix: login 500 + expand deploy-smoke.sh/ps1
+c56dca3  fix(ui): header logo/nav dedup
+eb662cc  fix: curl -L for swagger redirect
+7c02410  fix: Python parenthesis in token parse
+da9b379  fix(ci): Playwright E2E via Docker
+9f2eb63  fix(ci): Playwright Docker image ↔ lockfile version
+```
+
+---
+
+## 최종 검증 결과 (2026-07-07)
+
+### CI (`deploy.yml` 전체)
+
+| 단계 | 검사 | 결과 |
+|------|------|------|
+| Deploy | `docker compose build/up` | ✅ |
+| HTTP | `/`, `/admin/`, `/swagger-ui.html`, `/actuator/health`, `/api-docs` | ✅ 200 |
+| API | signup, login, me, experiences, job-postings, resumes | ✅ |
+| E2E | Playwright `smoke.spec.ts` 4/4 (Docker `v1.61.1-jammy`) | ✅ |
+
+### 스모크 스크립트 역할
+
+| 스크립트 | 검증 범위 |
+|----------|-----------|
+| `deploy-smoke.sh` | HTTP 5 URL + API 인증·CRUD 목록 |
+| `deploy-smoke-e2e.sh` | SPA 렌더링, title, swagger 브라우저 로드 |
+| `deploy-smoke.ps1` | Windows/터널 URL 수동 검증용 (동일 API 로직) |
+
+---
+
+## 교훈 · 재발 방지
+
+1. **curl 스모크는 `resume-pilot.sh`와 동일하게 `-L` 사용** (swagger 302)
+2. **self-hosted runner에 호스트 npm 가정 금지** — E2E는 Docker Playwright 또는 `actions/setup-node`
+3. **Playwright Docker 이미지 태그 = `package-lock.json` 버전**과 항상 일치
+4. **workflow 파일 수정 시** PAT `workflow` scope 필요
+5. **스모크 스크립트 Python/셸 한 줄**은 CI 전 로컬 syntax 검증 권장
+
+---
+
+## 관련 파일
+
+| 경로 | 설명 |
+|------|------|
+| `.github/workflows/deploy.yml` | 배포 + 스모크 CI |
+| `scripts/deploy-smoke.sh` | HTTP + API 배치 스모크 |
+| `scripts/deploy-smoke-e2e.sh` | Playwright Docker E2E |
+| `scripts/deploy-smoke.ps1` | Windows 수동 스모크 |
+| `scripts/resume-pilot.sh` | `deploy` + `curl -sfL` 헬스 대기 |
+| `e2e/tests/smoke.spec.ts` | E2E 4 tests |
+
+---
+
+*보고서 끝 — 2026-07-07*

@@ -40,7 +40,8 @@
     "noResults": "No results found.",
     "paginationSummary": "{{from}}–{{to}} of {{total}}",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "vs": "vs"
   },
   "auth": {
     "loginTitle": "Admin Login",
@@ -59,7 +60,14 @@
     "saveAndActivate": "Save & activate",
     "testResult": "Test result",
     "versionColumn": "Version",
-    "statusColumn": "Status"
+    "statusColumn": "Status",
+    "compare": "Compare",
+    "compareTitle": "Version diff",
+    "versionLabel": "v{{version}}",
+    "splitView": "Split",
+    "unifiedView": "Unified",
+    "needTwoVersions": "At least two versions are required to compare.",
+    "noDiff": "No differences."
   },
   "forbidden": {
     "title": "Forbidden Expressions",

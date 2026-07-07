@@ -230,7 +230,10 @@
     "draftSaving": "下書き保存中…",
     "draftSaved": "下書き保存済み",
     "draftRestored": "前回の下書きを読み込みました。",
-    "resultRestored": "前回のAI生成結果を読み込みました。"
+    "resultRestored": "前回のAI生成結果を読み込みました。",
+    "clearDraft": "リセット",
+    "clearDraftDesc": "保存した求人入力・AI結果・おすすめをすべて削除します。元に戻せません。",
+    "clearDraftConfirm": "リセット"
   },
   "settings": {
     "title": "アカウント設定",

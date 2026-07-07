@@ -2,7 +2,8 @@
 
 GitHub Actions `deploy.yml` (master push) 또는 `./scripts/resume-pilot.sh deploy` 실행 후 검증용 체크리스트.
 
-> 마지막 업데이트: 2026-07-06 (공통 UI·AI 서비스별 TC)
+> 마지막 업데이트: 2026-07-07 (CI smoke 자동화 반영)  
+> 프로젝트 현황: [project-status.md](project-status.md)
 
 **접속 URL 예시**
 
@@ -47,27 +48,37 @@ docker compose ps
 
 ## TC-02 — HTTP 엔드포인트 (app)
 
+자동: `scripts/deploy-smoke.sh` · 수동:
+
 ```bash
 APP_PORT=${APP_PORT:-9180}
-curl -sfL -o /dev/null -w "swagger:%{http_code}\n" "http://localhost:${APP_PORT}/swagger-ui.html"
-curl -s -o /dev/null -w "root:%{http_code}\n" "http://localhost:${APP_PORT}/"
-curl -s -o /dev/null -w "admin:%{http_code}\n" "http://localhost:${APP_PORT}/admin/"
+BASE="http://localhost:${APP_PORT}"
+curl -sfL -o /dev/null -w "swagger:%{http_code}\n" "${BASE}/swagger-ui.html"
+curl -sL -o /dev/null -w "root:%{http_code}\n" "${BASE}/"
+curl -sL -o /dev/null -w "admin:%{http_code}\n" "${BASE}/admin/"
+curl -sL -o /dev/null -w "health:%{http_code}\n" "${BASE}/actuator/health"
+curl -sL -o /dev/null -w "api-docs:%{http_code}\n" "${BASE}/api-docs"
 ```
 
 | # | URL | 기대 |
 |---|-----|------|
-| 1 | `/swagger-ui.html` | 200 |
-| 2 | `/` | 200 |
-| 3 | `/admin/` | 200 |
+| 1 | `/` | 200 |
+| 2 | `/admin/` | 200 |
+| 3 | `/swagger-ui.html` | 200 (302→index 리다이렉트 허용) |
+| 4 | `/actuator/health` | 200 |
+| 5 | `/api-docs` | 200 |
 
 ---
 
 ## TC-03 — GitHub Actions 자동 배포
 
-| # | 검증 | 기대 |
-|---|------|------|
-| 1 | master push → Actions | Deploy Docker 성공 |
-| 2 | Health + smoke | `deploy-smoke.sh` HTTP/API + Playwright Docker E2E |
+| # | 검증 | 기대 | 상태 (2026-07-07) |
+|---|------|------|-------------------|
+| 1 | master push → Actions | Deploy Docker job 성공 | ✅ |
+| 2 | `resume-pilot.sh deploy` | 5컨테이너 Up | ✅ |
+| 3 | `deploy-smoke.sh` | HTTP 5 + API 7 pass | ✅ |
+| 4 | `deploy-smoke-e2e.sh` | Playwright smoke 4/4 | ✅ |
+| 5 | `user-journey.spec.ts` in CI | — | 🔲 미구현 (Phase 9) |
 
 ---
 

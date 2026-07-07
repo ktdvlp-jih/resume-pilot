@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { GitCompare } from 'lucide-react';
 import { api } from '@/lib/api';
 import { PageHeader } from '@/components/PageHeader';
+import { PromptVersionDiffDialog, type PromptVersionDetail } from '@/components/prompts/prompt-version-diff-dialog';
 import { SearchBar } from '@/components/common/search-bar';
 import { DataTableCard } from '@/components/common/data-table-card';
 import { PaginationControls } from '@/components/common/pagination-controls';
@@ -19,7 +21,7 @@ import { useUrlSort } from '@/hooks/use-url-sort';
 import { cn } from '@/lib/utils';
 
 type PromptRow = { id: string; name: string; type: string };
-type VersionRow = { id: string; versionNumber: number; active: boolean };
+type VersionRow = PromptVersionDetail;
 
 export default function PromptsPage() {
   const { t } = useTranslation();
@@ -30,6 +32,8 @@ export default function PromptsPage() {
   const [systemPrompt, setSystemPrompt] = useState('');
   const [userPrompt, setUserPrompt] = useState('');
   const [testResult, setTestResult] = useState('');
+  const [diffOpen, setDiffOpen] = useState(false);
+  const [diffInitial, setDiffInitial] = useState<{ a?: number; b?: number }>({});
 
   const { data: prompts = [] } = useQuery({ queryKey: ['admin-prompts'], queryFn: api.listPrompts });
   const { data: versions = [], isLoading: versionsLoading } = useQuery({
@@ -115,6 +119,17 @@ export default function PromptsPage() {
   });
 
   const selected = (prompts as PromptRow[]).find((p) => p.id === selectedId);
+  const versionDetails = versions as VersionRow[];
+
+  const openDiff = (a?: number, b?: number) => {
+    const active = versionDetails.find((v) => v.active);
+    const nums = versionDetails.map((v) => v.versionNumber).sort((x, y) => x - y);
+    setDiffInitial({
+      a: a ?? nums[0],
+      b: b ?? active?.versionNumber ?? nums[nums.length - 1],
+    });
+    setDiffOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -150,9 +165,17 @@ export default function PromptsPage() {
         {selectedId && (
           <div className="space-y-4">
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold tracking-tight">
-                {t('prompts.versions', { name: selected?.name })}
-              </h3>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-lg font-semibold tracking-tight">
+                  {t('prompts.versions', { name: selected?.name })}
+                </h3>
+                {versionDetails.length >= 2 && (
+                  <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={() => openDiff()}>
+                    <GitCompare className="size-3.5" />
+                    {t('prompts.compare')}
+                  </Button>
+                )}
+              </div>
               <DataTableCard
               footer={
                 total > 10 ? (
@@ -212,20 +235,38 @@ export default function PromptsPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          {!v.active && (
-                            <Button
-                              variant="link"
-                              size="sm"
-                              className="h-auto p-0"
-                              onClick={() =>
-                                api.activatePromptVersion(selectedId, v.id).then(() =>
-                                  queryClient.invalidateQueries({ queryKey: ['admin-prompt-versions', selectedId] }),
-                                )
-                              }
-                            >
-                              {t('common.activate')}
-                            </Button>
-                          )}
+                          <div className="flex justify-end gap-1">
+                            {versionDetails.length >= 2 && (
+                              <Button
+                                variant="link"
+                                size="sm"
+                                className="h-auto p-0"
+                                onClick={() => {
+                                  const active = versionDetails.find((x) => x.active);
+                                  openDiff(
+                                    Math.min(v.versionNumber, active?.versionNumber ?? v.versionNumber),
+                                    Math.max(v.versionNumber, active?.versionNumber ?? v.versionNumber),
+                                  );
+                                }}
+                              >
+                                {t('prompts.compare')}
+                              </Button>
+                            )}
+                            {!v.active && (
+                              <Button
+                                variant="link"
+                                size="sm"
+                                className="h-auto p-0"
+                                onClick={() =>
+                                  api.activatePromptVersion(selectedId, v.id).then(() =>
+                                    queryClient.invalidateQueries({ queryKey: ['admin-prompt-versions', selectedId] }),
+                                  )
+                                }
+                              >
+                                {t('common.activate')}
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -281,6 +322,14 @@ export default function PromptsPage() {
           </div>
         )}
       </div>
+
+      <PromptVersionDiffDialog
+        open={diffOpen}
+        onOpenChange={setDiffOpen}
+        versions={versionDetails}
+        initialA={diffInitial.a}
+        initialB={diffInitial.b}
+      />
     </div>
   );
 }

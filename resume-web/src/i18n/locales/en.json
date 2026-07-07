@@ -230,7 +230,10 @@
     "draftSaving": "Saving draft…",
     "draftSaved": "Draft saved",
     "draftRestored": "Restored your previous draft.",
-    "resultRestored": "Restored your previous AI generation result."
+    "resultRestored": "Restored your previous AI generation result.",
+    "clearDraft": "Reset",
+    "clearDraftDesc": "Clears saved job input, AI results, and recommendations. This cannot be undone.",
+    "clearDraftConfirm": "Reset"
   },
   "settings": {
     "title": "Account settings",

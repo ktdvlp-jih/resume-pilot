@@ -61,10 +61,30 @@ docker compose up -d --build
 `master` 브랜치 push 시 Ubuntu **self-hosted runner**가 배포합니다.
 
 - Workflow: [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml)
-- 실행: `bash /home/jeon/apps/resume-pilot/scripts/resume-pilot.sh deploy`
-- 사전: 서버에 GitHub Actions Runner 등록, 저장소 clone 경로 일치
+- Runner 경로: `/home/jeon/apps/resume-pilot`
+- 동시 실행: `concurrency: deploy-ubuntu` (진행 중 배포 취소)
 
-수동 배포는 `./scripts/resume-pilot.sh deploy` 와 동일합니다.
+### 파이프라인 (3단계)
+
+| # | Step | 명령 | 검증 |
+|---|------|------|------|
+| 1 | Sync + Deploy | `git checkout -f origin/master` → `resume-pilot.sh deploy` | Docker 5컨테이너 Up |
+| 2 | HTTP + API smoke | `scripts/deploy-smoke.sh` | 12 checks (HTTP 5 + API 7) |
+| 3 | E2E smoke | `scripts/deploy-smoke-e2e.sh` | Playwright 4/4 (Docker 이미지) |
+
+**주의:** self-hosted runner 호스트에 **npm 없음** — E2E는 Playwright Docker 컨테이너에서 실행.
+
+### 스모크 스크립트
+
+| 스크립트 | 용도 |
+|----------|------|
+| `deploy-smoke.sh` | CI·서버 localhost (`SMOKE_BASE_URL` optional) |
+| `deploy-smoke-e2e.sh` | CI Playwright (`PLAYWRIGHT_BASE_URL`, lockfile 버전 → Docker tag) |
+| `deploy-smoke.ps1` | Windows / Quick Tunnel URL 수동 검증 |
+
+수동 배포: `./scripts/resume-pilot.sh deploy` (스모크는 CI에서만 자동).
+
+현황: [project-status.md](project-status.md) · 장애: [reports/deploy-ci-incidents-2026-07-07.md](reports/deploy-ci-incidents-2026-07-07.md)
 
 ## Environment variables
 

@@ -1,3 +1,4 @@
+import json
 import re
 from typing import Any
 
@@ -108,7 +109,7 @@ class LlmService:
     def has_llm(self) -> bool:
         return self._client is not None
 
-    def complete(self, system: str, user: str) -> str:
+    def complete(self, system: str, user: str, temperature: float = 0.7) -> str:
         if not self._client:
             return self._fallback.generate_resume([], 40)["content"]
         response = self._client.chat.completions.create(
@@ -117,9 +118,59 @@ class LlmService:
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
             ],
-            temperature=0.7,
+            temperature=temperature,
         )
         return response.choices[0].message.content or ""
+
+    def complete_with_image(
+        self,
+        system: str,
+        user_text: str,
+        image_data_url: str,
+        temperature: float = 0.2,
+    ) -> str:
+        if not self._client:
+            return ""
+        response = self._client.chat.completions.create(
+            model=settings.openai_model,
+            messages=[
+                {"role": "system", "content": system},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": user_text},
+                        {"type": "image_url", "image_url": {"url": image_data_url}},
+                    ],
+                },
+            ],
+            temperature=temperature,
+        )
+        return response.choices[0].message.content or ""
+
+    def parse_json_response(self, text: str) -> dict[str, Any] | None:
+        cleaned = text.strip()
+        if cleaned.startswith("```"):
+            cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
+            cleaned = re.sub(r"\s*```$", "", cleaned)
+        try:
+            parsed = json.loads(cleaned)
+            return parsed if isinstance(parsed, dict) else None
+        except json.JSONDecodeError:
+            return None
+
+    def complete_json(self, system: str, user: str, temperature: float = 0.2) -> dict[str, Any] | None:
+        return self.parse_json_response(self.complete(system, user, temperature=temperature))
+
+    def complete_with_image_json(
+        self,
+        system: str,
+        user_text: str,
+        image_data_url: str,
+        temperature: float = 0.2,
+    ) -> dict[str, Any] | None:
+        return self.parse_json_response(
+            self.complete_with_image(system, user_text, image_data_url, temperature=temperature)
+        )
 
     def generate_with_context(
         self,

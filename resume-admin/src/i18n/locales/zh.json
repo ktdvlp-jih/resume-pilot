@@ -40,7 +40,8 @@
     "noResults": "未找到结果。",
     "paginationSummary": "{{from}}–{{to}} / 共 {{total}} 条",
     "previous": "上一页",
-    "next": "下一页"
+    "next": "下一页",
+    "vs": "vs"
   },
   "auth": {
     "loginTitle": "Admin Login",
@@ -59,7 +60,14 @@
     "saveAndActivate": "保存并启用",
     "testResult": "测试结果",
     "versionColumn": "版本",
-    "statusColumn": "状态"
+    "statusColumn": "状态",
+    "compare": "对比",
+    "compareTitle": "版本 diff",
+    "versionLabel": "v{{version}}",
+    "splitView": "并排",
+    "unifiedView": "统一",
+    "needTwoVersions": "至少需要两个版本才能对比。",
+    "noDiff": "没有差异。"
   },
   "forbidden": {
     "title": "禁用表达管理",

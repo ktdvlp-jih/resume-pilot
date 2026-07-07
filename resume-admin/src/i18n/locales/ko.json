@@ -40,7 +40,8 @@
     "noResults": "검색 결과가 없습니다.",
     "paginationSummary": "{{from}}–{{to}} / 총 {{total}}건",
     "previous": "이전",
-    "next": "다음"
+    "next": "다음",
+    "vs": "vs"
   },
   "auth": {
     "loginTitle": "Admin Login",
@@ -59,7 +60,14 @@
     "saveAndActivate": "저장 및 활성화",
     "testResult": "테스트 결과",
     "versionColumn": "버전",
-    "statusColumn": "상태"
+    "statusColumn": "상태",
+    "compare": "비교",
+    "compareTitle": "버전 diff",
+    "versionLabel": "v{{version}}",
+    "splitView": "나란히",
+    "unifiedView": "통합",
+    "needTwoVersions": "비교하려면 버전이 2개 이상 필요합니다.",
+    "noDiff": "차이가 없습니다."
   },
   "forbidden": {
     "title": "금지 표현 관리",

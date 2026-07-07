@@ -230,7 +230,10 @@
     "draftSaving": "正在保存草稿…",
     "draftSaved": "草稿已保存",
     "draftRestored": "已恢复上次草稿内容。",
-    "resultRestored": "已恢复上次 AI 生成结果。"
+    "resultRestored": "已恢复上次 AI 生成结果。",
+    "clearDraft": "重置",
+    "clearDraftDesc": "将清除已保存的招聘输入、AI 结果和推荐列表，且无法撤销。",
+    "clearDraftConfirm": "重置"
   },
   "settings": {
     "title": "账户设置",

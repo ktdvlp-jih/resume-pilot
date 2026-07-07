@@ -40,7 +40,8 @@
     "noResults": "結果がありません。",
     "paginationSummary": "{{from}}–{{to}} / 全{{total}}件",
     "previous": "前へ",
-    "next": "次へ"
+    "next": "次へ",
+    "vs": "vs"
   },
   "auth": {
     "loginTitle": "Admin Login",
@@ -59,7 +60,14 @@
     "saveAndActivate": "保存して有効化",
     "testResult": "テスト結果",
     "versionColumn": "バージョン",
-    "statusColumn": "状態"
+    "statusColumn": "状態",
+    "compare": "比較",
+    "compareTitle": "バージョン diff",
+    "versionLabel": "v{{version}}",
+    "splitView": "並べて表示",
+    "unifiedView": "統合",
+    "needTwoVersions": "比較には2つ以上のバージョンが必要です。",
+    "noDiff": "差分はありません。"
   },
   "forbidden": {
     "title": "禁止表現管理",
