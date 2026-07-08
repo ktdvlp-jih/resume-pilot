@@ -48,6 +48,8 @@
     "loginTitle": "Admin Login",
     "login": "ログイン",
     "loginFailed": "ログインに失敗しました",
+    "loginId": "管理者ID",
+    "notAdmin": "管理者アカウントのみログインできます。",
     "email": "メール",
     "password": "パスワード"
   },
@@ -115,6 +117,8 @@
     "e2eDesc": "ランディング・登録・ワークスペースUIを検証します。LLMは使用しません。",
     "noteTitle": "注意",
     "note1": "HTTP/APIスモーク(deploy-smoke.sh)は常に実行されます。",
-    "note2": "変更は次回pushデプロイから適用されます。Docker再起動は不要です。"
+    "note2": "変更は次回pushデプロイから適用されます。Docker再起動は不要です。",
+    "loadError": "設定を読み込めませんでした。管理者アカウントでログインしているか確認してください。",
+    "saveError": "設定の保存に失敗しました。"
   }
 }

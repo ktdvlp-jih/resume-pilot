@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { api, setTokens } from '@/lib/api';
+import { api, clearTokens, setTokens } from '@/lib/api';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,15 +12,20 @@ import { Label } from '@/components/ui/label';
 export default function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const tokens = await api.login(email, password);
-      setTokens(tokens.accessToken, tokens.refreshToken);
+      const tokens = await api.login(loginId, password);
+      if (tokens.role !== 'ADMIN') {
+        clearTokens();
+        setError(t('auth.notAdmin'));
+        return;
+      }
+      setTokens(tokens.accessToken, tokens.refreshToken, tokens.role);
       navigate('/prompts');
     } catch (err) {
       setError(err instanceof Error ? err.message : t('auth.loginFailed'));
@@ -40,8 +45,15 @@ export default function LoginPage() {
               <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">{t('auth.email')}</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <Label htmlFor="loginId">{t('auth.loginId')}</Label>
+              <Input
+                id="loginId"
+                type="text"
+                autoComplete="username"
+                value={loginId}
+                onChange={(e) => setLoginId(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">{t('auth.password')}</Label>

@@ -48,6 +48,8 @@
     "loginTitle": "Admin Login",
     "login": "로그인",
     "loginFailed": "로그인 실패",
+    "loginId": "관리자 ID",
+    "notAdmin": "관리자 계정만 로그인할 수 있습니다.",
     "email": "이메일",
     "password": "비밀번호"
   },
@@ -115,6 +117,8 @@
     "e2eDesc": "랜딩·회원가입·워크스페이스 UI 플로우를 검증합니다. LLM은 사용하지 않습니다.",
     "noteTitle": "참고",
     "note1": "HTTP/API 스모크(deploy-smoke.sh)는 항상 실행됩니다.",
-    "note2": "설정 변경은 다음 push 배포부터 적용됩니다. Docker 재시작은 필요 없습니다."
+    "note2": "설정 변경은 다음 push 배포부터 적용됩니다. Docker 재시작은 필요 없습니다.",
+    "loadError": "설정을 불러오지 못했습니다. 관리자 계정으로 로그인했는지 확인하세요.",
+    "saveError": "설정 저장에 실패했습니다."
   }
 }

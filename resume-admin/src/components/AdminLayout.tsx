@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { getAccessToken } from '@/lib/api';
+import { getAccessToken, getUserRole } from '@/lib/api';
 import { AdminSidebar } from '@/components/admin-sidebar';
 import { AdminHeader } from '@/components/layout/admin-header';
 import { CommandMenu } from '@/components/layout/command-menu';
@@ -8,6 +8,9 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 
 export function AdminLayout() {
   if (!getAccessToken()) {
+    return <Navigate to="/login" replace />;
+  }
+  if (getUserRole() !== 'ADMIN') {
     return <Navigate to="/login" replace />;
   }
 

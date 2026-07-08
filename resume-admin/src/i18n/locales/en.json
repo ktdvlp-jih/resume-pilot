@@ -48,6 +48,8 @@
     "loginTitle": "Admin Login",
     "login": "Log in",
     "loginFailed": "Login failed",
+    "loginId": "Admin ID",
+    "notAdmin": "Only administrator accounts can sign in here.",
     "email": "Email",
     "password": "Password"
   },
@@ -115,6 +117,8 @@
     "e2eDesc": "Validates landing, signup, and workspace UI flows. Does not use LLM.",
     "noteTitle": "Notes",
     "note1": "HTTP/API smoke (deploy-smoke.sh) always runs.",
-    "note2": "Changes apply from the next push deploy. No Docker restart required."
+    "note2": "Changes apply from the next push deploy. No Docker restart required.",
+    "loadError": "Could not load settings. Make sure you are signed in with an administrator account.",
+    "saveError": "Failed to save settings."
   }
 }

@@ -14,14 +14,22 @@ function getAccessToken(): string | null {
 
 export { getAccessToken };
 
-export function setTokens(access: string, refresh: string) {
+export function getUserRole(): string | null {
+  return localStorage.getItem('userRole');
+}
+
+export function setTokens(access: string, refresh: string, role?: string) {
   localStorage.setItem('accessToken', access);
   localStorage.setItem('refreshToken', refresh);
+  if (role) {
+    localStorage.setItem('userRole', role);
+  }
 }
 
 export function clearTokens() {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
+  localStorage.removeItem('userRole');
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -41,10 +49,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
-  login: (email: string, password: string) =>
-    request<{ accessToken: string; refreshToken: string }>('/api/v1/auth/login', {
+  login: (loginId: string, password: string) =>
+    request<{ accessToken: string; refreshToken: string; role: string }>('/api/v1/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email: loginId, password }),
     }),
   listPrompts: () => request<Array<{ id: string; name: string; type: string; description?: string; activeVersionId?: string }>>('/api/v1/admin/prompts'),
   listPromptVersions: (templateId: string) =>

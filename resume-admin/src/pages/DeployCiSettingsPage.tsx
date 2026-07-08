@@ -2,9 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import { PageHeader } from '@/components/PageHeader';
-import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 type DeployCiSettings = {
   deployAiE2eEnabled: boolean;
@@ -15,9 +17,10 @@ type DeployCiSettings = {
 export default function DeployCiSettingsPage() {
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ['admin-deploy-ci-settings'],
     queryFn: api.getDeployCiSettings,
+    retry: false,
   });
 
   const mutation = useMutation({
@@ -30,17 +33,39 @@ export default function DeployCiSettingsPage() {
   const settings = data as DeployCiSettings | undefined;
   const dateLocale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'ja' ? 'ja-JP' : i18n.language === 'zh' ? 'zh-CN' : 'en-US';
 
-  const toggle = (patch: Partial<DeployCiSettings>) => {
-    if (!settings) return;
+  const toggleAi = (enabled: boolean) => {
     mutation.mutate({
-      deployAiE2eEnabled: patch.deployAiE2eEnabled ?? settings.deployAiE2eEnabled,
-      deployE2eEnabled: patch.deployE2eEnabled ?? settings.deployE2eEnabled,
+      deployAiE2eEnabled: enabled,
+      deployE2eEnabled: settings?.deployE2eEnabled ?? true,
+    });
+  };
+
+  const toggleE2e = (enabled: boolean) => {
+    mutation.mutate({
+      deployAiE2eEnabled: settings?.deployAiE2eEnabled ?? true,
+      deployE2eEnabled: enabled,
     });
   };
 
   return (
     <div className="space-y-4">
       <PageHeader title={t('deploySettings.title')} description={t('deploySettings.subtitle')} />
+
+      {isError && (
+        <Alert variant="destructive">
+          <AlertDescription>
+            {error instanceof Error ? error.message : t('deploySettings.loadError')}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {mutation.isError && (
+        <Alert variant="destructive">
+          <AlertDescription>
+            {mutation.error instanceof Error ? mutation.error.message : t('deploySettings.saveError')}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {settings?.updatedAt && (
         <p className="text-sm text-muted-foreground">
@@ -53,23 +78,19 @@ export default function DeployCiSettingsPage() {
           title={t('deploySettings.aiE2eTitle')}
           description={t('deploySettings.aiE2eDesc')}
           enabled={settings?.deployAiE2eEnabled ?? true}
-          loading={isLoading || mutation.isPending}
-          onToggle={() => toggle({ deployAiE2eEnabled: !settings?.deployAiE2eEnabled })}
+          loading={isLoading || mutation.isPending || isError}
+          onToggle={toggleAi}
           enabledLabel={t('deploySettings.enabled')}
           disabledLabel={t('deploySettings.disabled')}
-          turnOn={t('deploySettings.turnOn')}
-          turnOff={t('deploySettings.turnOff')}
         />
         <SettingCard
           title={t('deploySettings.e2eTitle')}
           description={t('deploySettings.e2eDesc')}
           enabled={settings?.deployE2eEnabled ?? true}
-          loading={isLoading || mutation.isPending}
-          onToggle={() => toggle({ deployE2eEnabled: !settings?.deployE2eEnabled })}
+          loading={isLoading || mutation.isPending || isError}
+          onToggle={toggleE2e}
           enabledLabel={t('deploySettings.enabled')}
           disabledLabel={t('deploySettings.disabled')}
-          turnOn={t('deploySettings.turnOn')}
-          turnOff={t('deploySettings.turnOff')}
         />
       </div>
 
@@ -94,18 +115,14 @@ function SettingCard({
   onToggle,
   enabledLabel,
   disabledLabel,
-  turnOn,
-  turnOff,
 }: {
   title: string;
   description: string;
   enabled: boolean;
   loading: boolean;
-  onToggle: () => void;
+  onToggle: (enabled: boolean) => void;
   enabledLabel: string;
   disabledLabel: string;
-  turnOn: string;
-  turnOff: string;
 }) {
   return (
     <Card>
@@ -117,9 +134,17 @@ function SettingCard({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Button variant={enabled ? 'outline' : 'default'} disabled={loading} onClick={onToggle}>
-          {enabled ? turnOff : turnOn}
-        </Button>
+        <div className="flex items-center justify-between gap-4">
+          <Label htmlFor={`toggle-${title}`} className="text-sm text-muted-foreground">
+            {enabled ? enabledLabel : disabledLabel}
+          </Label>
+          <Switch
+            id={`toggle-${title}`}
+            checked={enabled}
+            disabled={loading}
+            onCheckedChange={onToggle}
+          />
+        </div>
       </CardContent>
     </Card>
   );

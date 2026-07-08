@@ -48,6 +48,8 @@
     "loginTitle": "Admin Login",
     "login": "登录",
     "loginFailed": "登录失败",
+    "loginId": "管理员 ID",
+    "notAdmin": "仅管理员账号可登录。",
     "email": "邮箱",
     "password": "密码"
   },
@@ -115,6 +117,8 @@
     "e2eDesc": "验证落地页、注册、工作区 UI 流程。不使用 LLM。",
     "noteTitle": "说明",
     "note1": "HTTP/API 冒烟 (deploy-smoke.sh) 始终运行。",
-    "note2": "更改从下次 push 部署起生效。无需重启 Docker。"
+    "note2": "更改从下次 push 部署起生效。无需重启 Docker。",
+    "loadError": "无法加载设置，请确认已使用管理员账号登录。",
+    "saveError": "保存设置失败。"
   }
 }
