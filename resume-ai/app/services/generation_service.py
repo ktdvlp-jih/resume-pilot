@@ -113,6 +113,7 @@ class DetectionService:
                     return {
                         "detections": detections,
                         "ai_trace_percent": round(red / total * 100, 1),
+                        "model": llm_service.last_model_for("AI_DETECTION"),
                     }
             except Exception as exc:
                 logger.warning("AI_DETECTION prompt failed, using rule fallback: %s", exc)
@@ -145,7 +146,11 @@ class ReviewService:
                     parsed.get("reviews") if isinstance(parsed, dict) else None
                 )
                 if isinstance(reviews, list) and reviews:
-                    return {"reviews": reviews, "job_analysis": job_analysis}
+                    return {
+                        "reviews": reviews,
+                        "job_analysis": job_analysis,
+                        "model": llm_service.last_model_for("AI_REVIEW"),
+                    }
             except Exception as exc:
                 logger.warning("AI_REVIEW prompt failed, using rule fallback: %s", exc)
 

@@ -110,6 +110,7 @@
     "time": "Time",
     "service": "Service",
     "operation": "Operation",
+    "model": "Model",
     "status": "Status",
     "duration": "Duration (ms)",
     "empty": "No AI usage logs yet. Try running generation in the workspace."

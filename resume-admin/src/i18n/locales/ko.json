@@ -110,6 +110,7 @@
     "time": "시간",
     "service": "서비스",
     "operation": "작업",
+    "model": "모델",
     "status": "상태",
     "duration": "소요(ms)",
     "empty": "AI 사용 로그가 없습니다. 워크스페이스에서 생성을 실행해 보세요."

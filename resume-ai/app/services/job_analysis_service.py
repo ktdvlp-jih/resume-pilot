@@ -107,6 +107,7 @@ class JobAnalysisService:
             if llm_result:
                 result = self._merge_extraction(result, llm_result)
                 extraction_method = f"{extraction_method}+llm"
+                result["model"] = llm_service.last_model_for("JOB_ANALYSIS")
 
         result["source_type"] = source_type
         result["extraction_method"] = extraction_method
@@ -204,6 +205,7 @@ class JobAnalysisService:
         result = self._fields_from_llm(parsed)
         result["source_type"] = "IMAGE"
         result["extraction_method"] = "vision"
+        result["model"] = llm_service.last_model_for("JOB_ANALYSIS")
         if not result.get("raw_content"):
             result["raw_content"] = result.get("job_description", "")[:5000]
         return result

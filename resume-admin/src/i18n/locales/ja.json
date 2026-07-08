@@ -110,6 +110,7 @@
     "time": "時間",
     "service": "サービス",
     "operation": "操作",
+    "model": "モデル",
     "status": "状態",
     "duration": "所要(ms)",
     "empty": "AI使用ログがありません。ワークスペースで生成を実行してください。"

@@ -5,8 +5,6 @@ import com.resumepilot.domain.admin.AiUsageLog;
 import com.resumepilot.domain.admin.AiUsageLogRepository;
 import com.resumepilot.domain.admin.ForbiddenExpressionRepository;
 import com.resumepilot.domain.experience.ExperienceRepository;
-import com.resumepilot.global.exception.BusinessException;
-import com.resumepilot.global.exception.ErrorCode;
 import com.resumepilot.infrastructure.ai.AiGatewayClient;
 import com.resumepilot.presentation.dto.ai.*;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +36,7 @@ public class AiOrchestrationService {
         payload.put("forbidden_expressions", getForbiddenList());
 
         Map<String, Object> result = aiGatewayClient.generateResume(payload);
-        logUsage(userId, "generate", start, result != null);
+        logUsage(userId, "generate", start, result != null, str(result != null ? result.get("model") : null));
 
         if (result != null) {
             validateExperienceIds(userId, result);
@@ -62,7 +60,7 @@ public class AiOrchestrationService {
         long start = System.currentTimeMillis();
         Map<String, Object> payload = Map.of("content", content, "forbidden_expressions", getForbiddenList());
         Map<String, Object> result = aiGatewayClient.detectAiTraces(payload);
-        logUsage(userId, "detect", start, true);
+        logUsage(userId, "detect", start, true, str(result != null ? result.get("model") : null));
         return result;
     }
 
@@ -72,14 +70,14 @@ public class AiOrchestrationService {
         payload.put("content", request.content());
         if (request.jobAnalysis() != null) payload.put("job_analysis", request.jobAnalysis());
         Map<String, Object> result = aiGatewayClient.reviewFeedback(payload);
-        logUsage(userId, "review", start, true);
+        logUsage(userId, "review", start, true, str(result != null ? result.get("model") : null));
         return result;
     }
 
     public Map<String, Object> interviewQuestions(UUID userId, String content) {
         long start = System.currentTimeMillis();
         Map<String, Object> result = aiGatewayClient.interviewQuestions(Map.of("content", content));
-        logUsage(userId, "interview", start, true);
+        logUsage(userId, "interview", start, true, null);
         return result;
     }
 
@@ -89,7 +87,7 @@ public class AiOrchestrationService {
                 "job_keywords", request.jobKeywords(),
                 "resume_content", request.resumeContent()
         ));
-        logUsage(userId, "compare_keywords", start, true);
+        logUsage(userId, "compare_keywords", start, true, null);
         return result;
     }
 
@@ -121,7 +119,6 @@ public class AiOrchestrationService {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void persistArtifacts(UUID generationId, Map<String, Object> result) {
         Object detections = result.get("detections");
         if (detections instanceof List<?> list) {
@@ -172,11 +169,12 @@ public class AiOrchestrationService {
                 .map(f -> f.getExpression()).toList();
     }
 
-    private void logUsage(UUID userId, String operation, long startMs, boolean success) {
+    private void logUsage(UUID userId, String operation, long startMs, boolean success, String model) {
         usageLogRepository.save(AiUsageLog.builder()
                 .userId(userId)
                 .service("resume-ai")
                 .operation(operation)
+                .model(model)
                 .durationMs((int) (System.currentTimeMillis() - startMs))
                 .status(success ? "SUCCESS" : "FAILED")
                 .build());
@@ -187,7 +185,6 @@ public class AiOrchestrationService {
         return o instanceof Map ? (Map<String, Object>) o : Map.of();
     }
 
-    @SuppressWarnings("unchecked")
     private List<String> toStringList(Object o) {
         if (o instanceof List<?> list) return list.stream().map(String::valueOf).toList();
         return List.of();

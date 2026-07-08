@@ -1,6 +1,8 @@
 package com.resumepilot.application.job;
 
 import com.resumepilot.application.company.CompanyService;
+import com.resumepilot.domain.admin.AiUsageLog;
+import com.resumepilot.domain.admin.AiUsageLogRepository;
 import com.resumepilot.domain.company.*;
 import com.resumepilot.global.exception.BusinessException;
 import com.resumepilot.global.exception.ErrorCode;
@@ -25,6 +27,7 @@ public class JobPostingService {
     private final CompanyService companyService;
     private final AiGatewayClient aiGatewayClient;
     private final DocumentExtractor documentExtractor;
+    private final AiUsageLogRepository usageLogRepository;
 
     @Transactional(readOnly = true)
     public List<JobPostingResponse> list(UUID userId) {
@@ -40,6 +43,7 @@ public class JobPostingService {
 
     @Transactional
     public JobPostingResponse upload(UUID userId, JobPostingUploadRequest request) {
+        long startedAt = System.currentTimeMillis();
         String content = resolveContent(request);
 
         JobPosting posting = JobPosting.builder()
@@ -52,6 +56,7 @@ public class JobPostingService {
         jobPostingRepository.save(posting);
 
         Map<String, Object> aiResult = analyzeWithAi(request.sourceType().name(), content, request.sourceUrl(), null, null);
+        logUsage(userId, request.sourceType().name(), startedAt, !aiResult.containsKey("error"), str(aiResult.get("model")));
         posting.setParsedJson(aiResult);
         if (aiResult.get("title") != null && posting.getTitle() == null) {
             posting.setTitle(String.valueOf(aiResult.get("title")));
@@ -68,6 +73,7 @@ public class JobPostingService {
 
     @Transactional
     public JobPostingResponse uploadFile(UUID userId, MultipartFile file, String title) {
+        long startedAt = System.currentTimeMillis();
         DocumentExtractor.ExtractedDocument doc = documentExtractor.extract(file);
         JobSourceType sourceType = JobSourceType.valueOf(doc.sourceType());
 
@@ -86,6 +92,7 @@ public class JobPostingService {
                 doc.fileBase64(),
                 doc.mimeType()
         );
+        logUsage(userId, sourceType.name(), startedAt, !aiResult.containsKey("error"), str(aiResult.get("model")));
         Object rawFromAi = aiResult.get("raw_content");
         if (rawFromAi != null && !String.valueOf(rawFromAi).isBlank()) {
             posting.setRawContent(String.valueOf(rawFromAi));
@@ -116,6 +123,7 @@ public class JobPostingService {
 
     @Transactional
     public JobAnalysisResponse reanalyze(UUID userId, UUID jobPostingId) {
+        long startedAt = System.currentTimeMillis();
         JobPosting posting = getOwned(userId, jobPostingId);
         Map<String, Object> aiResult = analyzeWithAi(
                 posting.getSourceType().name(),
@@ -124,6 +132,7 @@ public class JobPostingService {
                 null,
                 null
         );
+        logUsage(userId, posting.getSourceType().name(), startedAt, !aiResult.containsKey("error"), str(aiResult.get("model")));
         posting.setParsedJson(aiResult);
         Company company = companyService.upsertFromAnalysis(aiResult);
         if (company != null) {
@@ -223,11 +232,22 @@ public class JobPostingService {
         return o != null ? String.valueOf(o) : null;
     }
 
-    @SuppressWarnings("unchecked")
     private List<String> toStringList(Object o) {
         if (o instanceof List<?> list) {
             return list.stream().map(String::valueOf).toList();
         }
         return List.of();
+    }
+
+    private void logUsage(UUID userId, String sourceType, long startedAt, boolean success, String model) {
+        usageLogRepository.save(AiUsageLog.builder()
+                .userId(userId)
+                .service("resume-ai")
+                .operation("job_analysis")
+                .model(model)
+                .durationMs((int) (System.currentTimeMillis() - startedAt))
+                .status(success ? "SUCCESS" : "FAILED")
+                .metadata(Map.of("source_type", sourceType))
+                .build());
     }
 }

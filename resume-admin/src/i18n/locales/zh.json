@@ -110,6 +110,7 @@
     "time": "时间",
     "service": "服务",
     "operation": "操作",
+    "model": "模型",
     "status": "状态",
     "duration": "耗时(ms)",
     "empty": "暂无 AI 使用日志。请在工作区中尝试运行生成。"

@@ -13,11 +13,13 @@ import { useUrlPagination } from '@/hooks/use-url-pagination';
 import { useUrlSort } from '@/hooks/use-url-sort';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { formatModelDisplay } from '@/lib/model-labels';
 
 type LogRow = {
   id: string;
   service: string;
   operation: string;
+  model?: string;
   status: string;
   durationMs: number;
   createdAt: string;
@@ -37,6 +39,7 @@ export default function AiLogsPage() {
       (l) =>
         l.service.toLowerCase().includes(q) ||
         l.operation.toLowerCase().includes(q) ||
+        (l.model || '').toLowerCase().includes(q) ||
         l.status.toLowerCase().includes(q),
     );
   }, [data, search]);
@@ -85,6 +88,7 @@ export default function AiLogsPage() {
                   <SortableTableHead label={t('aiLogs.time')} sortKey="time" activeKey={sortKey} direction={direction} onSort={toggleSort} />
                   <SortableTableHead label={t('aiLogs.service')} sortKey="service" activeKey={sortKey} direction={direction} onSort={toggleSort} />
                   <TableHead>{t('aiLogs.operation')}</TableHead>
+                  <TableHead>{t('aiLogs.model')}</TableHead>
                   <TableHead>{t('aiLogs.status')}</TableHead>
                   <SortableTableHead label={t('aiLogs.duration')} sortKey="duration" activeKey={sortKey} direction={direction} onSort={toggleSort} />
                 </TableRow>
@@ -95,6 +99,9 @@ export default function AiLogsPage() {
                     <TableCell className="text-muted-foreground">{new Date(l.createdAt).toLocaleString(dateLocale)}</TableCell>
                     <TableCell>{l.service}</TableCell>
                     <TableCell>{l.operation}</TableCell>
+                    <TableCell className="max-w-[300px] truncate text-xs" title={formatModelDisplay(l.model)}>
+                      {formatModelDisplay(l.model)}
+                    </TableCell>
                     <TableCell>
                       <Badge variant={l.status === 'SUCCESS' ? 'secondary' : 'destructive'}>{l.status}</Badge>
                     </TableCell>

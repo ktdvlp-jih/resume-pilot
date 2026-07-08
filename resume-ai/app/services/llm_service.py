@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+from contextvars import ContextVar
 from typing import Any
 
 from openai import APIStatusError, OpenAI, RateLimitError
@@ -9,6 +10,7 @@ from app.config import settings
 from app.services.provider_router import LlmRoute, provider_router
 
 logger = logging.getLogger(__name__)
+_llm_meta: ContextVar[dict[str, str]] = ContextVar("_llm_meta", default={})
 
 
 class RuleBasedGenerator:
@@ -124,7 +126,9 @@ class LlmService:
         last_error: Exception | None = None
         for route in routes:
             try:
-                return self._chat(route, system, user, temperature)
+                content = self._chat(route, system, user, temperature)
+                self._set_last_model(operation, route.model_name)
+                return content
             except Exception as exc:
                 if not self._is_retryable(exc):
                     raise
@@ -179,6 +183,7 @@ class LlmService:
                     ],
                     temperature=temperature,
                 )
+                self._set_last_model(operation, route.model_name)
                 return response.choices[0].message.content or ""
             except Exception as exc:
                 if not self._is_retryable(exc):
@@ -254,7 +259,11 @@ class LlmService:
             "content": content,
             "experience_ids": [e.get("entity_id") for e in experiences if e.get("entity_id")],
             "insufficient": False,
+            "model": self.last_model_for("GENERATE"),
         }
+
+    def last_model_for(self, operation: str) -> str | None:
+        return _llm_meta.get({}).get(operation)
 
     async def _resolve_routes(self, operation: str) -> list[LlmRoute]:
         routes = await provider_router.routes_for(operation)
@@ -286,6 +295,11 @@ class LlmService:
         if isinstance(exc, APIStatusError) and exc.status_code in {401, 403, 429, 500, 502, 503, 504}:
             return True
         return False
+
+    def _set_last_model(self, operation: str, model_name: str) -> None:
+        current = dict(_llm_meta.get({}))
+        current[operation] = model_name
+        _llm_meta.set(current)
 
 
 llm_service = LlmService()
