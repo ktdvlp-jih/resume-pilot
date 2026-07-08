@@ -13,6 +13,7 @@ const ForbiddenPage = lazy(() => import('./pages/ForbiddenPage'));
 const CompaniesPage = lazy(() => import('./pages/CompaniesPage'));
 const UsersPage = lazy(() => import('./pages/UsersPage'));
 const AiLogsPage = lazy(() => import('./pages/AiLogsPage'));
+const DeployCiSettingsPage = lazy(() => import('./pages/DeployCiSettingsPage'));
 
 const queryClient = new QueryClient();
 const adminBase = (import.meta.env.BASE_URL || '/admin/').replace(/\/$/, '') || '/admin';
@@ -37,6 +38,7 @@ export default function App() {
                   <Route path="/companies" element={<CompaniesPage />} />
                   <Route path="/users" element={<UsersPage />} />
                   <Route path="/ai-logs" element={<AiLogsPage />} />
+                  <Route path="/deploy-ci-settings" element={<DeployCiSettingsPage />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/prompts" replace />} />
               </Routes>

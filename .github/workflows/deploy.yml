@@ -29,6 +29,7 @@ jobs:
           chmod +x scripts/deploy-smoke.sh
           chmod +x scripts/deploy-smoke-e2e.sh
           chmod +x scripts/deploy-smoke-e2e-ai.sh
+          chmod +x scripts/ci-setting-read.sh
 
       - name: Deploy (git pull + docker compose)
         run: bash /home/jeon/apps/resume-pilot/scripts/resume-pilot.sh deploy

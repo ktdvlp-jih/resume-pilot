@@ -21,6 +21,7 @@
     "companies": "企業データ",
     "users": "ユーザー",
     "aiLogs": "AIログ",
+    "deploySettings": "デプロイCI",
     "logout": "ログアウト",
     "lightMode": "ライトモード",
     "darkMode": "ダークモード"
@@ -98,5 +99,22 @@
     "status": "状態",
     "duration": "所要(ms)",
     "empty": "AI使用ログがありません。ワークスペースで生成を実行してください。"
+  },
+  "deploySettings": {
+    "title": "デプロイCI設定",
+    "subtitle": "master push後に自動実行されるE2Eテストのオン/オフを切り替えます。",
+    "lastUpdated": "最終更新",
+    "saved": "設定を保存しました。",
+    "enabled": "オン",
+    "disabled": "オフ",
+    "turnOn": "オンにする",
+    "turnOff": "オフにする",
+    "aiE2eTitle": "AI E2E (TC-AI-05)",
+    "aiE2eDesc": "デプロイ後、Playwrightで経験→求人→RAG→生成を検証します。Gemini API枠を多く消費します。",
+    "e2eTitle": "E2Eスモーク + ユーザージャーニー",
+    "e2eDesc": "ランディング・登録・ワークスペースUIを検証します。LLMは使用しません。",
+    "noteTitle": "注意",
+    "note1": "HTTP/APIスモーク(deploy-smoke.sh)は常に実行されます。",
+    "note2": "変更は次回pushデプロイから適用されます。Docker再起動は不要です。"
   }
 }

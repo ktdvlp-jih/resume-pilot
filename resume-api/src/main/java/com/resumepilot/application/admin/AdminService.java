@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -24,6 +25,9 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class AdminService {
+
+    public static final String KEY_DEPLOY_AI_E2E = "deploy_ai_e2e_enabled";
+    public static final String KEY_DEPLOY_E2E = "deploy_e2e_enabled";
 
     private final PromptTemplateRepository promptRepository;
     private final PromptVersionRepository promptVersionRepository;
@@ -33,6 +37,7 @@ public class AdminService {
     private final CompanyRepository companyRepository;
     private final CompanyMapper companyMapper;
     private final AiUsageLogRepository usageLogRepository;
+    private final SystemSettingRepository systemSettingRepository;
     private final PromptServiceClient promptServiceClient;
 
     @Transactional(readOnly = true)
@@ -177,6 +182,62 @@ public class AdminService {
                 .map(l -> new AiLogResponse(l.getId(), l.getUserId(), l.getService(), l.getOperation(),
                         l.getDurationMs(), l.getStatus(), l.getCreatedAt()))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public DeployCiSettingsResponse getDeployCiSettings() {
+        return new DeployCiSettingsResponse(
+                readBooleanSetting(KEY_DEPLOY_AI_E2E, true),
+                readBooleanSetting(KEY_DEPLOY_E2E, true),
+                latestSettingUpdatedAt()
+        );
+    }
+
+    @Transactional
+    public DeployCiSettingsResponse updateDeployCiSettings(DeployCiSettingsUpdateRequest req, UUID adminId) {
+        if (req.deployAiE2eEnabled() != null) {
+            upsertSetting(KEY_DEPLOY_AI_E2E, req.deployAiE2eEnabled(), adminId);
+        }
+        if (req.deployE2eEnabled() != null) {
+            upsertSetting(KEY_DEPLOY_E2E, req.deployE2eEnabled(), adminId);
+        }
+        return getDeployCiSettings();
+    }
+
+    private boolean readBooleanSetting(String key, boolean defaultValue) {
+        return systemSettingRepository.findById(key)
+                .map(s -> parseBoolean(s.getSettingValue(), defaultValue))
+                .orElse(defaultValue);
+    }
+
+    private boolean parseBoolean(String value, boolean defaultValue) {
+        if (value == null) {
+            return defaultValue;
+        }
+        String normalized = value.trim().toLowerCase();
+        if ("true".equals(normalized) || "1".equals(normalized) || "yes".equals(normalized)) {
+            return true;
+        }
+        if ("false".equals(normalized) || "0".equals(normalized) || "no".equals(normalized)) {
+            return false;
+        }
+        return defaultValue;
+    }
+
+    private void upsertSetting(String key, boolean enabled, UUID adminId) {
+        SystemSetting setting = systemSettingRepository.findById(key)
+                .orElse(SystemSetting.builder().settingKey(key).build());
+        setting.setSettingValue(Boolean.toString(enabled));
+        setting.setUpdatedBy(adminId);
+        systemSettingRepository.save(setting);
+    }
+
+    private Instant latestSettingUpdatedAt() {
+        return systemSettingRepository.findAll().stream()
+                .map(SystemSetting::getUpdatedAt)
+                .filter(java.util.Objects::nonNull)
+                .max(Instant::compareTo)
+                .orElse(null);
     }
 
     private PromptTemplate getPromptTemplate(UUID id) {

@@ -20,6 +20,11 @@ if ! command -v docker >/dev/null 2>&1; then
   exit 1
 fi
 
+if [[ "$(bash "${ROOT}/scripts/ci-setting-read.sh" deploy_e2e_enabled true)" != "true" ]]; then
+  echo "SMOKE SKIP E2E: disabled in admin deploy settings (deploy_e2e_enabled=false)"
+  exit 0
+fi
+
 echo "== E2E smoke (Playwright Docker ${PLAYWRIGHT_VERSION}, ${BASE_URL}) =="
 docker run --rm --network host \
   -v "${ROOT}/e2e:/e2e" \

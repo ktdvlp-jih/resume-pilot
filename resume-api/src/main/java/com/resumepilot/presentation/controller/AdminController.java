@@ -98,4 +98,17 @@ public class AdminController {
     public ApiResponse<List<AiLogResponse>> listAiLogs() {
         return ApiResponse.ok(adminService.listAiLogs());
     }
+
+    @GetMapping("/deploy-ci-settings")
+    @Operation(summary = "배포 CI 설정 조회 (E2E / AI E2E)")
+    public ApiResponse<DeployCiSettingsResponse> getDeployCiSettings() {
+        return ApiResponse.ok(adminService.getDeployCiSettings());
+    }
+
+    @PatchMapping("/deploy-ci-settings")
+    @Operation(summary = "배포 CI 설정 변경")
+    public ApiResponse<DeployCiSettingsResponse> updateDeployCiSettings(
+            @RequestBody DeployCiSettingsUpdateRequest req) {
+        return ApiResponse.ok(adminService.updateDeployCiSettings(req, SecurityUtils.getCurrentUserId()));
+    }
 }

@@ -21,6 +21,7 @@
     "companies": "Companies",
     "users": "Users",
     "aiLogs": "AI Logs",
+    "deploySettings": "Deploy CI",
     "logout": "Log out",
     "lightMode": "Light mode",
     "darkMode": "Dark mode"
@@ -98,5 +99,22 @@
     "status": "Status",
     "duration": "Duration (ms)",
     "empty": "No AI usage logs yet. Try running generation in the workspace."
+  },
+  "deploySettings": {
+    "title": "Deploy CI Settings",
+    "subtitle": "Enable or disable E2E tests that run automatically after each master push.",
+    "lastUpdated": "Last updated",
+    "saved": "Settings saved.",
+    "enabled": "On",
+    "disabled": "Off",
+    "turnOn": "Turn on",
+    "turnOff": "Turn off",
+    "aiE2eTitle": "AI E2E (TC-AI-05)",
+    "aiE2eDesc": "After deploy, Playwright validates experience → job → RAG → resume generation. Uses significant Gemini API quota.",
+    "e2eTitle": "E2E smoke + user journey",
+    "e2eDesc": "Validates landing, signup, and workspace UI flows. Does not use LLM.",
+    "noteTitle": "Notes",
+    "note1": "HTTP/API smoke (deploy-smoke.sh) always runs.",
+    "note2": "Changes apply from the next push deploy. No Docker restart required."
   }
 }

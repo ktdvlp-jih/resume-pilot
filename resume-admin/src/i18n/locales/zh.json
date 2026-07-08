@@ -21,6 +21,7 @@
     "companies": "企业数据",
     "users": "用户",
     "aiLogs": "AI 日志",
+    "deploySettings": "部署 CI",
     "logout": "退出登录",
     "lightMode": "浅色模式",
     "darkMode": "深色模式"
@@ -98,5 +99,22 @@
     "status": "状态",
     "duration": "耗时(ms)",
     "empty": "暂无 AI 使用日志。请在工作区中尝试运行生成。"
+  },
+  "deploySettings": {
+    "title": "部署 CI 设置",
+    "subtitle": "开启或关闭 master push 后自动运行的 E2E 测试。",
+    "lastUpdated": "最后更新",
+    "saved": "设置已保存。",
+    "enabled": "开启",
+    "disabled": "关闭",
+    "turnOn": "开启",
+    "turnOff": "关闭",
+    "aiE2eTitle": "AI E2E (TC-AI-05)",
+    "aiE2eDesc": "部署后 Playwright 验证经历→招聘→RAG→生成流程。会消耗较多 Gemini API 配额。",
+    "e2eTitle": "E2E 冒烟 + 用户旅程",
+    "e2eDesc": "验证落地页、注册、工作区 UI 流程。不使用 LLM。",
+    "noteTitle": "说明",
+    "note1": "HTTP/API 冒烟 (deploy-smoke.sh) 始终运行。",
+    "note2": "更改从下次 push 部署起生效。无需重启 Docker。"
   }
 }

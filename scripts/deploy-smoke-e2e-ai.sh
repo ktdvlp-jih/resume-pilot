@@ -20,6 +20,11 @@ if ! command -v docker >/dev/null 2>&1; then
   exit 1
 fi
 
+if [[ "$(bash "${ROOT}/scripts/ci-setting-read.sh" deploy_ai_e2e_enabled true)" != "true" ]]; then
+  echo "SMOKE SKIP AI E2E: disabled in admin deploy settings (deploy_ai_e2e_enabled=false)"
+  exit 0
+fi
+
 if [[ -z "${OPENAI_API_KEY:-}" ]]; then
   echo "SMOKE SKIP AI E2E: OPENAI_API_KEY not set in .env"
   exit 0

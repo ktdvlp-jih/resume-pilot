@@ -73,4 +73,11 @@ export const api = {
   updateCompany: (id: string, data: { culture?: string; hiringKeywords?: string[] }) =>
     request<void>(`/api/v1/admin/companies/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   listAiLogs: () => request<Array<{ id: string; service: string; operation: string; status: string; durationMs: number; createdAt: string }>>('/api/v1/admin/ai-logs'),
+  getDeployCiSettings: () =>
+    request<{ deployAiE2eEnabled: boolean; deployE2eEnabled: boolean; updatedAt?: string }>('/api/v1/admin/deploy-ci-settings'),
+  updateDeployCiSettings: (data: { deployAiE2eEnabled?: boolean; deployE2eEnabled?: boolean }) =>
+    request<{ deployAiE2eEnabled: boolean; deployE2eEnabled: boolean; updatedAt?: string }>('/api/v1/admin/deploy-ci-settings', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
 };
