@@ -37,30 +37,20 @@ type LlmRoute = {
 
 const OPERATION_ORDER = ['GENERATE', 'JOB_ANALYSIS', 'AI_DETECTION', 'AI_REVIEW', 'EMBEDDING'];
 
-const FREE_MODELS_BY_PROVIDER: Record<string, string[]> = {
-  gemini: [
-    'gemini-2.5-flash',
-    'gemini-2.0-flash-lite',
-    'gemini-embedding-001',
-  ],
-  openai: [
-    'gpt-4o-mini',
-    'text-embedding-3-small',
-  ],
-  github: [
-    'openai/gpt-4o-mini',
-    'openai/gpt-4.1-mini',
-    'meta/llama-3.3-70b-instruct',
-  ],
-  groq: [
-    'llama-3.1-8b-instant',
-    'llama-3.3-70b-versatile',
-  ],
-  openrouter: [
-    'google/gemini-2.5-flash',
-    'meta-llama/llama-3.1-8b-instruct:free',
-    'deepseek/deepseek-r1:free',
-  ],
+const FREE_CHAT_MODELS_BY_PROVIDER: Record<string, string[]> = {
+  gemini: ['gemini-2.5-flash', 'gemini-2.0-flash-lite'],
+  openai: ['gpt-4o-mini'],
+  github: ['openai/gpt-4o-mini', 'openai/gpt-4.1-mini', 'meta/llama-3.3-70b-instruct'],
+  groq: ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile'],
+  openrouter: ['google/gemini-2.5-flash', 'meta-llama/llama-3.1-8b-instruct:free', 'deepseek/deepseek-r1:free'],
+};
+
+const FREE_EMBEDDING_MODELS_BY_PROVIDER: Record<string, string[]> = {
+  gemini: ['gemini-embedding-001'],
+  openai: ['text-embedding-3-small'],
+  github: [],
+  groq: [],
+  openrouter: [],
 };
 
 export default function LlmSettingsPage() {
@@ -132,7 +122,10 @@ export default function LlmSettingsPage() {
     };
 
   const getRouteModelOptions = (route: LlmRoute, currentModel: string) => {
-    const preset = FREE_MODELS_BY_PROVIDER[route.providerSlug] ?? [];
+    const byProvider = route.operation === 'EMBEDDING'
+      ? FREE_EMBEDDING_MODELS_BY_PROVIDER
+      : FREE_CHAT_MODELS_BY_PROVIDER;
+    const preset = byProvider[route.providerSlug] ?? [];
     if (currentModel && !preset.includes(currentModel)) {
       return [currentModel, ...preset];
     }

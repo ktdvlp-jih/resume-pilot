@@ -283,7 +283,7 @@ class LlmService:
     def _is_retryable(self, exc: Exception) -> bool:
         if isinstance(exc, RateLimitError):
             return True
-        if isinstance(exc, APIStatusError) and exc.status_code in {429, 500, 502, 503, 504}:
+        if isinstance(exc, APIStatusError) and exc.status_code in {401, 403, 429, 500, 502, 503, 504}:
             return True
         return False
 

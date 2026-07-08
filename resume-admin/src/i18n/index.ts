@@ -15,11 +15,7 @@ export function resolveLocale(): Locale {
   if (stored && SUPPORTED_LOCALES.includes(stored as Locale)) {
     return stored as Locale;
   }
-  const nav = navigator.language.toLowerCase();
-  if (nav.startsWith('ko')) return 'ko';
-  if (nav.startsWith('ja')) return 'ja';
-  if (nav.startsWith('zh')) return 'zh';
-  return 'en';
+  return 'ko';
 }
 
 export function setLocale(locale: Locale) {
@@ -35,7 +31,7 @@ void i18n.use(initReactI18next).init({
     zh: { translation: zh },
   },
   lng: resolveLocale(),
-  fallbackLng: 'en',
+  fallbackLng: 'ko',
   interpolation: { escapeValue: false },
 });
 
