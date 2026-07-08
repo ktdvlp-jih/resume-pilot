@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Sparkles } from 'lucide-react';
+import { LocaleThemeControls } from '@/components/common/locale-theme-controls';
 import { Logo } from '@/components/Logo';
 import { cn } from '@/lib/utils';
 
@@ -41,8 +42,11 @@ export function AuthSplitLayout({ children, title, subtitle }: AuthSplitLayoutPr
         </p>
       </div>
       <div className="flex flex-col">
-        <div className="flex items-center justify-between p-4 lg:hidden">
-          <Logo to="/" />
+        <div className="flex items-center justify-between gap-4 p-4">
+          <div className="lg:hidden">
+            <Logo to="/" />
+          </div>
+          <LocaleThemeControls className="ml-auto" languageClassName="w-32" />
         </div>
         <div className="flex flex-1 items-center justify-center p-6">
           <div className="w-full max-w-md space-y-6">

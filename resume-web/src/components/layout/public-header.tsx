@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Menu } from 'lucide-react';
 import { Logo } from '@/components/Logo';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { LocaleThemeControls, ThemeToggleButton } from '@/components/common/locale-theme-controls';
 import { getAccessToken, clearTokens } from '@/lib/api';
 import { publicHeaderLinks } from '@/config/navigation';
 import { Button } from '@/components/ui/button';
@@ -58,11 +58,13 @@ export function PublicHeader() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          <LanguageSwitcher className="w-32" />
+          <LocaleThemeControls languageClassName="w-32" />
           {authActions}
         </div>
 
-        <Sheet>
+        <div className="flex items-center gap-1 md:hidden">
+          <ThemeToggleButton />
+          <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="md:hidden" aria-label={t('nav.openMenu')}>
               <Menu className="size-5" />
@@ -73,7 +75,7 @@ export function PublicHeader() {
               <SheetTitle>{t('nav.menu')}</SheetTitle>
             </SheetHeader>
             <div className="mt-6 flex flex-col gap-2">
-              <LanguageSwitcher />
+              <LocaleThemeControls languageClassName="w-full" />
               <Separator className="my-2" />
               {publicHeaderLinks.map(({ href, labelKey }) => (
                 <Button key={href} variant="ghost" className="justify-start" asChild>
@@ -113,7 +115,8 @@ export function PublicHeader() {
               )}
             </div>
           </SheetContent>
-        </Sheet>
+          </Sheet>
+        </div>
       </div>
     </header>
   );
