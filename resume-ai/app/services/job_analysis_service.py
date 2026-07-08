@@ -7,6 +7,7 @@ from typing import Any
 
 import httpx
 
+from app.config import settings
 from app.clients.service_clients import prompt_client
 from app.services.llm_service import llm_service
 
@@ -185,13 +186,14 @@ class JobAnalysisService:
         file_base64: str,
         mime_type: str | None,
     ) -> dict[str, Any] | None:
-        if not llm_service.has_llm:
+        if not settings.openai_api_key and not settings.internal_api_token:
             logger.info("Vision fallback skipped: no LLM configured")
             return None
 
         mime = mime_type if mime_type and mime_type.startswith("image/") else "image/png"
         data_url = f"data:{mime};base64,{file_base64}"
-        parsed = llm_service.complete_with_image_json(
+        parsed = await llm_service.complete_with_image_json_for_operation(
+            "JOB_ANALYSIS",
             JOB_EXTRACTION_SYSTEM,
             VISION_USER_PROMPT,
             data_url,
@@ -207,7 +209,7 @@ class JobAnalysisService:
         return result
 
     async def _extract_with_llm(self, text: str) -> dict[str, Any] | None:
-        if not llm_service.has_llm:
+        if not await llm_service.has_routes("JOB_ANALYSIS"):
             return None
         system = JOB_EXTRACTION_SYSTEM
         user_prompt = f"Extract job posting fields from this text:\n\n{text[:6000]}"
@@ -217,7 +219,7 @@ class JobAnalysisService:
             user_prompt = prompt["user_prompt"]
         except Exception as exc:
             logger.warning("JOB_ANALYSIS prompt render failed, using built-in: %s", exc)
-        parsed = llm_service.complete_json(system, user_prompt)
+        parsed = await llm_service.complete_json_for_operation("JOB_ANALYSIS", system, user_prompt)
         return self._fields_from_llm(parsed) if parsed else None
 
     def _fields_from_llm(self, parsed: dict[str, Any]) -> dict[str, Any]:
@@ -255,7 +257,7 @@ class JobAnalysisService:
         return [str(item).strip() for item in value if item and str(item).strip()]
 
     def _needs_llm_enrichment(self, result: dict[str, Any], text: str) -> bool:
-        if not llm_service.has_llm:
+        if not (settings.openai_api_key or settings.internal_api_token):
             return False
         company = result.get("company_name")
         if company in (None, "", "Unknown"):

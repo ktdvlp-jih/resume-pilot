@@ -1,6 +1,7 @@
 package com.resumepilot.global.config;
 
 import com.resumepilot.infrastructure.security.CustomUserDetailsService;
+import com.resumepilot.infrastructure.security.InternalApiAuthFilter;
 import com.resumepilot.infrastructure.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +37,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final InternalApiAuthFilter internalApiAuthFilter;
     private final CustomUserDetailsService userDetailsService;
 
     @Value("${cors.allowed-origins:http://localhost:5173,http://localhost:5174}")
@@ -52,6 +54,7 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/api/v1/auth/**").permitAll()
+                            .requestMatchers("/api/v1/internal/**").permitAll()
                             .requestMatchers("/swagger-ui/**", "/api-docs/**", "/actuator/health").permitAll()
                             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                             .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
@@ -63,6 +66,7 @@ public class SecurityConfig {
                     }
                 })
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(internalApiAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))

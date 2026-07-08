@@ -115,4 +115,57 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
+  listLlmProviders: () =>
+    request<Array<{
+      id: string;
+      slug: string;
+      displayName: string;
+      providerType: string;
+      baseUrl?: string;
+      enabled: boolean;
+      hasApiKey: boolean;
+      apiKeyMasked: string;
+    }>>('/api/v1/admin/llm/providers'),
+  updateLlmProvider: (
+    id: string,
+    data: { displayName: string; baseUrl?: string; enabled?: boolean; apiKey?: string },
+  ) =>
+    request<{
+      id: string;
+      slug: string;
+      displayName: string;
+      providerType: string;
+      baseUrl?: string;
+      enabled: boolean;
+      hasApiKey: boolean;
+      apiKeyMasked: string;
+    }>(`/api/v1/admin/llm/providers/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  listLlmRoutes: () =>
+    request<Array<{
+      id: string;
+      operation: string;
+      providerId: string;
+      providerSlug: string;
+      providerName: string;
+      modelName: string;
+      priority: number;
+      enabled: boolean;
+    }>>('/api/v1/admin/llm/routes'),
+  updateLlmRoute: (data: { id: string; modelName: string; priority: number; enabled: boolean }) =>
+    request<{
+      id: string;
+      operation: string;
+      providerId: string;
+      providerSlug: string;
+      providerName: string;
+      modelName: string;
+      priority: number;
+      enabled: boolean;
+    }>('/api/v1/admin/llm/routes', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
 };

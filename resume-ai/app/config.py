@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_base_url: str = ""
     openai_model: str = "gpt-4o-mini"
+    resume_api_url: str = "http://localhost:8080"
+    internal_api_token: str = ""
     rag_service_url: str = "http://localhost:8002"
     prompt_service_url: str = "http://localhost:8001"
 

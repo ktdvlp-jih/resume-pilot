@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Building2, FileText, ScrollText, Search, Settings2, ShieldBan, Users } from 'lucide-react';
+import { Building2, Bot, FileText, ScrollText, Search, Settings2, ShieldBan, Users } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,7 @@ const navItems = [
   { to: '/companies', icon: Building2, key: 'nav.companies' },
   { to: '/users', icon: Users, key: 'nav.users' },
   { to: '/ai-logs', icon: ScrollText, key: 'nav.aiLogs' },
+  { to: '/llm-settings', icon: Bot, key: 'nav.llmSettings' },
   { to: '/deploy-ci-settings', icon: Settings2, key: 'nav.deploySettings' },
 ] as const;
 

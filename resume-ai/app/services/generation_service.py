@@ -39,7 +39,7 @@ class GenerationService:
                 ),
             }
 
-        result = llm_service.generate_with_context(
+        result = await llm_service.generate_with_context(
             experiences=experiences,
             rewrite_level=rewrite_level,
             job_analysis=job_analysis,
@@ -91,13 +91,14 @@ class DetectionService:
             if forbidden_lines
             else ""
         )
-        if llm_service.has_llm:
+        if await llm_service.has_routes("AI_DETECTION"):
             try:
                 prompt = await prompt_client.render("AI_DETECTION", {
                     "content": content,
                     "forbidden_expressions": forbidden_text,
                 })
-                raw = llm_service.complete(
+                raw = await llm_service.complete_for_operation(
+                    "AI_DETECTION",
                     prompt["system_prompt"],
                     prompt["user_prompt"],
                     temperature=0.2,
@@ -127,13 +128,14 @@ class DetectionService:
 
 class ReviewService:
     async def review(self, content: str, job_analysis: dict | None = None) -> dict[str, Any]:
-        if llm_service.has_llm:
+        if await llm_service.has_routes("AI_REVIEW"):
             try:
                 prompt = await prompt_client.render("AI_REVIEW", {
                     "content": content,
                     "job_analysis": str(job_analysis or {}),
                 })
-                raw = llm_service.complete(
+                raw = await llm_service.complete_for_operation(
+                    "AI_REVIEW",
                     prompt["system_prompt"],
                     prompt["user_prompt"],
                     temperature=0.3,

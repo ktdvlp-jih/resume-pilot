@@ -3,9 +3,10 @@ import logging
 import re
 from typing import Any
 
-from openai import OpenAI
+from openai import APIStatusError, OpenAI, RateLimitError
 
 from app.config import settings
+from app.services.provider_router import LlmRoute, provider_router
 
 logger = logging.getLogger(__name__)
 
@@ -99,56 +100,112 @@ class RuleBasedGenerator:
 
 class LlmService:
     def __init__(self) -> None:
-        if settings.openai_api_key:
-            kwargs: dict = {"api_key": settings.openai_api_key}
-            if settings.openai_base_url:
-                kwargs["base_url"] = settings.openai_base_url
-            self._client = OpenAI(**kwargs)
-        else:
-            self._client = None
         self._fallback = RuleBasedGenerator()
 
     @property
     def has_llm(self) -> bool:
-        return self._client is not None
+        return bool(settings.openai_api_key)
 
-    def complete(self, system: str, user: str, temperature: float = 0.7) -> str:
-        if not self._client:
-            return self._fallback.generate_resume([], 40)["content"]
-        response = self._client.chat.completions.create(
-            model=settings.openai_model,
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
-            temperature=temperature,
-        )
-        return response.choices[0].message.content or ""
+    async def has_routes(self, operation: str) -> bool:
+        routes = await self._resolve_routes(operation)
+        return len(routes) > 0
 
-    def complete_with_image(
+    async def complete_for_operation(
         self,
+        operation: str,
+        system: str,
+        user: str,
+        temperature: float = 0.7,
+    ) -> str:
+        routes = await self._resolve_routes(operation)
+        if not routes:
+            return self._fallback.generate_resume([], 40)["content"]
+
+        last_error: Exception | None = None
+        for route in routes:
+            try:
+                return self._chat(route, system, user, temperature)
+            except Exception as exc:
+                if not self._is_retryable(exc):
+                    raise
+                logger.warning(
+                    "LLM route failed (%s / %s): %s",
+                    route.provider_slug,
+                    route.model_name,
+                    exc,
+                )
+                last_error = exc
+        if last_error:
+            raise last_error
+        return ""
+
+    async def complete_json_for_operation(
+        self,
+        operation: str,
+        system: str,
+        user: str,
+        temperature: float = 0.2,
+    ) -> dict[str, Any] | None:
+        text = await self.complete_for_operation(operation, system, user, temperature=temperature)
+        return self.parse_json_response(text)
+
+    async def complete_with_image_for_operation(
+        self,
+        operation: str,
         system: str,
         user_text: str,
         image_data_url: str,
         temperature: float = 0.2,
     ) -> str:
-        if not self._client:
+        routes = await self._resolve_routes(operation)
+        if not routes:
             return ""
-        response = self._client.chat.completions.create(
-            model=settings.openai_model,
-            messages=[
-                {"role": "system", "content": system},
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": user_text},
-                        {"type": "image_url", "image_url": {"url": image_data_url}},
+
+        last_error: Exception | None = None
+        for route in routes:
+            try:
+                client = self._client_for(route)
+                response = client.chat.completions.create(
+                    model=route.model_name,
+                    messages=[
+                        {"role": "system", "content": system},
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": user_text},
+                                {"type": "image_url", "image_url": {"url": image_data_url}},
+                            ],
+                        },
                     ],
-                },
-            ],
-            temperature=temperature,
+                    temperature=temperature,
+                )
+                return response.choices[0].message.content or ""
+            except Exception as exc:
+                if not self._is_retryable(exc):
+                    raise
+                logger.warning(
+                    "LLM vision route failed (%s / %s): %s",
+                    route.provider_slug,
+                    route.model_name,
+                    exc,
+                )
+                last_error = exc
+        if last_error:
+            raise last_error
+        return ""
+
+    async def complete_with_image_json_for_operation(
+        self,
+        operation: str,
+        system: str,
+        user_text: str,
+        image_data_url: str,
+        temperature: float = 0.2,
+    ) -> dict[str, Any] | None:
+        text = await self.complete_with_image_for_operation(
+            operation, system, user_text, image_data_url, temperature=temperature,
         )
-        return response.choices[0].message.content or ""
+        return self.parse_json_response(text)
 
     def parse_json_response(self, text: str) -> dict[str, Any] | None:
         cleaned = text.strip()
@@ -161,21 +218,7 @@ class LlmService:
         except json.JSONDecodeError:
             return None
 
-    def complete_json(self, system: str, user: str, temperature: float = 0.2) -> dict[str, Any] | None:
-        return self.parse_json_response(self.complete(system, user, temperature=temperature))
-
-    def complete_with_image_json(
-        self,
-        system: str,
-        user_text: str,
-        image_data_url: str,
-        temperature: float = 0.2,
-    ) -> dict[str, Any] | None:
-        return self.parse_json_response(
-            self.complete_with_image(system, user_text, image_data_url, temperature=temperature)
-        )
-
-    def generate_with_context(
+    async def generate_with_context(
         self,
         experiences: list[dict],
         rewrite_level: int,
@@ -194,16 +237,15 @@ class LlmService:
         if not exp_text.strip():
             return self._fallback.generate_resume(experiences, rewrite_level, job_analysis)
 
-        if not self._client:
-            return self._fallback.generate_resume(experiences, rewrite_level, job_analysis)
-
         user_msg = user_prompt.replace("{{experiences}}", exp_text)
         user_msg = user_msg.replace("{{rewrite_level}}", str(rewrite_level))
         user_msg = user_msg.replace("{{writing_style}}", writing_style or "사용자 기본 문체")
         user_msg = user_msg.replace("{{job_analysis}}", str(job_analysis or {}))
 
         try:
-            content = self.complete(system_prompt, user_msg)
+            if not await self.has_routes("GENERATE"):
+                return self._fallback.generate_resume(experiences, rewrite_level, job_analysis)
+            content = await self.complete_for_operation("GENERATE", system_prompt, user_msg)
         except Exception as exc:
             logger.warning("LLM generate failed, using rule fallback: %s", exc)
             return self._fallback.generate_resume(experiences, rewrite_level, job_analysis)
@@ -213,6 +255,37 @@ class LlmService:
             "experience_ids": [e.get("entity_id") for e in experiences if e.get("entity_id")],
             "insufficient": False,
         }
+
+    async def _resolve_routes(self, operation: str) -> list[LlmRoute]:
+        routes = await provider_router.routes_for(operation)
+        if routes:
+            return routes
+        return provider_router.env_fallback_routes(operation)
+
+    def _client_for(self, route: LlmRoute) -> OpenAI:
+        kwargs: dict[str, str] = {"api_key": route.api_key}
+        if route.base_url:
+            kwargs["base_url"] = route.base_url
+        return OpenAI(**kwargs)
+
+    def _chat(self, route: LlmRoute, system: str, user: str, temperature: float) -> str:
+        client = self._client_for(route)
+        response = client.chat.completions.create(
+            model=route.model_name,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            temperature=temperature,
+        )
+        return response.choices[0].message.content or ""
+
+    def _is_retryable(self, exc: Exception) -> bool:
+        if isinstance(exc, RateLimitError):
+            return True
+        if isinstance(exc, APIStatusError) and exc.status_code in {429, 500, 502, 503, 504}:
+            return True
+        return False
 
 
 llm_service = LlmService()

@@ -21,6 +21,7 @@
     "companies": "企业数据",
     "users": "用户",
     "aiLogs": "AI 日志",
+    "llmSettings": "LLM 设置",
     "deploySettings": "部署 CI",
     "logout": "退出登录",
     "lightMode": "浅色模式",
@@ -131,5 +132,34 @@
     "note2": "更改从下次 push 部署起生效。无需重启 Docker。",
     "loadError": "无法加载设置，请确认已使用管理员账号登录。",
     "saveError": "保存设置失败。"
+  },
+  "llmSettings": {
+    "title": "LLM Provider 设置",
+    "subtitle": "管理 API 密钥、模型与故障转移顺序。429 等错误时自动切换到下一优先级。",
+    "loadError": "无法加载 LLM 设置。",
+    "saveError": "保存失败。",
+    "providersTitle": "Provider 与 API 密钥",
+    "providersDesc": "保存密钥后启用 Provider，即可在路由中使用。",
+    "routesTitle": "按操作的故障转移路由",
+    "routesDesc": "priority 1 为主，2 为备，以此类推。模型名请使用 Provider 文档中的 ID。",
+    "apiKey": "API 密钥",
+    "apiKeyPlaceholder": "输入新 API 密钥",
+    "enableProvider": "启用 Provider",
+    "saveKey": "保存密钥",
+    "priority": "优先级",
+    "provider": "Provider",
+    "model": "模型",
+    "enabled": "启用",
+    "noteTitle": "说明",
+    "note1": "在服务器 .env 中设置 INTERNAL_API_TOKEN 与 LLM_ENCRYPTION_KEY，resume-ai 才能读取数据库密钥。",
+    "note2": "Gemini 免费额度 (5 RPM) 用尽后会回退到 OpenAI、Groq 等备用 Provider。",
+    "note3": ".env 中的 OPENAI_API_KEY 为迁移回退；生产环境建议在 Admin 中管理密钥。",
+    "operations": {
+      "GENERATE": "简历生成",
+      "JOB_ANALYSIS": "招聘分析",
+      "AI_DETECTION": "AI 痕迹检测",
+      "AI_REVIEW": "批改反馈",
+      "EMBEDDING": "嵌入 (RAG)"
+    }
   }
 }

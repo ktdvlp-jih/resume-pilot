@@ -46,6 +46,8 @@ services:
       RESUME_AI_URL: ${RESUME_AI_SERVICE_URL:-http://resume-ai:8000}
       RAG_SERVICE_URL: ${RAG_SERVICE_URL:-http://rag-service:8002}
       RESUME_CORS_ORIGINS: ${RESUME_CORS_ORIGINS:-}
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-}
+      LLM_ENCRYPTION_KEY: ${LLM_ENCRYPTION_KEY:-}
     ports:
       - "${APP_PORT:-9180}:8080"
 
@@ -65,6 +67,8 @@ services:
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
       RAG_SERVICE_URL: ${RAG_SERVICE_URL:-http://rag-service:8002}
       PROMPT_SERVICE_URL: ${PROMPT_SERVICE_URL:-http://prompt-service:8001}
+      RESUME_API_URL: ${RESUME_API_URL:-http://app:8080}
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-}
 
   prompt-service:
     build:

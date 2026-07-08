@@ -21,6 +21,7 @@
     "companies": "Companies",
     "users": "Users",
     "aiLogs": "AI Logs",
+    "llmSettings": "LLM Settings",
     "deploySettings": "Deploy CI",
     "logout": "Log out",
     "lightMode": "Light mode",
@@ -131,5 +132,34 @@
     "note2": "Changes apply from the next push deploy. No Docker restart required.",
     "loadError": "Could not load settings. Make sure you are signed in with an administrator account.",
     "saveError": "Failed to save settings."
+  },
+  "llmSettings": {
+    "title": "LLM Provider Settings",
+    "subtitle": "Manage API keys, models, and failover order. On 429/errors, the next priority route is used automatically.",
+    "loadError": "Could not load LLM settings.",
+    "saveError": "Failed to save.",
+    "providersTitle": "Providers & API keys",
+    "providersDesc": "Save a key, then enable the provider to use it in routes.",
+    "routesTitle": "Failover routes by operation",
+    "routesDesc": "Priority 1 is primary, 2 is fallback, etc. Use the provider's model ID exactly.",
+    "apiKey": "API key",
+    "apiKeyPlaceholder": "Enter new API key",
+    "enableProvider": "Enable provider",
+    "saveKey": "Save key",
+    "priority": "Priority",
+    "provider": "Provider",
+    "model": "Model",
+    "enabled": "Enabled",
+    "noteTitle": "Notes",
+    "note1": "Set INTERNAL_API_TOKEN and LLM_ENCRYPTION_KEY in server .env so resume-ai can read DB keys.",
+    "note2": "When Gemini free tier (5 RPM) is exhausted, traffic falls back to OpenAI, GitHub Models, Groq, etc.",
+    "note3": "OPENAI_API_KEY in .env is a migration fallback; prefer Admin-managed keys in production.",
+    "operations": {
+      "GENERATE": "Resume generation",
+      "JOB_ANALYSIS": "Job analysis",
+      "AI_DETECTION": "AI trace detection",
+      "AI_REVIEW": "Review feedback",
+      "EMBEDDING": "Embedding (RAG)"
+    }
   }
 }

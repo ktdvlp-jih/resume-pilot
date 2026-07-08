@@ -21,6 +21,7 @@
     "companies": "企業データ",
     "users": "ユーザー",
     "aiLogs": "AIログ",
+    "llmSettings": "LLM設定",
     "deploySettings": "デプロイCI",
     "logout": "ログアウト",
     "lightMode": "ライトモード",
@@ -131,5 +132,34 @@
     "note2": "変更は次回pushデプロイから適用されます。Docker再起動は不要です。",
     "loadError": "設定を読み込めませんでした。管理者アカウントでログインしているか確認してください。",
     "saveError": "設定の保存に失敗しました。"
+  },
+  "llmSettings": {
+    "title": "LLM Provider設定",
+    "subtitle": "APIキー・モデル・フェイルオーバー順序を管理します。429等のエラー時は次の優先度へ自動切替します。",
+    "loadError": "LLM設定を読み込めませんでした。",
+    "saveError": "保存に失敗しました。",
+    "providersTitle": "ProviderとAPIキー",
+    "providersDesc": "キーを保存してから有効化すると、ルートで使用されます。",
+    "routesTitle": "操作別フェイルオーバールート",
+    "routesDesc": "priority 1が1次、2が2次…です。モデル名はProviderのIDをそのまま入力してください。",
+    "apiKey": "APIキー",
+    "apiKeyPlaceholder": "新しいAPIキーを入力",
+    "enableProvider": "Providerを有効化",
+    "saveKey": "キーを保存",
+    "priority": "優先度",
+    "provider": "Provider",
+    "model": "モデル",
+    "enabled": "使用",
+    "noteTitle": "注意",
+    "note1": "サーバー.envにINTERNAL_API_TOKEN・LLM_ENCRYPTION_KEYを設定するとresume-aiがDBキーを読み込みます。",
+    "note2": "Gemini無料枠(5 RPM)に達するとOpenAI・Groq等の2次Providerへフォールバックします。",
+    "note3": ".envのOPENAI_API_KEYは移行用フォールバックです。本番ではAdmin管理を推奨します。",
+    "operations": {
+      "GENERATE": "志望書生成",
+      "JOB_ANALYSIS": "求人分析",
+      "AI_DETECTION": "AI痕跡検出",
+      "AI_REVIEW": "添削レビュー",
+      "EMBEDDING": "埋め込み (RAG)"
+    }
   }
 }
