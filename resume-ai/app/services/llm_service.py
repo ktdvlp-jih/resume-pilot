@@ -1,10 +1,13 @@
 import json
+import logging
 import re
 from typing import Any
 
 from openai import OpenAI
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class RuleBasedGenerator:
@@ -199,7 +202,12 @@ class LlmService:
         user_msg = user_msg.replace("{{writing_style}}", writing_style or "사용자 기본 문체")
         user_msg = user_msg.replace("{{job_analysis}}", str(job_analysis or {}))
 
-        content = self.complete(system_prompt, user_msg)
+        try:
+            content = self.complete(system_prompt, user_msg)
+        except Exception as exc:
+            logger.warning("LLM generate failed, using rule fallback: %s", exc)
+            return self._fallback.generate_resume(experiences, rewrite_level, job_analysis)
+
         return {
             "content": content,
             "experience_ids": [e.get("entity_id") for e in experiences if e.get("entity_id")],

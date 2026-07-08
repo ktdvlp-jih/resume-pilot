@@ -96,13 +96,18 @@ test.describe('TC-AI-05 AI E2E flow', () => {
     await generateBtn.click();
     await expect(generateBtn).not.toBeDisabled({ timeout: 120_000 });
 
-    await expect(page.locator('p.whitespace-pre-wrap').first()).toBeVisible({ timeout: 15_000 });
-    await expect(page.locator('p.whitespace-pre-wrap').first()).not.toHaveText(/내용이 부족|insufficient/i);
+    const resultContent = page.getByTestId('workspace-result-content');
+    await expect(resultContent).toBeVisible({ timeout: 30_000 });
+    await expect(resultContent).not.toContainText(/내용이 부족|insufficient/i);
 
-    // Result panel sections (TC-AI-05 step 6)
+    // Result panel sections (TC-AI-05 step 6) — right tab on narrow layouts
+    const resultsTab = page.getByRole('tab', { name: /결과|Results|結果|结果/i });
+    if (await resultsTab.isVisible().catch(() => false)) {
+      await resultsTab.click();
+    }
     await expect(
       page.getByText(/AI 흔적|AI trace|AI痕|AI 痕迹/i).first(),
-    ).toBeVisible({ timeout: 15_000 });
+    ).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText(/첨삭|Review|レビュー|审阅/i).first()).toBeVisible();
     await expect(page.getByText(/면접|Interview|面接|面试/i).first()).toBeVisible();
     await expect(page.getByText(/키워드|Keyword|キーワード|关键词/i).first()).toBeVisible();

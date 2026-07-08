@@ -105,14 +105,17 @@ export default function WorkspacePage() {
     try {
       const { jobAnalysis, keywords: kw, jobPostingId } = await getJobContext();
       const res = await api.generateAi({ keywords: kw, rewriteLevel, jobAnalysis, jobPostingId });
-      let nextInterview: typeof interview = [];
-      let nextKeywords: Record<string, unknown> | null = null;
+      setBundle({ result: res, interview: [], keywords: null });
       if (res.content) {
-        const iq = await api.interviewQuestions(String(res.content));
-        nextInterview = (iq.questions as typeof interview) || [];
-        nextKeywords = await api.compareKeywords(kw, String(res.content));
+        try {
+          const iq = await api.interviewQuestions(String(res.content));
+          const nextInterview = (iq.questions as typeof interview) || [];
+          const nextKeywords = await api.compareKeywords(kw, String(res.content));
+          setBundle({ result: res, interview: nextInterview, keywords: nextKeywords });
+        } catch (followUpErr) {
+          console.warn('Post-generate panels failed', followUpErr);
+        }
       }
-      setBundle({ result: res, interview: nextInterview, keywords: nextKeywords });
     } catch (err) {
       setError(err instanceof Error ? err.message : t('workspace.generateFailed'));
     } finally {
@@ -230,7 +233,7 @@ export default function WorkspacePage() {
       </Button>
 
       {result?.content ? (
-        <Card className="flex-1">
+        <Card className="flex-1" data-testid="workspace-result-content">
           <CardContent className="pt-6">
             <WorkspacePanelTitle icon={Sparkles}>{t('workspace.result')}</WorkspacePanelTitle>
             <ScrollArea className="max-h-[min(60vh,520px)] pr-4">

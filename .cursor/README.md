@@ -21,6 +21,7 @@
 | `resume-pilot-project.mdc` | 항상 — 프로젝트 정체성 |
 | `secrets-handling.mdc` | 항상 — 키·`.env` 금지 |
 | `specstory-commit.mdc` | 항상 — SpecStory 커밋 |
+| `git-commit-ko.mdc` | 항상 — 커밋 메시지 한글 |
 | `resume-pilot-backend.mdc` | `resume-api/src/main/java/**` |
 | `resume-pilot-frontend.mdc` | `resume-web/**`, `resume-admin/**` |
 | `resume-pilot-ai.mdc` | AI Python 서비스 3개 |
