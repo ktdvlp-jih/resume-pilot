@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -35,6 +36,32 @@ type LlmRoute = {
 };
 
 const OPERATION_ORDER = ['GENERATE', 'JOB_ANALYSIS', 'AI_DETECTION', 'AI_REVIEW', 'EMBEDDING'];
+
+const FREE_MODELS_BY_PROVIDER: Record<string, string[]> = {
+  gemini: [
+    'gemini-2.5-flash',
+    'gemini-2.0-flash-lite',
+    'gemini-embedding-001',
+  ],
+  openai: [
+    'gpt-4o-mini',
+    'text-embedding-3-small',
+  ],
+  github: [
+    'openai/gpt-4o-mini',
+    'openai/gpt-4.1-mini',
+    'meta/llama-3.3-70b-instruct',
+  ],
+  groq: [
+    'llama-3.1-8b-instant',
+    'llama-3.3-70b-versatile',
+  ],
+  openrouter: [
+    'google/gemini-2.5-flash',
+    'meta-llama/llama-3.1-8b-instruct:free',
+    'deepseek/deepseek-r1:free',
+  ],
+};
 
 export default function LlmSettingsPage() {
   const { t } = useTranslation();
@@ -103,6 +130,14 @@ export default function LlmSettingsPage() {
       priority: String(route.priority),
       enabled: route.enabled,
     };
+
+  const getRouteModelOptions = (route: LlmRoute, currentModel: string) => {
+    const preset = FREE_MODELS_BY_PROVIDER[route.providerSlug] ?? [];
+    if (currentModel && !preset.includes(currentModel)) {
+      return [currentModel, ...preset];
+    }
+    return preset;
+  };
 
   const saveProvider = (provider: LlmProvider, enabled?: boolean) => {
     providerMutation.mutate({
@@ -237,6 +272,7 @@ export default function LlmSettingsPage() {
                   <TableBody>
                     {opRoutes.map((route) => {
                       const edit = getRouteEdit(route);
+                      const isRagEmbedding = route.operation === 'EMBEDDING';
                       return (
                         <TableRow key={route.id}>
                           <TableCell className="w-24">
@@ -244,6 +280,7 @@ export default function LlmSettingsPage() {
                               type="number"
                               min={1}
                               value={edit.priority}
+                              disabled={isRagEmbedding}
                               onChange={(e) =>
                                 setRouteEdits((prev) => ({
                                   ...prev,
@@ -257,19 +294,32 @@ export default function LlmSettingsPage() {
                             <div className="text-xs text-muted-foreground">{route.providerSlug}</div>
                           </TableCell>
                           <TableCell>
-                            <Input
+                            <Select
                               value={edit.modelName}
-                              onChange={(e) =>
+                              disabled={isRagEmbedding}
+                              onValueChange={(value) =>
                                 setRouteEdits((prev) => ({
                                   ...prev,
-                                  [route.id]: { ...edit, modelName: e.target.value },
+                                  [route.id]: { ...edit, modelName: value },
                                 }))
                               }
-                            />
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder={t('llmSettings.model')} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {getRouteModelOptions(route, edit.modelName).map((model) => (
+                                  <SelectItem key={model} value={model}>
+                                    {model}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </TableCell>
                           <TableCell>
                             <Switch
                               checked={edit.enabled}
+                              disabled={isRagEmbedding}
                               onCheckedChange={(checked) =>
                                 setRouteEdits((prev) => ({
                                   ...prev,
@@ -282,10 +332,12 @@ export default function LlmSettingsPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              disabled={routeMutation.isPending}
+                              disabled={routeMutation.isPending || isRagEmbedding}
                               onClick={() => saveRoute(route)}
                             >
-                              {t('common.save')}
+                              {isRagEmbedding
+                                ? t('llmSettings.ragLocked', { defaultValue: 'RAG 고정' })
+                                : t('common.save')}
                             </Button>
                           </TableCell>
                         </TableRow>
