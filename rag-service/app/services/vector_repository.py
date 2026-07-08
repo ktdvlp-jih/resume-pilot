@@ -5,13 +5,13 @@ from typing import Any
 import asyncpg
 
 from app.config import settings
-from app.services.embedding_service import EmbeddingService
+from app.services.embedding_service import embedding_service
 
 
 class VectorRepository:
     def __init__(self) -> None:
         self._pool: asyncpg.Pool | None = None
-        self._embedder = EmbeddingService()
+        self._embedder = embedding_service
 
     async def connect(self) -> None:
         if self._pool is None:

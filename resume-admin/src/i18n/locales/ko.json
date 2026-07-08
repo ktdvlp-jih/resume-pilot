@@ -153,7 +153,7 @@
     "noteTitle": "참고",
     "note1": "서버 .env에 INTERNAL_API_TOKEN·LLM_ENCRYPTION_KEY가 설정되어 있어야 resume-ai가 DB 키를 읽습니다.",
     "note2": "Gemini 무료 한도(5 RPM)에 걸리면 OpenAI·GitHub Models·Groq 등 2차 Provider로 넘어갑니다.",
-    "note3": "OPENAI_API_KEY .env 폴백은 마이그레이션용이며, 운영에서는 Admin에서 키를 관리하는 것을 권장합니다.",
+    "note3": "LLM API 키는 Admin에서만 관리합니다. .env에는 INTERNAL_API_TOKEN·LLM_ENCRYPTION_KEY·EMBEDDING_DIMENSION만 두세요.",
     "operations": {
       "GENERATE": "자소서 생성",
       "JOB_ANALYSIS": "공고 분석",

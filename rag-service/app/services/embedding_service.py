@@ -6,40 +6,58 @@ import numpy as np
 from openai import OpenAI
 
 from app.config import settings
+from app.services.provider_router import EMBEDDING_OPERATION, LlmRoute, provider_router
 
 logger = logging.getLogger(__name__)
 
 
 class EmbeddingService:
-    def __init__(self) -> None:
-        if settings.openai_api_key:
-            kwargs: dict = {"api_key": settings.openai_api_key}
-            if settings.openai_base_url:
-                kwargs["base_url"] = settings.openai_base_url
-            self._client = OpenAI(**kwargs)
-        else:
-            self._client = None
-
     def embed(self, text: str) -> list[float]:
-        if self._client:
+        routes = provider_router.routes_for(EMBEDDING_OPERATION)
+        if not routes:
+            routes = provider_router.env_fallback_routes()
+
+        last_error: Exception | None = None
+        for route in routes:
             try:
-                response = self._client.embeddings.create(
-                    model=settings.embedding_model,
-                    input=text,
-                    dimensions=settings.embedding_dimension,
-                )
-                return self._ensure_dimension(response.data[0].embedding)
+                return self._embed_with_route(route, text)
             except Exception as exc:
-                logger.warning("Embedding API call with dimensions failed (%s), retrying raw embedding", exc)
-                try:
-                    response = self._client.embeddings.create(
-                        model=settings.embedding_model,
-                        input=text,
-                    )
-                    return self._ensure_dimension(response.data[0].embedding)
-                except Exception as retry_exc:
-                    logger.warning("Embedding API failed (%s), using hash fallback", retry_exc)
+                logger.warning(
+                    "Embedding route failed (%s / %s): %s",
+                    route.provider_slug,
+                    route.model_name,
+                    exc,
+                )
+                last_error = exc
+
+        if last_error:
+            logger.warning("All embedding routes failed, using hash fallback: %s", last_error)
         return self._hash_fallback(text)
+
+    def _embed_with_route(self, route: LlmRoute, text: str) -> list[float]:
+        kwargs: dict[str, str] = {"api_key": route.api_key}
+        if route.base_url:
+            kwargs["base_url"] = route.base_url
+        client = OpenAI(**kwargs)
+        try:
+            response = client.embeddings.create(
+                model=route.model_name,
+                input=text,
+                dimensions=settings.embedding_dimension,
+            )
+            return self._ensure_dimension(response.data[0].embedding)
+        except Exception as exc:
+            if settings.embedding_dimension <= 0:
+                raise
+            logger.warning(
+                "Embedding with dimensions failed (%s), retrying raw embedding",
+                exc,
+            )
+            response = client.embeddings.create(
+                model=route.model_name,
+                input=text,
+            )
+            return self._ensure_dimension(response.data[0].embedding)
 
     def _ensure_dimension(self, vector: list[float]) -> list[float]:
         target = settings.embedding_dimension
@@ -48,7 +66,6 @@ class EmbeddingService:
             return vector
         if current > target:
             return vector[:target]
-        # Pad shorter vectors defensively to keep pgvector dimension invariant.
         return vector + [0.0] * (target - current)
 
     def _hash_fallback(self, text: str) -> list[float]:
@@ -57,3 +74,6 @@ class EmbeddingService:
         vec = rng.standard_normal(settings.embedding_dimension)
         vec = vec / np.linalg.norm(vec)
         return vec.tolist()
+
+
+embedding_service = EmbeddingService()
