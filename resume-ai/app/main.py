@@ -80,12 +80,12 @@ async def generate_resume(request: GenerateRequest):
 
 @app.post("/detect/ai-traces")
 async def detect_ai_traces(request: ContentRequest):
-    return ApiResponse(data=detection_service.detect(request.content, request.forbidden_expressions))
+    return ApiResponse(data=await detection_service.detect(request.content, request.forbidden_expressions))
 
 
 @app.post("/review/feedback")
 async def review_feedback(request: ReviewRequest):
-    return ApiResponse(data=review_service.review(request.content, request.job_analysis))
+    return ApiResponse(data=await review_service.review(request.content, request.job_analysis))
 
 
 @app.post("/generate/interview-questions")

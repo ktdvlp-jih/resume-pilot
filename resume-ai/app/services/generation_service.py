@@ -84,7 +84,38 @@ class GenerationService:
 
 
 class DetectionService:
-    def detect(self, content: str, forbidden: list[str] | None = None) -> dict[str, Any]:
+    async def detect(self, content: str, forbidden: list[str] | None = None) -> dict[str, Any]:
+        forbidden_lines = [e for e in (forbidden or []) if e]
+        forbidden_text = (
+            "금지 표현 목록:\n" + "\n".join(f"- {e}" for e in forbidden_lines)
+            if forbidden_lines
+            else ""
+        )
+        if llm_service.has_llm:
+            try:
+                prompt = await prompt_client.render("AI_DETECTION", {
+                    "content": content,
+                    "forbidden_expressions": forbidden_text,
+                })
+                raw = llm_service.complete(
+                    prompt["system_prompt"],
+                    prompt["user_prompt"],
+                    temperature=0.2,
+                )
+                parsed = llm_service.parse_json_response(raw)
+                detections = parsed if isinstance(parsed, list) else (
+                    parsed.get("detections") if isinstance(parsed, dict) else None
+                )
+                if isinstance(detections, list) and detections:
+                    red = sum(1 for d in detections if d.get("level") == "RED")
+                    total = max(len(detections), 1)
+                    return {
+                        "detections": detections,
+                        "ai_trace_percent": round(red / total * 100, 1),
+                    }
+            except Exception as exc:
+                logger.warning("AI_DETECTION prompt failed, using rule fallback: %s", exc)
+
         detections = rule_based.detect_ai_traces(content, forbidden)
         red = sum(1 for d in detections if d["level"] == "RED")
         total = max(len(detections), 1)
@@ -95,7 +126,27 @@ class DetectionService:
 
 
 class ReviewService:
-    def review(self, content: str, job_analysis: dict | None = None) -> dict[str, Any]:
+    async def review(self, content: str, job_analysis: dict | None = None) -> dict[str, Any]:
+        if llm_service.has_llm:
+            try:
+                prompt = await prompt_client.render("AI_REVIEW", {
+                    "content": content,
+                    "job_analysis": str(job_analysis or {}),
+                })
+                raw = llm_service.complete(
+                    prompt["system_prompt"],
+                    prompt["user_prompt"],
+                    temperature=0.3,
+                )
+                parsed = llm_service.parse_json_response(raw)
+                reviews = parsed if isinstance(parsed, list) else (
+                    parsed.get("reviews") if isinstance(parsed, dict) else None
+                )
+                if isinstance(reviews, list) and reviews:
+                    return {"reviews": reviews, "job_analysis": job_analysis}
+            except Exception as exc:
+                logger.warning("AI_REVIEW prompt failed, using rule fallback: %s", exc)
+
         return {"reviews": rule_based.review_feedback(content), "job_analysis": job_analysis}
 
 

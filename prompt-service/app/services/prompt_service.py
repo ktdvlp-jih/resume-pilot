@@ -69,15 +69,43 @@ class PromptRepository:
     def _default_prompt(self, prompt_type: str) -> dict[str, Any]:
         defaults = {
             "RESUME_GENERATION": {
-                "system_prompt": "You rewrite cover letters using ONLY the user's provided experiences. Never invent new experiences.",
-                "user_prompt": "Experiences:\n{{experiences}}\n\nJob:\n{{job_analysis}}\n\nStyle:\n{{writing_style}}\n\nRewrite level: {{rewrite_level}}%",
+                "system_prompt": (
+                    "[Persona] 한국 취업 시장 자기소개서 코치.\n"
+                    "[Guard] 제공 경험만 사용. 사실 추가 금지. 부족 시 '내용이 부족하여 생성하지 않음'만 출력.\n"
+                    "[Task] 공고 분석·STAR·rewrite_level 반영.\n"
+                    "[Output] 한국어 본문만."
+                ),
+                "user_prompt": (
+                    "Experiences:\n{{experiences}}\n\n"
+                    "Job:\n{{job_analysis}}\n\n"
+                    "Style:\n{{writing_style}}\n\n"
+                    "Rewrite level: {{rewrite_level}}%"
+                ),
+            },
+            "JOB_ANALYSIS": {
+                "system_prompt": (
+                    "[Persona] 채용공고 구조화 분석가.\n"
+                    "[Guard] 공고에 없는 정보 발명 금지. JSON만 출력.\n"
+                    "[Output] company_name, position, required_skills, preferred_skills, "
+                    "tech_keywords, talent_profile, core_competencies, org_culture, job_description"
+                ),
+                "user_prompt": "{{content}}",
             },
             "AI_DETECTION": {
-                "system_prompt": "Detect AI-generated patterns in Korean cover letter sentences.",
-                "user_prompt": "Analyze:\n{{content}}",
+                "system_prompt": (
+                    "[Persona] AI 흔적 문장 분석가.\n"
+                    "[Guard] 보수적 판정. 금지 표현 포함 시 RED.\n"
+                    "[Output] JSON 배열: sentence_index, sentence, level, reason, suggestion"
+                ),
+                "user_prompt": "Analyze:\n{{content}}\n\n{{forbidden_expressions}}",
             },
             "AI_REVIEW": {
-                "system_prompt": "Review cover letter paragraphs for company fit and STAR structure.",
+                "system_prompt": (
+                    "[Persona] 채용 담당자 관점 첨삭 코치.\n"
+                    "[Guard] 경험 추가·과장 칭찬 금지.\n"
+                    "[Output] JSON 배열: paragraph_index, strengths, weaknesses, company_fit, "
+                    "specificity, persuasiveness, star_applied, improvement, suggestion"
+                ),
                 "user_prompt": "Content:\n{{content}}\n\nJob:\n{{job_analysis}}",
             },
         }

@@ -7,6 +7,7 @@ from typing import Any
 
 import httpx
 
+from app.clients.service_clients import prompt_client
 from app.services.llm_service import llm_service
 
 logger = logging.getLogger(__name__)
@@ -208,8 +209,15 @@ class JobAnalysisService:
     async def _extract_with_llm(self, text: str) -> dict[str, Any] | None:
         if not llm_service.has_llm:
             return None
+        system = JOB_EXTRACTION_SYSTEM
         user_prompt = f"Extract job posting fields from this text:\n\n{text[:6000]}"
-        parsed = llm_service.complete_json(JOB_EXTRACTION_SYSTEM, user_prompt)
+        try:
+            prompt = await prompt_client.render("JOB_ANALYSIS", {"content": text[:6000]})
+            system = prompt["system_prompt"]
+            user_prompt = prompt["user_prompt"]
+        except Exception as exc:
+            logger.warning("JOB_ANALYSIS prompt render failed, using built-in: %s", exc)
+        parsed = llm_service.complete_json(system, user_prompt)
         return self._fields_from_llm(parsed) if parsed else None
 
     def _fields_from_llm(self, parsed: dict[str, Any]) -> dict[str, Any]:
