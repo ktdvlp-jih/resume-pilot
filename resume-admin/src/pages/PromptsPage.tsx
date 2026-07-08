@@ -13,8 +13,10 @@ import { SortableTableHead } from '@/components/common/sortable-table-head';
 import { TableSkeletonRows } from '@/components/common/table-skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useUrlPagination } from '@/hooks/use-url-pagination';
 import { useUrlSort } from '@/hooks/use-url-sort';
@@ -29,8 +31,12 @@ export default function PromptsPage() {
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState(params.get('q') ?? '');
   const selectedId = params.get('prompt') ?? '';
-  const [systemPrompt, setSystemPrompt] = useState('');
+  const [personaPrompt, setPersonaPrompt] = useState('');
+  const [guardPrompt, setGuardPrompt] = useState('');
+  const [taskPrompt, setTaskPrompt] = useState('');
+  const [outputPrompt, setOutputPrompt] = useState('');
   const [userPrompt, setUserPrompt] = useState('');
+  const [sectionTab, setSectionTab] = useState('persona');
   const [testResult, setTestResult] = useState('');
   const [diffOpen, setDiffOpen] = useState(false);
   const [diffInitial, setDiffInitial] = useState<{ a?: number; b?: number }>({});
@@ -41,6 +47,8 @@ export default function PromptsPage() {
     queryFn: () => api.listPromptVersions(selectedId),
     enabled: !!selectedId,
   });
+
+  const versionDetails = versions as VersionRow[];
 
   useEffect(() => {
     setParams(
@@ -54,6 +62,26 @@ export default function PromptsPage() {
       { replace: true },
     );
   }, [search, setParams]);
+
+  useEffect(() => {
+    if (!selectedId || versionsLoading) return;
+    const rows = versions as VersionRow[];
+    const active = rows.find((v) => v.active);
+    if (active) {
+      setPersonaPrompt(active.personaPrompt);
+      setGuardPrompt(active.guardPrompt);
+      setTaskPrompt(active.taskPrompt);
+      setOutputPrompt(active.outputPrompt);
+      setUserPrompt(active.userPrompt);
+    } else {
+      setPersonaPrompt('');
+      setGuardPrompt('');
+      setTaskPrompt('');
+      setOutputPrompt('');
+      setUserPrompt('');
+    }
+    setTestResult('');
+  }, [selectedId, versions, versionsLoading]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -73,7 +101,7 @@ export default function PromptsPage() {
   );
 
   const { sorted: sortedVersions, sortKey, direction, toggleSort } = useUrlSort(
-    versions as VersionRow[],
+    versionDetails,
     versionComparators,
     'version',
     'desc',
@@ -93,18 +121,28 @@ export default function PromptsPage() {
       },
       { replace: true },
     );
-    setSystemPrompt('');
+    setPersonaPrompt('');
+    setGuardPrompt('');
+    setTaskPrompt('');
+    setOutputPrompt('');
     setUserPrompt('');
     setTestResult('');
+    setSectionTab('persona');
+  };
+
+  const sectionPayload = {
+    personaPrompt,
+    guardPrompt,
+    taskPrompt,
+    outputPrompt,
+    userPrompt,
   };
 
   const createMutation = useMutation({
-    mutationFn: () => api.createPromptVersion(selectedId, systemPrompt, userPrompt),
+    mutationFn: () => api.createPromptVersion(selectedId, sectionPayload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-prompt-versions', selectedId] });
       queryClient.invalidateQueries({ queryKey: ['admin-prompts'] });
-      setSystemPrompt('');
-      setUserPrompt('');
     },
   });
 
@@ -112,24 +150,38 @@ export default function PromptsPage() {
     mutationFn: () =>
       api.testPrompt({
         promptType: (prompts as PromptRow[]).find((p) => p.id === selectedId)?.type,
-        systemPrompt,
-        userPrompt,
+        ...sectionPayload,
       }),
     onSuccess: (res) => setTestResult(res.result),
   });
 
   const selected = (prompts as PromptRow[]).find((p) => p.id === selectedId);
-  const versionDetails = versions as VersionRow[];
+  const activeVersion = versionDetails.find((v) => v.active);
+
+  const loadActiveVersion = () => {
+    if (!activeVersion) return;
+    setPersonaPrompt(activeVersion.personaPrompt);
+    setGuardPrompt(activeVersion.guardPrompt);
+    setTaskPrompt(activeVersion.taskPrompt);
+    setOutputPrompt(activeVersion.outputPrompt);
+    setUserPrompt(activeVersion.userPrompt);
+  };
 
   const openDiff = (a?: number, b?: number) => {
-    const active = versionDetails.find((v) => v.active);
     const nums = versionDetails.map((v) => v.versionNumber).sort((x, y) => x - y);
     setDiffInitial({
       a: a ?? nums[0],
-      b: b ?? active?.versionNumber ?? nums[nums.length - 1],
+      b: b ?? activeVersion?.versionNumber ?? nums[nums.length - 1],
     });
     setDiffOpen(true);
   };
+
+  const sectionFields = [
+    { key: 'persona', label: t('prompts.persona'), value: personaPrompt, onChange: setPersonaPrompt },
+    { key: 'guard', label: t('prompts.guard'), value: guardPrompt, onChange: setGuardPrompt },
+    { key: 'task', label: t('prompts.task'), value: taskPrompt, onChange: setTaskPrompt },
+    { key: 'output', label: t('prompts.output'), value: outputPrompt, onChange: setOutputPrompt },
+  ] as const;
 
   return (
     <div className="space-y-6">
@@ -177,108 +229,109 @@ export default function PromptsPage() {
                 )}
               </div>
               <DataTableCard
-              footer={
-                total > 10 ? (
-                  <PaginationControls
-                    page={page}
-                    totalPages={totalPages}
-                    from={from}
-                    to={to}
-                    total={total}
-                    onPageChange={setPage}
-                    className="w-full"
-                  />
-                ) : undefined
-              }
-            >
-              {versionsLoading ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('prompts.versionColumn')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableSkeletonRows rows={3} cols={3} />
-                </Table>
-              ) : sortedVersions.length === 0 ? (
-                <p className="p-8 text-center text-sm text-muted-foreground">{t('common.noResults')}</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <SortableTableHead
-                        label={t('prompts.versionColumn')}
-                        sortKey="version"
-                        activeKey={sortKey}
-                        direction={direction}
-                        onSort={toggleSort}
-                      />
-                      <SortableTableHead
-                        label={t('prompts.statusColumn')}
-                        sortKey="status"
-                        activeKey={sortKey}
-                        direction={direction}
-                        onSort={toggleSort}
-                      />
-                      <TableHead className="text-right">{t('users.action')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginated.map((v) => (
-                      <TableRow key={v.id}>
-                        <TableCell className="font-medium">v{v.versionNumber}</TableCell>
-                        <TableCell>
-                          {v.active ? (
-                            <Badge variant="secondary">{t('common.active')}</Badge>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">{t('common.inactive')}</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-1">
-                            {versionDetails.length >= 2 && (
-                              <Button
-                                variant="link"
-                                size="sm"
-                                className="h-auto p-0"
-                                onClick={() => {
-                                  const active = versionDetails.find((x) => x.active);
-                                  openDiff(
-                                    Math.min(v.versionNumber, active?.versionNumber ?? v.versionNumber),
-                                    Math.max(v.versionNumber, active?.versionNumber ?? v.versionNumber),
-                                  );
-                                }}
-                              >
-                                {t('prompts.compare')}
-                              </Button>
-                            )}
-                            {!v.active && (
-                              <Button
-                                variant="link"
-                                size="sm"
-                                className="h-auto p-0"
-                                onClick={() =>
-                                  api.activatePromptVersion(selectedId, v.id).then(() =>
-                                    queryClient.invalidateQueries({ queryKey: ['admin-prompt-versions', selectedId] }),
-                                  )
-                                }
-                              >
-                                {t('common.activate')}
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
+                footer={
+                  total > 10 ? (
+                    <PaginationControls
+                      page={page}
+                      totalPages={totalPages}
+                      from={from}
+                      to={to}
+                      total={total}
+                      onPageChange={setPage}
+                      className="w-full"
+                    />
+                  ) : undefined
+                }
+              >
+                {versionsLoading ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('prompts.versionColumn')}</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </DataTableCard>
+                    </TableHeader>
+                    <TableSkeletonRows rows={3} cols={3} />
+                  </Table>
+                ) : sortedVersions.length === 0 ? (
+                  <p className="p-8 text-center text-sm text-muted-foreground">{t('common.noResults')}</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <SortableTableHead
+                          label={t('prompts.versionColumn')}
+                          sortKey="version"
+                          activeKey={sortKey}
+                          direction={direction}
+                          onSort={toggleSort}
+                        />
+                        <SortableTableHead
+                          label={t('prompts.statusColumn')}
+                          sortKey="status"
+                          activeKey={sortKey}
+                          direction={direction}
+                          onSort={toggleSort}
+                        />
+                        <TableHead className="text-right">{t('users.action')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginated.map((v) => (
+                        <TableRow key={v.id}>
+                          <TableCell className="font-medium">v{v.versionNumber}</TableCell>
+                          <TableCell>
+                            {v.active ? (
+                              <Badge variant="secondary">{t('common.active')}</Badge>
+                            ) : (
+                              <span className="text-sm text-muted-foreground">{t('common.inactive')}</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1">
+                              {versionDetails.length >= 2 && (
+                                <Button
+                                  variant="link"
+                                  size="sm"
+                                  className="h-auto p-0"
+                                  onClick={() => {
+                                    const active = versionDetails.find((x) => x.active);
+                                    openDiff(
+                                      Math.min(v.versionNumber, active?.versionNumber ?? v.versionNumber),
+                                      Math.max(v.versionNumber, active?.versionNumber ?? v.versionNumber),
+                                    );
+                                  }}
+                                >
+                                  {t('prompts.compare')}
+                                </Button>
+                              )}
+                              {!v.active && (
+                                <Button
+                                  variant="link"
+                                  size="sm"
+                                  className="h-auto p-0"
+                                  onClick={() =>
+                                    api.activatePromptVersion(selectedId, v.id).then(() =>
+                                      queryClient.invalidateQueries({ queryKey: ['admin-prompt-versions', selectedId] }),
+                                    )
+                                  }
+                                >
+                                  {t('common.activate')}
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </DataTableCard>
             </div>
 
             <Card>
               <CardHeader>
                 <CardTitle>{t('prompts.newVersion')}</CardTitle>
+                <CardDescription>{t('prompts.sectionHint')}</CardDescription>
               </CardHeader>
               <form
                 onSubmit={(e) => {
@@ -286,24 +339,57 @@ export default function PromptsPage() {
                   createMutation.mutate();
                 }}
               >
-                <CardContent className="space-y-3">
-                  <Textarea
-                    value={systemPrompt}
-                    onChange={(e) => setSystemPrompt(e.target.value)}
-                    placeholder={t('prompts.systemPrompt')}
-                    rows={4}
-                    required
-                  />
-                  <Textarea
-                    value={userPrompt}
-                    onChange={(e) => setUserPrompt(e.target.value)}
-                    placeholder={t('prompts.userPrompt')}
-                    rows={4}
-                    required
-                  />
+                <CardContent className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={loadActiveVersion} disabled={!activeVersion}>
+                      {t('prompts.reloadActive')}
+                    </Button>
+                  </div>
+
+                  <Tabs value={sectionTab} onValueChange={setSectionTab}>
+                    <TabsList className="flex h-auto flex-wrap">
+                      {sectionFields.map(({ key, label }) => (
+                        <TabsTrigger key={key} value={key}>
+                          {label}
+                        </TabsTrigger>
+                      ))}
+                      <TabsTrigger value="user">{t('prompts.userPrompt')}</TabsTrigger>
+                    </TabsList>
+                    {sectionFields.map(({ key, label, value, onChange }) => (
+                      <TabsContent key={key} value={key} className="space-y-2">
+                        <Label htmlFor={`prompt-${key}`}>{label}</Label>
+                        <Textarea
+                          id={`prompt-${key}`}
+                          value={value}
+                          onChange={(e) => onChange(e.target.value)}
+                          rows={10}
+                          placeholder={t(`prompts.${key}Placeholder`)}
+                        />
+                      </TabsContent>
+                    ))}
+                    <TabsContent value="user" className="space-y-2">
+                      <Label htmlFor="prompt-user">{t('prompts.userPrompt')}</Label>
+                      <Textarea
+                        id="prompt-user"
+                        value={userPrompt}
+                        onChange={(e) => setUserPrompt(e.target.value)}
+                        rows={10}
+                        placeholder={t('prompts.userPromptPlaceholder')}
+                        required
+                      />
+                    </TabsContent>
+                  </Tabs>
+
                   <div className="flex gap-2">
-                    <Button type="submit">{t('prompts.saveAndActivate')}</Button>
-                    <Button type="button" variant="secondary" onClick={() => testMutation.mutate()}>
+                    <Button type="submit" disabled={createMutation.isPending || !userPrompt.trim()}>
+                      {t('prompts.saveAndActivate')}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={testMutation.isPending || !userPrompt.trim()}
+                      onClick={() => testMutation.mutate()}
+                    >
                       {t('common.test')}
                     </Button>
                   </div>

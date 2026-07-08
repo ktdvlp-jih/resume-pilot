@@ -56,15 +56,42 @@ export const api = {
     }),
   listPrompts: () => request<Array<{ id: string; name: string; type: string; description?: string; activeVersionId?: string }>>('/api/v1/admin/prompts'),
   listPromptVersions: (templateId: string) =>
-    request<Array<{ id: string; versionNumber: number; systemPrompt: string; userPrompt: string; active: boolean }>>(
-      `/api/v1/admin/prompts/${templateId}/versions`),
-  createPromptVersion: (templateId: string, systemPrompt: string, userPrompt: string) =>
+    request<Array<{
+      id: string;
+      versionNumber: number;
+      personaPrompt: string;
+      guardPrompt: string;
+      taskPrompt: string;
+      outputPrompt: string;
+      systemPrompt: string;
+      userPrompt: string;
+      active: boolean;
+    }>>(`/api/v1/admin/prompts/${templateId}/versions`),
+  createPromptVersion: (
+    templateId: string,
+    data: {
+      personaPrompt: string;
+      guardPrompt: string;
+      taskPrompt: string;
+      outputPrompt: string;
+      userPrompt: string;
+    },
+  ) =>
     request<{ id: string }>(`/api/v1/admin/prompts/${templateId}/versions`, {
-      method: 'POST', body: JSON.stringify({ systemPrompt, userPrompt }),
+      method: 'POST',
+      body: JSON.stringify(data),
     }),
   activatePromptVersion: (templateId: string, versionId: string) =>
     request<void>(`/api/v1/admin/prompts/${templateId}/versions/${versionId}/activate`, { method: 'PUT' }),
-  testPrompt: (data: { promptType?: string; systemPrompt?: string; userPrompt?: string; variables?: Record<string, unknown> }) =>
+  testPrompt: (data: {
+    promptType?: string;
+    personaPrompt?: string;
+    guardPrompt?: string;
+    taskPrompt?: string;
+    outputPrompt?: string;
+    userPrompt?: string;
+    variables?: Record<string, unknown>;
+  }) =>
     request<{ result: string }>('/api/v1/admin/prompts/test', { method: 'POST', body: JSON.stringify(data) }),
   listForbidden: () => request<Array<{ id: string; expression: string; suggestion?: string; severity: string; enabled: boolean }>>('/api/v1/admin/forbidden-expressions'),
   createForbidden: (expression: string, suggestion?: string) =>

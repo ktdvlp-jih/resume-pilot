@@ -19,6 +19,10 @@ public class PromptVersion {
     @Column(name = "prompt_template_id", nullable = false) private UUID promptTemplateId;
     @Column(name = "version_number", nullable = false) private Integer versionNumber;
     @Column(name = "system_prompt", nullable = false, columnDefinition = "TEXT") private String systemPrompt;
+    @Column(name = "persona_prompt", nullable = false, columnDefinition = "TEXT") @Builder.Default private String personaPrompt = "";
+    @Column(name = "guard_prompt", nullable = false, columnDefinition = "TEXT") @Builder.Default private String guardPrompt = "";
+    @Column(name = "task_prompt", nullable = false, columnDefinition = "TEXT") @Builder.Default private String taskPrompt = "";
+    @Column(name = "output_prompt", nullable = false, columnDefinition = "TEXT") @Builder.Default private String outputPrompt = "";
     @Column(name = "user_prompt", nullable = false, columnDefinition = "TEXT") private String userPrompt;
     @JdbcTypeCode(SqlTypes.JSON) @Builder.Default private List<String> variables = List.of();
     @Column(name = "is_active", nullable = false) @Builder.Default private boolean active = false;

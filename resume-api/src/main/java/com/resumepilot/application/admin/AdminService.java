@@ -61,10 +61,20 @@ public class AdminService {
         int nextVersion = promptVersionRepository.findTopByPromptTemplateIdOrderByVersionNumberDesc(templateId)
                 .map(v -> v.getVersionNumber() + 1).orElse(1);
 
+        String persona = req.personaPrompt();
+        String guard = req.guardPrompt();
+        String task = req.taskPrompt();
+        String output = req.outputPrompt();
+        String systemPrompt = PromptSections.compose(persona, guard, task, output);
+
         PromptVersion version = promptVersionRepository.save(PromptVersion.builder()
                 .promptTemplateId(templateId)
                 .versionNumber(nextVersion)
-                .systemPrompt(req.systemPrompt())
+                .personaPrompt(persona)
+                .guardPrompt(guard)
+                .taskPrompt(task)
+                .outputPrompt(output)
+                .systemPrompt(systemPrompt)
                 .userPrompt(req.userPrompt())
                 .createdBy(adminId)
                 .build());
@@ -111,10 +121,26 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public PromptTestResponse testPrompt(PromptTestRequest req) {
+        String systemPrompt = resolveSystemPrompt(req);
         Map<String, Object> result = promptServiceClient.testPrompt(
-                req.promptType(), req.systemPrompt(), req.userPrompt(), req.variables());
+                req.promptType(), systemPrompt, req.userPrompt(), req.variables());
         Object testResult = result.get("result");
         return new PromptTestResponse(testResult != null ? String.valueOf(testResult) : "no result");
+    }
+
+    private String resolveSystemPrompt(PromptTestRequest req) {
+        if (req.systemPrompt() != null && !req.systemPrompt().isBlank()) {
+            return req.systemPrompt();
+        }
+        if (req.personaPrompt() != null || req.guardPrompt() != null
+                || req.taskPrompt() != null || req.outputPrompt() != null) {
+            return PromptSections.compose(
+                    req.personaPrompt() != null ? req.personaPrompt() : "",
+                    req.guardPrompt() != null ? req.guardPrompt() : "",
+                    req.taskPrompt() != null ? req.taskPrompt() : "",
+                    req.outputPrompt() != null ? req.outputPrompt() : "");
+        }
+        throw new BusinessException(ErrorCode.INVALID_INPUT, "system prompt or sections required");
     }
 
     @Transactional(readOnly = true)
@@ -246,7 +272,16 @@ public class AdminService {
     }
 
     private PromptVersionResponse toVersionResponse(PromptVersion v) {
-        return new PromptVersionResponse(v.getId(), v.getPromptTemplateId(), v.getVersionNumber(),
-                v.getSystemPrompt(), v.getUserPrompt(), v.isActive());
+        return new PromptVersionResponse(
+                v.getId(),
+                v.getPromptTemplateId(),
+                v.getVersionNumber(),
+                v.getPersonaPrompt(),
+                v.getGuardPrompt(),
+                v.getTaskPrompt(),
+                v.getOutputPrompt(),
+                v.getSystemPrompt(),
+                v.getUserPrompt(),
+                v.isActive());
     }
 }

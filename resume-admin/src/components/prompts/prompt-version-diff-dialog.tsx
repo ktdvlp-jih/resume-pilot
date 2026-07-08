@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Columns2, Rows3 } from 'lucide-react';
 import { TextDiffView } from '@/components/common/text-diff-view';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -18,15 +17,21 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { countChangedLines, diffText } from '@/lib/text-diff';
+import { diffText } from '@/lib/text-diff';
 
 export type PromptVersionDetail = {
   id: string;
   versionNumber: number;
   active: boolean;
+  personaPrompt: string;
+  guardPrompt: string;
+  taskPrompt: string;
+  outputPrompt: string;
   systemPrompt: string;
   userPrompt: string;
 };
+
+type SectionKey = 'persona' | 'guard' | 'task' | 'output' | 'user';
 
 type PromptVersionDiffDialogProps = {
   open: boolean;
@@ -35,6 +40,22 @@ type PromptVersionDiffDialogProps = {
   initialA?: number;
   initialB?: number;
 };
+
+function sectionValue(version: PromptVersionDetail | undefined, key: SectionKey): string {
+  if (!version) return '';
+  switch (key) {
+    case 'persona':
+      return version.personaPrompt;
+    case 'guard':
+      return version.guardPrompt;
+    case 'task':
+      return version.taskPrompt;
+    case 'output':
+      return version.outputPrompt;
+    case 'user':
+      return version.userPrompt;
+  }
+}
 
 export function PromptVersionDiffDialog({
   open,
@@ -63,11 +84,17 @@ export function PromptVersionDiffDialog({
 
   const va = sorted.find((v) => v.versionNumber === versionA);
   const vb = sorted.find((v) => v.versionNumber === versionB);
-  const systemRows = va && vb ? diffText(va.systemPrompt, vb.systemPrompt) : [];
-  const userRows = va && vb ? diffText(va.userPrompt, vb.userPrompt) : [];
 
   const labelA = t('prompts.versionLabel', { version: versionA });
   const labelB = t('prompts.versionLabel', { version: versionB });
+
+  const sections: { key: SectionKey; label: string }[] = [
+    { key: 'persona', label: t('prompts.persona') },
+    { key: 'guard', label: t('prompts.guard') },
+    { key: 'task', label: t('prompts.task') },
+    { key: 'output', label: t('prompts.output') },
+    { key: 'user', label: t('prompts.userPrompt') },
+  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -130,39 +157,26 @@ export function PromptVersionDiffDialog({
               </div>
             </div>
 
-            <Tabs defaultValue="system">
-              <TabsList>
-                <TabsTrigger value="system">
-                  {t('prompts.systemPrompt')}
-                  {systemRows.length > 0 && (
-                    <Badge variant="secondary" className="ml-2">
-                      {countChangedLines(systemRows)}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="user">
-                  {t('prompts.userPrompt')}
-                  {userRows.length > 0 && (
-                    <Badge variant="secondary" className="ml-2">
-                      {countChangedLines(userRows)}
-                    </Badge>
-                  )}
-                </TabsTrigger>
+            <Tabs defaultValue="persona">
+              <TabsList className="flex h-auto flex-wrap">
+                {sections.map(({ key, label }) => (
+                  <TabsTrigger key={key} value={key}>
+                    {label}
+                  </TabsTrigger>
+                ))}
               </TabsList>
-              <TabsContent value="system" className="mt-3">
-                {systemRows.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">{t('prompts.noDiff')}</p>
-                ) : (
-                  <TextDiffView rows={systemRows} mode={viewMode} labelA={labelA} labelB={labelB} />
-                )}
-              </TabsContent>
-              <TabsContent value="user" className="mt-3">
-                {userRows.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">{t('prompts.noDiff')}</p>
-                ) : (
-                  <TextDiffView rows={userRows} mode={viewMode} labelA={labelA} labelB={labelB} />
-                )}
-              </TabsContent>
+              {sections.map(({ key }) => {
+                const sectionRows = va && vb ? diffText(sectionValue(va, key), sectionValue(vb, key)) : [];
+                return (
+                  <TabsContent key={key} value={key} className="mt-3">
+                    {sectionRows.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">{t('prompts.noDiff')}</p>
+                    ) : (
+                      <TextDiffView rows={sectionRows} mode={viewMode} labelA={labelA} labelB={labelB} />
+                    )}
+                  </TabsContent>
+                );
+              })}
             </Tabs>
           </div>
         )}
