@@ -34,7 +34,7 @@ export function AdminSidebar() {
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
-        <a href="/" className="flex items-center gap-2 px-2 py-1 font-semibold tracking-tight hover:text-primary">
+        <a href="/admin/" className="flex items-center gap-2 px-2 py-1 font-semibold tracking-tight hover:text-primary">
           ResumePilot
         </a>
       </SidebarHeader>
@@ -66,7 +66,7 @@ export function AdminSidebar() {
           className="w-full justify-start text-destructive hover:text-destructive"
           onClick={() => {
             clearTokens();
-            window.location.href = '/login';
+            window.location.href = '/admin/login';
           }}
         >
           <LogOut className="size-4" />

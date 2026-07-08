@@ -36,6 +36,13 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: '/index.html',
+        navigateFallbackDenylist: [
+          /^\/admin(?:\/|$)/,
+          /^\/api(?:\/|$)/,
+          /^\/swagger-ui(?:\/|$)/,
+          /^\/api-docs(?:\/|$)/,
+          /^\/actuator(?:\/|$)/,
+        ],
         globPatterns: ['**/*.{js,css,html,ico,svg,woff2}'],
       },
     }),
