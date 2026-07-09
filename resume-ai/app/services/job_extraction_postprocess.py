@@ -31,7 +31,13 @@ DUTY_PARAPHRASE_MARKERS = (
     "xframe", "ldar", "prtr", "프론트엔드 전환", "연동 경험", "환경규제", "인벤토리",
 )
 PREFERRED_SECTION_PATTERN = re.compile(
-    r"(?:우대\s*사항|우대\s*조건|우대)[:\：]?\s*([\s\S]*?)(?=\n\s*(?:담당|필수|자격|인재|지원|근무|복리|채용|주요|$))",
+    r"[※\s]*(?:우대\s*사항|우대\s*조건|우대\s*요건|우대)[:\：]?\s*"
+    r"([\s\S]*?)(?=(?:\n\s*[※\s]*(?:담당|필수|자격|인재|지원|근무|복리|채용|주요|전형))|\Z)",
+    re.IGNORECASE,
+)
+REQUIRED_SECTION_PATTERN = re.compile(
+    r"[※\s]*(?:지원\s*자격|자격\s*요건|필수\s*(?:사항|조건|기술))[:\：]?\s*"
+    r"([\s\S]*?)(?=(?:\n\s*[※\s]*(?:우대|주요|담당|근무|전형|복리|채용))|\Z)",
     re.IGNORECASE,
 )
 XFRAME_PRODUCT_PATTERN = re.compile(r"ai\s*\(\s*xframe\s*\)", re.IGNORECASE)
@@ -462,6 +468,14 @@ def is_duty_paraphrase_preferred(preferred: str, responsibility: str) -> bool:
     return "경험" in preferred and items_similar(preferred, responsibility, threshold=0.72)
 
 
+def is_near_duplicate_line(left: str, right: str) -> bool:
+    left_norm = re.sub(r"[\s·ㆍ:,.!\-/?()]+", "", left.lower())
+    right_norm = re.sub(r"[\s·ㆍ:,.!\-/?()]+", "", right.lower())
+    if not left_norm or not right_norm:
+        return False
+    return left_norm in right_norm or right_norm in left_norm
+
+
 def remove_overlapping_preferred_skills(
     job_responsibilities: list[str],
     required_skills: list[str],
@@ -469,7 +483,7 @@ def remove_overlapping_preferred_skills(
 ) -> list[str]:
     kept: list[str] = []
     for preferred in preferred_skills:
-        if any(items_similar(preferred, required) for required in required_skills):
+        if any(is_near_duplicate_line(preferred, required) for required in required_skills):
             continue
         if any(is_duty_paraphrase_preferred(preferred, responsibility) for responsibility in job_responsibilities):
             continue
@@ -508,19 +522,113 @@ def filter_solution_keywords(keywords: list[str]) -> list[str]:
     return dedupe_list([keyword for keyword in keywords if keyword and not is_solution_noise(keyword)])
 
 
+def dedupe_tech_keywords_against_skill_bullets(
+    tech_keywords: list[str],
+    required_skills: list[str],
+    preferred_skills: list[str],
+) -> list[str]:
+    """Remove tech_keywords that duplicate full skill bullets (tokens should stay short)."""
+    skill_lines = required_skills + preferred_skills
+    kept: list[str] = []
+    for keyword in tech_keywords:
+        token = str(keyword).strip()
+        if len(token) <= 24:
+            kept.append(keyword)
+            continue
+        if any(items_similar(token, line, threshold=0.82) for line in skill_lines):
+            continue
+        kept.append(keyword)
+    return kept
+
+
+def trim_description_if_bullet_dump(description: str, bullets: list[str]) -> str:
+    if not description:
+        return description
+    long_bullets = [b for b in bullets if len(b) > 12]
+    if not long_bullets:
+        return description
+    sentences = re.split(r"(?<=[.!?。])\s+", description.strip())
+    echo_sentences = [
+        s for s in sentences
+        if any(b in s or items_similar(b, s, threshold=0.88) for b in long_bullets)
+    ]
+    if len(echo_sentences) >= 2:
+        summary = [
+            s for s in sentences
+            if s not in echo_sentences
+        ]
+        if summary:
+            return " ".join(summary[:3]).strip()
+        return sentences[0].strip() if sentences else description
+    return description
+
+
+def _parse_section_bullets(section: str) -> list[str]:
+    section = section.replace("\u200b", "").replace("\ufeff", "")
+    cleaned: list[str] = []
+    for line in section.splitlines():
+        normalized = re.sub(r"^[\s\-\*•·]+", "", line.strip())
+        normalized = re.sub(r"\s+", " ", normalized)
+        if normalized and len(normalized) > 1:
+            cleaned.append(normalized)
+    if cleaned:
+        return cleaned
+    items = re.split(r"[\n•·]+", section)
+    return [i.strip() for i in items if i.strip() and len(i.strip()) > 1]
+
+
 def recover_preferred_skills_from_source(source_text: str, preferred_skills: list[str]) -> list[str]:
     if preferred_skills:
         return preferred_skills
-    match = PREFERRED_SECTION_PATTERN.search(source_text or "")
+    for blob in (source_text,):
+        match = PREFERRED_SECTION_PATTERN.search(blob or "")
+        if not match:
+            continue
+        recovered: list[str] = []
+        for line in _parse_section_bullets(match.group(1)):
+            if len(line) >= 6:
+                recovered.append(line)
+        if recovered:
+            return dedupe_list(recovered)[:15]
+    return preferred_skills
+
+
+def recover_required_skills_from_source(
+    source_text: str,
+    qualifications: list[str],
+    required_skills: list[str],
+) -> tuple[list[str], list[str]]:
+    if required_skills:
+        return qualifications, required_skills
+    match = REQUIRED_SECTION_PATTERN.search(source_text or "")
     if not match:
-        return preferred_skills
-    recovered: list[str] = []
-    for line in match.group(1).splitlines():
-        cleaned = re.sub(r"^[\s\-•◦·*▸►]+", "", line.strip())
-        cleaned = re.sub(r"\s+", " ", cleaned)
-        if len(cleaned) >= 6:
-            recovered.append(cleaned)
-    return dedupe_list(recovered)[:15]
+        return qualifications, required_skills
+    recovered = _parse_section_bullets(match.group(1))
+    if not recovered:
+        return qualifications, required_skills
+    kept_qual = [
+        item for item in qualifications
+        if not any(items_similar(item, req) for req in recovered)
+    ]
+    return dedupe_list(kept_qual), dedupe_similar_items(recovered)[:15]
+
+
+def promote_requirements_from_qualifications(
+    qualifications: list[str],
+    required_skills: list[str],
+) -> tuple[list[str], list[str]]:
+    if required_skills:
+        return qualifications, required_skills
+    kept_qual: list[str] = []
+    promoted: list[str] = []
+    for item in qualifications:
+        if is_core_qualification_only(item) and not is_required_skill_like(item):
+            kept_qual.append(item)
+        elif len(item.strip()) >= 12:
+            promoted.append(item)
+        else:
+            kept_qual.append(item)
+    return dedupe_list(kept_qual), dedupe_similar_items(promoted)[:15]
 
 
 def normalize_experience_qualifications(qualifications: list[str]) -> list[str]:
@@ -738,8 +846,14 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
     )
     qualifications, kept_required = split_experience_from_skill_lines(qualifications, kept_required)
     qualifications = normalize_experience_qualifications(qualifications)
+    source_blob_early = build_source_blob(result, source_text)
+    qualifications, kept_required = recover_required_skills_from_source(
+        source_text or source_blob_early,
+        qualifications,
+        kept_required,
+    )
     preferred_skills = recover_preferred_skills_from_source(
-        build_source_blob(result, source_text),
+        source_text or source_blob_early,
         preferred_skills,
     )
     preferred_skills = remove_overlapping_preferred_skills(
@@ -753,6 +867,7 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
         preferred_skills,
         kept_core,
     )
+    qualifications, kept_required = promote_requirements_from_qualifications(qualifications, kept_required)
     kept_required, kept_core = move_soft_skills_from_required(kept_required, kept_core)
     kept_required = clean_required_skill_phrasing(kept_required)
     kept_required = dedupe_redundant_required_skills(kept_required)
@@ -783,6 +898,11 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
     tech_keywords = collapse_tech_keyword_variants(
         [kw for kw in tech_keywords if is_valid_tech_keyword(kw)],
     )[:20]
+    tech_keywords = dedupe_tech_keywords_against_skill_bullets(
+        tech_keywords,
+        kept_required,
+        preferred_skills,
+    )
     company_name = resolve_company_name(result, source_blob)
 
     position = result.get("position")
@@ -791,6 +911,10 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
         position_str = None
 
     description = clean_job_description(str(result.get("job_description") or ""))
+    description = trim_description_if_bullet_dump(
+        description,
+        job_responsibilities + kept_required + preferred_skills,
+    )
     culture = result.get("org_culture")
     culture_str = str(culture).strip() if culture else None
 

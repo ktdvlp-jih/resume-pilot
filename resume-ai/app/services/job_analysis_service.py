@@ -41,12 +41,14 @@ POSITION_PATTERNS = [
 ]
 
 SKILL_SECTION_PATTERNS = [
-    r"(?:필수|자격|요구)\s*(?:사항|조건|기술)[:\：]?\s*([\s\S]*?)(?=\n\s*(?:우대|선호|지원|근무|복리|채용|$))",
-    r"(?:우대|선호)\s*(?:사항|조건|기술)[:\：]?\s*([\s\S]*?)(?=\n\s*(?:필수|지원|근무|복리|채용|$))",
+    r"(?:필수|요구)\s*(?:사항|조건|기술)[:\：]?\s*([\s\S]*?)(?=\n\s*(?:우대|선호|지원|근무|복리|채용|전형|주요|담당|※|$))",
+    r"(?:우대|선호)\s*(?:사항|조건|기술|요건)[:\：]?\s*([\s\S]*?)(?=\n\s*(?:필수|지원|근무|복리|채용|전형|주요|담당|※|$))",
+    r"지원\s*자격[:\：]?\s*([\s\S]*?)(?=\n\s*(?:우대|선호|근무|복리|채용|전형|주요|담당|※|$))",
+    r"자격\s*요건[:\：]?\s*([\s\S]*?)(?=\n\s*(?:우대|선호|근무|복리|채용|전형|주요|담당|※|$))",
 ]
 
 RESPONSIBILITY_SECTION_PATTERNS = [
-    r"(?:담당\s*업무|주요\s*업무)[:\：]?\s*([\s\S]*?)(?=\n\s*(?:자격|필수|우대|지원|근무|복리|채용|$))",
+    r"(?:담당\s*업무|주요\s*업무)[:\：]?\s*([\s\S]*?)(?=\n\s*(?:자격|필수|우대|지원|근무|복리|채용|전형|※|$))",
 ]
 
 JOB_EXTRACTION_SYSTEM = """You extract structured data from Korean or English job postings.
@@ -55,37 +57,42 @@ The input may be clean text, HTML text, PDF text, OCR output, or a recruitment p
 Return ONLY valid JSON with these keys:
 - company_name (string — legal name OR the most specific organization label visible on the poster)
 - position (string or null)
-- qualifications (array — education, years of experience, licenses; NOT tech skills)
-- required_skills (array — mandatory technical/role skills; exclude education/경력 requirements)
-- preferred_skills (array — REQUIRED key. 우대사항/우대 section bullets only. If that section is visible, list every bullet and do NOT return []. Use [] only when no 우대 section exists.)
-- tech_keywords (array — ALL languages, frameworks, DB, infra, domain systems, and dr.* product names from solution grids; lowercase)
-- job_responsibilities (array — every 담당업무/주요업무 bullet, including CMS/MSDS/규제DB items)
+- qualifications (array — education, years-of-experience-only lines, licenses; NOT skill/experience bullets)
+- required_skills (array — bullets from 지원 자격/자격요건/필수사항/필수 조건 sections)
+- preferred_skills (array — REQUIRED. bullets from 우대사항/우대요건/우대 조건만; if that section exists, do NOT return [])
+- tech_keywords (array — stack/product tokens only: languages, frameworks, DB, infra, dr.* names; lowercase; NOT full sentences)
+- job_responsibilities (array — bullets from 주요업무/담당업무/업무내용 only)
 - talent_profile (array — 인재상 keywords)
-- core_competencies (array — soft skills/역량 keywords, NOT job duties)
+- core_competencies (array — soft skills only, NOT job duties)
 - org_culture (string or null)
-- job_description (string — 3-5 sentence summary of company, role, and key work)
+- job_description (string — 3-5 sentence summary; do NOT paste bullets from other fields)
 
-Rules:
-- Extract COMPREHENSIVELY. Include domain systems (SAP, ERP, EHS, MES, CMS, MSDS) in tech_keywords when mentioned.
-- For poster images: read 우대사항 and 솔루션/제품 그리드 as SEPARATE sections from 담당업무.
-- preferred_skills must come ONLY from the 우대사항 section (e.g. React, TypeScript, Cursor, SI PM). Do NOT copy 담당업무 lines into preferred_skills even with "경험" appended.
-- preferred_skills is REQUIRED. When 우대사항/우대 is visible on the posting, extract all bullets there — never omit or return an empty array.
-- Include every dr.* product name and solution label from product grids in tech_keywords (e.g. dr.cms, dr.chemdb, carbon-slim).
-- If the legal company name is absent, use the visible organization descriptor (e.g. "화학물질·환경안전보건 전문기업") instead of "Unknown".
-- Fix obvious OCR typos using context (e.g. Spr1ng -> Spring, BO0T -> Boot).
-- Do NOT put 담당업무 into preferred_skills or core_competencies.
-- Do NOT put 학력/경력 requirements into required_skills; use qualifications.
-- Do NOT invent facts not supported by the posting. Use empty arrays or null when truly unknown.
-- Korean postings should use Korean strings except tech_keywords."""
+Section mapping (use visible headers):
+- 주요업무/담당업무 → job_responsibilities
+- 지원 자격/자격요건/필수사항 → required_skills (education-only lines → qualifications)
+- 우대사항/우대요건 → preferred_skills
+- Stack grids / dr.* products → tech_keywords (tokens only)
+
+Consistency and deduplication:
+- Keep each source bullet in ONE primary field only.
+- Do NOT repeat the same sentence across qualifications, required_skills, preferred_skills, or job_responsibilities.
+- Do NOT copy 담당업무 into preferred_skills (even with "경험" appended).
+- Do NOT put full skill bullets into tech_keywords; extract tokens (e.g. "java", "llm", "dr.cms").
+- job_description summarizes; it must not duplicate bullet lists from other fields.
+- Preserve original bullet wording when possible; avoid merging or paraphrasing.
+- Fix obvious OCR typos (Spr1ng → Spring). Do NOT invent facts.
+- Korean strings except tech_keywords."""
 
 VISION_USER_PROMPT = (
     "This image is a Korean/English job posting poster or screenshot. "
-    "Read ALL visible sections separately: header/company line, 모집분야, 담당업무, 자격요건, "
-    "우대사항 (preferred qualifications — its own section), 인재상, solution/product logo grid "
-    "(dr.cms, dr.chemdb, carbon-slim, etc.), and footer. "
-    "Put 우대사항 bullets ONLY in preferred_skills — never copy 담당업무 into preferred_skills. "
-    "Put every dr.* product name from the grid into tech_keywords. "
-    "Extract every bullet and every technology acronym you can see."
+    "Map each visible section header to exactly one JSON field: "
+    "주요업무/담당업무 → job_responsibilities; "
+    "지원 자격/자격요건/필수사항 → required_skills; "
+    "우대사항/우대요건 → preferred_skills; "
+    "dr.* product grid → tech_keywords (tokens only). "
+    "Do NOT duplicate the same bullet across fields. "
+    "job_description is a short summary only, not a bullet dump. "
+    "Keep original bullet text where possible."
 )
 
 
@@ -331,7 +338,7 @@ class JobAnalysisService:
         qualifications: list[str] = []
         skills: list[str] = []
         for item in items:
-            if any(marker in item for marker in ("졸업", "대학", "학사", "석사", "박사", "경력", "년 이상", "년이상")):
+            if re.search(r"(4년제|대학|졸업|학사|석사|박사|전문학사)", item) and "경험" not in item:
                 qualifications.append(item)
             else:
                 skills.append(item)
@@ -412,6 +419,7 @@ class JobAnalysisService:
             if next_decoded == decoded:
                 break
             decoded = next_decoded
+        decoded = decoded.replace("\u200b", "").replace("\ufeff", "")
         lines = [re.sub(r"\s+", " ", line).strip() for line in decoded.splitlines()]
         return "\n".join(line for line in lines if line).strip()
 
@@ -439,13 +447,14 @@ class JobAnalysisService:
         preferred: list[str] = []
         for i, pattern in enumerate(SKILL_SECTION_PATTERNS):
             match = re.search(pattern, text, re.IGNORECASE)
-            if match:
-                items = self._split_bullet_items(match.group(1))
-                if i == 0:
-                    required = items
-                else:
-                    preferred = items
-        return required[:15], preferred[:15]
+            if not match:
+                continue
+            items = self._split_bullet_items(match.group(1))
+            if i in {0, 2, 3}:
+                required.extend(items)
+            elif i == 1:
+                preferred.extend(items)
+        return dedupe_list(required)[:15], dedupe_list(preferred)[:15]
 
     def _extract_responsibilities(self, text: str) -> list[str]:
         for pattern in RESPONSIBILITY_SECTION_PATTERNS:
@@ -455,7 +464,16 @@ class JobAnalysisService:
         return []
 
     def _split_bullet_items(self, section: str) -> list[str]:
-        items = re.split(r"[\n•·\-\*]+", section)
+        section = section.replace("\u200b", "").replace("\ufeff", "")
+        cleaned: list[str] = []
+        for line in section.splitlines():
+            normalized = re.sub(r"^[\s\-\*•·]+", "", line.strip())
+            normalized = re.sub(r"\s+", " ", normalized)
+            if normalized and len(normalized) > 1:
+                cleaned.append(normalized)
+        if cleaned:
+            return cleaned[:15]
+        items = re.split(r"[\n•·]+", section)
         return [i.strip() for i in items if i.strip() and len(i.strip()) > 1][:15]
 
     def _extract_tech_keywords(self, text: str) -> list[str]:

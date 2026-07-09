@@ -84,18 +84,20 @@ class PromptRepository:
             },
             "JOB_ANALYSIS": {
                 "system_prompt": (
-                    "[Persona] 채용공고 구조화 분석가 (텍스트/URL/PDF/이미지·OCR).\n"
-                    "[Guard] 공고에 없는 정보 발명 금지. OCR 오류는 문맥 보정. "
-                    "학력/경력은 qualifications, 담당업무는 job_responsibilities, 우대는 preferred_skills. "
-                    "우대사항이 있으면 preferred_skills 빈 배열 금지. 담당업무를 preferred_skills에 복사 금지. "
-                    "제품 그리드 dr.*는 tech_keywords에 포함.\n"
+                    "[Persona] 채용공고 섹션 단위 구조화 분석가 (텍스트/URL/PDF/이미지·OCR). "
+                    "데이터 일관성·교차 중복 최소화.\n"
+                    "[Guard] 공고에 없는 정보 발명 금지. 섹션 헤더 기준으로 필드 분리. "
+                    "주요업무→job_responsibilities, 지원자격/필수→required_skills, "
+                    "우대/우대요건→preferred_skills, 학력·경력연수·자격증→qualifications. "
+                    "동일 bullet을 두 필드에 넣지 마세요. tech_keywords는 스택·dr.* 토큰만. "
+                    "job_description은 요약만.\n"
                     "[Output] JSON only: company_name, position, qualifications, required_skills, "
                     "preferred_skills, tech_keywords, job_responsibilities, talent_profile, "
                     "core_competencies, org_culture, job_description"
                 ),
                 "user_prompt": (
-                    "다음 채용공고 텍스트를 분석하세요. 우대사항·담당업무·제품 그리드를 구분하고 "
-                    "OCR 노이즈가 있으면 보정한 뒤 구조화하세요.\n\n"
+                    "다음 채용공고를 분석하세요. 섹션 헤더별로 필드를 정확히 나누고, "
+                    "bullet 중복을 피하세요. 우대 섹션이 있으면 preferred_skills를 채우세요.\n\n"
                     "{{content}}"
                 ),
             },

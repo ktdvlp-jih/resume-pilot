@@ -406,3 +406,26 @@ def test_is_quality_result_allows_unknown_company_when_rich_lists():
         "tech_keywords": ["java"],
     }
     assert is_quality_result(result) is True
+
+
+def test_dedupe_tech_keywords_drops_sentence_copies():
+    from app.services.job_extraction_postprocess import dedupe_tech_keywords_against_skill_bullets
+
+    required = ["Java / Spring Boot 기반 웹 개발 경험 5년 이상"]
+    keywords = ["java", "Java / Spring Boot 기반 웹 개발 경험 5년 이상"]
+    kept = dedupe_tech_keywords_against_skill_bullets(keywords, required, [])
+    assert "java" in kept
+    assert len(kept) == 1
+
+
+def test_trim_description_when_bullet_dump():
+    from app.services.job_extraction_postprocess import trim_description_if_bullet_dump
+
+    bullets = ["CMS 신규 기능 설계·개발", "MSDS 시스템 유지보수 및 개선"]
+    dump = (
+        "화학 솔루션 개발팀 경력직 채용 공고입니다. "
+        "CMS 신규 기능 설계·개발. MSDS 시스템 유지보수 및 개선."
+    )
+    trimmed = trim_description_if_bullet_dump(dump, bullets)
+    assert "화학 솔루션" in trimmed
+    assert "CMS 신규 기능" not in trimmed
