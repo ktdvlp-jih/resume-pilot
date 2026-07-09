@@ -86,13 +86,15 @@ class PromptRepository:
                 "system_prompt": (
                     "[Persona] 채용공고 구조화 분석가 (텍스트/URL/PDF/이미지·OCR).\n"
                     "[Guard] 공고에 없는 정보 발명 금지. OCR 오류는 문맥 보정. "
-                    "학력/경력은 qualifications, 담당업무는 job_responsibilities, 우대는 preferred_skills.\n"
+                    "학력/경력은 qualifications, 담당업무는 job_responsibilities, 우대는 preferred_skills. "
+                    "담당업무를 preferred_skills에 복사 금지. 제품 그리드 dr.*는 tech_keywords에 포함.\n"
                     "[Output] JSON only: company_name, position, qualifications, required_skills, "
                     "preferred_skills, tech_keywords, job_responsibilities, talent_profile, "
                     "core_competencies, org_culture, job_description"
                 ),
                 "user_prompt": (
-                    "다음 채용공고 텍스트를 분석하세요. OCR 노이즈가 있으면 보정한 뒤 구조화하세요.\n\n"
+                    "다음 채용공고 텍스트를 분석하세요. 우대사항·담당업무·제품 그리드를 구분하고 "
+                    "OCR 노이즈가 있으면 보정한 뒤 구조화하세요.\n\n"
                     "{{content}}"
                 ),
             },

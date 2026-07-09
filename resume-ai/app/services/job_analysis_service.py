@@ -57,8 +57,8 @@ Return ONLY valid JSON with these keys:
 - position (string or null)
 - qualifications (array — education, years of experience, licenses; NOT tech skills)
 - required_skills (array — mandatory technical/role skills; exclude education/경력 requirements)
-- preferred_skills (array — 우대사항 only)
-- tech_keywords (array — ALL languages, frameworks, DB, infra, domain systems mentioned anywhere; lowercase)
+- preferred_skills (array — 우대사항 only; read the dedicated 우대사항/우대 section, NOT 담당업무 paraphrases)
+- tech_keywords (array — ALL languages, frameworks, DB, infra, domain systems, and dr.* product names from solution grids; lowercase)
 - job_responsibilities (array — every 담당업무/주요업무 bullet, including CMS/MSDS/규제DB items)
 - talent_profile (array — 인재상 keywords)
 - core_competencies (array — soft skills/역량 keywords, NOT job duties)
@@ -67,6 +67,9 @@ Return ONLY valid JSON with these keys:
 
 Rules:
 - Extract COMPREHENSIVELY. Include domain systems (SAP, ERP, EHS, MES, CMS, MSDS) in tech_keywords when mentioned.
+- For poster images: read 우대사항 and 솔루션/제품 그리드 as SEPARATE sections from 담당업무.
+- preferred_skills must come ONLY from the 우대사항 section (e.g. React, TypeScript, Cursor, SI PM). Do NOT copy 담당업무 lines into preferred_skills even with "경험" appended.
+- Include every dr.* product name and solution label from product grids in tech_keywords (e.g. dr.cms, dr.chemdb, carbon-slim).
 - If the legal company name is absent, use the visible organization descriptor (e.g. "화학물질·환경안전보건 전문기업") instead of "Unknown".
 - Fix obvious OCR typos using context (e.g. Spr1ng -> Spring, BO0T -> Boot).
 - Do NOT put 담당업무 into preferred_skills or core_competencies.
@@ -76,8 +79,11 @@ Rules:
 
 VISION_USER_PROMPT = (
     "This image is a Korean/English job posting poster or screenshot. "
-    "Read ALL visible sections: header/company line, 모집분야, 담당업무, 자격요건, 우대사항, "
-    "인재상, solution/product grid text, and footer. "
+    "Read ALL visible sections separately: header/company line, 모집분야, 담당업무, 자격요건, "
+    "우대사항 (preferred qualifications — its own section), 인재상, solution/product logo grid "
+    "(dr.cms, dr.chemdb, carbon-slim, etc.), and footer. "
+    "Put 우대사항 bullets ONLY in preferred_skills — never copy 담당업무 into preferred_skills. "
+    "Put every dr.* product name from the grid into tech_keywords. "
     "Extract every bullet and every technology acronym you can see."
 )
 

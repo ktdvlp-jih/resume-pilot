@@ -22,6 +22,14 @@ KEYWORD_NOISE = {
     "as", "al", "self", "soe", "bd", "boot", "ter", "pro", "engineer", "pageview",
     "autoupdate", "api_batch", "stored procedure", "storedprocedure",
 }
+SOLUTION_NOISE = {"cscms"}
+PREFERRED_DISTINCT_MARKERS = (
+    "react", "typescript", "cursor", "claude", "vue", "angular", "next.js", "nextjs",
+    "pm", "파트리더", "리더", "자격증", "kafka", "kubernetes", "spa", "cms pro", "cms/cms",
+)
+DUTY_PARAPHRASE_MARKERS = (
+    "xframe", "ldar", "prtr", "프론트엔드 전환", "연동 경험", "환경규제", "인벤토리",
+)
 SOLUTION_EXTRACT_PATTERN = re.compile(
     r"\b(dr\.[a-z][a-z0-9]*|carbon[- ]?slim|chemwatch|fiveeyes|db\s*galleria|"
     r"cms\s*pro|xframe|ldar[- ]?prtr|carbon[- ]?slim)\b",
@@ -425,6 +433,28 @@ def is_preferred_experience_variant(preferred: str, reference: str) -> bool:
     return "경험" in preferred or is_preferred_experience_item(preferred)
 
 
+def is_distinct_preferred_item(preferred: str) -> bool:
+    lower = preferred.lower()
+    return any(marker in lower for marker in PREFERRED_DISTINCT_MARKERS)
+
+
+def is_duty_paraphrase_preferred(preferred: str, responsibility: str) -> bool:
+    if is_distinct_preferred_item(preferred):
+        return False
+    lower = preferred.lower()
+    resp_lower = responsibility.lower()
+    if any(marker in lower and marker in resp_lower for marker in DUTY_PARAPHRASE_MARKERS):
+        return True
+    if not items_similar(preferred, responsibility, threshold=0.55):
+        return False
+    if any(marker in lower for marker in DUTY_PARAPHRASE_MARKERS):
+        return True
+    stripped = re.sub(r"\s*경험\s*$", "", preferred).strip()
+    if items_similar(stripped, responsibility, threshold=0.78):
+        return True
+    return "경험" in preferred and items_similar(preferred, responsibility, threshold=0.72)
+
+
 def remove_overlapping_preferred_skills(
     job_responsibilities: list[str],
     required_skills: list[str],
@@ -432,15 +462,43 @@ def remove_overlapping_preferred_skills(
 ) -> list[str]:
     kept: list[str] = []
     for preferred in preferred_skills:
-        if any(is_preferred_experience_variant(preferred, responsibility) for responsibility in job_responsibilities):
-            kept.append(preferred)
-            continue
-        if any(items_similar(preferred, responsibility) for responsibility in job_responsibilities):
-            continue
         if any(items_similar(preferred, required) for required in required_skills):
             continue
+        if any(is_duty_paraphrase_preferred(preferred, responsibility) for responsibility in job_responsibilities):
+            continue
         kept.append(preferred)
-    return kept
+    return dedupe_similar_items(kept)
+
+
+def clean_required_skill_phrasing(required_skills: list[str]) -> list[str]:
+    cleaned: list[str] = []
+    for item in required_skills:
+        normalized = re.sub(r"\s*경험\s*$", "", item.strip()).strip()
+        cleaned.append(normalized or item)
+    return cleaned
+
+
+def dedupe_redundant_required_skills(required_skills: list[str]) -> list[str]:
+    kept = list(required_skills)
+    has_spring_detail = any(
+        re.search(r"spring", item, re.IGNORECASE) and not re.fullmatch(r"spring\s*framework", item.strip(), re.IGNORECASE)
+        for item in kept
+    )
+    if has_spring_detail:
+        kept = [
+            item for item in kept
+            if not re.fullmatch(r"spring\s*framework", item.strip(), re.IGNORECASE)
+        ]
+    return dedupe_similar_items(kept)
+
+
+def is_solution_noise(keyword: str) -> bool:
+    compact = keyword.lower().replace(" ", "").replace("-", "")
+    return compact in SOLUTION_NOISE
+
+
+def filter_solution_keywords(keywords: list[str]) -> list[str]:
+    return dedupe_list([keyword for keyword in keywords if keyword and not is_solution_noise(keyword)])
 
 
 def normalize_experience_qualifications(qualifications: list[str]) -> list[str]:
@@ -476,7 +534,7 @@ def extract_solution_keywords(source_text: str, keywords: list[str]) -> list[str
     for keyword in keywords:
         if is_solution_product_keyword(keyword):
             found.append(keyword)
-    return dedupe_list(found)
+    return filter_solution_keywords(found)
 
 
 def is_valid_tech_keyword(keyword: str) -> bool:
@@ -668,6 +726,8 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
         kept_core,
     )
     kept_required, kept_core = move_soft_skills_from_required(kept_required, kept_core)
+    kept_required = clean_required_skill_phrasing(kept_required)
+    kept_required = dedupe_redundant_required_skills(kept_required)
 
     source_blob = build_source_blob(
         {
@@ -685,11 +745,12 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
     raw_keywords = [str(item) for item in (result.get("tech_keywords") or []) if str(item).strip()]
     merged_keywords = dedupe_list(tech_keywords + raw_keywords)
     tech_keywords, solution_keywords = split_tech_and_solution_keywords(merged_keywords)
-    solution_keywords = dedupe_list(solution_keywords + extract_solution_keywords(source_blob, merged_keywords))
+    solution_keywords = filter_solution_keywords(
+        dedupe_list(solution_keywords + extract_solution_keywords(source_blob, merged_keywords)),
+    )[:15]
     tech_keywords = collapse_tech_keyword_variants(
         [kw for kw in tech_keywords if is_valid_tech_keyword(kw)],
     )[:20]
-    solution_keywords = solution_keywords[:15]
     company_name = resolve_company_name(result, source_blob)
 
     position = result.get("position")
