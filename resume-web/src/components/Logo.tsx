@@ -40,13 +40,22 @@ export function LogoMark({ size = 32, className = '' }: LogoMarkProps) {
   );
 }
 
+type LogoVariant = 'public' | 'sidebar' | 'brand';
+
 interface LogoProps {
   to?: string;
   showText?: boolean;
   className?: string;
+  variant?: LogoVariant;
 }
 
-export function Logo({ to = '/', showText = true, className }: LogoProps) {
+const variantClass: Record<LogoVariant, string> = {
+  public: 'text-foreground hover:bg-accent hover:text-accent-foreground',
+  sidebar: 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+  brand: 'text-white hover:bg-white/10',
+};
+
+export function Logo({ to = '/', showText = true, className, variant = 'public' }: LogoProps) {
   const content = (
     <>
       <LogoMark size={32} className="shrink-0" />
@@ -58,7 +67,11 @@ export function Logo({ to = '/', showText = true, className }: LogoProps) {
     </>
   );
 
-  const wrapperClass = cn('flex items-center gap-2.5 rounded-lg p-2 -ml-2 transition-colors hover:bg-sidebar-accent', className);
+  const wrapperClass = cn(
+    'flex items-center gap-2.5 rounded-lg p-2 -ml-2 transition-colors',
+    variantClass[variant],
+    className,
+  );
 
   if (to) {
     return (

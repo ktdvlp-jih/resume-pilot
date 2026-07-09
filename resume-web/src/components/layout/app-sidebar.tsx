@@ -28,7 +28,7 @@ export function AppSidebar() {
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
-        <Logo to="/" />
+        <Logo to="/" variant="sidebar" />
       </SidebarHeader>
       <SidebarContent>
         {appSidebarGroups.map((group) => (
