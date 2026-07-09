@@ -45,6 +45,21 @@ RESPONSIBILITY_MARKERS = (
 GARBAGE_PATTERN = re.compile(r"[ㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ×■□◆◇]|(?:[ㄱ-ㅎ]\s*){3,}")
 SHORT_CAPS_PATTERN = re.compile(r"\b[A-Z]{1,2}\b")
 EDUCATION_PATTERN = re.compile(r"(4년제|대학|졸업|학사|석사|박사|전문학사)")
+COMPANY_PREFIX_NOISE = re.compile(
+    r"^(?:(?:[A-Z]{2,10}|[A-Z][a-z]{1,8})[!.\s·\-]*)+(?=[가-힣])",
+    re.IGNORECASE,
+)
+
+SOFT_SKILL_MARKERS = (
+    "협업", "커뮤니케이션", "리더십", "문제 해결", "책임감", "주인의식",
+    "성장", "도전", "창의", "열정", "전문성", "소통",
+)
+TALENT_VALUE_MARKERS = ("성장", "도전", "혁신", "열정", "주인의식", "전문성", "창의", "인재상")
+REQUIRED_SKILL_MARKERS = (
+    "개발", "설계", "배포", "구현", "활용", "프론트엔드", "백엔드", "기반",
+    "수행", "튜닝", "운영", "유지보수", "연동",
+)
+OVERLAP_THRESHOLD = 0.72
 
 
 def has_ocr_garbage(text: str) -> bool:
@@ -108,22 +123,45 @@ def build_source_blob(data: dict[str, Any], source_text: str = "") -> str:
 
 
 def resolve_company_name(data: dict[str, Any], source_text: str = "") -> str:
-    company = str(data.get("company_name") or "").strip() or "Unknown"
+    company = clean_company_name(str(data.get("company_name") or "").strip() or "Unknown")
     if company != "Unknown" and not has_ocr_garbage(company):
         return company
 
     blob = build_source_blob(data, source_text)
     patterns = [
-        r"([가-힣A-Za-z0-9·/&\-\s]{4,40}?(?:전문\s*기업|그룹|주식회사|\(주\)|㈜|Corp\.?|Inc\.?))",
+        r"([가-힣][가-힣A-Za-z0-9·/&\-\s]{3,40}?(?:전문\s*기업|그룹|주식회사|\(주\)|㈜|Corp\.?|Inc\.?))",
         r"(\[[^\]]{2,40}\])",
     ]
     for pattern in patterns:
         match = re.search(pattern, blob)
         if match:
-            candidate = match.group(1).strip()
-            if candidate and not has_ocr_garbage(candidate):
+            candidate = clean_company_name(match.group(1).strip())
+            if candidate and candidate != "Unknown" and not has_ocr_garbage(candidate):
                 return candidate
     return company
+
+
+def clean_company_name(name: str) -> str:
+    cleaned = re.sub(r"\s+", " ", name.strip())
+    if not cleaned or cleaned == "Unknown":
+        return cleaned or "Unknown"
+
+    cleaned = re.sub(r"^(?:SELF|PAGE|HOME|JOIN|CAREER)[!.\s·\-]*", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"^[!.\s·\-]+", "", cleaned)
+
+    # Preserve Korean company abbreviations such as KB금융그룹, SK하이닉스, LG전자.
+    if re.match(r"^[A-Z]{1,5}[가-힣]", cleaned):
+        return cleaned.strip()
+
+    cleaned = COMPANY_PREFIX_NOISE.sub("", cleaned)
+    cleaned = re.sub(r"^[!.\s·\-]+", "", cleaned)
+    korean_tail = re.search(r"([가-힣][가-힣\s·/&\-]{2,60}(?:전문\s*기업|그룹|주식회사|\(주\)|㈜)?)", cleaned)
+    if korean_tail and cleaned != korean_tail.group(1):
+        latin_prefix = cleaned[: korean_tail.start()].strip()
+        if latin_prefix and re.fullmatch(r"[A-Za-z!.\s·\-]{2,20}", latin_prefix):
+            cleaned = korean_tail.group(1).strip()
+
+    return cleaned.strip() or "Unknown"
 
 
 def enrich_tech_keywords(data: dict[str, Any], source_text: str = "") -> list[str]:
@@ -133,7 +171,8 @@ def enrich_tech_keywords(data: dict[str, Any], source_text: str = "") -> list[st
         collected.extend(str(item) for item in data["tech_keywords"])
     for match in TECH_TOKEN_PATTERN.finditer(blob):
         collected.append(match.group(1))
-    return clean_tech_keywords(collected, blob, limit=30)
+    cleaned = clean_tech_keywords(collected, blob, limit=30)
+    return collapse_tech_keyword_variants(cleaned)
 
 
 def is_qualification_item(text: str) -> bool:
@@ -143,6 +182,109 @@ def is_qualification_item(text: str) -> bool:
     if EDUCATION_PATTERN.search(normalized):
         return True
     return any(marker in normalized for marker in QUALIFICATION_MARKERS)
+
+
+def is_required_skill_like(text: str) -> bool:
+    normalized = text.strip()
+    if not normalized or is_qualification_item(normalized):
+        return False
+    if len(normalized) < 8:
+        return False
+    return any(marker in normalized for marker in REQUIRED_SKILL_MARKERS)
+
+
+def is_soft_competency_item(text: str) -> bool:
+    normalized = text.strip()
+    if not normalized:
+        return False
+    return any(marker in normalized for marker in SOFT_SKILL_MARKERS)
+
+
+def is_true_talent_value(text: str) -> bool:
+    normalized = text.strip()
+    if not normalized:
+        return False
+    if len(normalized) > 24:
+        return False
+    return any(marker in normalized for marker in TALENT_VALUE_MARKERS)
+
+
+def _token_set(text: str) -> set[str]:
+    return set(re.findall(r"[가-힣]{2,}|[a-zA-Z]{2,}", text.lower()))
+
+
+def items_similar(left: str, right: str, threshold: float = OVERLAP_THRESHOLD) -> bool:
+    left_norm = re.sub(r"[\s·ㆍ:,.!\-/?()]+", "", left.lower())
+    right_norm = re.sub(r"[\s·ㆍ:,.!\-/?()]+", "", right.lower())
+    if not left_norm or not right_norm:
+        return False
+    if left_norm in right_norm or right_norm in left_norm:
+        return True
+    left_tokens = _token_set(left)
+    right_tokens = _token_set(right)
+    if not left_tokens or not right_tokens:
+        return False
+    overlap = len(left_tokens & right_tokens) / min(len(left_tokens), len(right_tokens))
+    return overlap >= threshold
+
+
+def remove_overlapping_items(reference: list[str], candidates: list[str]) -> list[str]:
+    kept: list[str] = []
+    for candidate in candidates:
+        if any(items_similar(candidate, ref) for ref in reference):
+            continue
+        kept.append(candidate)
+    return kept
+
+
+def dedupe_similar_items(items: list[str]) -> list[str]:
+    kept: list[str] = []
+    for item in items:
+        if any(items_similar(item, existing) for existing in kept):
+            continue
+        kept.append(item)
+    return kept
+
+
+def reclassify_talent_profile(
+    talent_profile: list[str],
+    qualifications: list[str],
+    required_skills: list[str],
+    core_competencies: list[str],
+) -> tuple[list[str], list[str], list[str], list[str]]:
+    kept_talent: list[str] = []
+    for item in talent_profile:
+        if is_qualification_item(item):
+            qualifications.append(item)
+        elif is_required_skill_like(item):
+            required_skills.append(item)
+        elif is_true_talent_value(item):
+            kept_talent.append(item)
+        elif is_soft_competency_item(item):
+            core_competencies.append(item)
+        elif len(item) > 20:
+            required_skills.append(item)
+        else:
+            kept_talent.append(item)
+    return (
+        dedupe_list(qualifications),
+        dedupe_list(required_skills),
+        dedupe_list(core_competencies),
+        dedupe_list(kept_talent),
+    )
+
+
+def collapse_tech_keyword_variants(keywords: list[str]) -> list[str]:
+    kept: list[str] = []
+    seen: set[str] = set()
+    for keyword in dedupe_list(keywords):
+        lower = keyword.lower().strip()
+        base = lower.split()[0] if lower.split() and lower.split()[0] in TECH_KEYWORDS_CANONICAL else lower
+        if base in seen:
+            continue
+        seen.add(base)
+        kept.append(base if base in TECH_KEYWORDS_CANONICAL else keyword)
+    return kept
 
 
 def is_responsibility_item(text: str) -> bool:
@@ -220,6 +362,7 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
     required_skills = clean_string_list(result.get("required_skills"), max_items=15)
     preferred_skills = clean_string_list(result.get("preferred_skills"), max_items=15)
     job_responsibilities = clean_string_list(result.get("job_responsibilities"), max_items=15)
+    job_responsibilities = dedupe_similar_items(job_responsibilities)
     core_competencies = clean_string_list(result.get("core_competencies"), max_items=10)
     talent_profile = clean_string_list(result.get("talent_profile"), max_items=10)
 
@@ -244,7 +387,27 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
         kept_core = [item for item in kept_core if item not in moved_from_core]
 
     qualifications = dedupe_list(qualifications + moved_to_qualifications)
-    source_blob = build_source_blob(result, source_text)
+    qualifications, kept_required, kept_core, talent_profile = reclassify_talent_profile(
+        talent_profile,
+        qualifications,
+        kept_required,
+        kept_core,
+    )
+    preferred_skills = remove_overlapping_items(job_responsibilities, preferred_skills)
+    preferred_skills = remove_overlapping_items(kept_required, preferred_skills)
+
+    source_blob = build_source_blob(
+        {
+            **result,
+            "qualifications": qualifications,
+            "required_skills": kept_required,
+            "preferred_skills": preferred_skills,
+            "job_responsibilities": job_responsibilities,
+            "talent_profile": talent_profile,
+            "core_competencies": kept_core,
+        },
+        source_text,
+    )
     tech_keywords = enrich_tech_keywords(result, source_blob)
     company_name = resolve_company_name(result, source_blob)
 
