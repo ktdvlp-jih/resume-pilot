@@ -30,9 +30,14 @@ PREFERRED_DISTINCT_MARKERS = (
 DUTY_PARAPHRASE_MARKERS = (
     "xframe", "ldar", "prtr", "프론트엔드 전환", "연동 경험", "환경규제", "인벤토리",
 )
+PREFERRED_SECTION_PATTERN = re.compile(
+    r"(?:우대\s*사항|우대\s*조건|우대)[:\：]?\s*([\s\S]*?)(?=\n\s*(?:담당|필수|자격|인재|지원|근무|복리|채용|주요|$))",
+    re.IGNORECASE,
+)
+XFRAME_PRODUCT_PATTERN = re.compile(r"ai\s*\(\s*xframe\s*\)", re.IGNORECASE)
 SOLUTION_EXTRACT_PATTERN = re.compile(
     r"\b(dr\.[a-z][a-z0-9]*|carbon[- ]?slim|chemwatch|fiveeyes|db\s*galleria|"
-    r"cms\s*pro|xframe|ldar[- ]?prtr|carbon[- ]?slim)\b",
+    r"cms\s*pro|xframe|ldar[- ]?prtr|carbon[- ]?slim|ai\s*\(\s*xframe\s*\))\b",
     re.IGNORECASE,
 )
 
@@ -306,6 +311,8 @@ def is_solution_product_keyword(keyword: str) -> bool:
         return True
     if lower in {"xframe", "ldar", "prtr", "ldar-prtr"}:
         return True
+    if XFRAME_PRODUCT_PATTERN.search(lower) or compact.replace(" ", "") == "ai(xframe)":
+        return True
     return False
 
 
@@ -501,6 +508,21 @@ def filter_solution_keywords(keywords: list[str]) -> list[str]:
     return dedupe_list([keyword for keyword in keywords if keyword and not is_solution_noise(keyword)])
 
 
+def recover_preferred_skills_from_source(source_text: str, preferred_skills: list[str]) -> list[str]:
+    if preferred_skills:
+        return preferred_skills
+    match = PREFERRED_SECTION_PATTERN.search(source_text or "")
+    if not match:
+        return preferred_skills
+    recovered: list[str] = []
+    for line in match.group(1).splitlines():
+        cleaned = re.sub(r"^[\s\-•◦·*▸►]+", "", line.strip())
+        cleaned = re.sub(r"\s+", " ", cleaned)
+        if len(cleaned) >= 6:
+            recovered.append(cleaned)
+    return dedupe_list(recovered)[:15]
+
+
 def normalize_experience_qualifications(qualifications: list[str]) -> list[str]:
     normalized: list[str] = []
     for item in qualifications:
@@ -547,6 +569,8 @@ def is_valid_tech_keyword(keyword: str) -> bool:
         return True
     if count_tech_tokens(keyword) > 0:
         return True
+    if XFRAME_PRODUCT_PATTERN.search(lower):
+        return False
     if re.fullmatch(r"[A-Z0-9_]+", keyword) and lower not in TECH_KEYWORDS_CANONICAL:
         return False
     if " " in keyword and lower not in TECH_KEYWORDS_CANONICAL:
@@ -714,6 +738,10 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
     )
     qualifications, kept_required = split_experience_from_skill_lines(qualifications, kept_required)
     qualifications = normalize_experience_qualifications(qualifications)
+    preferred_skills = recover_preferred_skills_from_source(
+        build_source_blob(result, source_text),
+        preferred_skills,
+    )
     preferred_skills = remove_overlapping_preferred_skills(
         job_responsibilities,
         kept_required,
@@ -744,6 +772,10 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
     tech_keywords = enrich_tech_keywords(result, source_blob)
     raw_keywords = [str(item) for item in (result.get("tech_keywords") or []) if str(item).strip()]
     merged_keywords = dedupe_list(tech_keywords + raw_keywords)
+    merged_keywords = [
+        kw for kw in merged_keywords
+        if not XFRAME_PRODUCT_PATTERN.search(str(kw))
+    ]
     tech_keywords, solution_keywords = split_tech_and_solution_keywords(merged_keywords)
     solution_keywords = filter_solution_keywords(
         dedupe_list(solution_keywords + extract_solution_keywords(source_blob, merged_keywords)),

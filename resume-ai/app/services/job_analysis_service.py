@@ -16,7 +16,7 @@ from app.services.job_extraction_postprocess import (
     ocr_is_low_quality,
     postprocess_extraction,
 )
-from app.services.llm_service import llm_service
+from app.services.llm_service import RULE_BASED_MODEL, llm_service
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ Return ONLY valid JSON with these keys:
 - position (string or null)
 - qualifications (array — education, years of experience, licenses; NOT tech skills)
 - required_skills (array — mandatory technical/role skills; exclude education/경력 requirements)
-- preferred_skills (array — 우대사항 only; read the dedicated 우대사항/우대 section, NOT 담당업무 paraphrases)
+- preferred_skills (array — REQUIRED key. 우대사항/우대 section bullets only. If that section is visible, list every bullet and do NOT return []. Use [] only when no 우대 section exists.)
 - tech_keywords (array — ALL languages, frameworks, DB, infra, domain systems, and dr.* product names from solution grids; lowercase)
 - job_responsibilities (array — every 담당업무/주요업무 bullet, including CMS/MSDS/규제DB items)
 - talent_profile (array — 인재상 keywords)
@@ -69,6 +69,7 @@ Rules:
 - Extract COMPREHENSIVELY. Include domain systems (SAP, ERP, EHS, MES, CMS, MSDS) in tech_keywords when mentioned.
 - For poster images: read 우대사항 and 솔루션/제품 그리드 as SEPARATE sections from 담당업무.
 - preferred_skills must come ONLY from the 우대사항 section (e.g. React, TypeScript, Cursor, SI PM). Do NOT copy 담당업무 lines into preferred_skills even with "경험" appended.
+- preferred_skills is REQUIRED. When 우대사항/우대 is visible on the posting, extract all bullets there — never omit or return an empty array.
 - Include every dr.* product name and solution label from product grids in tech_keywords (e.g. dr.cms, dr.chemdb, carbon-slim).
 - If the legal company name is absent, use the visible organization descriptor (e.g. "화학물질·환경안전보건 전문기업") instead of "Unknown".
 - Fix obvious OCR typos using context (e.g. Spr1ng -> Spring, BO0T -> Boot).
@@ -165,8 +166,9 @@ class JobAnalysisService:
             rule_result = self._finalize_fields(
                 self._extract_from_text(ocr_text),
                 source_text=ocr_text,
-                extraction_method="ocr",
+                extraction_method="ocr+rule",
                 source_type=source_type,
+                model=RULE_BASED_MODEL,
             )
             rule_result["raw_content"] = ocr_text[:5000]
             return rule_result
@@ -180,22 +182,38 @@ class JobAnalysisService:
         source_type: str,
     ) -> dict[str, Any]:
         if await self._can_use_llm():
-            llm_raw, model = await self._extract_with_llm(text)
-            if llm_raw:
-                return self._finalize_fields(
-                    llm_raw,
-                    source_text=text,
-                    extraction_method=f"{extraction_method}+llm",
-                    source_type=source_type,
-                    model=model,
-                    raw_content=text[:5000],
-                )
+            try:
+                llm_raw, model = await self._extract_with_llm(text)
+                if llm_raw:
+                    return self._finalize_fields(
+                        llm_raw,
+                        source_text=text,
+                        extraction_method=f"{extraction_method}+llm",
+                        source_type=source_type,
+                        model=model,
+                        raw_content=text[:5000],
+                    )
+                if model:
+                    logger.warning(
+                        "JOB_ANALYSIS LLM returned unparseable JSON (model=%s, source=%s)",
+                        model,
+                        source_type,
+                    )
+            except Exception as exc:
+                logger.warning("JOB_ANALYSIS LLM failed, using rule fallback: %s", exc)
+        else:
+            logger.info(
+                "JOB_ANALYSIS LLM unavailable: routes=%s credentials=%s",
+                await llm_service.has_routes("JOB_ANALYSIS"),
+                bool(settings.openai_api_key or settings.internal_api_token),
+            )
 
         rule_result = self._finalize_fields(
             self._extract_from_text(text),
             source_text=text,
-            extraction_method=extraction_method,
+            extraction_method=f"{extraction_method}+rule",
             source_type=source_type,
+            model=RULE_BASED_MODEL,
             raw_content=text[:5000],
         )
         return rule_result

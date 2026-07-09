@@ -341,6 +341,53 @@ def test_dedupe_redundant_required_skills_removes_spring_framework():
     assert "Spring Framework" not in deduped[0]
 
 
+def test_ai_xframe_moves_to_solution_keywords():
+    raw = {
+        "company_name": "테스트",
+        "position": "개발",
+        "qualifications": [],
+        "required_skills": [],
+        "preferred_skills": [],
+        "job_responsibilities": ["AI(xframe) 기반 프론트엔드 전환"],
+        "tech_keywords": ["java", "AI(xframe)", "spring"],
+        "talent_profile": [],
+        "core_competencies": [],
+        "job_description": "xframe 전환",
+    }
+    result = postprocess_extraction(raw, "AI(xframe) xframe java spring")
+    lowered_tech = [k.lower() for k in result["tech_keywords"]]
+    lowered_solution = [k.lower() for k in result["solution_keywords"]]
+    assert "ai(xframe)" not in lowered_tech
+    assert "xframe" in lowered_solution
+
+
+def test_recover_preferred_skills_from_source_text():
+    source = """
+    필수사항:
+    - Java, Spring
+    우대사항:
+    - React, TypeScript SPA 개발 경험
+    - Cursor 활용 경험
+    담당업무:
+    - API 개발
+    """
+    raw = {
+        "company_name": "테스트",
+        "position": "개발",
+        "qualifications": [],
+        "required_skills": ["Java, Spring"],
+        "preferred_skills": [],
+        "job_responsibilities": ["API 개발"],
+        "tech_keywords": ["java", "spring"],
+        "talent_profile": [],
+        "core_competencies": [],
+        "job_description": "채용",
+    }
+    result = postprocess_extraction(raw, source)
+    assert len(result["preferred_skills"]) >= 1
+    assert any("React" in item for item in result["preferred_skills"])
+
+
 def test_filter_solution_keywords_removes_cscms_noise():
     assert filter_solution_keywords(["xframe", "CSCMS", "CMS Pro"]) == ["xframe", "CMS Pro"]
 

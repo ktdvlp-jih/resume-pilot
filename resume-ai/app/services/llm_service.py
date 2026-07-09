@@ -136,7 +136,7 @@ class LlmService:
     ) -> LlmCompletion:
         routes = await self._resolve_routes(operation)
         if not routes:
-            return LlmCompletion(content=self._fallback.generate_resume([], 40)["content"])
+            return LlmCompletion(content="")
 
         last_error: Exception | None = None
         for route in routes:
