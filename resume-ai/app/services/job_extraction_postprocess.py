@@ -20,7 +20,13 @@ KEYWORD_NOISE = {
     "monospace", "system", "variable", "webkit", "moz", "ms", "arial", "noto",
     "opensans", "nanum", "malgun", "dotum", "gulim", "batang", "dotumche",
     "as", "al", "self", "soe", "bd", "boot", "ter", "pro", "engineer", "pageview",
+    "autoupdate", "api_batch", "stored procedure", "storedprocedure",
 }
+SOLUTION_EXTRACT_PATTERN = re.compile(
+    r"\b(dr\.[a-z][a-z0-9]*|carbon[- ]?slim|chemwatch|fiveeyes|db\s*galleria|"
+    r"cms\s*pro|xframe|ldar[- ]?prtr|carbon[- ]?slim)\b",
+    re.IGNORECASE,
+)
 
 TECH_TOKEN_PATTERN = re.compile(
     r"\b("
@@ -290,6 +296,8 @@ def is_solution_product_keyword(keyword: str) -> bool:
         return True
     if lower.startswith("cms pro") or compact == "cmspro":
         return True
+    if lower in {"xframe", "ldar", "prtr", "ldar-prtr"}:
+        return True
     return False
 
 
@@ -411,6 +419,83 @@ def remove_overlapping_items(reference: list[str], candidates: list[str]) -> lis
     return kept
 
 
+def is_preferred_experience_variant(preferred: str, reference: str) -> bool:
+    if not items_similar(preferred, reference):
+        return False
+    return "경험" in preferred or is_preferred_experience_item(preferred)
+
+
+def remove_overlapping_preferred_skills(
+    job_responsibilities: list[str],
+    required_skills: list[str],
+    preferred_skills: list[str],
+) -> list[str]:
+    kept: list[str] = []
+    for preferred in preferred_skills:
+        if any(is_preferred_experience_variant(preferred, responsibility) for responsibility in job_responsibilities):
+            kept.append(preferred)
+            continue
+        if any(items_similar(preferred, responsibility) for responsibility in job_responsibilities):
+            continue
+        if any(items_similar(preferred, required) for required in required_skills):
+            continue
+        kept.append(preferred)
+    return kept
+
+
+def normalize_experience_qualifications(qualifications: list[str]) -> list[str]:
+    normalized: list[str] = []
+    for item in qualifications:
+        match = EXPERIENCE_YEARS_EXTRACT.search(item)
+        if match and count_tech_tokens(item) == 0:
+            years = match.group(1)
+            normalized.append(f"관련 분야 경력 {years}년 이상")
+        else:
+            normalized.append(item)
+    return dedupe_similar_items(normalized)
+
+
+def clean_job_description(description: str) -> str:
+    cleaned = re.sub(r"\s+", " ", description.strip())
+    if not cleaned:
+        return cleaned
+    cleaned = re.sub(
+        r"^(?:SELF|PAGE|HOME|JOIN|CAREER)[!.\s·\-]*",
+        "",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+    return cleaned.strip()
+
+
+def extract_solution_keywords(source_text: str, keywords: list[str]) -> list[str]:
+    found: list[str] = []
+    blob = source_text or ""
+    for match in SOLUTION_EXTRACT_PATTERN.finditer(blob):
+        found.append(match.group(1).strip())
+    for keyword in keywords:
+        if is_solution_product_keyword(keyword):
+            found.append(keyword)
+    return dedupe_list(found)
+
+
+def is_valid_tech_keyword(keyword: str) -> bool:
+    lower = keyword.lower().strip()
+    if not lower or _is_noise_keyword(keyword):
+        return False
+    if lower in TECH_KEYWORDS_CANONICAL:
+        return True
+    if lower in STACK_DOMAIN_KEYWORDS:
+        return True
+    if count_tech_tokens(keyword) > 0:
+        return True
+    if re.fullmatch(r"[A-Z0-9_]+", keyword) and lower not in TECH_KEYWORDS_CANONICAL:
+        return False
+    if " " in keyword and lower not in TECH_KEYWORDS_CANONICAL:
+        return False
+    return len(lower) >= 3 and lower.isascii()
+
+
 def dedupe_similar_items(items: list[str]) -> list[str]:
     kept: list[str] = []
     for item in items:
@@ -496,11 +581,13 @@ def clean_tech_keywords(keywords: list[str], source_text: str = "", *, limit: in
     cleaned: list[str] = []
     for raw in keywords:
         candidate = _normalize_keyword(str(raw))
-        if not candidate or _is_noise_keyword(candidate):
+        if not candidate:
             continue
         lower = candidate.lower()
         if lower in TECH_KEYWORDS_CANONICAL:
             cleaned.append(lower)
+            continue
+        if not is_valid_tech_keyword(candidate):
             continue
         if len(candidate) >= 3 and (lower in source_lower or candidate in source_text):
             cleaned.append(candidate)
@@ -568,8 +655,12 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
         kept_core,
     )
     qualifications, kept_required = split_experience_from_skill_lines(qualifications, kept_required)
-    preferred_skills = remove_overlapping_items(job_responsibilities, preferred_skills)
-    preferred_skills = remove_overlapping_items(kept_required, preferred_skills)
+    qualifications = normalize_experience_qualifications(qualifications)
+    preferred_skills = remove_overlapping_preferred_skills(
+        job_responsibilities,
+        kept_required,
+        preferred_skills,
+    )
     qualifications, kept_required, kept_core = normalize_section_overlap(
         qualifications,
         kept_required,
@@ -592,9 +683,13 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
     )
     tech_keywords = enrich_tech_keywords(result, source_blob)
     raw_keywords = [str(item) for item in (result.get("tech_keywords") or []) if str(item).strip()]
-    tech_keywords, solution_keywords = split_tech_and_solution_keywords(
-        dedupe_list(tech_keywords + raw_keywords),
-    )
+    merged_keywords = dedupe_list(tech_keywords + raw_keywords)
+    tech_keywords, solution_keywords = split_tech_and_solution_keywords(merged_keywords)
+    solution_keywords = dedupe_list(solution_keywords + extract_solution_keywords(source_blob, merged_keywords))
+    tech_keywords = collapse_tech_keyword_variants(
+        [kw for kw in tech_keywords if is_valid_tech_keyword(kw)],
+    )[:20]
+    solution_keywords = solution_keywords[:15]
     company_name = resolve_company_name(result, source_blob)
 
     position = result.get("position")
@@ -602,7 +697,7 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
     if position_str and has_ocr_garbage(position_str):
         position_str = None
 
-    description = str(result.get("job_description") or "").strip()
+    description = clean_job_description(str(result.get("job_description") or ""))
     culture = result.get("org_culture")
     culture_str = str(culture).strip() if culture else None
 

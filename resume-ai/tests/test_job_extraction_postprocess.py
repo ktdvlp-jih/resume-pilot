@@ -173,8 +173,9 @@ def test_postprocess_chemical_poster_like_payload():
     }
     result = postprocess_extraction(raw, "CMS MSDS ERP SAP React TypeScript")
     assert result["company_name"] == "환경안전보건 전문기업"
-    assert len(result["preferred_skills"]) == 1
-    assert "React" in result["preferred_skills"][0]
+    assert len(result["preferred_skills"]) == 2
+    assert any("CMS" in item for item in result["preferred_skills"])
+    assert any("React" in item for item in result["preferred_skills"])
     assert any("설계" in item for item in result["required_skills"])
     assert any("협업" in item for item in result["core_competencies"])
     assert not any("협업" in item for item in result["required_skills"])
@@ -279,6 +280,45 @@ def test_normalize_section_overlap_for_chemical_poster():
     assert any("경력 5년" in item for item in result["qualifications"])
     assert not any("PM" in item for item in result["core_competencies"])
     assert not any("일정 관리" in item for item in result["core_competencies"])
+
+
+def test_postprocess_user_reported_chemical_regression():
+    raw = {
+        "company_name": "환경안전보건 전문기업",
+        "position": "디지털케어팀 웹 개발 (대리급 이상)",
+        "qualifications": ["4년제 대학 졸업 이상", "경력 5년 이상"],
+        "required_skills": [
+            "Java / Spring (Spring Boot 포함) 기반 웹 개발",
+            "MS-SQL 또는 동급 RDBMS 활용 경험 (Stored Procedure, 쿼리 튜닝 포함)",
+            "HTML/CSS/JavaScript 기반 웹 프론트엔드 개발",
+            "화면 단위 설계부터 개발ㆍ배포까지 단독 수행",
+        ],
+        "preferred_skills": [],
+        "job_responsibilities": [
+            "CMS/CMS Pro 개발 및 고도화",
+            "자사 화학물질관리시스템의 신규 기능 설계 개발 및 AI(xframe) 현대 프론트엔드 전환",
+            "MSDS 시스템 유지보수 및 개선",
+            "국내 주요 화학ㆍ소재 고객사 시스템의 추가 개발 및 ERP/SAP 연동, 인벤토리, LDAR-PRTR 등 환경규제 대응 기능 개발",
+        ],
+        "tech_keywords": [
+            "java", "spring", "ms-sql", "rdbms", "Stored Procedure", "html", "css",
+            "javascript", "xframe", "erp", "sap", "api", "Autoupdate", "API_BATCH",
+            "cms", "msds", "ghs", "oapi", "spring boot",
+        ],
+        "talent_profile": [],
+        "core_competencies": ["고객사ㆍ유관 부서와 원활하게 협업 및 커뮤니케이션 가능한 자"],
+        "job_description": "SELF! 환경안전보건 전문기업은 AI, IoT 등 ICT 기술을 융합하여 스마트 환경안전보건 서비스를 제공합니다.",
+    }
+    source = "React TypeScript Cursor Claude dr.cms carbon-slim CMS Pro xframe LDAR-PRTR IoT ICT"
+    result = postprocess_extraction(raw, source)
+    assert result["job_description"].startswith("환경안전보건")
+    assert not result["job_description"].startswith("SELF")
+    assert any("관련 분야 경력 5년" in item for item in result["qualifications"])
+    assert "Autoupdate" not in result["tech_keywords"]
+    assert "API_BATCH" not in result["tech_keywords"]
+    assert "Stored Procedure" not in result["tech_keywords"]
+    assert "xframe" not in [k.lower() for k in result["tech_keywords"]]
+    assert any("xframe" in k.lower() for k in result["solution_keywords"])
 
 
 def test_is_quality_result_allows_unknown_company_when_rich_lists():
