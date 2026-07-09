@@ -44,6 +44,16 @@ public class JobAnalysis {
     private List<String> preferredSkills = List.of();
 
     @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "qualifications")
+    @Builder.Default
+    private List<String> qualifications = List.of();
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "job_responsibilities")
+    @Builder.Default
+    private List<String> jobResponsibilities = List.of();
+
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "talent_profile")
     @Builder.Default
     private List<String> talentProfile = List.of();

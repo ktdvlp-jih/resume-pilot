@@ -9,6 +9,13 @@ import httpx
 
 from app.config import settings
 from app.clients.service_clients import prompt_client
+from app.services.job_extraction_postprocess import (
+    dedupe_list,
+    has_ocr_garbage,
+    is_quality_result,
+    ocr_is_low_quality,
+    postprocess_extraction,
+)
 from app.services.llm_service import llm_service
 
 logger = logging.getLogger(__name__)
@@ -21,13 +28,6 @@ TECH_KEYWORDS = {
     "next.js", "nextjs", "nestjs", "express", "django", "fastapi", "graphql",
     "mongodb", "elasticsearch", "terraform", "jenkins", "gitlab", "github",
     "c++", "c#", ".net", "rust", "scala", "spark", "hadoop",
-}
-
-KEYWORD_NOISE = {
-    "pretendard", "blinkmacsystemfont", "roboto", "helvetica", "neue", "segoe", "ui",
-    "apple", "sd", "gothic", "pageview", "date", "id", "font", "sans", "serif",
-    "monospace", "system", "variable", "webkit", "moz", "ms", "arial", "noto",
-    "opensans", "nanum", "malgun", "dotum", "gulim", "batang", "dotumche",
 }
 
 COMPANY_PATTERNS = [
@@ -45,22 +45,37 @@ SKILL_SECTION_PATTERNS = [
     r"(?:우대|선호)\s*(?:사항|조건|기술)[:\：]?\s*([\s\S]*?)(?=\n\s*(?:필수|지원|근무|복리|채용|$))",
 ]
 
-JOB_EXTRACTION_SYSTEM = """You extract structured data from Korean or English job postings (text or screenshot).
+RESPONSIBILITY_SECTION_PATTERNS = [
+    r"(?:담당\s*업무|주요\s*업무)[:\：]?\s*([\s\S]*?)(?=\n\s*(?:자격|필수|우대|지원|근무|복리|채용|$))",
+]
+
+JOB_EXTRACTION_SYSTEM = """You extract structured data from Korean or English job postings.
+The input may be clean text, HTML text, PDF text, or OCR output with recognition errors.
+
 Return ONLY valid JSON with these keys:
 - company_name (string)
 - position (string or null)
-- required_skills (array of strings)
-- preferred_skills (array of strings)
-- tech_keywords (array of strings — frameworks, languages, tools)
-- talent_profile (array of strings)
-- core_competencies (array of strings)
+- qualifications (array — education, years of experience, licenses; NOT tech skills)
+- required_skills (array — mandatory technical/role skills; exclude education/경력 requirements)
+- preferred_skills (array — 우대사항 only)
+- tech_keywords (array — lowercase language/framework/tool names, e.g. "java", "spring boot", "ms-sql")
+- job_responsibilities (array — 담당업무/주요업무 bullet items)
+- talent_profile (array — 인재상 keywords)
+- core_competencies (array — soft skills/역량 keywords, NOT job duties)
 - org_culture (string or null)
 - job_description (string — 2-4 sentence summary)
-Use Korean for Korean postings. Use empty arrays or null when unknown. Do not invent facts."""
+
+Rules:
+- Fix obvious OCR typos using context (e.g. Spr1ng -> Spring, BO0T -> Boot).
+- Do NOT put 담당업무 into preferred_skills or core_competencies.
+- Do NOT put 학력/경력 requirements into required_skills; use qualifications.
+- Do NOT invent facts. Use empty arrays or null when unknown.
+- Korean postings should use Korean strings except tech_keywords."""
 
 VISION_USER_PROMPT = (
-    "This image is a job posting screenshot (recruitment page, PDF export, or mobile capture). "
-    "Extract company name, position, required/preferred skills, tech stack, and key responsibilities."
+    "This image is a Korean/English job posting (poster, screenshot, or PDF export). "
+    "Read the layout and sections visually. Extract company, position, qualifications, "
+    "required/preferred skills, tech stack, job responsibilities, and a short summary."
 )
 
 
@@ -73,8 +88,12 @@ class JobAnalysisService:
         file_base64: str | None = None,
         mime_type: str | None = None,
     ) -> dict[str, Any]:
-        text = content or ""
         st = source_type.upper()
+
+        if st == "IMAGE" and file_base64:
+            return await self._analyze_image(file_base64, mime_type, st)
+
+        text = content or ""
         extraction_method = "text"
 
         if st == "URL" and source_url:
@@ -83,42 +102,182 @@ class JobAnalysisService:
         elif st == "PDF" and file_base64:
             text = self._extract_pdf_base64(file_base64) or text
             extraction_method = "pdf"
-        elif st == "IMAGE" and file_base64:
-            text = self._extract_image_text(file_base64) or ""
-            extraction_method = "ocr"
-            if len(text.strip()) < 80:
-                vision_result = await self._analyze_image_with_vision(file_base64, mime_type)
-                if vision_result:
-                    return vision_result
 
         text = self._normalize_text(text)
-
-        if not text and st == "IMAGE" and file_base64:
-            vision_result = await self._analyze_image_with_vision(file_base64, mime_type)
-            if vision_result:
-                return vision_result
-
         if not text:
             return {"error": "empty content", "company_name": "Unknown", "source_type": source_type}
 
-        result = self._extract_from_text(text)
-        if self._needs_llm_enrichment(result, text):
-            llm_result, model = await self._extract_with_llm(text)
-            if llm_result:
-                result = self._merge_extraction(result, llm_result)
-                extraction_method = f"{extraction_method}+llm"
-                if model:
-                    result["model"] = model
+        return await self._analyze_text(text, extraction_method, source_type)
 
+    async def _analyze_image(
+        self,
+        file_base64: str,
+        mime_type: str | None,
+        source_type: str,
+    ) -> dict[str, Any]:
+        vision_result: dict[str, Any] | None = None
+        vision_model: str | None = None
+
+        if await self._can_use_llm():
+            vision_raw, vision_model = await self._vision_extract(file_base64, mime_type)
+            if vision_raw:
+                vision_result = self._finalize_fields(
+                    vision_raw,
+                    source_text=vision_raw.get("job_description", ""),
+                    extraction_method="vision",
+                    source_type=source_type,
+                    model=vision_model,
+                )
+                if is_quality_result(vision_result):
+                    return vision_result
+
+        ocr_text = self._extract_image_text(file_base64) or ""
+        ocr_text = self._normalize_text(ocr_text)
+
+        if ocr_text and await self._can_use_llm():
+            should_try_text_llm = (
+                not vision_result
+                or not is_quality_result(vision_result)
+                or ocr_is_low_quality(ocr_text)
+            )
+            if should_try_text_llm:
+                llm_result = await self._analyze_text(
+                    ocr_text,
+                    "ocr+llm" if ocr_is_low_quality(ocr_text) else "ocr+llm",
+                    source_type,
+                )
+                if is_quality_result(llm_result):
+                    return llm_result
+
+        if vision_result:
+            return vision_result
+
+        if ocr_text:
+            rule_result = self._finalize_fields(
+                self._extract_from_text(ocr_text),
+                source_text=ocr_text,
+                extraction_method="ocr",
+                source_type=source_type,
+            )
+            rule_result["raw_content"] = ocr_text[:5000]
+            return rule_result
+
+        return {"error": "empty content", "company_name": "Unknown", "source_type": source_type}
+
+    async def _analyze_text(
+        self,
+        text: str,
+        extraction_method: str,
+        source_type: str,
+    ) -> dict[str, Any]:
+        if await self._can_use_llm():
+            llm_raw, model = await self._extract_with_llm(text)
+            if llm_raw:
+                return self._finalize_fields(
+                    llm_raw,
+                    source_text=text,
+                    extraction_method=f"{extraction_method}+llm",
+                    source_type=source_type,
+                    model=model,
+                    raw_content=text[:5000],
+                )
+
+        rule_result = self._finalize_fields(
+            self._extract_from_text(text),
+            source_text=text,
+            extraction_method=extraction_method,
+            source_type=source_type,
+            raw_content=text[:5000],
+        )
+        return rule_result
+
+    async def _can_use_llm(self) -> bool:
+        return bool(settings.openai_api_key or settings.internal_api_token) and await llm_service.has_routes("JOB_ANALYSIS")
+
+    async def _vision_extract(
+        self,
+        file_base64: str,
+        mime_type: str | None,
+    ) -> tuple[dict[str, Any] | None, str | None]:
+        mime = mime_type if mime_type and mime_type.startswith("image/") else "image/png"
+        data_url = f"data:{mime};base64,{file_base64}"
+        parsed, model = await llm_service.complete_with_image_json_for_operation(
+            "JOB_ANALYSIS",
+            JOB_EXTRACTION_SYSTEM,
+            VISION_USER_PROMPT,
+            data_url,
+        )
+        if not parsed:
+            return None, model
+        return self._fields_from_llm(parsed), model
+
+    async def _extract_with_llm(self, text: str) -> tuple[dict[str, Any] | None, str | None]:
+        system = JOB_EXTRACTION_SYSTEM
+        user_prompt = (
+            "Analyze the following job posting text. "
+            "If it contains OCR noise or broken words, correct them before extraction.\n\n"
+            f"{text[:6000]}"
+        )
+        try:
+            prompt = await prompt_client.render("JOB_ANALYSIS", {"content": text[:6000]})
+            system = prompt["system_prompt"]
+            user_prompt = prompt["user_prompt"]
+        except Exception as exc:
+            logger.warning("JOB_ANALYSIS prompt render failed, using built-in: %s", exc)
+
+        parsed, model = await llm_service.complete_json_for_operation("JOB_ANALYSIS", system, user_prompt)
+        if not parsed:
+            return None, model
+        return self._fields_from_llm(parsed), model
+
+    def _finalize_fields(
+        self,
+        data: dict[str, Any],
+        *,
+        source_text: str,
+        extraction_method: str,
+        source_type: str,
+        model: str | None = None,
+        raw_content: str | None = None,
+    ) -> dict[str, Any]:
+        result = postprocess_extraction(data, source_text)
         result["source_type"] = source_type
         result["extraction_method"] = extraction_method
-        result["raw_content"] = text[:5000]
+        if model:
+            result["model"] = model
+        result["raw_content"] = raw_content or source_text[:5000]
         return result
+
+    def _fields_from_llm(self, parsed: dict[str, Any]) -> dict[str, Any]:
+        company = str(parsed.get("company_name") or "Unknown").strip() or "Unknown"
+        position = parsed.get("position")
+        position_str = str(position).strip() if position else None
+        description = str(parsed.get("job_description") or "").strip()
+        culture = parsed.get("org_culture")
+
+        return {
+            "company_name": company,
+            "position": position_str,
+            "title": f"{company} {position_str}".strip() if company != "Unknown" or position_str else None,
+            "qualifications": self._coerce_string_list(parsed.get("qualifications")),
+            "required_skills": self._coerce_string_list(parsed.get("required_skills")),
+            "preferred_skills": self._coerce_string_list(parsed.get("preferred_skills")),
+            "job_responsibilities": self._coerce_string_list(parsed.get("job_responsibilities")),
+            "tech_keywords": self._coerce_string_list(parsed.get("tech_keywords")),
+            "talent_profile": self._coerce_string_list(parsed.get("talent_profile")),
+            "core_competencies": self._coerce_string_list(parsed.get("core_competencies")),
+            "core_values": self._coerce_string_list(parsed.get("talent_profile"))[:3],
+            "job_description": description[:2000] if description else None,
+            "org_culture": str(culture).strip() if culture else None,
+            "fit_score": None,
+        }
 
     def _extract_from_text(self, text: str) -> dict[str, Any]:
         company = self._extract_company(text)
         position = self._extract_position(text)
         required, preferred = self._extract_skills(text)
+        qualifications, required = self._split_qualifications(required)
+        responsibilities = self._extract_responsibilities(text)
         tech_keywords = self._extract_tech_keywords(text)
         talent = self._extract_talent_profile(text)
         competencies = self._extract_competencies(text)
@@ -128,8 +287,10 @@ class JobAnalysisService:
             "company_name": company,
             "position": position,
             "title": f"{company} {position}".strip() if company or position else None,
+            "qualifications": qualifications,
             "required_skills": required,
             "preferred_skills": preferred,
+            "job_responsibilities": responsibilities,
             "tech_keywords": tech_keywords,
             "talent_profile": talent,
             "core_competencies": competencies,
@@ -138,6 +299,16 @@ class JobAnalysisService:
             "org_culture": culture,
             "fit_score": None,
         }
+
+    def _split_qualifications(self, items: list[str]) -> tuple[list[str], list[str]]:
+        qualifications: list[str] = []
+        skills: list[str] = []
+        for item in items:
+            if any(marker in item for marker in ("졸업", "대학", "학사", "석사", "박사", "경력", "년 이상", "년이상")):
+                qualifications.append(item)
+            else:
+                skills.append(item)
+        return dedupe_list(qualifications), dedupe_list(skills)
 
     def _extract_pdf_base64(self, file_base64: str) -> str | None:
         try:
@@ -183,129 +354,10 @@ class JobAnalysisService:
             logger.warning("OCR failed (tesseract may be missing): %s", exc)
             return None
 
-    async def _analyze_image_with_vision(
-        self,
-        file_base64: str,
-        mime_type: str | None,
-    ) -> dict[str, Any] | None:
-        if not settings.openai_api_key and not settings.internal_api_token:
-            logger.info("Vision fallback skipped: no LLM configured")
-            return None
-
-        mime = mime_type if mime_type and mime_type.startswith("image/") else "image/png"
-        data_url = f"data:{mime};base64,{file_base64}"
-        parsed, model = await llm_service.complete_with_image_json_for_operation(
-            "JOB_ANALYSIS",
-            JOB_EXTRACTION_SYSTEM,
-            VISION_USER_PROMPT,
-            data_url,
-        )
-        if not parsed:
-            return None
-
-        result = self._fields_from_llm(parsed)
-        result["source_type"] = "IMAGE"
-        result["extraction_method"] = "vision"
-        if model:
-            result["model"] = model
-        if not result.get("raw_content"):
-            result["raw_content"] = result.get("job_description", "")[:5000]
-        return result
-
-    async def _extract_with_llm(self, text: str) -> tuple[dict[str, Any] | None, str | None]:
-        if not await llm_service.has_routes("JOB_ANALYSIS"):
-            return None, None
-        system = JOB_EXTRACTION_SYSTEM
-        user_prompt = f"Extract job posting fields from this text:\n\n{text[:6000]}"
-        try:
-            prompt = await prompt_client.render("JOB_ANALYSIS", {"content": text[:6000]})
-            system = prompt["system_prompt"]
-            user_prompt = prompt["user_prompt"]
-        except Exception as exc:
-            logger.warning("JOB_ANALYSIS prompt render failed, using built-in: %s", exc)
-        parsed, model = await llm_service.complete_json_for_operation("JOB_ANALYSIS", system, user_prompt)
-        if not parsed:
-            return None, model
-        return self._fields_from_llm(parsed), model
-
-    def _fields_from_llm(self, parsed: dict[str, Any]) -> dict[str, Any]:
-        company = str(parsed.get("company_name") or "Unknown").strip() or "Unknown"
-        position = parsed.get("position")
-        position_str = str(position).strip() if position else None
-
-        required = self._coerce_string_list(parsed.get("required_skills"))
-        preferred = self._coerce_string_list(parsed.get("preferred_skills"))
-        tech = self._coerce_string_list(parsed.get("tech_keywords"))
-        talent = self._coerce_string_list(parsed.get("talent_profile"))
-        competencies = self._coerce_string_list(parsed.get("core_competencies"))
-        culture = parsed.get("org_culture")
-        description = str(parsed.get("job_description") or "").strip()
-
-        return {
-            "company_name": company,
-            "position": position_str,
-            "title": f"{company} {position_str}".strip() if company != "Unknown" or position_str else None,
-            "required_skills": required[:15],
-            "preferred_skills": preferred[:15],
-            "tech_keywords": tech[:20],
-            "talent_profile": talent[:10],
-            "core_competencies": competencies[:10],
-            "core_values": talent[:3],
-            "job_description": description[:2000] if description else None,
-            "org_culture": str(culture).strip() if culture else None,
-            "fit_score": None,
-            "raw_content": description[:5000] if description else None,
-        }
-
     def _coerce_string_list(self, value: Any) -> list[str]:
         if not isinstance(value, list):
             return []
         return [str(item).strip() for item in value if item and str(item).strip()]
-
-    def _needs_llm_enrichment(self, result: dict[str, Any], text: str) -> bool:
-        if not (settings.openai_api_key or settings.internal_api_token):
-            return False
-        company = result.get("company_name")
-        if company in (None, "", "Unknown"):
-            return True
-        if not result.get("tech_keywords") and not result.get("required_skills"):
-            return True
-        if any(marker in text for marker in ("필수", "우대", "기술스택", "Tech Stack")):
-            if len(result.get("required_skills", [])) < 2:
-                return True
-        return False
-
-    def _merge_extraction(self, base: dict[str, Any], llm: dict[str, Any]) -> dict[str, Any]:
-        merged = dict(base)
-        for key in ("company_name", "position", "org_culture", "job_description"):
-            base_val = merged.get(key)
-            llm_val = llm.get(key)
-            if self._is_empty_field(base_val) and llm_val:
-                merged[key] = llm_val
-
-        for key in ("required_skills", "preferred_skills", "tech_keywords", "talent_profile", "core_competencies"):
-            base_list = merged.get(key) or []
-            llm_list = llm.get(key) or []
-            if not base_list and llm_list:
-                merged[key] = llm_list
-            elif llm_list and len(base_list) < 2:
-                merged[key] = list(dict.fromkeys(base_list + llm_list))[:15 if "skills" in key or "competencies" in key else 20]
-
-        company = merged.get("company_name")
-        position = merged.get("position")
-        if company or position:
-            merged["title"] = f"{company or ''} {position or ''}".strip()
-        if llm.get("raw_content") and self._is_empty_field(merged.get("job_description")):
-            merged["job_description"] = llm["raw_content"][:2000]
-        merged["core_values"] = (merged.get("talent_profile") or [])[:3]
-        return merged
-
-    def _is_empty_field(self, value: Any) -> bool:
-        if value is None:
-            return True
-        if isinstance(value, str):
-            return not value.strip() or value.strip() == "Unknown"
-        return False
 
     async def _fetch_url(self, url: str) -> str | None:
         try:
@@ -336,21 +388,15 @@ class JobAnalysisService:
         lines = [re.sub(r"\s+", " ", line).strip() for line in decoded.splitlines()]
         return "\n".join(line for line in lines if line).strip()
 
-    def _is_noise_keyword(self, word: str) -> bool:
-        lower = word.lower()
-        if lower in KEYWORD_NOISE:
-            return True
-        if lower in {"engineer", "date", "pageview"} and word[0].isupper():
-            return True
-        return False
-
     def _extract_company(self, text: str) -> str:
         for pattern in COMPANY_PATTERNS:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
-                return match.group(1).strip()
+                candidate = match.group(1).strip()
+                if not has_ocr_garbage(candidate):
+                    return candidate
         first_line = text.split("\n")[0].strip()
-        if len(first_line) <= 30:
+        if len(first_line) <= 30 and not has_ocr_garbage(first_line):
             return first_line
         return "Unknown"
 
@@ -372,11 +418,14 @@ class JobAnalysisService:
                     required = items
                 else:
                     preferred = items
-        if not required:
-            if re.search(r"필수|우대|기술\s*스택", text, re.IGNORECASE):
-                return [], preferred
-            required = [w for w in self._extract_tech_keywords(text)[:5]]
         return required[:15], preferred[:15]
+
+    def _extract_responsibilities(self, text: str) -> list[str]:
+        for pattern in RESPONSIBILITY_SECTION_PATTERNS:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                return self._split_bullet_items(match.group(1))[:12]
+        return []
 
     def _split_bullet_items(self, section: str) -> list[str]:
         items = re.split(r"[\n•·\-\*]+", section)
@@ -385,11 +434,7 @@ class JobAnalysisService:
     def _extract_tech_keywords(self, text: str) -> list[str]:
         lower = text.lower()
         found = [kw for kw in TECH_KEYWORDS if kw in lower]
-        extra = re.findall(r"\b([A-Z][a-zA-Z\+#\.]{1,20})\b", text)
-        for e in extra:
-            if e.lower() not in found and len(e) >= 2 and not self._is_noise_keyword(e):
-                found.append(e)
-        return list(dict.fromkeys(found))[:20]
+        return dedupe_list(found)[:20]
 
     def _extract_talent_profile(self, text: str) -> list[str]:
         keywords = []
@@ -397,15 +442,15 @@ class JobAnalysisService:
             r"인재상[:\：]?\s*([^\n]+)",
             r"(책임감|주인의식|협업|커뮤니케이션|도전|창의|열정|성장|리더십|문제\s*해결)",
         ]
-        for p in patterns:
-            for m in re.finditer(p, text, re.IGNORECASE):
-                val = m.group(1).strip() if m.lastindex else m.group(0).strip()
+        for pattern in patterns:
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                val = match.group(1).strip() if match.lastindex else match.group(0).strip()
                 if val and val not in keywords:
                     keywords.append(val[:50])
         return keywords[:10]
 
     def _extract_competencies(self, text: str) -> list[str]:
-        section = re.search(r"(?:핵심\s*역량|주요\s*업무|담당\s*업무)[:\：]?\s*([\s\S]*?)(?=\n\s*\n|\Z)", text)
+        section = re.search(r"(?:핵심\s*역량)[:\：]?\s*([\s\S]*?)(?=\n\s*\n|\Z)", text)
         if section:
             return self._split_bullet_items(section.group(1))[:10]
         return []
@@ -413,6 +458,45 @@ class JobAnalysisService:
     def _extract_culture(self, text: str) -> str | None:
         match = re.search(r"(?:조직\s*문화|기업\s*문화|워크\s*환경)[:\：]?\s*([^\n]+)", text)
         return match.group(1).strip() if match else None
+
+    def _merge_extraction(self, base: dict[str, Any], llm: dict[str, Any]) -> dict[str, Any]:
+        merged = dict(base)
+        for key in ("company_name", "position", "org_culture", "job_description"):
+            base_val = merged.get(key)
+            llm_val = llm.get(key)
+            if self._is_empty_field(base_val) or (isinstance(base_val, str) and has_ocr_garbage(base_val)):
+                if llm_val:
+                    merged[key] = llm_val
+
+        for key in (
+            "qualifications",
+            "required_skills",
+            "preferred_skills",
+            "job_responsibilities",
+            "tech_keywords",
+            "talent_profile",
+            "core_competencies",
+        ):
+            base_list = merged.get(key) or []
+            llm_list = llm.get(key) or []
+            if not base_list and llm_list:
+                merged[key] = llm_list
+            elif llm_list and len(base_list) < 2:
+                merged[key] = dedupe_list(base_list + llm_list)[:15]
+
+        company = merged.get("company_name")
+        position = merged.get("position")
+        if company or position:
+            merged["title"] = f"{company or ''} {position or ''}".strip()
+        merged["core_values"] = (merged.get("talent_profile") or [])[:3]
+        return merged
+
+    def _is_empty_field(self, value: Any) -> bool:
+        if value is None:
+            return True
+        if isinstance(value, str):
+            return not value.strip() or value.strip() == "Unknown"
+        return False
 
 
 job_analysis_service = JobAnalysisService()

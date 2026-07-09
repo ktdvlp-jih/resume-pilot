@@ -171,6 +171,8 @@
     "position": "職種",
     "requiredSkills": "必須スキル",
     "preferredSkills": "歓迎スキル",
+    "qualifications": "応募資格",
+    "jobResponsibilities": "担当業務",
     "techKeywords": "技術キーワード",
     "talentProfile": "求める人材",
     "coreCompetencies": "核心能力",

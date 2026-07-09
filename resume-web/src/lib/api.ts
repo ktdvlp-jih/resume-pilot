@@ -88,6 +88,8 @@ export interface JobAnalysisResponse {
   position?: string;
   requiredSkills: string[];
   preferredSkills: string[];
+  qualifications: string[];
+  jobResponsibilities: string[];
   talentProfile: string[];
   coreCompetencies: string[];
   techKeywords: string[];

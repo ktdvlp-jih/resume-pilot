@@ -186,6 +186,8 @@ public class JobPostingService {
                 .position(str(aiResult.get("position")))
                 .requiredSkills(toStringList(aiResult.get("required_skills")))
                 .preferredSkills(toStringList(aiResult.get("preferred_skills")))
+                .qualifications(toStringList(aiResult.get("qualifications")))
+                .jobResponsibilities(toStringList(aiResult.get("job_responsibilities")))
                 .talentProfile(toStringList(aiResult.get("talent_profile")))
                 .coreCompetencies(toStringList(aiResult.get("core_competencies")))
                 .techKeywords(toStringList(aiResult.get("tech_keywords")))
@@ -222,7 +224,8 @@ public class JobPostingService {
     private JobAnalysisResponse toAnalysisResponse(JobAnalysis a) {
         return new JobAnalysisResponse(
                 a.getId(), a.getJobPostingId(), a.getCompanyName(), a.getPosition(),
-                a.getRequiredSkills(), a.getPreferredSkills(), a.getTalentProfile(),
+                a.getRequiredSkills(), a.getPreferredSkills(), a.getQualifications(), a.getJobResponsibilities(),
+                a.getTalentProfile(),
                 a.getCoreCompetencies(), a.getTechKeywords(), a.getJobDescription(),
                 a.getOrgCulture(), a.getFitScore(), a.getAnalysisJson(), a.getCreatedAt()
         );

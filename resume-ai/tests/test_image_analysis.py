@@ -48,14 +48,49 @@ async def test_image_ocr_extracts_company_and_skills():
 
 
 @pytest.mark.asyncio
+async def test_image_vision_first_when_llm_available():
+    b64 = _make_job_posting_png()
+    vision_payload = {
+        "company_name": "비전테크",
+        "position": "프론트엔드 개발자",
+        "qualifications": ["4년제 대학 졸업 이상"],
+        "required_skills": ["React", "TypeScript"],
+        "preferred_skills": ["Next.js"],
+        "tech_keywords": ["react", "typescript", "next.js"],
+        "job_responsibilities": ["웹 서비스 개발"],
+        "talent_profile": ["협업"],
+        "core_competencies": ["문제 해결"],
+        "org_culture": None,
+        "job_description": "React 기반 서비스 개발",
+    }
+
+    with patch("app.services.job_analysis_service.settings") as mock_settings:
+        mock_settings.openai_api_key = "test-key"
+        mock_settings.internal_api_token = "test-token"
+        with patch("app.services.job_analysis_service.llm_service") as mock_llm:
+            mock_llm.has_routes = AsyncMock(return_value=True)
+            mock_llm.complete_with_image_json_for_operation = AsyncMock(
+                return_value=(vision_payload, "gemini-2.5-flash"),
+            )
+            with patch.object(job_analysis_service, "_extract_image_text") as mock_ocr:
+                result = await job_analysis_service.analyze("IMAGE", "", file_base64=b64, mime_type="image/png")
+
+    assert result["company_name"] == "비전테크"
+    assert result["extraction_method"] == "vision"
+    mock_ocr.assert_not_called()
+
+
+@pytest.mark.asyncio
 async def test_image_vision_fallback_when_ocr_empty():
     b64 = _make_job_posting_png()
     vision_payload = {
         "company_name": "비전테크",
         "position": "프론트엔드 개발자",
+        "qualifications": ["4년제 대학 졸업 이상"],
         "required_skills": ["React", "TypeScript"],
         "preferred_skills": ["Next.js"],
-        "tech_keywords": ["React", "TypeScript", "Next.js"],
+        "tech_keywords": ["react", "typescript", "next.js"],
+        "job_responsibilities": ["웹 서비스 개발"],
         "talent_profile": ["협업"],
         "core_competencies": ["UI 개발"],
         "org_culture": None,
@@ -75,7 +110,7 @@ async def test_image_vision_fallback_when_ocr_empty():
 
     assert result["company_name"] == "비전테크"
     assert result["extraction_method"] == "vision"
-    assert "React" in result["tech_keywords"]
+    assert "react" in result["tech_keywords"]
 
 
 @pytest.mark.asyncio
@@ -88,9 +123,11 @@ async def test_sparse_ocr_enriched_by_llm():
     llm_payload = {
         "company_name": "모바일캡처",
         "position": "백엔드 엔지니어",
+        "qualifications": ["관련 경력 3년 이상"],
         "required_skills": ["Python", "FastAPI", "PostgreSQL"],
         "preferred_skills": ["Docker", "AWS"],
-        "tech_keywords": ["Python", "FastAPI", "PostgreSQL", "Docker", "AWS"],
+        "tech_keywords": ["python", "fastapi", "postgresql", "docker", "aws"],
+        "job_responsibilities": ["API 개발"],
         "talent_profile": [],
         "core_competencies": ["API 설계"],
         "org_culture": None,
@@ -127,9 +164,11 @@ def test_merge_extraction_fills_missing_fields():
     llm = {
         "company_name": "테스트소프트",
         "position": "Java 개발자",
+        "qualifications": ["4년제 대학 졸업 이상"],
         "required_skills": ["Java", "Spring"],
         "preferred_skills": ["AWS"],
-        "tech_keywords": ["Java", "Spring", "AWS"],
+        "tech_keywords": ["java", "spring", "aws"],
+        "job_responsibilities": ["서버 개발"],
         "talent_profile": ["협업"],
         "core_competencies": ["백엔드 개발"],
         "job_description": "서버 개발",

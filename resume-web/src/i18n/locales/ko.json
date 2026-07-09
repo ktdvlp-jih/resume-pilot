@@ -171,6 +171,8 @@
     "position": "직무",
     "requiredSkills": "필수 기술",
     "preferredSkills": "우대 사항",
+    "qualifications": "자격요건",
+    "jobResponsibilities": "담당 업무",
     "techKeywords": "기술 키워드",
     "talentProfile": "인재상",
     "coreCompetencies": "핵심 역량",

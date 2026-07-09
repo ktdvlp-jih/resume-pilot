@@ -32,6 +32,8 @@ const tagColors: Record<string, string> = {
   green: 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200',
   purple: 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-200',
   orange: 'bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-200',
+  amber: 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200',
+  slate: 'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200',
   gray: 'bg-muted text-muted-foreground',
 };
 
@@ -308,8 +310,10 @@ export default function JobPostingsPage() {
                   <p className="text-muted-foreground">{t('jobPostings.position')}</p>
                   <p>{analysis.position || '-'}</p>
                 </div>
+                <TagSection title={t('jobPostings.qualifications')} tags={analysis.qualifications ?? []} color="slate" />
                 <TagSection title={t('jobPostings.requiredSkills')} tags={analysis.requiredSkills} color="blue" />
                 <TagSection title={t('jobPostings.preferredSkills')} tags={analysis.preferredSkills} color="green" />
+                <TagSection title={t('jobPostings.jobResponsibilities')} tags={analysis.jobResponsibilities ?? []} color="amber" />
                 <TagSection title={t('jobPostings.techKeywords')} tags={analysis.techKeywords} color="purple" />
                 <TagSection title={t('jobPostings.talentProfile')} tags={analysis.talentProfile} color="orange" />
                 <TagSection title={t('jobPostings.coreCompetencies')} tags={analysis.coreCompetencies} color="gray" />

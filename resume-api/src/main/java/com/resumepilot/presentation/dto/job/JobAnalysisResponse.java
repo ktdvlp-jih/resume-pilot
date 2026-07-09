@@ -13,6 +13,8 @@ public record JobAnalysisResponse(
         String position,
         List<String> requiredSkills,
         List<String> preferredSkills,
+        List<String> qualifications,
+        List<String> jobResponsibilities,
         List<String> talentProfile,
         List<String> coreCompetencies,
         List<String> techKeywords,
