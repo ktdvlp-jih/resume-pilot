@@ -18,6 +18,7 @@ public record JobAnalysisResponse(
         List<String> talentProfile,
         List<String> coreCompetencies,
         List<String> techKeywords,
+        List<String> solutionKeywords,
         String jobDescription,
         String orgCulture,
         BigDecimal fitScore,

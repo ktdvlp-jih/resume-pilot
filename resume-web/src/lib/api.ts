@@ -93,6 +93,7 @@ export interface JobAnalysisResponse {
   talentProfile: string[];
   coreCompetencies: string[];
   techKeywords: string[];
+  solutionKeywords?: string[];
   jobDescription?: string;
   orgCulture?: string;
   fitScore?: number;

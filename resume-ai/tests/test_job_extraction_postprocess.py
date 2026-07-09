@@ -6,10 +6,14 @@ from app.services.job_extraction_postprocess import (
     has_ocr_garbage,
     is_qualification_item,
     is_quality_result,
+    is_solution_product_keyword,
+    move_soft_skills_from_required,
     ocr_is_low_quality,
     postprocess_extraction,
     reclassify_talent_profile,
     remove_overlapping_items,
+    split_experience_from_skill_lines,
+    split_tech_and_solution_keywords,
 )
 
 
@@ -173,7 +177,63 @@ def test_postprocess_chemical_poster_like_payload():
     assert "React" in result["preferred_skills"][0]
     assert any("설계" in item for item in result["required_skills"])
     assert any("협업" in item for item in result["core_competencies"])
+    assert not any("협업" in item for item in result["required_skills"])
     assert "cms" in [k.lower() for k in result["tech_keywords"]]
+    assert any("cms" in k.lower() for k in result["solution_keywords"])
+
+
+def test_split_experience_from_mixed_skill_line():
+    quals, required = split_experience_from_skill_lines(
+        ["4년제 대학 졸업 이상", "Java / Spring 기반 웹 개발 경력 5년 이상"],
+        [],
+    )
+    assert any("경력 5년" in item for item in quals)
+    assert any("Java" in item for item in required)
+    assert not any("경력" in item and "Java" in item for item in quals)
+
+
+def test_move_soft_skills_from_required_dedupes_core():
+    required, core = move_soft_skills_from_required(
+        ["Java / Spring 개발", "고객사와 원활한 협업 능력"],
+        ["원활한 협업 및 커뮤니케이션 능력"],
+    )
+    assert len(required) == 1
+    assert "Java" in required[0]
+    assert len(core) == 1
+    assert "협업" in core[0]
+
+
+def test_split_tech_and_solution_keywords():
+    tech, solutions = split_tech_and_solution_keywords(
+        ["java", "spring", "dr.cms", "dr.chemdb", "carbon-slim", "iot", "react"],
+    )
+    lowered_tech = [k.lower() for k in tech]
+    lowered_solutions = [k.lower() for k in solutions]
+    assert "java" in lowered_tech
+    assert "iot" in lowered_tech
+    assert "dr.cms" in lowered_solutions
+    assert "carbon-slim" in lowered_solutions
+    assert is_solution_product_keyword("dr.cms") is True
+    assert is_solution_product_keyword("java") is False
+
+
+def test_postprocess_fintech_extracts_experience_years():
+    raw = {
+        "company_name": "KB금융그룹",
+        "position": "백엔드 개발자",
+        "qualifications": ["4년제 대학 졸업 이상"],
+        "required_skills": ["Java/Spring 기반 서버 개발 3년 이상"],
+        "preferred_skills": ["Kafka, Redis 활용 경험"],
+        "job_responsibilities": ["대출 심사 시스템 고도화"],
+        "tech_keywords": ["java", "kafka", "redis"],
+        "talent_profile": [],
+        "core_competencies": [],
+        "job_description": "금융 IT",
+    }
+    result = postprocess_extraction(raw, "Java Spring Kafka")
+    assert any("경력 3년" in item for item in result["qualifications"])
+    assert any("Java" in item for item in result["required_skills"])
+    assert not any("3년" in item for item in result["required_skills"])
 
 
 def test_normalize_section_overlap_for_chemical_poster():
@@ -215,6 +275,8 @@ def test_normalize_section_overlap_for_chemical_poster():
     assert not any("Java" in item and "경력" in item for item in result["qualifications"])
     assert any("Java" in item for item in result["required_skills"])
     assert any("협업" in item for item in result["core_competencies"])
+    assert not any("협업" in item for item in result["required_skills"])
+    assert any("경력 5년" in item for item in result["qualifications"])
     assert not any("PM" in item for item in result["core_competencies"])
     assert not any("일정 관리" in item for item in result["core_competencies"])
 

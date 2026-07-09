@@ -36,6 +36,13 @@ QUALIFICATION_MARKERS = (
     "졸업", "학사", "석사", "박사", "대학", "학력",
     "자격증", "면허", "우대사항", "우대 사항", "필수 사항", "자격요건", "지원자격",
 )
+EXPERIENCE_YEARS_EXTRACT = re.compile(r"(?:경력\s*)?(\d+)\s*년\s*이상")
+SOLUTION_PRODUCT_HINTS = (
+    "chemdb", "carbon", "chemwatch", "fiveeyes", "galleria", "tbm",
+    "psafety", "sofa", "scms", "ldar", "prtr", "cmspro", "carbonslim",
+    "drcms", "drmsds", "drchemdb", "drhealth", "drsofa",
+)
+STACK_DOMAIN_KEYWORDS = {"iot", "ict", "java", "spring", "react", "typescript", "sap", "erp", "mes"}
 EXPERIENCE_ONLY_PATTERN = re.compile(r"(경력|년\s*이상|년이상|년\s*↑)")
 PREFERRED_EXPERIENCE_MARKERS = ("경험", "PM", "파트리더", "리더", "일정 관리", "자격증")
 
@@ -212,6 +219,92 @@ def is_preferred_experience_item(text: str) -> bool:
     if not normalized:
         return False
     return any(marker in normalized for marker in PREFERRED_EXPERIENCE_MARKERS) and len(normalized) > 12
+
+
+def split_experience_from_skill_lines(
+    qualifications: list[str],
+    required_skills: list[str],
+) -> tuple[list[str], list[str]]:
+    quals: list[str] = []
+    kept_required: list[str] = []
+    exp_years_added: set[str] = set()
+
+    def handle_line(item: str, default_bucket: str) -> None:
+        match = EXPERIENCE_YEARS_EXTRACT.search(item)
+        if match and count_tech_tokens(item) > 0:
+            years = match.group(1)
+            if years not in exp_years_added:
+                quals.append(f"관련 분야 경력 {years}년 이상")
+                exp_years_added.add(years)
+            stripped = re.sub(r"[\s·ㆍ,/]*(?:경력\s*)?\d+\s*년\s*이상", "", item).strip()
+            stripped = re.sub(r"\s+", " ", stripped).strip(" ,/·-")
+            if stripped:
+                kept_required.append(stripped)
+        elif EXPERIENCE_YEARS_EXTRACT.search(item) and count_tech_tokens(item) == 0:
+            quals.append(item)
+        elif is_technical_requirement(item):
+            kept_required.append(item)
+        elif is_core_qualification_only(item):
+            quals.append(item)
+        elif default_bucket == "qual":
+            quals.append(item)
+        else:
+            kept_required.append(item)
+
+    for item in qualifications:
+        handle_line(item, "qual")
+    for item in required_skills:
+        handle_line(item, "required")
+
+    return dedupe_similar_items(quals), dedupe_similar_items(kept_required)
+
+
+def move_soft_skills_from_required(
+    required_skills: list[str],
+    core_competencies: list[str],
+) -> tuple[list[str], list[str]]:
+    kept_required: list[str] = []
+    kept_core = list(core_competencies)
+    for item in required_skills:
+        if is_soft_competency_item(item) and not is_technical_requirement(item):
+            kept_core.append(item)
+        else:
+            kept_required.append(item)
+    kept_core = dedupe_similar_items(kept_core)
+    kept_required = remove_overlapping_items(kept_core, kept_required)
+    return kept_required, kept_core
+
+
+def is_solution_product_keyword(keyword: str) -> bool:
+    lower = keyword.lower().strip()
+    compact = lower.replace(" ", "").replace("-", "")
+    if lower in TECH_KEYWORDS_CANONICAL:
+        return False
+    if lower in STACK_DOMAIN_KEYWORDS:
+        return False
+    if re.match(r"^dr\.[a-z]", lower) or re.match(r"^dr[a-z]", compact):
+        return True
+    if any(hint in compact for hint in SOLUTION_PRODUCT_HINTS):
+        return True
+    if re.match(r"^[a-z]+-[a-z]+$", lower) and count_tech_tokens(lower) == 0:
+        return True
+    if lower.startswith("cms pro") or compact == "cmspro":
+        return True
+    return False
+
+
+def split_tech_and_solution_keywords(keywords: list[str]) -> tuple[list[str], list[str]]:
+    tech: list[str] = []
+    solutions: list[str] = []
+    for raw in keywords:
+        candidate = _normalize_keyword(str(raw))
+        if not candidate or _is_noise_keyword(candidate):
+            continue
+        if is_solution_product_keyword(candidate):
+            solutions.append(candidate)
+        else:
+            tech.append(candidate)
+    return dedupe_list(tech), dedupe_list(solutions)
 
 
 def normalize_section_overlap(
@@ -474,6 +567,7 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
         kept_required,
         kept_core,
     )
+    qualifications, kept_required = split_experience_from_skill_lines(qualifications, kept_required)
     preferred_skills = remove_overlapping_items(job_responsibilities, preferred_skills)
     preferred_skills = remove_overlapping_items(kept_required, preferred_skills)
     qualifications, kept_required, kept_core = normalize_section_overlap(
@@ -482,6 +576,7 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
         preferred_skills,
         kept_core,
     )
+    kept_required, kept_core = move_soft_skills_from_required(kept_required, kept_core)
 
     source_blob = build_source_blob(
         {
@@ -496,6 +591,10 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
         source_text,
     )
     tech_keywords = enrich_tech_keywords(result, source_blob)
+    raw_keywords = [str(item) for item in (result.get("tech_keywords") or []) if str(item).strip()]
+    tech_keywords, solution_keywords = split_tech_and_solution_keywords(
+        dedupe_list(tech_keywords + raw_keywords),
+    )
     company_name = resolve_company_name(result, source_blob)
 
     position = result.get("position")
@@ -517,6 +616,7 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
         "preferred_skills": preferred_skills,
         "job_responsibilities": job_responsibilities,
         "tech_keywords": tech_keywords,
+        "solution_keywords": solution_keywords,
         "talent_profile": talent_profile,
         "core_competencies": kept_core,
         "job_description": description[:2000] if description else None,

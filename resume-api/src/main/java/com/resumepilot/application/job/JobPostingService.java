@@ -222,11 +222,14 @@ public class JobPostingService {
     }
 
     private JobAnalysisResponse toAnalysisResponse(JobAnalysis a) {
+        List<String> solutionKeywords = a.getAnalysisJson() != null
+                ? toStringList(a.getAnalysisJson().get("solution_keywords"))
+                : List.of();
         return new JobAnalysisResponse(
                 a.getId(), a.getJobPostingId(), a.getCompanyName(), a.getPosition(),
                 a.getRequiredSkills(), a.getPreferredSkills(), a.getQualifications(), a.getJobResponsibilities(),
                 a.getTalentProfile(),
-                a.getCoreCompetencies(), a.getTechKeywords(), a.getJobDescription(),
+                a.getCoreCompetencies(), a.getTechKeywords(), solutionKeywords, a.getJobDescription(),
                 a.getOrgCulture(), a.getFitScore(), a.getAnalysisJson(), a.getCreatedAt()
         );
     }

@@ -34,6 +34,7 @@ const tagColors: Record<string, string> = {
   orange: 'bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-200',
   amber: 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200',
   slate: 'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200',
+  teal: 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-200',
   gray: 'bg-muted text-muted-foreground',
 };
 
@@ -315,6 +316,9 @@ export default function JobPostingsPage() {
                 <TagSection title={t('jobPostings.preferredSkills')} tags={analysis.preferredSkills} color="green" />
                 <TagSection title={t('jobPostings.jobResponsibilities')} tags={analysis.jobResponsibilities ?? []} color="amber" />
                 <TagSection title={t('jobPostings.techKeywords')} tags={analysis.techKeywords} color="purple" />
+                {(analysis.solutionKeywords?.length ?? 0) > 0 && (
+                  <TagSection title={t('jobPostings.solutionKeywords')} tags={analysis.solutionKeywords ?? []} color="teal" />
+                )}
                 <TagSection title={t('jobPostings.talentProfile')} tags={analysis.talentProfile} color="orange" />
                 <TagSection title={t('jobPostings.coreCompetencies')} tags={analysis.coreCompetencies} color="gray" />
                 {analysis.orgCulture && (
