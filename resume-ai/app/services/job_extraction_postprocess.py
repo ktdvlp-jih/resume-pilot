@@ -33,9 +33,11 @@ TECH_TOKEN_PATTERN = re.compile(
 )
 
 QUALIFICATION_MARKERS = (
-    "졸업", "학사", "석사", "박사", "대학", "학력", "경력", "년 이상", "년이상",
-    "자격", "면허", "우대사항", "우대 사항", "필수 사항", "자격요건", "지원자격",
+    "졸업", "학사", "석사", "박사", "대학", "학력",
+    "자격증", "면허", "우대사항", "우대 사항", "필수 사항", "자격요건", "지원자격",
 )
+EXPERIENCE_ONLY_PATTERN = re.compile(r"(경력|년\s*이상|년이상|년\s*↑)")
+PREFERRED_EXPERIENCE_MARKERS = ("경험", "PM", "파트리더", "리더", "일정 관리", "자격증")
 
 RESPONSIBILITY_MARKERS = (
     "담당", "업무", "설계", "개발", "유지보수", "운영", "고도화", "마이그레이션",
@@ -175,9 +177,88 @@ def enrich_tech_keywords(data: dict[str, Any], source_text: str = "") -> list[st
     return collapse_tech_keyword_variants(cleaned)
 
 
+def count_tech_tokens(text: str) -> int:
+    return len(TECH_TOKEN_PATTERN.findall(text.lower()))
+
+
+def is_technical_requirement(text: str) -> bool:
+    normalized = text.strip()
+    if not normalized:
+        return False
+    if is_soft_competency_item(normalized) and count_tech_tokens(normalized) == 0:
+        return False
+    if count_tech_tokens(normalized) > 0:
+        return True
+    return any(marker in normalized for marker in REQUIRED_SKILL_MARKERS)
+
+
+def is_core_qualification_only(text: str) -> bool:
+    normalized = text.strip()
+    if not normalized:
+        return False
+    if EDUCATION_PATTERN.search(normalized):
+        return True
+    if "자격증" in normalized or "면허" in normalized:
+        return True
+    if EXPERIENCE_ONLY_PATTERN.search(normalized) and count_tech_tokens(normalized) == 0:
+        return True
+    if re.search(r"경력\s*\d", normalized) and count_tech_tokens(normalized) == 0:
+        return True
+    return False
+
+
+def is_preferred_experience_item(text: str) -> bool:
+    normalized = text.strip()
+    if not normalized:
+        return False
+    return any(marker in normalized for marker in PREFERRED_EXPERIENCE_MARKERS) and len(normalized) > 12
+
+
+def normalize_section_overlap(
+    qualifications: list[str],
+    required_skills: list[str],
+    preferred_skills: list[str],
+    core_competencies: list[str],
+) -> tuple[list[str], list[str], list[str]]:
+    kept_qual: list[str] = []
+    kept_required = list(required_skills)
+    kept_core = list(core_competencies)
+
+    for item in qualifications:
+        if is_core_qualification_only(item):
+            kept_qual.append(item)
+        elif is_soft_competency_item(item) and not is_technical_requirement(item):
+            kept_core.append(item)
+        elif is_technical_requirement(item):
+            kept_required.append(item)
+        elif EXPERIENCE_ONLY_PATTERN.search(item) and count_tech_tokens(item) > 0:
+            kept_required.append(item)
+        else:
+            kept_qual.append(item)
+
+    kept_qual = remove_overlapping_items(kept_required, kept_qual)
+    kept_qual = dedupe_similar_items(kept_qual)
+    kept_required = dedupe_similar_items(kept_required)
+    kept_required = remove_overlapping_items(kept_qual, kept_required)
+
+    kept_core = [
+        item for item in kept_core
+        if not is_preferred_experience_item(item)
+        and not any(items_similar(item, pref) for pref in preferred_skills)
+    ]
+    kept_core = dedupe_similar_items(kept_core)
+    kept_core = remove_overlapping_items(preferred_skills, kept_core)
+
+    return kept_qual[:12], kept_required[:15], kept_core[:10]
+
+
 def is_qualification_item(text: str) -> bool:
     normalized = text.strip()
     if not normalized:
+        return False
+    if is_core_qualification_only(normalized):
+        return True
+    if is_technical_requirement(normalized):
         return False
     if EDUCATION_PATTERN.search(normalized):
         return True
@@ -395,6 +476,12 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
     )
     preferred_skills = remove_overlapping_items(job_responsibilities, preferred_skills)
     preferred_skills = remove_overlapping_items(kept_required, preferred_skills)
+    qualifications, kept_required, kept_core = normalize_section_overlap(
+        qualifications,
+        kept_required,
+        preferred_skills,
+        kept_core,
+    )
 
     source_blob = build_source_blob(
         {

@@ -55,7 +55,8 @@ def test_has_ocr_garbage():
 
 def test_is_qualification_item():
     assert is_qualification_item("4년제 대학 졸업 이상") is True
-    assert is_qualification_item("Java / Spring 개발 경력 5년 이상") is True
+    assert is_qualification_item("관련 분야 경력 5년 이상") is True
+    assert is_qualification_item("Java / Spring 개발 경력 5년 이상") is False
     assert is_qualification_item("React/TypeScript") is False
 
 
@@ -173,6 +174,49 @@ def test_postprocess_chemical_poster_like_payload():
     assert any("설계" in item for item in result["required_skills"])
     assert any("협업" in item for item in result["core_competencies"])
     assert "cms" in [k.lower() for k in result["tech_keywords"]]
+
+
+def test_normalize_section_overlap_for_chemical_poster():
+    raw = {
+        "company_name": "화학물질·환경안전보건 전문기업",
+        "position": "IT 시스템 솔루션 개발자 (경력직)",
+        "qualifications": [
+            "4년제 대학 졸업 이상",
+            "Java / Spring (Spring Boot 포함) 기반 웹 개발 경력 5년 이상",
+            "MS-SQL 또는 동급 RDBMS 활용 경험 (Stored Procedure, 쿼리 튜닝 포함)",
+            "HTML/CSS/JavaScript 기반 웹 프론트엔드 개발",
+            "화면 단위 설계부터 개발·배포까지 단독 수행 가능자",
+            "고객사·유관 부서와 원활하게 협업·커뮤니케이션 능력",
+        ],
+        "required_skills": [
+            "Java / Spring (Spring Boot 포함) 기반 웹 개발",
+            "MS-SQL 또는 동급 RDBMS 활용 (Stored Procedure, 쿼리 튜닝 포함)",
+            "HTML/CSS/JavaScript 기반 웹 프론트엔드 개발",
+            "화면 단위 설계, 개발, 배포 단독 수행",
+        ],
+        "preferred_skills": [
+            "React, TypeScript 기반 SPA 개발 경험",
+            "SI 프로젝트 PM 또는 파트리더 경험",
+            "외주·협력 인력과의 협업 및 일정 관리 경험",
+        ],
+        "job_responsibilities": ["CMS / CMS Pro 개발 및 고도화"],
+        "tech_keywords": ["java", "spring", "react"],
+        "talent_profile": [],
+        "core_competencies": [
+            "원활한 협업 및 커뮤니케이션 능력",
+            "SI 프로젝트 PM 또는 파트리더 경험",
+            "외주·협력 인력과의 협업 및 일정 관리 경험",
+            "개발 생산성 향상",
+        ],
+        "job_description": "화학물질 관리 솔루션 개발",
+    }
+    result = postprocess_extraction(raw, "Java Spring React")
+    assert any("대학" in item for item in result["qualifications"])
+    assert not any("Java" in item and "경력" in item for item in result["qualifications"])
+    assert any("Java" in item for item in result["required_skills"])
+    assert any("협업" in item for item in result["core_competencies"])
+    assert not any("PM" in item for item in result["core_competencies"])
+    assert not any("일정 관리" in item for item in result["core_competencies"])
 
 
 def test_is_quality_result_allows_unknown_company_when_rich_lists():
