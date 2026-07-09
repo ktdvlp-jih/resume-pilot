@@ -9,7 +9,9 @@ TECH_KEYWORDS_CANONICAL = {
     "next.js", "nextjs", "nestjs", "express", "django", "fastapi", "graphql",
     "mongodb", "elasticsearch", "terraform", "jenkins", "gitlab", "github",
     "c++", "c#", ".net", "rust", "scala", "spark", "hadoop",
-    "spring boot", "cursor", "claude",
+    "spring boot", "cursor", "claude", "claude code",
+    "sap", "erp", "ehs", "mes", "cms", "msds", "ghs", "html", "css",
+    "oapi", "api", "spa", "rdbms",
 }
 
 KEYWORD_NOISE = {
@@ -17,9 +19,18 @@ KEYWORD_NOISE = {
     "apple", "sd", "gothic", "pageview", "date", "id", "font", "sans", "serif",
     "monospace", "system", "variable", "webkit", "moz", "ms", "arial", "noto",
     "opensans", "nanum", "malgun", "dotum", "gulim", "batang", "dotumche",
-    "as", "al", "self", "soe", "bd", "boot", "ter", "sql", "pro", "db", "api",
-    "cms", "ghs", "oapi", "autoupdate", "engineer", "pageview",
+    "as", "al", "self", "soe", "bd", "boot", "ter", "pro", "engineer", "pageview",
 }
+
+TECH_TOKEN_PATTERN = re.compile(
+    r"\b("
+    r"java|spring(?:\s+boot)?|react|typescript|javascript|python|fastapi|"
+    r"sap|erp|ehs|mes|cms|msds|ghs|aws|docker|kubernetes|kafka|"
+    r"postgresql|ms-?sql|html|css|graphql|redis|next\.?js|"
+    r"cursor|claude(?:\s+code)?|spa|rdbms|oapi|autoupdate"
+    r")\b",
+    re.IGNORECASE,
+)
 
 QUALIFICATION_MARKERS = (
     "졸업", "학사", "석사", "박사", "대학", "학력", "경력", "년 이상", "년이상",
@@ -56,7 +67,7 @@ def ocr_is_low_quality(text: str) -> bool:
 
 def is_quality_result(result: dict[str, Any]) -> bool:
     company = str(result.get("company_name") or "").strip()
-    if not company or company == "Unknown" or has_ocr_garbage(company):
+    if company and company != "Unknown" and has_ocr_garbage(company):
         return False
     meaningful_lists = (
         "qualifications",
@@ -65,7 +76,64 @@ def is_quality_result(result: dict[str, Any]) -> bool:
         "job_responsibilities",
         "tech_keywords",
     )
-    return any(result.get(key) for key in meaningful_lists)
+    filled = sum(1 for key in meaningful_lists if result.get(key))
+    if filled >= 2:
+        return True
+    if filled == 1 and result.get("job_description"):
+        return True
+    return False
+
+
+def build_source_blob(data: dict[str, Any], source_text: str = "") -> str:
+    chunks = [source_text]
+    for key in (
+        "company_name",
+        "position",
+        "job_description",
+        "org_culture",
+        "qualifications",
+        "required_skills",
+        "preferred_skills",
+        "job_responsibilities",
+        "tech_keywords",
+        "talent_profile",
+        "core_competencies",
+    ):
+        value = data.get(key)
+        if isinstance(value, list):
+            chunks.extend(str(item) for item in value)
+        elif value:
+            chunks.append(str(value))
+    return "\n".join(chunk for chunk in chunks if chunk)
+
+
+def resolve_company_name(data: dict[str, Any], source_text: str = "") -> str:
+    company = str(data.get("company_name") or "").strip() or "Unknown"
+    if company != "Unknown" and not has_ocr_garbage(company):
+        return company
+
+    blob = build_source_blob(data, source_text)
+    patterns = [
+        r"([가-힣A-Za-z0-9·/&\-\s]{4,40}?(?:전문\s*기업|그룹|주식회사|\(주\)|㈜|Corp\.?|Inc\.?))",
+        r"(\[[^\]]{2,40}\])",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, blob)
+        if match:
+            candidate = match.group(1).strip()
+            if candidate and not has_ocr_garbage(candidate):
+                return candidate
+    return company
+
+
+def enrich_tech_keywords(data: dict[str, Any], source_text: str = "") -> list[str]:
+    blob = build_source_blob(data, source_text)
+    collected: list[str] = []
+    if isinstance(data.get("tech_keywords"), list):
+        collected.extend(str(item) for item in data["tech_keywords"])
+    for match in TECH_TOKEN_PATTERN.finditer(blob):
+        collected.append(match.group(1))
+    return clean_tech_keywords(collected, blob, limit=30)
 
 
 def is_qualification_item(text: str) -> bool:
@@ -107,7 +175,7 @@ def _is_noise_keyword(word: str) -> bool:
     return False
 
 
-def clean_tech_keywords(keywords: list[str], source_text: str = "") -> list[str]:
+def clean_tech_keywords(keywords: list[str], source_text: str = "", *, limit: int = 20) -> list[str]:
     source_lower = source_text.lower()
     cleaned: list[str] = []
     for raw in keywords:
@@ -120,7 +188,7 @@ def clean_tech_keywords(keywords: list[str], source_text: str = "") -> list[str]
             continue
         if len(candidate) >= 3 and (lower in source_lower or candidate in source_text):
             cleaned.append(candidate)
-    return dedupe_list(cleaned)[:20]
+    return dedupe_list(cleaned)[:limit]
 
 
 def dedupe_list(items: list[str]) -> list[str]:
@@ -148,10 +216,10 @@ def clean_string_list(items: Any, *, max_items: int = 15) -> list[str]:
 def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[str, Any]:
     result = dict(data)
 
-    qualifications = clean_string_list(result.get("qualifications"), max_items=10)
+    qualifications = clean_string_list(result.get("qualifications"), max_items=12)
     required_skills = clean_string_list(result.get("required_skills"), max_items=15)
     preferred_skills = clean_string_list(result.get("preferred_skills"), max_items=15)
-    job_responsibilities = clean_string_list(result.get("job_responsibilities"), max_items=12)
+    job_responsibilities = clean_string_list(result.get("job_responsibilities"), max_items=15)
     core_competencies = clean_string_list(result.get("core_competencies"), max_items=10)
     talent_profile = clean_string_list(result.get("talent_profile"), max_items=10)
 
@@ -176,11 +244,9 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
         kept_core = [item for item in kept_core if item not in moved_from_core]
 
     qualifications = dedupe_list(qualifications + moved_to_qualifications)
-    tech_keywords = clean_tech_keywords(clean_string_list(result.get("tech_keywords"), max_items=30), source_text)
-
-    company_name = str(result.get("company_name") or "Unknown").strip() or "Unknown"
-    if has_ocr_garbage(company_name):
-        company_name = "Unknown"
+    source_blob = build_source_blob(result, source_text)
+    tech_keywords = enrich_tech_keywords(result, source_blob)
+    company_name = resolve_company_name(result, source_blob)
 
     position = result.get("position")
     position_str = str(position).strip() if position else None

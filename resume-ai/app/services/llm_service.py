@@ -107,6 +107,14 @@ class RuleBasedGenerator:
         return "\n".join(f"- {line}" if line and not line.startswith("-") else line for line in lines)
 
 
+OPERATION_MAX_TOKENS: dict[str, int] = {
+    "JOB_ANALYSIS": 4096,
+    "GENERATE": 4096,
+    "AI_DETECTION": 2048,
+    "AI_REVIEW": 2048,
+}
+
+
 class LlmService:
     def __init__(self) -> None:
         self._fallback = RuleBasedGenerator()
@@ -133,7 +141,7 @@ class LlmService:
         last_error: Exception | None = None
         for route in routes:
             try:
-                content = self._chat(route, system, user, temperature)
+                content = self._chat(route, system, user, temperature, operation)
                 return LlmCompletion(content=content, model=route.model_name)
             except Exception as exc:
                 if not self._is_retryable(exc):
@@ -188,6 +196,7 @@ class LlmService:
                         },
                     ],
                     temperature=temperature,
+                    max_tokens=OPERATION_MAX_TOKENS.get(operation, 2048),
                 )
                 return LlmCompletion(
                     content=response.choices[0].message.content or "",
@@ -290,16 +299,20 @@ class LlmService:
             kwargs["base_url"] = route.base_url
         return OpenAI(**kwargs)
 
-    def _chat(self, route: LlmRoute, system: str, user: str, temperature: float) -> str:
+    def _chat(self, route: LlmRoute, system: str, user: str, temperature: float, operation: str = "") -> str:
         client = self._client_for(route)
-        response = client.chat.completions.create(
-            model=route.model_name,
-            messages=[
+        kwargs: dict[str, Any] = {
+            "model": route.model_name,
+            "messages": [
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
             ],
-            temperature=temperature,
-        )
+            "temperature": temperature,
+        }
+        max_tokens = OPERATION_MAX_TOKENS.get(operation)
+        if max_tokens:
+            kwargs["max_tokens"] = max_tokens
+        response = client.chat.completions.create(**kwargs)
         return response.choices[0].message.content or ""
 
     def _is_retryable(self, exc: Exception) -> bool:

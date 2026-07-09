@@ -50,32 +50,35 @@ RESPONSIBILITY_SECTION_PATTERNS = [
 ]
 
 JOB_EXTRACTION_SYSTEM = """You extract structured data from Korean or English job postings.
-The input may be clean text, HTML text, PDF text, or OCR output with recognition errors.
+The input may be clean text, HTML text, PDF text, OCR output, or a recruitment poster image.
 
 Return ONLY valid JSON with these keys:
-- company_name (string)
+- company_name (string — legal name OR the most specific organization label visible on the poster)
 - position (string or null)
 - qualifications (array — education, years of experience, licenses; NOT tech skills)
 - required_skills (array — mandatory technical/role skills; exclude education/경력 requirements)
 - preferred_skills (array — 우대사항 only)
-- tech_keywords (array — lowercase language/framework/tool names, e.g. "java", "spring boot", "ms-sql")
-- job_responsibilities (array — 담당업무/주요업무 bullet items)
+- tech_keywords (array — ALL languages, frameworks, DB, infra, domain systems mentioned anywhere; lowercase)
+- job_responsibilities (array — every 담당업무/주요업무 bullet, including CMS/MSDS/규제DB items)
 - talent_profile (array — 인재상 keywords)
 - core_competencies (array — soft skills/역량 keywords, NOT job duties)
 - org_culture (string or null)
-- job_description (string — 2-4 sentence summary)
+- job_description (string — 3-5 sentence summary of company, role, and key work)
 
 Rules:
+- Extract COMPREHENSIVELY. Include domain systems (SAP, ERP, EHS, MES, CMS, MSDS) in tech_keywords when mentioned.
+- If the legal company name is absent, use the visible organization descriptor (e.g. "화학물질·환경안전보건 전문기업") instead of "Unknown".
 - Fix obvious OCR typos using context (e.g. Spr1ng -> Spring, BO0T -> Boot).
 - Do NOT put 담당업무 into preferred_skills or core_competencies.
 - Do NOT put 학력/경력 requirements into required_skills; use qualifications.
-- Do NOT invent facts. Use empty arrays or null when unknown.
+- Do NOT invent facts not supported by the posting. Use empty arrays or null when truly unknown.
 - Korean postings should use Korean strings except tech_keywords."""
 
 VISION_USER_PROMPT = (
-    "This image is a Korean/English job posting (poster, screenshot, or PDF export). "
-    "Read the layout and sections visually. Extract company, position, qualifications, "
-    "required/preferred skills, tech stack, job responsibilities, and a short summary."
+    "This image is a Korean/English job posting poster or screenshot. "
+    "Read ALL visible sections: header/company line, 모집분야, 담당업무, 자격요건, 우대사항, "
+    "인재상, solution/product grid text, and footer. "
+    "Extract every bullet and every technology acronym you can see."
 )
 
 
@@ -240,7 +243,7 @@ class JobAnalysisService:
         model: str | None = None,
         raw_content: str | None = None,
     ) -> dict[str, Any]:
-        result = postprocess_extraction(data, source_text)
+        result = postprocess_extraction(data, raw_content or source_text)
         result["source_type"] = source_type
         result["extraction_method"] = extraction_method
         if model:

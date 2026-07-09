@@ -323,6 +323,12 @@ export default function JobPostingsPage() {
                     <p>{analysis.orgCulture}</p>
                   </div>
                 )}
+                {analysis.jobDescription && (
+                  <div>
+                    <p className="text-muted-foreground">{t('jobPostings.summary')}</p>
+                    <p className="whitespace-pre-wrap leading-relaxed">{analysis.jobDescription}</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
