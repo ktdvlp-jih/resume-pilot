@@ -77,7 +77,7 @@ public class AiOrchestrationService {
     public Map<String, Object> interviewQuestions(UUID userId, String content) {
         long start = System.currentTimeMillis();
         Map<String, Object> result = aiGatewayClient.interviewQuestions(Map.of("content", content));
-        logUsage(userId, "interview", start, true, null);
+        logUsage(userId, "interview", start, true, str(result != null ? result.get("model") : null));
         return result;
     }
 
@@ -87,7 +87,7 @@ public class AiOrchestrationService {
                 "job_keywords", request.jobKeywords(),
                 "resume_content", request.resumeContent()
         ));
-        logUsage(userId, "compare_keywords", start, true, null);
+        logUsage(userId, "compare_keywords", start, true, str(result != null ? result.get("model") : null));
         return result;
     }
 

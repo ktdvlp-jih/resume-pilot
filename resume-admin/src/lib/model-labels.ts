@@ -1,4 +1,5 @@
 const MODEL_LABELS: Record<string, string> = {
+  'rule-based': '규칙 기반',
   'gemini-2.5-flash': 'Gemini 2.5 Flash',
   'gemini-2.0-flash-lite': 'Gemini 2.0 Flash Lite',
   'gemini-embedding-001': 'Gemini Embedding 001',

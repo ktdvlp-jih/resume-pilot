@@ -90,7 +90,7 @@ async def review_feedback(request: ReviewRequest):
 
 @app.post("/generate/interview-questions")
 async def generate_interview_questions(request: ContentRequest):
-    return ApiResponse(data={"questions": interview_service.generate(request.content)})
+    return ApiResponse(data=interview_service.generate(request.content))
 
 
 @app.post("/compare/keywords")

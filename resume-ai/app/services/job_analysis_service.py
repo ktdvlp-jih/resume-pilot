@@ -103,11 +103,12 @@ class JobAnalysisService:
 
         result = self._extract_from_text(text)
         if self._needs_llm_enrichment(result, text):
-            llm_result = await self._extract_with_llm(text)
+            llm_result, model = await self._extract_with_llm(text)
             if llm_result:
                 result = self._merge_extraction(result, llm_result)
                 extraction_method = f"{extraction_method}+llm"
-                result["model"] = llm_service.last_model_for("JOB_ANALYSIS")
+                if model:
+                    result["model"] = model
 
         result["source_type"] = source_type
         result["extraction_method"] = extraction_method
@@ -193,7 +194,7 @@ class JobAnalysisService:
 
         mime = mime_type if mime_type and mime_type.startswith("image/") else "image/png"
         data_url = f"data:{mime};base64,{file_base64}"
-        parsed = await llm_service.complete_with_image_json_for_operation(
+        parsed, model = await llm_service.complete_with_image_json_for_operation(
             "JOB_ANALYSIS",
             JOB_EXTRACTION_SYSTEM,
             VISION_USER_PROMPT,
@@ -205,14 +206,15 @@ class JobAnalysisService:
         result = self._fields_from_llm(parsed)
         result["source_type"] = "IMAGE"
         result["extraction_method"] = "vision"
-        result["model"] = llm_service.last_model_for("JOB_ANALYSIS")
+        if model:
+            result["model"] = model
         if not result.get("raw_content"):
             result["raw_content"] = result.get("job_description", "")[:5000]
         return result
 
-    async def _extract_with_llm(self, text: str) -> dict[str, Any] | None:
+    async def _extract_with_llm(self, text: str) -> tuple[dict[str, Any] | None, str | None]:
         if not await llm_service.has_routes("JOB_ANALYSIS"):
-            return None
+            return None, None
         system = JOB_EXTRACTION_SYSTEM
         user_prompt = f"Extract job posting fields from this text:\n\n{text[:6000]}"
         try:
@@ -221,8 +223,10 @@ class JobAnalysisService:
             user_prompt = prompt["user_prompt"]
         except Exception as exc:
             logger.warning("JOB_ANALYSIS prompt render failed, using built-in: %s", exc)
-        parsed = await llm_service.complete_json_for_operation("JOB_ANALYSIS", system, user_prompt)
-        return self._fields_from_llm(parsed) if parsed else None
+        parsed, model = await llm_service.complete_json_for_operation("JOB_ANALYSIS", system, user_prompt)
+        if not parsed:
+            return None, model
+        return self._fields_from_llm(parsed), model
 
     def _fields_from_llm(self, parsed: dict[str, Any]) -> dict[str, Any]:
         company = str(parsed.get("company_name") or "Unknown").strip() or "Unknown"

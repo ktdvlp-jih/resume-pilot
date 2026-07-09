@@ -1,6 +1,6 @@
 import base64
 import io
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -63,10 +63,15 @@ async def test_image_vision_fallback_when_ocr_empty():
     }
 
     with patch.object(job_analysis_service, "_extract_image_text", return_value=""):
-        with patch("app.services.job_analysis_service.llm_service") as mock_llm:
-            mock_llm.has_llm = True
-            mock_llm.complete_with_image_json.return_value = vision_payload
-            result = await job_analysis_service.analyze("IMAGE", "", file_base64=b64, mime_type="image/png")
+        with patch("app.services.job_analysis_service.settings") as mock_settings:
+            mock_settings.openai_api_key = "test-key"
+            mock_settings.internal_api_token = "test-token"
+            with patch("app.services.job_analysis_service.llm_service") as mock_llm:
+                mock_llm.has_routes = AsyncMock(return_value=True)
+                mock_llm.complete_with_image_json_for_operation = AsyncMock(
+                    return_value=(vision_payload, "gemini-2.5-flash"),
+                )
+                result = await job_analysis_service.analyze("IMAGE", "", file_base64=b64, mime_type="image/png")
 
     assert result["company_name"] == "비전테크"
     assert result["extraction_method"] == "vision"
@@ -92,10 +97,15 @@ async def test_sparse_ocr_enriched_by_llm():
         "job_description": "백엔드 API 개발",
     }
 
-    with patch("app.services.job_analysis_service.llm_service") as mock_llm:
-        mock_llm.has_llm = True
-        mock_llm.complete_json.return_value = llm_payload
-        result = await job_analysis_service.analyze("TEXT", sparse_text)
+    with patch("app.services.job_analysis_service.settings") as mock_settings:
+        mock_settings.openai_api_key = "test-key"
+        mock_settings.internal_api_token = "test-token"
+        with patch("app.services.job_analysis_service.llm_service") as mock_llm:
+            mock_llm.has_routes = AsyncMock(return_value=True)
+            mock_llm.complete_json_for_operation = AsyncMock(
+                return_value=(llm_payload, "gemini-2.5-flash"),
+            )
+            result = await job_analysis_service.analyze("TEXT", sparse_text)
 
     assert result["company_name"] == "모바일캡처"
     assert "Python" in result["required_skills"]

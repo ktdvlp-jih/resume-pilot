@@ -1,7 +1,7 @@
 import json
 import logging
 import re
-from contextvars import ContextVar
+from dataclasses import dataclass
 from typing import Any
 
 from openai import APIStatusError, OpenAI, RateLimitError
@@ -10,7 +10,14 @@ from app.config import settings
 from app.services.provider_router import LlmRoute, provider_router
 
 logger = logging.getLogger(__name__)
-_llm_meta: ContextVar[dict[str, str]] = ContextVar("_llm_meta", default={})
+
+RULE_BASED_MODEL = "rule-based"
+
+
+@dataclass(frozen=True)
+class LlmCompletion:
+    content: str
+    model: str | None = None
 
 
 class RuleBasedGenerator:
@@ -118,17 +125,16 @@ class LlmService:
         system: str,
         user: str,
         temperature: float = 0.7,
-    ) -> str:
+    ) -> LlmCompletion:
         routes = await self._resolve_routes(operation)
         if not routes:
-            return self._fallback.generate_resume([], 40)["content"]
+            return LlmCompletion(content=self._fallback.generate_resume([], 40)["content"])
 
         last_error: Exception | None = None
         for route in routes:
             try:
                 content = self._chat(route, system, user, temperature)
-                self._set_last_model(operation, route.model_name)
-                return content
+                return LlmCompletion(content=content, model=route.model_name)
             except Exception as exc:
                 if not self._is_retryable(exc):
                     raise
@@ -141,7 +147,7 @@ class LlmService:
                 last_error = exc
         if last_error:
             raise last_error
-        return ""
+        return LlmCompletion(content="")
 
     async def complete_json_for_operation(
         self,
@@ -149,9 +155,9 @@ class LlmService:
         system: str,
         user: str,
         temperature: float = 0.2,
-    ) -> dict[str, Any] | None:
-        text = await self.complete_for_operation(operation, system, user, temperature=temperature)
-        return self.parse_json_response(text)
+    ) -> tuple[dict[str, Any] | None, str | None]:
+        completion = await self.complete_for_operation(operation, system, user, temperature=temperature)
+        return self.parse_json_response(completion.content), completion.model
 
     async def complete_with_image_for_operation(
         self,
@@ -160,10 +166,10 @@ class LlmService:
         user_text: str,
         image_data_url: str,
         temperature: float = 0.2,
-    ) -> str:
+    ) -> LlmCompletion:
         routes = await self._resolve_routes(operation)
         if not routes:
-            return ""
+            return LlmCompletion(content="")
 
         last_error: Exception | None = None
         for route in routes:
@@ -183,8 +189,10 @@ class LlmService:
                     ],
                     temperature=temperature,
                 )
-                self._set_last_model(operation, route.model_name)
-                return response.choices[0].message.content or ""
+                return LlmCompletion(
+                    content=response.choices[0].message.content or "",
+                    model=route.model_name,
+                )
             except Exception as exc:
                 if not self._is_retryable(exc):
                     raise
@@ -197,7 +205,7 @@ class LlmService:
                 last_error = exc
         if last_error:
             raise last_error
-        return ""
+        return LlmCompletion(content="")
 
     async def complete_with_image_json_for_operation(
         self,
@@ -206,11 +214,11 @@ class LlmService:
         user_text: str,
         image_data_url: str,
         temperature: float = 0.2,
-    ) -> dict[str, Any] | None:
-        text = await self.complete_with_image_for_operation(
+    ) -> tuple[dict[str, Any] | None, str | None]:
+        completion = await self.complete_with_image_for_operation(
             operation, system, user_text, image_data_url, temperature=temperature,
         )
-        return self.parse_json_response(text)
+        return self.parse_json_response(completion.content), completion.model
 
     def parse_json_response(self, text: str) -> dict[str, Any] | None:
         cleaned = text.strip()
@@ -233,14 +241,18 @@ class LlmService:
         user_prompt: str,
     ) -> dict[str, Any]:
         if not experiences:
-            return self._fallback.generate_resume([], rewrite_level, job_analysis)
+            fallback = self._fallback.generate_resume([], rewrite_level, job_analysis)
+            fallback["model"] = RULE_BASED_MODEL
+            return fallback
 
         exp_text = "\n".join(
             f"- [{e.get('entity_id', 'unknown')}] {e.get('content', '')}"
             for e in experiences if e.get("content")
         )
         if not exp_text.strip():
-            return self._fallback.generate_resume(experiences, rewrite_level, job_analysis)
+            fallback = self._fallback.generate_resume(experiences, rewrite_level, job_analysis)
+            fallback["model"] = RULE_BASED_MODEL
+            return fallback
 
         user_msg = user_prompt.replace("{{experiences}}", exp_text)
         user_msg = user_msg.replace("{{rewrite_level}}", str(rewrite_level))
@@ -249,21 +261,22 @@ class LlmService:
 
         try:
             if not await self.has_routes("GENERATE"):
-                return self._fallback.generate_resume(experiences, rewrite_level, job_analysis)
-            content = await self.complete_for_operation("GENERATE", system_prompt, user_msg)
+                fallback = self._fallback.generate_resume(experiences, rewrite_level, job_analysis)
+                fallback["model"] = RULE_BASED_MODEL
+                return fallback
+            completion = await self.complete_for_operation("GENERATE", system_prompt, user_msg)
         except Exception as exc:
             logger.warning("LLM generate failed, using rule fallback: %s", exc)
-            return self._fallback.generate_resume(experiences, rewrite_level, job_analysis)
+            fallback = self._fallback.generate_resume(experiences, rewrite_level, job_analysis)
+            fallback["model"] = RULE_BASED_MODEL
+            return fallback
 
         return {
-            "content": content,
+            "content": completion.content,
             "experience_ids": [e.get("entity_id") for e in experiences if e.get("entity_id")],
             "insufficient": False,
-            "model": self.last_model_for("GENERATE"),
+            "model": completion.model,
         }
-
-    def last_model_for(self, operation: str) -> str | None:
-        return _llm_meta.get({}).get(operation)
 
     async def _resolve_routes(self, operation: str) -> list[LlmRoute]:
         routes = await provider_router.routes_for(operation)
@@ -295,12 +308,6 @@ class LlmService:
         if isinstance(exc, APIStatusError) and exc.status_code in {401, 403, 429, 500, 502, 503, 504}:
             return True
         return False
-
-    def _set_last_model(self, operation: str, model_name: str) -> None:
-        current = dict(_llm_meta.get({}))
-        current[operation] = model_name
-        _llm_meta.set(current)
-
 
 llm_service = LlmService()
 rule_based = RuleBasedGenerator()

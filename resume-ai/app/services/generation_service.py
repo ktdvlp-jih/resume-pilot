@@ -2,7 +2,7 @@ import logging
 from typing import Any
 
 from app.clients.service_clients import prompt_client, rag_client
-from app.services.llm_service import llm_service, rule_based
+from app.services.llm_service import RULE_BASED_MODEL, llm_service, rule_based
 
 logger = logging.getLogger(__name__)
 
@@ -97,13 +97,13 @@ class DetectionService:
                     "content": content,
                     "forbidden_expressions": forbidden_text,
                 })
-                raw = await llm_service.complete_for_operation(
+                completion = await llm_service.complete_for_operation(
                     "AI_DETECTION",
                     prompt["system_prompt"],
                     prompt["user_prompt"],
                     temperature=0.2,
                 )
-                parsed = llm_service.parse_json_response(raw)
+                parsed = llm_service.parse_json_response(completion.content)
                 detections = parsed if isinstance(parsed, list) else (
                     parsed.get("detections") if isinstance(parsed, dict) else None
                 )
@@ -113,7 +113,7 @@ class DetectionService:
                     return {
                         "detections": detections,
                         "ai_trace_percent": round(red / total * 100, 1),
-                        "model": llm_service.last_model_for("AI_DETECTION"),
+                        "model": completion.model,
                     }
             except Exception as exc:
                 logger.warning("AI_DETECTION prompt failed, using rule fallback: %s", exc)
@@ -124,6 +124,7 @@ class DetectionService:
         return {
             "detections": detections,
             "ai_trace_percent": round(red / total * 100, 1),
+            "model": RULE_BASED_MODEL,
         }
 
 
@@ -135,13 +136,13 @@ class ReviewService:
                     "content": content,
                     "job_analysis": str(job_analysis or {}),
                 })
-                raw = await llm_service.complete_for_operation(
+                completion = await llm_service.complete_for_operation(
                     "AI_REVIEW",
                     prompt["system_prompt"],
                     prompt["user_prompt"],
                     temperature=0.3,
                 )
-                parsed = llm_service.parse_json_response(raw)
+                parsed = llm_service.parse_json_response(completion.content)
                 reviews = parsed if isinstance(parsed, list) else (
                     parsed.get("reviews") if isinstance(parsed, dict) else None
                 )
@@ -149,21 +150,24 @@ class ReviewService:
                     return {
                         "reviews": reviews,
                         "job_analysis": job_analysis,
-                        "model": llm_service.last_model_for("AI_REVIEW"),
+                        "model": completion.model,
                     }
             except Exception as exc:
                 logger.warning("AI_REVIEW prompt failed, using rule fallback: %s", exc)
 
-        return {"reviews": rule_based.review_feedback(content), "job_analysis": job_analysis}
+        return {"reviews": rule_based.review_feedback(content), "job_analysis": job_analysis, "model": RULE_BASED_MODEL}
 
 
 class InterviewService:
-    def generate(self, content: str) -> list[dict]:
+    def generate(self, content: str) -> dict[str, Any]:
         categories = ["지원동기", "협업", "갈등 해결", "성과", "프로젝트", "기술", "심화", "압박"]
-        return [
-            {"category": cat, "question": f"{cat} 관련하여 자기소개서 내용을 바탕으로 설명해주세요.", "difficulty": "NORMAL"}
-            for cat in categories
-        ]
+        return {
+            "questions": [
+                {"category": cat, "question": f"{cat} 관련하여 자기소개서 내용을 바탕으로 설명해주세요.", "difficulty": "NORMAL"}
+                for cat in categories
+            ],
+            "model": RULE_BASED_MODEL,
+        }
 
 
 class KeywordService:
@@ -177,6 +181,7 @@ class KeywordService:
             "missing": list(missing),
             "recommended": list(missing)[:5],
             "overused": [],
+            "model": RULE_BASED_MODEL,
         }
 
 
