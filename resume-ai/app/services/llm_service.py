@@ -223,16 +223,21 @@ class LlmService:
         )
         return self.parse_json_response(completion.content), completion.model
 
-    def parse_json_response(self, text: str) -> dict[str, Any] | None:
+    def parse_json_value(self, text: str) -> dict[str, Any] | list[Any] | None:
+        """LLM 응답에서 JSON 값을 추출한다. dict와 list(배열 프롬프트 출력) 모두 허용."""
         cleaned = text.strip()
         if cleaned.startswith("```"):
             cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
             cleaned = re.sub(r"\s*```$", "", cleaned)
         try:
             parsed = json.loads(cleaned)
-            return parsed if isinstance(parsed, dict) else None
+            return parsed if isinstance(parsed, (dict, list)) else None
         except json.JSONDecodeError:
             return None
+
+    def parse_json_response(self, text: str) -> dict[str, Any] | None:
+        parsed = self.parse_json_value(text)
+        return parsed if isinstance(parsed, dict) else None
 
     async def generate_with_context(
         self,

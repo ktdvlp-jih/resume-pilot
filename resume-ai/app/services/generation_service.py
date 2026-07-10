@@ -146,7 +146,7 @@ class DetectionService:
                     prompt["user_prompt"],
                     temperature=0.2,
                 )
-                parsed = llm_service.parse_json_response(completion.content)
+                parsed = llm_service.parse_json_value(completion.content)
                 detections = parsed if isinstance(parsed, list) else (
                     parsed.get("detections") if isinstance(parsed, dict) else None
                 )
@@ -185,7 +185,7 @@ class ReviewService:
                     prompt["user_prompt"],
                     temperature=0.3,
                 )
-                parsed = llm_service.parse_json_response(completion.content)
+                parsed = llm_service.parse_json_value(completion.content)
                 reviews = parsed if isinstance(parsed, list) else (
                     parsed.get("reviews") if isinstance(parsed, dict) else None
                 )
