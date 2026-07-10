@@ -204,9 +204,20 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public List<AiLogResponse> listAiLogs() {
-        return usageLogRepository.findTop30ByOrderByCreatedAtDesc().stream()
-                .map(l -> new AiLogResponse(l.getId(), l.getUserId(), l.getService(), l.getOperation(),
-                        l.getModel(), l.getDurationMs(), l.getStatus(), l.getCreatedAt()))
+        return usageLogRepository.findTop100ByOrderByCreatedAtDesc().stream()
+                .map(l -> new AiLogResponse(
+                        l.getId(),
+                        l.getUserId(),
+                        l.getService(),
+                        l.getOperation(),
+                        l.getModel(),
+                        l.getInputTokens(),
+                        l.getOutputTokens(),
+                        l.getDurationMs(),
+                        l.getStatus(),
+                        l.getErrorMessage(),
+                        l.getMetadata() != null ? l.getMetadata() : Map.of(),
+                        l.getCreatedAt()))
                 .toList();
     }
 

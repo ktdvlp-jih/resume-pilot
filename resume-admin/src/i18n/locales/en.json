@@ -107,12 +107,22 @@
   },
   "aiLogs": {
     "title": "AI Logs / Usage",
+    "subtitle": "Click a row to inspect extraction_method and result snapshot metadata.",
     "time": "Time",
     "service": "Service",
     "operation": "Operation",
+    "method": "Method",
     "model": "Model",
     "status": "Status",
     "duration": "Duration (ms)",
+    "detail": "Detail",
+    "detailTitle": "AI log detail",
+    "sourceType": "Source type",
+    "company": "Company",
+    "position": "Position",
+    "counts": "Field counts",
+    "metadata": "metadata / result_snapshot",
+    "error": "Error",
     "empty": "No AI usage logs yet. Try running generation in the workspace."
   },
   "deploySettings": {

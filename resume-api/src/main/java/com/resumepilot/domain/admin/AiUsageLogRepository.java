@@ -6,4 +6,6 @@ import java.util.List;
 import java.util.UUID;
 public interface AiUsageLogRepository extends JpaRepository<AiUsageLog, UUID> {
     List<AiUsageLog> findTop30ByOrderByCreatedAtDesc();
+
+    List<AiUsageLog> findTop100ByOrderByCreatedAtDesc();
 }

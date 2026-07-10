@@ -56,7 +56,7 @@ public class JobPostingService {
         jobPostingRepository.save(posting);
 
         Map<String, Object> aiResult = analyzeWithAi(request.sourceType().name(), content, request.sourceUrl(), null, null);
-        logUsage(userId, request.sourceType().name(), startedAt, !aiResult.containsKey("error"), str(aiResult.get("model")));
+        logUsage(userId, request.sourceType().name(), startedAt, !aiResult.containsKey("error"), aiResult);
         posting.setParsedJson(aiResult);
         if (aiResult.get("title") != null && posting.getTitle() == null) {
             posting.setTitle(String.valueOf(aiResult.get("title")));
@@ -92,7 +92,7 @@ public class JobPostingService {
                 doc.fileBase64(),
                 doc.mimeType()
         );
-        logUsage(userId, sourceType.name(), startedAt, !aiResult.containsKey("error"), str(aiResult.get("model")));
+        logUsage(userId, sourceType.name(), startedAt, !aiResult.containsKey("error"), aiResult);
         Object rawFromAi = aiResult.get("raw_content");
         if (rawFromAi != null && !String.valueOf(rawFromAi).isBlank()) {
             posting.setRawContent(String.valueOf(rawFromAi));
@@ -132,7 +132,7 @@ public class JobPostingService {
                 null,
                 null
         );
-        logUsage(userId, posting.getSourceType().name(), startedAt, !aiResult.containsKey("error"), str(aiResult.get("model")));
+        logUsage(userId, posting.getSourceType().name(), startedAt, !aiResult.containsKey("error"), aiResult);
         posting.setParsedJson(aiResult);
         Company company = companyService.upsertFromAnalysis(aiResult);
         if (company != null) {
@@ -245,7 +245,51 @@ public class JobPostingService {
         return List.of();
     }
 
-    private void logUsage(UUID userId, String sourceType, long startedAt, boolean success, String model) {
+    private void logUsage(UUID userId, String sourceType, long startedAt, boolean success, Map<String, Object> aiResult) {
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("source_type", sourceType);
+        if (aiResult != null) {
+            putIfPresent(metadata, "extraction_method", aiResult.get("extraction_method"));
+            putIfPresent(metadata, "company_name", aiResult.get("company_name"));
+            putIfPresent(metadata, "position", aiResult.get("position"));
+            metadata.put("required_skills_count", toStringList(aiResult.get("required_skills")).size());
+            metadata.put("preferred_skills_count", toStringList(aiResult.get("preferred_skills")).size());
+            metadata.put("job_responsibilities_count", toStringList(aiResult.get("job_responsibilities")).size());
+            metadata.put("qualifications_count", toStringList(aiResult.get("qualifications")).size());
+            metadata.put("tech_keywords_count", toStringList(aiResult.get("tech_keywords")).size());
+            metadata.put("preferred_skills", truncateList(toStringList(aiResult.get("preferred_skills")), 8));
+            metadata.put("required_skills", truncateList(toStringList(aiResult.get("required_skills")), 8));
+            Object error = aiResult.get("error");
+            if (error != null) {
+                metadata.put("error", String.valueOf(error));
+            }
+            Object raw = aiResult.get("raw_content");
+            if (raw != null) {
+                String rawText = String.valueOf(raw);
+                metadata.put("raw_content_preview", rawText.length() > 800 ? rawText.substring(0, 800) + "…" : rawText);
+            }
+            // Compact snapshot for comparing two runs of the same image
+            Map<String, Object> snapshot = new LinkedHashMap<>();
+            snapshot.put("company_name", aiResult.get("company_name"));
+            snapshot.put("position", aiResult.get("position"));
+            snapshot.put("required_skills", truncateList(toStringList(aiResult.get("required_skills")), 12));
+            snapshot.put("preferred_skills", truncateList(toStringList(aiResult.get("preferred_skills")), 12));
+            snapshot.put("job_responsibilities", truncateList(toStringList(aiResult.get("job_responsibilities")), 8));
+            snapshot.put("core_competencies", truncateList(toStringList(aiResult.get("core_competencies")), 8));
+            snapshot.put("tech_keywords", truncateList(toStringList(aiResult.get("tech_keywords")), 15));
+            snapshot.put("solution_keywords", truncateList(toStringList(aiResult.get("solution_keywords")), 10));
+            metadata.put("result_snapshot", snapshot);
+        }
+
+        String model = aiResult != null ? str(aiResult.get("model")) : null;
+        String errorMessage = null;
+        if (aiResult != null && aiResult.get("error") != null) {
+            errorMessage = String.valueOf(aiResult.get("error"));
+            if (errorMessage.length() > 500) {
+                errorMessage = errorMessage.substring(0, 500);
+            }
+        }
+
         usageLogRepository.save(AiUsageLog.builder()
                 .userId(userId)
                 .service("resume-ai")
@@ -253,7 +297,21 @@ public class JobPostingService {
                 .model(model)
                 .durationMs((int) (System.currentTimeMillis() - startedAt))
                 .status(success ? "SUCCESS" : "FAILED")
-                .metadata(Map.of("source_type", sourceType))
+                .errorMessage(errorMessage)
+                .metadata(metadata)
                 .build());
+    }
+
+    private void putIfPresent(Map<String, Object> target, String key, Object value) {
+        if (value != null && !String.valueOf(value).isBlank()) {
+            target.put(key, value);
+        }
+    }
+
+    private List<String> truncateList(List<String> items, int max) {
+        if (items == null || items.isEmpty()) {
+            return List.of();
+        }
+        return items.size() <= max ? items : items.subList(0, max);
     }
 }

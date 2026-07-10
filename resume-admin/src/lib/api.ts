@@ -110,11 +110,16 @@ export const api = {
   listAiLogs: () =>
     request<Array<{
       id: string;
+      userId?: string;
       service: string;
       operation: string;
       model?: string;
+      inputTokens?: number;
+      outputTokens?: number;
       status: string;
       durationMs: number;
+      errorMessage?: string;
+      metadata?: Record<string, unknown>;
       createdAt: string;
     }>>('/api/v1/admin/ai-logs'),
   getDeployCiSettings: () =>

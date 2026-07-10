@@ -107,12 +107,22 @@
   },
   "aiLogs": {
     "title": "AI 로그 / 사용량",
+    "subtitle": "행을 클릭하면 extraction_method·결과 스냅샷 등 metadata를 볼 수 있습니다.",
     "time": "시간",
     "service": "서비스",
     "operation": "작업",
+    "method": "추출경로",
     "model": "모델",
     "status": "상태",
     "duration": "소요(ms)",
+    "detail": "상세",
+    "detailTitle": "AI 로그 상세",
+    "sourceType": "소스 타입",
+    "company": "기업",
+    "position": "직무",
+    "counts": "필드 건수",
+    "metadata": "metadata / result_snapshot",
+    "error": "에러",
     "empty": "AI 사용 로그가 없습니다. 워크스페이스에서 생성을 실행해 보세요."
   },
   "deploySettings": {

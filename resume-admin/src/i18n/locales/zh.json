@@ -107,12 +107,22 @@
   },
   "aiLogs": {
     "title": "AI 日志 / 用量",
+    "subtitle": "点击行可查看 extraction_method 与结果快照 metadata。",
     "time": "时间",
     "service": "服务",
     "operation": "操作",
+    "method": "提取路径",
     "model": "模型",
     "status": "状态",
     "duration": "耗时(ms)",
+    "detail": "详情",
+    "detailTitle": "AI 日志详情",
+    "sourceType": "来源类型",
+    "company": "企业",
+    "position": "职位",
+    "counts": "字段数量",
+    "metadata": "metadata / result_snapshot",
+    "error": "错误",
     "empty": "暂无 AI 使用日志。请在工作区中尝试运行生成。"
   },
   "deploySettings": {

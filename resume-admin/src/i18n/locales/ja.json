@@ -107,12 +107,22 @@
   },
   "aiLogs": {
     "title": "AIログ / 使用量",
+    "subtitle": "行をクリックすると extraction_method と結果スナップショットを確認できます。",
     "time": "時間",
     "service": "サービス",
     "operation": "操作",
+    "method": "抽出経路",
     "model": "モデル",
     "status": "状態",
     "duration": "所要(ms)",
+    "detail": "詳細",
+    "detailTitle": "AIログ詳細",
+    "sourceType": "ソース種別",
+    "company": "企業",
+    "position": "職務",
+    "counts": "フィールド件数",
+    "metadata": "metadata / result_snapshot",
+    "error": "エラー",
     "empty": "AI使用ログがありません。ワークスペースで生成を実行してください。"
   },
   "deploySettings": {
