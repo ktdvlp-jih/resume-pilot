@@ -96,10 +96,61 @@ REQUIRED_SKILL_MARKERS = (
 OVERLAP_THRESHOLD = 0.72
 
 
+BOILERPLATE_ITEM_PATTERN = re.compile(
+    r"(근무\s*형태|근무\s*조건|근무지\s*[:：]|접수\s*기간|채용\s*절차|전형\s*절차|"
+    r"모집\s*인원|모집\s*부[문분]|상시\s*채용|수습\s*기간|급여\s*[:：]|연봉\s*[:：]|복리\s*후생)"
+)
+
+
 def has_ocr_garbage(text: str) -> bool:
     if not text:
         return False
     return bool(GARBAGE_PATTERN.search(text))
+
+
+def is_noise_extraction_item(text: str) -> bool:
+    """스킬·업무 항목으로 부적합한 노이즈(깨진 OCR 조각, 근무조건 보일러플레이트)인지 판정."""
+    normalized = re.sub(r"\s+", " ", str(text)).strip()
+    if len(normalized) < 2:
+        return True
+    if has_ocr_garbage(normalized):
+        return True
+    if re.search(r"[©®™]", normalized):
+        return True
+    if BOILERPLATE_ITEM_PATTERN.search(normalized):
+        return True
+    compact = normalized.replace(" ", "")
+    letters = len(re.findall(r"[가-힣a-zA-Z]", compact))
+    if letters / max(len(compact), 1) < 0.5:
+        return True
+    return False
+
+
+def strip_trailing_ocr_junk(text: str) -> str:
+    """문장 끝에 붙은 OCR 꼬리 노이즈(고아 숫자·1~2자 영문·단일 한글 조각) 제거."""
+    tokens = str(text).split()
+    while tokens:
+        tail = tokens[-1].strip(":：.·-")
+        if (
+            not tail
+            or re.fullmatch(r"\d{1,2}\)?", tail)
+            or re.fullmatch(r"[a-zA-Z]{1,2}", tail)
+            or re.fullmatch(r"[가-힣]", tail)
+            or re.fullmatch(r"[©®™]+", tail)
+        ):
+            tokens.pop()
+        else:
+            break
+    return " ".join(tokens)
+
+
+def filter_noise_items(items: list[str]) -> list[str]:
+    kept: list[str] = []
+    for item in items:
+        cleaned = strip_trailing_ocr_junk(item)
+        if cleaned and not is_noise_extraction_item(cleaned):
+            kept.append(cleaned)
+    return kept
 
 
 def ocr_is_low_quality(text: str) -> bool:
@@ -118,14 +169,19 @@ def is_quality_result(result: dict[str, Any]) -> bool:
     company = str(result.get("company_name") or "").strip()
     if company and company != "Unknown" and has_ocr_garbage(company):
         return False
-    meaningful_lists = (
+    # tech_keywords는 짧은 토큰이라 존재 여부만, 문장형 리스트는 노이즈 아닌 항목이 있어야 "채워짐"으로 인정
+    sentence_lists = (
         "qualifications",
         "required_skills",
         "preferred_skills",
         "job_responsibilities",
-        "tech_keywords",
     )
-    filled = sum(1 for key in meaningful_lists if result.get(key))
+    filled = sum(
+        1 for key in sentence_lists
+        if any(not is_noise_extraction_item(str(item)) for item in (result.get(key) or []))
+    )
+    if result.get("tech_keywords"):
+        filled += 1
     if filled >= 2:
         return True
     if filled == 1 and result.get("job_description"):
@@ -810,9 +866,9 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
     result = dict(data)
 
     qualifications = clean_string_list(result.get("qualifications"), max_items=12)
-    required_skills = clean_string_list(result.get("required_skills"), max_items=15)
-    preferred_skills = clean_string_list(result.get("preferred_skills"), max_items=15)
-    job_responsibilities = clean_string_list(result.get("job_responsibilities"), max_items=15)
+    required_skills = filter_noise_items(clean_string_list(result.get("required_skills"), max_items=15))
+    preferred_skills = filter_noise_items(clean_string_list(result.get("preferred_skills"), max_items=15))
+    job_responsibilities = filter_noise_items(clean_string_list(result.get("job_responsibilities"), max_items=15))
     job_responsibilities = dedupe_similar_items(job_responsibilities)
     core_competencies = clean_string_list(result.get("core_competencies"), max_items=10)
     talent_profile = clean_string_list(result.get("talent_profile"), max_items=10)

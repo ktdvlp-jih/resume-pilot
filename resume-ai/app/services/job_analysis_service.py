@@ -149,23 +149,17 @@ class JobAnalysisService:
                 if is_quality_result(vision_result):
                     return vision_result
 
+        # 여기 도달 = Vision 부재 또는 품질 미달. OCR 경로는 보조 수단으로만 사용하고,
+        # Vision 결과가 있으면 빈 필드를 채우는 병합만 한다 (전체 덮어쓰기 금지).
         ocr_text = await asyncio.to_thread(self._extract_image_text, file_base64) or ""
         ocr_text = self._normalize_text(ocr_text)
 
         if ocr_text and await self._can_use_llm():
-            should_try_text_llm = (
-                not vision_result
-                or not is_quality_result(vision_result)
-                or ocr_is_low_quality(ocr_text)
-            )
-            if should_try_text_llm:
-                llm_result = await self._analyze_text(
-                    ocr_text,
-                    "ocr+llm" if ocr_is_low_quality(ocr_text) else "ocr+llm",
-                    source_type,
-                )
-                if is_quality_result(llm_result):
-                    return llm_result
+            llm_result = await self._analyze_text(ocr_text, "ocr", source_type)
+            if vision_result:
+                llm_result = self._merge_vision_into(llm_result, vision_result)
+            if is_quality_result(llm_result):
+                return llm_result
 
         if vision_result:
             return vision_result
@@ -264,6 +258,29 @@ class JobAnalysisService:
         if not parsed:
             return None, model
         return self._fields_from_llm(parsed), model
+
+    _MERGE_LIST_FIELDS = (
+        "qualifications", "required_skills", "preferred_skills",
+        "job_responsibilities", "tech_keywords", "solution_keywords",
+        "core_competencies", "talent_profile", "core_values",
+    )
+    _MERGE_SCALAR_FIELDS = ("position", "job_description", "org_culture", "title")
+
+    def _merge_vision_into(self, base: dict[str, Any], vision: dict[str, Any]) -> dict[str, Any]:
+        """OCR+LLM 결과(base)의 빈 필드만 Vision 결과로 보완한다. 채워진 필드는 유지."""
+        merged = dict(base)
+        for key in self._MERGE_LIST_FIELDS:
+            if not merged.get(key) and vision.get(key):
+                merged[key] = vision[key]
+        for key in self._MERGE_SCALAR_FIELDS:
+            if not merged.get(key) and vision.get(key):
+                merged[key] = vision[key]
+        base_company = str(merged.get("company_name") or "").strip()
+        vision_company = str(vision.get("company_name") or "").strip()
+        if (not base_company or base_company == "Unknown") and vision_company and vision_company != "Unknown":
+            merged["company_name"] = vision_company
+        merged["extraction_method"] = f"{base.get('extraction_method', 'ocr+llm')}+vision-merge"
+        return merged
 
     def _finalize_fields(
         self,
