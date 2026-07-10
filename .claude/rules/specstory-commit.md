@@ -1,0 +1,25 @@
+# SpecStory · 대화 기록 Git 동기화
+
+ResumePilot은 PC 간 Agent 맥락 복원을 위해 **SpecStory를 Git에 커밋**한다.
+
+## 에이전트 (필수)
+
+1. **커밋 요청 시** — `git status`에 `.specstory/` 변경이 있으면 **코드·문서와 함께 항상 스테이징**한다.
+2. **푸시 요청 시** — `.specstory/history/` 미반영분이 있으면 **먼저 커밋**한 뒤 push한다.
+3. **커밋 대상**
+   - ✅ `.specstory/history/*.md`, `.specstory/.project.json`, `.specstory/cli/`
+   - ✅ `.cursor/`, `.claude/` (룰·명령·스킬 변경 시 함께)
+   - ❌ `.specstory/statistics.json` (`.gitignore`)
+   - ❌ `.env`, PAT, SSH 키 (`secrets-handling.md`)
+
+## 사용자 (PC 전환)
+
+```powershell
+git pull
+# … 작업 …
+git add .specstory .cursor .claude
+git commit -m "docs: SpecStory·Cursor 동기화"
+git push
+```
+
+상세: `docs/설치-가이드.md` Part 4 (PC 전환)

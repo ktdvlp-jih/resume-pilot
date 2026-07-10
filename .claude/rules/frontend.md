@@ -1,0 +1,18 @@
+---
+paths:
+  - "resume-web/**/*.ts"
+  - "resume-web/**/*.tsx"
+  - "resume-admin/**/*.ts"
+  - "resume-admin/**/*.tsx"
+---
+
+# Frontend (resume-web · resume-admin)
+
+- UI: Tailwind + 공통 클래스 `src/styles/ui.css` (`ui-btn-*`, `ui-link`, `ui-input` 등). hover·cursor는 컴포넌트에 인라인으로 중복 정의하지 말고 `ui.css`에서 관리
+- 컴포넌트: `@/components/ui/button.tsx`는 `ui.css` 클래스를 사용
+- i18n: `src/i18n/locales/{ko,en,ja,zh}.json` — 사용자 문구 하드코딩 지양
+- API: `src/lib/api-base.ts`, dev 시 `VITE_API_URL=http://localhost:8080`
+- resume-admin: `VITE_BASE=/admin/` (vite.config.ts)
+- 상태: TanStack Query, 라우팅: react-router-dom
+
+변경 후 해당 앱에서 `npm run build` 로 타입·빌드 확인.

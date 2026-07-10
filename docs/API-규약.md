@@ -56,11 +56,26 @@ Authorization: Bearer <access_token>
 | PATCH | `/users/me` | Update profile |
 | CRUD | `/resumes` | Cover letter management |
 | POST | `/resumes/{id}/versions` | Create version |
+| GET | `/resumes/{id}/versions` | List versions |
 | GET | `/resumes/{id}/versions/compare` | Compare versions |
 | CRUD | `/experiences` | Experience library |
 | POST | `/experiences/{id}/embed` | Trigger RAG embedding |
+| CRUD | `/job-postings` | Job posting management |
+| POST | `/job-postings/upload` | Upload posting (text/URL) |
+| POST | `/job-postings/upload/file` | Upload posting file (PDF/image, multipart) |
+| GET | `/job-postings/{id}/analysis` | Get analysis result |
+| POST | `/job-postings/{id}/reanalyze` | Re-run analysis |
+| GET | `/companies`, `/companies/{id}` | Company list/detail |
+| GET | `/writing-styles/me` | My writing style |
+| POST | `/writing-styles/analyze` | Analyze writing style |
+| POST | `/rag/search` | RAG semantic search |
+| POST | `/rag/recommend-experiences` | Recommend experiences for posting |
 | POST | `/ai/generate` | AI generation |
 | POST | `/ai/detect` | AI trace detection |
+| POST | `/ai/review` | Paragraph-level review |
+| POST | `/ai/interview-questions` | Interview question generation |
+| POST | `/ai/compare-keywords` | Posting↔resume keyword comparison |
+| GET | `/ai/generations` | My generation history |
 
 ## Admin Endpoints
 
@@ -68,10 +83,19 @@ All under `/admin/**`, requires `ROLE_ADMIN`.
 
 | Path | Description |
 |------|-------------|
-| `/admin/prompts` | Prompt management |
+| `/admin/prompts` (+ `/{templateId}/versions`, `/versions/{versionId}/activate`, `/test`) | Prompt management |
 | `/admin/forbidden-expressions` | Forbidden expressions |
-| `/admin/users` | User management |
+| `/admin/users` (+ `/{id}/role`, `/{id}/enabled`) | User management |
+| `/admin/companies` | Company management |
 | `/admin/ai-logs` | AI usage logs |
+| `/admin/llm/providers`, `/admin/llm/routes` | LLM provider keys & per-task model routes (failover) |
+| `/admin/deploy-ci-settings` | Deploy CI toggle settings |
+
+## Internal Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/internal/llm/runtime-config` | LLM runtime route config for Python services (`INTERNAL_API_TOKEN` auth) |
 
 ## Python Services
 
@@ -81,6 +105,8 @@ Each FastAPI service exposes:
 
 ### resume-ai (8000)
 
+- `POST /analyze/job-posting`
+- `POST /analyze/writing-style`
 - `POST /generate/resume`
 - `POST /detect/ai-traces`
 - `POST /review/feedback`
@@ -90,6 +116,7 @@ Each FastAPI service exposes:
 ### prompt-service (8001)
 
 - `GET /prompts/{type}`
+- `GET /prompts/{type}/versions`
 - `POST /prompts/render`
 - `POST /prompts/test`
 

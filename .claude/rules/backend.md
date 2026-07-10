@@ -1,0 +1,14 @@
+---
+paths:
+  - "resume-api/src/main/java/**/*.java"
+---
+
+# Backend (resume-api)
+
+- 패키지: `com.resumepilot` — domain / application / infrastructure / global
+- DB 마이그레이션: `resume-api/src/main/resources/db/migration/` (Flyway only here)
+- 설정: `application.yml`, `application-prod.yml` — 비밀은 `.env` only
+- API prefix: `/api/v1`, 응답 래퍼 통일 (`docs/API-규약.md`)
+- AI 호출: `RESUME_AI_SERVICE_URL` → resume-ai gateway
+
+변경 후 `cd resume-api && .\gradlew.bat compileJava` 또는 관련 테스트 실행.
