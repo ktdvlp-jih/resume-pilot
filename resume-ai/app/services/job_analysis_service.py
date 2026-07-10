@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import html
 import io
@@ -117,7 +118,7 @@ class JobAnalysisService:
             text = await self._fetch_url(source_url) or text
             extraction_method = "url"
         elif st == "PDF" and file_base64:
-            text = self._extract_pdf_base64(file_base64) or text
+            text = await asyncio.to_thread(self._extract_pdf_base64, file_base64) or text
             extraction_method = "pdf"
 
         text = self._normalize_text(text)
@@ -148,7 +149,7 @@ class JobAnalysisService:
                 if is_quality_result(vision_result):
                     return vision_result
 
-        ocr_text = self._extract_image_text(file_base64) or ""
+        ocr_text = await asyncio.to_thread(self._extract_image_text, file_base64) or ""
         ocr_text = self._normalize_text(ocr_text)
 
         if ocr_text and await self._can_use_llm():

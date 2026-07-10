@@ -4,7 +4,9 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from openai import APIStatusError, OpenAI, RateLimitError
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
+from openai import APIStatusError, RateLimitError
 
 from app.config import settings
 from app.services.provider_router import LlmRoute, provider_router
@@ -141,7 +143,7 @@ class LlmService:
         last_error: Exception | None = None
         for route in routes:
             try:
-                content = self._chat(route, system, user, temperature, operation)
+                content = await self._chat(route, system, user, temperature, operation)
                 return LlmCompletion(content=content, model=route.model_name)
             except Exception as exc:
                 if not self._is_retryable(exc):
@@ -182,24 +184,16 @@ class LlmService:
         last_error: Exception | None = None
         for route in routes:
             try:
-                client = self._client_for(route)
-                response = client.chat.completions.create(
-                    model=route.model_name,
-                    messages=[
-                        {"role": "system", "content": system},
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": user_text},
-                                {"type": "image_url", "image_url": {"url": image_data_url}},
-                            ],
-                        },
-                    ],
-                    temperature=temperature,
-                    max_tokens=OPERATION_MAX_TOKENS.get(operation, 2048),
-                )
+                model = self._model_for(route, temperature, operation, default_max_tokens=2048)
+                response = await model.ainvoke([
+                    SystemMessage(content=system),
+                    HumanMessage(content=[
+                        {"type": "text", "text": user_text},
+                        {"type": "image_url", "image_url": {"url": image_data_url}},
+                    ]),
+                ])
                 return LlmCompletion(
-                    content=response.choices[0].message.content or "",
+                    content=self._message_text(response),
                     model=route.model_name,
                 )
             except Exception as exc:
@@ -293,27 +287,43 @@ class LlmService:
             return routes
         return provider_router.env_fallback_routes(operation)
 
-    def _client_for(self, route: LlmRoute) -> OpenAI:
-        kwargs: dict[str, str] = {"api_key": route.api_key}
-        if route.base_url:
-            kwargs["base_url"] = route.base_url
-        return OpenAI(**kwargs)
-
-    def _chat(self, route: LlmRoute, system: str, user: str, temperature: float, operation: str = "") -> str:
-        client = self._client_for(route)
+    def _model_for(
+        self,
+        route: LlmRoute,
+        temperature: float,
+        operation: str = "",
+        default_max_tokens: int | None = None,
+    ) -> ChatOpenAI:
         kwargs: dict[str, Any] = {
             "model": route.model_name,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
+            "api_key": route.api_key,
             "temperature": temperature,
         }
-        max_tokens = OPERATION_MAX_TOKENS.get(operation)
+        if route.base_url:
+            kwargs["base_url"] = route.base_url
+        max_tokens = OPERATION_MAX_TOKENS.get(operation, default_max_tokens)
         if max_tokens:
             kwargs["max_tokens"] = max_tokens
-        response = client.chat.completions.create(**kwargs)
-        return response.choices[0].message.content or ""
+        return ChatOpenAI(**kwargs)
+
+    def _message_text(self, message: BaseMessage) -> str:
+        content = message.content
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            return "".join(
+                part.get("text", "") if isinstance(part, dict) else str(part)
+                for part in content
+            )
+        return str(content or "")
+
+    async def _chat(self, route: LlmRoute, system: str, user: str, temperature: float, operation: str = "") -> str:
+        model = self._model_for(route, temperature, operation)
+        response = await model.ainvoke([
+            SystemMessage(content=system),
+            HumanMessage(content=user),
+        ])
+        return self._message_text(response)
 
     def _is_retryable(self, exc: Exception) -> bool:
         if isinstance(exc, RateLimitError):

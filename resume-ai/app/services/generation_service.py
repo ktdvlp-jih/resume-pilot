@@ -1,6 +1,8 @@
 import logging
 from typing import Any
 
+from langchain_core.runnables import RunnableLambda
+
 from app.clients.service_clients import prompt_client, rag_client
 from app.services.llm_service import RULE_BASED_MODEL, llm_service, rule_based
 
@@ -8,20 +10,50 @@ logger = logging.getLogger(__name__)
 
 
 class GenerationService:
-    async def generate_resume(self, request: dict[str, Any]) -> dict[str, Any]:
-        user_id = request["user_id"]
-        keywords = request.get("keywords", [])
-        rewrite_level = request.get("rewrite_level", 40)
-        job_analysis = request.get("job_analysis")
+    """자기소개서 생성 오케스트레이션 — LangChain LCEL 체인.
 
+    RAG(context) -> Prompt(render, prompt-service만 사용) -> LLM -> 후처리.
+    각 단계는 상태 dict를 받아 확장해 다음 단계로 넘긴다.
+    """
+
+    def __init__(self) -> None:
+        self._chain = (
+            RunnableLambda(self._build_context)
+            | RunnableLambda(self._render_prompt)
+            | RunnableLambda(self._generate)
+            | RunnableLambda(self._postprocess)
+        )
+
+    async def generate_resume(self, request: dict[str, Any]) -> dict[str, Any]:
+        state = await self._chain.ainvoke({"request": request})
+        return state["response"]
+
+    async def _build_context(self, state: dict[str, Any]) -> dict[str, Any]:
+        request = state["request"]
         rag_context: dict[str, Any] = {"context": {"experiences": [], "writing_styles": []}}
         try:
-            rag_context = await rag_client.build_context(user_id, keywords, job_analysis)
+            rag_context = await rag_client.build_context(
+                request["user_id"],
+                request.get("keywords", []),
+                request.get("job_analysis"),
+            )
         except Exception as exc:
             logger.warning("RAG context build failed: %s", exc)
-        experiences = rag_context.get("context", {}).get("experiences", [])
-        writing_styles = rag_context.get("context", {}).get("writing_styles", [])
-        style_text = writing_styles[0].get("content", "") if writing_styles else ""
+        context = rag_context.get("context", {})
+        experiences = context.get("experiences", [])
+        writing_styles = context.get("writing_styles", [])
+        return {
+            **state,
+            "experiences": experiences,
+            "style_text": writing_styles[0].get("content", "") if writing_styles else "",
+        }
+
+    async def _render_prompt(self, state: dict[str, Any]) -> dict[str, Any]:
+        request = state["request"]
+        experiences = state["experiences"]
+        style_text = state["style_text"]
+        job_analysis = request.get("job_analysis")
+        rewrite_level = request.get("rewrite_level", 40)
         try:
             prompt = await prompt_client.render("RESUME_GENERATION", {
                 "experiences": str(experiences),
@@ -38,15 +70,25 @@ class GenerationService:
                     f"Style:\n{style_text}\n\nRewrite level: {rewrite_level}%"
                 ),
             }
+        return {**state, "prompt": prompt}
 
+    async def _generate(self, state: dict[str, Any]) -> dict[str, Any]:
+        request = state["request"]
+        prompt = state["prompt"]
         result = await llm_service.generate_with_context(
-            experiences=experiences,
-            rewrite_level=rewrite_level,
-            job_analysis=job_analysis,
-            writing_style=style_text,
+            experiences=state["experiences"],
+            rewrite_level=request.get("rewrite_level", 40),
+            job_analysis=request.get("job_analysis"),
+            writing_style=state["style_text"],
             system_prompt=prompt["system_prompt"],
             user_prompt=prompt["user_prompt"],
         )
+        return {**state, "result": result}
+
+    async def _postprocess(self, state: dict[str, Any]) -> dict[str, Any]:
+        request = state["request"]
+        result = state["result"]
+        rewrite_level = request.get("rewrite_level", 40)
 
         forbidden = request.get("forbidden_expressions", [])
         if forbidden and result.get("content"):
@@ -55,13 +97,14 @@ class GenerationService:
         detections = rule_based.detect_ai_traces(result["content"], forbidden) if not result.get("insufficient") else []
         reviews = rule_based.review_feedback(result["content"]) if not result.get("insufficient") else []
 
-        return {
+        response = {
             **result,
             "rewrite_level": rewrite_level,
             "quality_scores": self._score(result["content"], detections),
             "detections": detections,
             "reviews": reviews,
         }
+        return {**state, "response": response}
 
     def _apply_forbidden(self, content: str, forbidden: list) -> str:
         for expr in forbidden:
