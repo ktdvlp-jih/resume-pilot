@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { Briefcase, RotateCcw, Sparkles, Wand2 } from 'lucide-react';
+import { Briefcase, Info, Loader2, RotateCcw, Sparkles, Wand2 } from 'lucide-react';
 import { api, type JobPostingResponse } from '@/lib/api';
 import { useWorkspaceDraft } from '@/hooks/use-workspace-draft';
 import { useWorkspaceResult } from '@/hooks/use-workspace-result';
@@ -16,7 +16,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
@@ -33,6 +32,15 @@ const LEVEL_VARIANT: Record<string, 'success' | 'warning' | 'destructive'> = {
   GREEN: 'success',
   YELLOW: 'warning',
   RED: 'destructive',
+};
+
+const SCORE_KEY_MAP: Record<string, string> = {
+  naturalness: 'workspace.scoreNaturalness',
+  company_fit: 'workspace.scoreCompanyFit',
+  style_retention: 'workspace.scoreStyleRetention',
+  ai_trace_percent: 'workspace.scoreAiTracePercent',
+  star_application: 'workspace.scoreStarApplication',
+  experience_utilization: 'workspace.scoreExperienceUtilization',
 };
 
 function mergeSaveStatus(a: DraftSaveStatus, b: DraftSaveStatus): DraftSaveStatus {
@@ -56,7 +64,9 @@ export default function WorkspacePage() {
   } = useWorkspaceResult();
   const { selectedPostingId, jobText, rewriteLevel } = draft;
   const [loading, setLoading] = useState(false);
+  const [recommendLoading, setRecommendLoading] = useState(false);
   const [error, setError] = useState('');
+  const [recommendError, setRecommendError] = useState('');
 
   const saveStatus = mergeSaveStatus(draftSaveStatus, resultSaveStatus);
   const hasSavedContent =
@@ -94,9 +104,17 @@ export default function WorkspacePage() {
   };
 
   const handleRecommend = async () => {
-    const { keywords: kw } = await getJobContext();
-    const rec = await api.recommendExperiences(kw);
-    setBundle({ recommended: rec.map((r) => ({ id: r.id, title: r.title, score: r.score })) });
+    setRecommendLoading(true);
+    setRecommendError('');
+    try {
+      const { keywords: kw } = await getJobContext();
+      const rec = await api.recommendExperiences(kw);
+      setBundle({ recommended: rec.map((r) => ({ id: r.id, title: r.title, score: r.score })) });
+    } catch (err) {
+      setRecommendError(err instanceof Error ? err.message : t('workspace.recommendFailed'));
+    } finally {
+      setRecommendLoading(false);
+    }
   };
 
   const handleGenerate = async () => {
@@ -130,6 +148,10 @@ export default function WorkspacePage() {
   const setupPanel = (
     <div className="space-y-6">
       <WorkspacePanelTitle icon={Briefcase}>{t('workspace.step1')}</WorkspacePanelTitle>
+      <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+        <Info className="mt-0.5 size-3.5 shrink-0" />
+        {t('workspace.step1Hint')}
+      </p>
       {postings.length > 0 && (
         <div className="space-y-2">
           <Label>{t('jobPostings.saved')}</Label>
@@ -157,12 +179,27 @@ export default function WorkspacePage() {
           data-testid="workspace-job-input"
           value={jobText}
           onChange={(e) => setDraft({ jobText: e.target.value })}
-          placeholder={t('workspace.jobPlaceholder')}
+          placeholder={selectedPostingId ? t('workspace.jobTextDisabledPlaceholder') : t('workspace.jobPlaceholder')}
+          disabled={!!selectedPostingId}
           className="min-h-32 resize-none"
         />
+        {selectedPostingId && (
+          <p className="text-xs text-muted-foreground">{t('workspace.jobTextDisabledHint')}</p>
+        )}
       </div>
-      <Button variant="secondary" className="w-full" data-testid="workspace-recommend-btn" onClick={handleRecommend}>
-        {t('workspace.recommend')}
+      {recommendError && (
+        <Alert variant="destructive">
+          <AlertDescription>{recommendError}</AlertDescription>
+        </Alert>
+      )}
+      <Button
+        variant="secondary"
+        className="w-full"
+        data-testid="workspace-recommend-btn"
+        onClick={handleRecommend}
+        disabled={recommendLoading || (!jobText && !selectedPostingId)}
+      >
+        {recommendLoading ? t('common.generating') : t('workspace.recommend')}
       </Button>
     </div>
   );
@@ -206,9 +243,9 @@ export default function WorkspacePage() {
       )}
 
       {loading && (
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">{t('common.generating')}</p>
-          <Progress className="animate-pulse" value={66} />
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" />
+          {t('common.generating')}
         </div>
       )}
 
@@ -221,6 +258,7 @@ export default function WorkspacePage() {
             </span>
             <Badge variant="secondary" className="tabular-nums">{rewriteLevel}%</Badge>
           </div>
+          <p className="text-xs text-muted-foreground">{t('workspace.step2Desc')}</p>
           <Slider
             value={[rewriteLevel]}
             onValueChange={([v]) => setDraft({ rewriteLevel: v })}
@@ -278,7 +316,9 @@ export default function WorkspacePage() {
             {Object.entries(scores).map(([k, v]) => (
               <Card key={k} size="sm">
                 <CardContent className="pt-3 text-center">
-                  <p className="text-xs text-muted-foreground truncate">{k}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {SCORE_KEY_MAP[k] ? t(SCORE_KEY_MAP[k]) : k}
+                  </p>
                   <p className="text-lg font-semibold">{v}</p>
                 </CardContent>
               </Card>
@@ -344,6 +384,10 @@ export default function WorkspacePage() {
       <div className="px-0 xl:hidden">
         <PageHeader title={t('workspace.title')} />
       </div>
+      <Alert className="border-primary/20 bg-primary/5">
+        <Info className="size-4 text-primary" />
+        <AlertDescription className="text-sm">{t('workspace.guide')}</AlertDescription>
+      </Alert>
       <WorkspaceLayout left={setupPanel} center={editorPanel} right={resultsPanel} />
     </div>
   );

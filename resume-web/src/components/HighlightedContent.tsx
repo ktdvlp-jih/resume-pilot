@@ -1,14 +1,8 @@
 type Detection = { sentence: string; level: string; reason: string };
 
-const LEVEL_CLASS: Record<string, string> = {
-  GREEN: 'bg-green-100 dark:bg-green-950/60',
-  YELLOW: 'bg-yellow-100 dark:bg-yellow-950/60',
-  RED: 'bg-red-100 dark:bg-red-950/60',
-};
-
 export function HighlightedContent({ content, detections }: { content: string; detections: Detection[] }) {
   if (!detections.length) {
-    return <p className="whitespace-pre-wrap leading-relaxed">{content}</p>;
+    return <p className="whitespace-pre-wrap text-base leading-loose text-foreground">{content}</p>;
   }
 
   let remaining = content;
@@ -24,10 +18,10 @@ export function HighlightedContent({ content, detections }: { content: string; d
   if (remaining) parts.push({ text: remaining });
 
   return (
-    <p className="whitespace-pre-wrap leading-relaxed">
+    <p className="whitespace-pre-wrap text-base leading-loose text-foreground">
       {parts.map((p, i) =>
         p.level ? (
-          <mark key={i} className={`rounded px-0.5 ${LEVEL_CLASS[p.level] || ''}`} title={p.title}>
+          <mark key={i} className="bg-transparent text-foreground" title={p.title}>
             {p.text}
           </mark>
         ) : (
