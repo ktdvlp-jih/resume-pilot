@@ -1,4 +1,4 @@
-# ResumePilot — Windows 통합 스크립트
+﻿# ResumePilot — Windows 통합 스크립트
 # Usage:
 #   .\scripts\resume-pilot.ps1 help
 #   .\scripts\resume-pilot.ps1 setup          # 1회: .env, npm, pip, compile

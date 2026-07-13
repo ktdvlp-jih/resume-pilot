@@ -1,4 +1,4 @@
-param(
+﻿param(
     [Parameter(Position = 0)]
     [int]$Port = 5173,
     [switch]$Force

@@ -64,6 +64,9 @@ def querydslDir = layout.buildDirectory.dir('generated/querydsl')
 
 tasks.withType(JavaCompile).configureEach {
     options.generatedSourceOutputDirectory.set(querydslDir)
+    // MapStruct+QueryDSL+Lombok 어노테이션 프로세서 조합이 증분 컴파일 캐시를 자주 깨뜨려
+    // "No implementation was created for ... erroneous element" 오류를 유발함 (재시작마다 반복 발생)
+    options.incremental = false
 }
 
 sourceSets {

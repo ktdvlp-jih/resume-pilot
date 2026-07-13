@@ -1,4 +1,4 @@
-# Post-deploy smoke (PowerShell) — TC-02 HTTP + TC-04 API
+﻿# Post-deploy smoke (PowerShell) — TC-02 HTTP + TC-04 API
 param(
   [string]$Base = "https://suite-pic-heaven-sacrifice.trycloudflare.com"
 )

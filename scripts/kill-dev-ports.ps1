@@ -1,4 +1,4 @@
-# Kill resume-web (5173) and resume-admin (5174) dev servers
+﻿# Kill resume-web (5173) and resume-admin (5174) dev servers
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 Write-Host "Stopping frontend dev servers..." -ForegroundColor Cyan

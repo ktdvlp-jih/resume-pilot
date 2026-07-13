@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
   Prod 스모크 테스트 — docker-compose.yml 단일 파일

@@ -1,4 +1,4 @@
-# ResumePilot 로컬 개발 안내 (터미널 실행)
+﻿# ResumePilot 로컬 개발 안내 (터미널 실행)
 
 Write-Host "Starting PostgreSQL..." -ForegroundColor Cyan
 docker start resume-pilot-db 2>$null
