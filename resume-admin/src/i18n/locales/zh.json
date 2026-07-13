@@ -19,6 +19,7 @@
     "prompts": "Prompt 管理",
     "forbidden": "禁用表达",
     "companies": "企业数据",
+    "skillCatalog": "技能目录",
     "users": "用户",
     "aiLogs": "AI 日志",
     "llmSettings": "LLM 设置",
@@ -33,6 +34,7 @@
     "delete": "删除",
     "add": "添加",
     "edit": "编辑",
+    "cancel": "取消",
     "active": "启用",
     "inactive": "禁用",
     "activate": "启用",
@@ -88,6 +90,14 @@
     "title": "禁用表达管理",
     "expression": "禁用表达",
     "suggestion": "替代建议"
+  },
+  "skillCatalog": {
+    "title": "技能目录管理",
+    "name": "技能名称",
+    "category": "分类",
+    "categoryPlaceholder": "例如 Backend, Frontend",
+    "categoryHint": "可选择已有分类，或直接输入新分类。",
+    "empty": "暂无已注册的技能。"
   },
   "users": {
     "title": "用户管理",

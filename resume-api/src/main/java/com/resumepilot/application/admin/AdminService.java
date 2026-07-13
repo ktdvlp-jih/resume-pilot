@@ -2,6 +2,8 @@ package com.resumepilot.application.admin;
 
 import com.resumepilot.domain.admin.*;
 import com.resumepilot.domain.prompt.*;
+import com.resumepilot.domain.skill.SkillCatalogItem;
+import com.resumepilot.domain.skill.SkillCatalogRepository;
 import com.resumepilot.domain.user.User;
 import com.resumepilot.domain.user.UserRepository;
 import com.resumepilot.domain.user.UserRole;
@@ -14,6 +16,7 @@ import com.resumepilot.infrastructure.ai.PromptServiceClient;
 import com.resumepilot.presentation.dto.admin.*;
 import com.resumepilot.presentation.dto.job.CompanyResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +42,7 @@ public class AdminService {
     private final AiUsageLogRepository usageLogRepository;
     private final SystemSettingRepository systemSettingRepository;
     private final PromptServiceClient promptServiceClient;
+    private final SkillCatalogRepository skillCatalogRepository;
 
     @Transactional(readOnly = true)
     public List<PromptAdminResponse> listPrompts() {
@@ -219,6 +223,44 @@ public class AdminService {
                         l.getMetadata() != null ? l.getMetadata() : Map.of(),
                         l.getCreatedAt()))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SkillCatalogAdminResponse> listSkillCatalog() {
+        return skillCatalogRepository.findAllByOrderByCategoryAscNameAsc().stream()
+                .map(SkillCatalogAdminResponse::from)
+                .toList();
+    }
+
+    @Transactional
+    public SkillCatalogAdminResponse createSkillCatalog(SkillCatalogCreateRequest req) {
+        try {
+            SkillCatalogItem item = skillCatalogRepository.save(SkillCatalogItem.builder()
+                    .name(req.name().trim())
+                    .category(req.category().trim())
+                    .build());
+            return SkillCatalogAdminResponse.from(item);
+        } catch (DataIntegrityViolationException e) {
+            throw new BusinessException(ErrorCode.CONFLICT, "Skill already exists: " + req.name());
+        }
+    }
+
+    @Transactional
+    public SkillCatalogAdminResponse updateSkillCatalog(Long id, SkillCatalogUpdateRequest req) {
+        SkillCatalogItem item = skillCatalogRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
+        if (req.name() != null && !req.name().isBlank()) item.setName(req.name().trim());
+        if (req.category() != null && !req.category().isBlank()) item.setCategory(req.category().trim());
+        try {
+            return SkillCatalogAdminResponse.from(skillCatalogRepository.save(item));
+        } catch (DataIntegrityViolationException e) {
+            throw new BusinessException(ErrorCode.CONFLICT, "Skill already exists: " + req.name());
+        }
+    }
+
+    @Transactional
+    public void deleteSkillCatalog(Long id) {
+        skillCatalogRepository.deleteById(id);
     }
 
     @Transactional(readOnly = true)

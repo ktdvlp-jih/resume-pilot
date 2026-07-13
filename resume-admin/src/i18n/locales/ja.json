@@ -19,6 +19,7 @@
     "prompts": "プロンプト管理",
     "forbidden": "禁止表現",
     "companies": "企業データ",
+    "skillCatalog": "スキルカタログ",
     "users": "ユーザー",
     "aiLogs": "AIログ",
     "llmSettings": "LLM設定",
@@ -33,6 +34,7 @@
     "delete": "削除",
     "add": "追加",
     "edit": "編集",
+    "cancel": "キャンセル",
     "active": "有効",
     "inactive": "無効",
     "activate": "有効化",
@@ -88,6 +90,14 @@
     "title": "禁止表現管理",
     "expression": "禁止表現",
     "suggestion": "代替案"
+  },
+  "skillCatalog": {
+    "title": "スキルカタログ管理",
+    "name": "スキル名",
+    "category": "分類",
+    "categoryPlaceholder": "例: Backend, Frontend",
+    "categoryHint": "既存の分類を選ぶか、新しい分類を直接入力できます。",
+    "empty": "登録されたスキルがありません。"
   },
   "users": {
     "title": "ユーザー管理",

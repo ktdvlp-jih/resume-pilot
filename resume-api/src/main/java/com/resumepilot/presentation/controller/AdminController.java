@@ -99,6 +99,28 @@ public class AdminController {
         return ApiResponse.ok(adminService.listAiLogs());
     }
 
+    @GetMapping("/skill-catalog")
+    public ApiResponse<List<SkillCatalogAdminResponse>> listSkillCatalog() {
+        return ApiResponse.ok(adminService.listSkillCatalog());
+    }
+
+    @PostMapping("/skill-catalog")
+    public ApiResponse<SkillCatalogAdminResponse> createSkillCatalog(@Valid @RequestBody SkillCatalogCreateRequest req) {
+        return ApiResponse.ok(adminService.createSkillCatalog(req));
+    }
+
+    @PatchMapping("/skill-catalog/{id}")
+    public ApiResponse<SkillCatalogAdminResponse> updateSkillCatalog(
+            @PathVariable Long id, @Valid @RequestBody SkillCatalogUpdateRequest req) {
+        return ApiResponse.ok(adminService.updateSkillCatalog(id, req));
+    }
+
+    @DeleteMapping("/skill-catalog/{id}")
+    public ApiResponse<Void> deleteSkillCatalog(@PathVariable Long id) {
+        adminService.deleteSkillCatalog(id);
+        return ApiResponse.ok(null);
+    }
+
     @GetMapping("/deploy-ci-settings")
     @Operation(summary = "배포 CI 설정 조회 (E2E / AI E2E)")
     public ApiResponse<DeployCiSettingsResponse> getDeployCiSettings() {

@@ -104,6 +104,14 @@ export const api = {
     request<void>(`/api/v1/admin/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }),
   updateUserEnabled: (id: string, enabled: boolean) =>
     request<void>(`/api/v1/admin/users/${id}/enabled`, { method: 'PATCH', body: JSON.stringify({ enabled }) }),
+  listSkillCatalog: () => request<Array<{ id: number; name: string; category: string }>>('/api/v1/admin/skill-catalog'),
+  createSkillCatalog: (name: string, category: string) =>
+    request<{ id: number }>('/api/v1/admin/skill-catalog', {
+      method: 'POST', body: JSON.stringify({ name, category }),
+    }),
+  updateSkillCatalog: (id: number, data: { name?: string; category?: string }) =>
+    request<void>(`/api/v1/admin/skill-catalog/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteSkillCatalog: (id: number) => request<void>(`/api/v1/admin/skill-catalog/${id}`, { method: 'DELETE' }),
   listCompanies: () => request<Array<{ id: string; name: string; culture?: string; hiringKeywords: string[]; techStack: string[] }>>('/api/v1/admin/companies'),
   updateCompany: (id: string, data: { culture?: string; hiringKeywords?: string[] }) =>
     request<void>(`/api/v1/admin/companies/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),

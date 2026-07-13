@@ -10,6 +10,7 @@ import { AdminLayout } from './components/AdminLayout';
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const PromptsPage = lazy(() => import('./pages/PromptsPage'));
 const ForbiddenPage = lazy(() => import('./pages/ForbiddenPage'));
+const SkillCatalogPage = lazy(() => import('./pages/SkillCatalogPage'));
 const CompaniesPage = lazy(() => import('./pages/CompaniesPage'));
 const UsersPage = lazy(() => import('./pages/UsersPage'));
 const AiLogsPage = lazy(() => import('./pages/AiLogsPage'));
@@ -36,6 +37,7 @@ export default function App() {
                 <Route element={<AdminLayout />}>
                   <Route path="/prompts" element={<PromptsPage />} />
                   <Route path="/forbidden-expressions" element={<ForbiddenPage />} />
+                  <Route path="/skill-catalog" element={<SkillCatalogPage />} />
                   <Route path="/companies" element={<CompaniesPage />} />
                   <Route path="/users" element={<UsersPage />} />
                   <Route path="/ai-logs" element={<AiLogsPage />} />

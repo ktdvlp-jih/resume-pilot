@@ -19,6 +19,7 @@
     "prompts": "Prompts",
     "forbidden": "Forbidden Expressions",
     "companies": "Companies",
+    "skillCatalog": "Skill Catalog",
     "users": "Users",
     "aiLogs": "AI Logs",
     "llmSettings": "LLM Settings",
@@ -33,6 +34,7 @@
     "delete": "Delete",
     "add": "Add",
     "edit": "Edit",
+    "cancel": "Cancel",
     "active": "Active",
     "inactive": "Inactive",
     "activate": "Activate",
@@ -88,6 +90,14 @@
     "title": "Forbidden Expressions",
     "expression": "Forbidden expression",
     "suggestion": "Alternative suggestion"
+  },
+  "skillCatalog": {
+    "title": "Skill Catalog Management",
+    "name": "Skill name",
+    "category": "Category",
+    "categoryPlaceholder": "e.g. Backend, Frontend",
+    "categoryHint": "Pick an existing category or type a new one.",
+    "empty": "No skills registered."
   },
   "users": {
     "title": "User Management",
