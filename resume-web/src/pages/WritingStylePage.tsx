@@ -15,10 +15,12 @@ export default function WritingStylePage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [content, setContent] = useState('');
+  const [showSaved, setShowSaved] = useState(false);
 
   const { data: style, isLoading } = useQuery({
     queryKey: ['writing-style'],
     queryFn: api.getWritingStyle,
+    enabled: showSaved,
   });
 
   const { data: resumes = [] } = useQuery({
@@ -28,7 +30,11 @@ export default function WritingStylePage() {
 
   const analyzeMutation = useMutation({
     mutationFn: (text: string) => api.analyzeWritingStyle(text),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['writingStyle'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['writing-style'] });
+      setContent('');
+      setShowSaved(true);
+    },
   });
 
   const resumesWithContent = resumes.filter((r) => r.latestContent);
@@ -56,12 +62,17 @@ export default function WritingStylePage() {
           placeholder={t('writingStyle.placeholder')}
           className="min-h-48 resize-y"
         />
-        <Button onClick={() => analyzeMutation.mutate(content)} disabled={!content || analyzeMutation.isPending}>
-          {analyzeMutation.isPending ? t('common.analyzing') : t('writingStyle.analyze')}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => analyzeMutation.mutate(content)} disabled={!content || analyzeMutation.isPending}>
+            {analyzeMutation.isPending ? t('common.analyzing') : t('writingStyle.analyze')}
+          </Button>
+          <Button variant="outline" onClick={() => setShowSaved((v) => !v)}>
+            {showSaved ? t('writingStyle.hideSaved') : t('writingStyle.viewSaved')}
+          </Button>
+        </div>
       </Section>
 
-      {(isLoading || style) && (
+      {showSaved && (
         <Section title={t('writingStyle.result')} description={t('writingStyle.resultDesc')}>
           {isLoading ? (
             <Skeleton className="h-48 rounded-xl" />
@@ -91,7 +102,9 @@ export default function WritingStylePage() {
                 )}
               </CardContent>
             </Card>
-          ) : null}
+          ) : (
+            <p className="text-sm text-muted-foreground">{t('writingStyle.historyEmpty')}</p>
+          )}
         </Section>
       )}
     </PageShell>

@@ -6,13 +6,16 @@ import com.resumepilot.domain.admin.AiUsageLogRepository;
 import com.resumepilot.domain.admin.ForbiddenExpressionRepository;
 import com.resumepilot.domain.experience.ExperienceRepository;
 import com.resumepilot.infrastructure.ai.AiGatewayClient;
+import com.resumepilot.application.style.WritingStyleService;
 import com.resumepilot.presentation.dto.ai.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AiOrchestrationService {
@@ -24,9 +27,15 @@ public class AiOrchestrationService {
     private final AiUsageLogRepository usageLogRepository;
     private final ForbiddenExpressionRepository forbiddenRepository;
     private final ExperienceRepository experienceRepository;
+    private final WritingStyleService writingStyleService;
 
     @Transactional
     public Map<String, Object> generate(UUID userId, AiGenerateRequest request) {
+        try {
+            writingStyleService.ensureAnalyzed(userId);
+        } catch (Exception e) {
+            log.warn("문체 자동 분석 스킵 (userId={}): {}", userId, e.getMessage());
+        }
         long start = System.currentTimeMillis();
         Map<String, Object> payload = new HashMap<>();
         payload.put("user_id", userId.toString());

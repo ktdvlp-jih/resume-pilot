@@ -1,5 +1,8 @@
 package com.resumepilot.application.style;
 
+import com.resumepilot.domain.resume.Resume;
+import com.resumepilot.domain.resume.ResumeRepository;
+import com.resumepilot.domain.resume.ResumeVersionRepository;
 import com.resumepilot.domain.style.UserWritingStyle;
 import com.resumepilot.domain.style.UserWritingStyleRepository;
 import com.resumepilot.infrastructure.ai.AiGatewayClient;
@@ -7,12 +10,14 @@ import com.resumepilot.infrastructure.ai.RagServiceClient;
 import com.resumepilot.presentation.dto.style.WritingStyleAnalyzeRequest;
 import com.resumepilot.presentation.dto.style.WritingStyleResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WritingStyleService {
@@ -20,6 +25,32 @@ public class WritingStyleService {
     private final UserWritingStyleRepository styleRepository;
     private final AiGatewayClient aiGatewayClient;
     private final RagServiceClient ragServiceClient;
+    private final ResumeRepository resumeRepository;
+    private final ResumeVersionRepository resumeVersionRepository;
+
+    /**
+     * 사용자가 문체 분석을 한 번도 하지 않았다면, 저장된 자소서(Resume) 최신 버전 내용으로
+     * 자동 분석해 둔다. 이미 분석 결과가 있거나 분석할 자소서가 없으면 아무 것도 하지 않는다.
+     */
+    @Transactional
+    public void ensureAnalyzed(UUID userId) {
+        if (styleRepository.findTopByUserIdOrderByUpdatedAtDesc(userId).isPresent()) {
+            return;
+        }
+        resumeRepository.findByUserIdOrderByUpdatedAtDesc(userId).stream()
+                .findFirst()
+                .flatMap(resume -> resumeVersionRepository.findTopByResumeIdOrderByVersionNumberDesc(resume.getId())
+                        .map(version -> Map.entry(resume, version.getContent())))
+                .filter(entry -> entry.getValue() != null && !entry.getValue().isBlank())
+                .ifPresent(entry -> {
+                    Resume resume = entry.getKey();
+                    try {
+                        analyze(userId, new WritingStyleAnalyzeRequest(entry.getValue(), resume.getId().toString()));
+                    } catch (Exception e) {
+                        log.warn("자동 문체 분석 실패 (userId={}): {}", userId, e.getMessage());
+                    }
+                });
+    }
 
     @Transactional(readOnly = true)
     public WritingStyleResponse getLatest(UUID userId) {
