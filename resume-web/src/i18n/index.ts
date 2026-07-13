@@ -42,6 +42,6 @@ void i18n.use(initReactI18next).init({
 export default i18n;
 
 export const EXPERIENCE_TYPES = [
-  'PROJECT', 'ACHIEVEMENT', 'CAREER', 'EDUCATION', 'CERTIFICATION',
+  'PROJECT', 'ACHIEVEMENT',
   'COLLABORATION', 'CONFLICT_RESOLUTION', 'PROBLEM_SOLVING', 'LEADERSHIP', 'TECHNOLOGY', 'OTHER',
 ] as const;
