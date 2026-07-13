@@ -15,6 +15,14 @@ export interface EducationItem {
   description: string;
 }
 
+export interface CertificationItem {
+  name: string;
+  issuer: string;
+  issueDate: string;
+  expiryDate: string;
+  credentialId: string;
+}
+
 export interface SkillItem {
   name: string;
   level: string;
@@ -32,6 +40,7 @@ export interface CoverLetterSections {
 export interface CareerPortfolio {
   careers: CareerItem[];
   educations: EducationItem[];
+  certifications: CertificationItem[];
   skills: SkillItem[];
   careerStatement: string;
   coverLetter: CoverLetterSections;
@@ -54,6 +63,14 @@ export const emptyEducationItem = (): EducationItem => ({
   description: '',
 });
 
+export const emptyCertificationItem = (): CertificationItem => ({
+  name: '',
+  issuer: '',
+  issueDate: '',
+  expiryDate: '',
+  credentialId: '',
+});
+
 export const emptySkillItem = (): SkillItem => ({
   name: '',
   level: 'intermediate',
@@ -71,6 +88,7 @@ export const emptyCoverLetter = (): CoverLetterSections => ({
 export const emptyCareerPortfolio = (): CareerPortfolio => ({
   careers: [],
   educations: [],
+  certifications: [],
   skills: [],
   careerStatement: '',
   coverLetter: emptyCoverLetter(),
@@ -81,6 +99,7 @@ export function normalizeCareerPortfolio(raw?: Partial<CareerPortfolio> | null):
   return {
     careers: raw.careers?.length ? raw.careers : [],
     educations: raw.educations?.length ? raw.educations : [],
+    certifications: raw.certifications?.length ? raw.certifications : [],
     skills: raw.skills?.length ? raw.skills : [],
     careerStatement: raw.careerStatement ?? '',
     coverLetter: { ...emptyCoverLetter(), ...raw.coverLetter },
@@ -89,9 +108,10 @@ export function normalizeCareerPortfolio(raw?: Partial<CareerPortfolio> | null):
 
 export function portfolioCompletion(p: CareerPortfolio): number {
   let filled = 0;
-  const total = 9;
+  const total = 10;
   if (p.careers.some((c) => c.company || c.position)) filled++;
   if (p.educations.some((e) => e.school)) filled++;
+  if (p.certifications.some((c) => c.name)) filled++;
   if (p.skills.some((s) => s.name)) filled++;
   if (p.careerStatement?.trim()) filled++;
   const cl = p.coverLetter;

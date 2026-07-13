@@ -241,6 +241,7 @@ export const api = {
   },
   getJobAnalysis: (id: string) => request<JobAnalysisResponse>(`/api/v1/job-postings/${id}/analysis`),
   deleteJobPosting: (id: string) => request<void>(`/api/v1/job-postings/${id}`, { method: 'DELETE' }),
+  getSkillCatalog: () => request<Array<{ name: string; category: string }>>('/api/v1/skill-catalog'),
   getWritingStyle: () => request<WritingStyleResponse | null>('/api/v1/writing-styles/me'),
   analyzeWritingStyle: (content: string, resumeId?: string) =>
     request<WritingStyleResponse>('/api/v1/writing-styles/analyze', {

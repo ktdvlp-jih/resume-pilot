@@ -91,6 +91,26 @@ export function CareerPortfolioOverview({ name, portfolio }: Props) {
 
         <Card size="sm">
           <CardHeader>
+            <CardTitle className="text-primary text-sm">{t('portfolio.certifications')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {portfolio.certifications.length === 0 ? (
+              <EmptyHint text={t('portfolio.emptyCertifications')} />
+            ) : (
+              <ul className="space-y-2">
+                {portfolio.certifications.map((c, i) => (
+                  <li key={i}>
+                    <p className="text-sm font-medium">{c.name}</p>
+                    <p className="text-xs text-muted-foreground">{c.issuer} · {c.issueDate}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card size="sm">
+          <CardHeader>
             <CardTitle className="text-primary text-sm">{t('portfolio.skills')}</CardTitle>
           </CardHeader>
           <CardContent>

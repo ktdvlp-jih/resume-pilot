@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { CareerPortfolio, CareerItem, EducationItem } from '@/lib/career-portfolio';
-import { emptyCareerItem, emptyEducationItem, SKILL_LEVELS } from '@/lib/career-portfolio';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import type { CareerPortfolio, CareerItem, EducationItem, CertificationItem } from '@/lib/career-portfolio';
+import { emptyCareerItem, emptyEducationItem, emptyCertificationItem, SKILL_LEVELS } from '@/lib/career-portfolio';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,6 +61,22 @@ export function CareerPortfolioEditor({ value, onChange }: Props) {
         <AddButton label={t('portfolio.addEducation')} onClick={() => patch({ educations: [...value.educations, emptyEducationItem()] })} />
       </Section>
 
+      <Section title={t('portfolio.certifications')} subtitle={t('portfolio.certificationsHint')}>
+        {value.certifications.map((item, i) => (
+          <ItemCard key={i} onRemove={() => patch({ certifications: value.certifications.filter((_, j) => j !== i) })}>
+            <CertificationFields
+              item={item}
+              onChange={(next) => {
+                const certifications = [...value.certifications];
+                certifications[i] = next;
+                patch({ certifications });
+              }}
+            />
+          </ItemCard>
+        ))}
+        <AddButton label={t('portfolio.addCertification')} onClick={() => patch({ certifications: [...value.certifications, emptyCertificationItem()] })} />
+      </Section>
+
       <Section title={t('portfolio.skills')} subtitle={t('portfolio.skillsHint')}>
         <div className="mb-3 flex flex-wrap gap-2">
           {value.skills.map((s, i) => (
@@ -74,17 +92,10 @@ export function CareerPortfolioEditor({ value, onChange }: Props) {
             </Badge>
           ))}
         </div>
-        <Card size="sm">
-          <CardContent className="grid gap-3 pt-4 sm:grid-cols-3">
-            <SkillInput
-              placeholder={t('portfolio.skillName')}
-              onAdd={(name, level, category) => {
-                if (!name.trim()) return;
-                patch({ skills: [...value.skills, { name: name.trim(), level, category }] });
-              }}
-            />
-          </CardContent>
-        </Card>
+        <SkillPicker
+          existing={value.skills.map((s) => s.name)}
+          onAdd={(items) => patch({ skills: [...value.skills, ...items] })}
+        />
       </Section>
 
       <Section title={t('portfolio.careerStatement')} subtitle={t('portfolio.careerStatementHint')}>
@@ -175,6 +186,20 @@ function EducationFields({ item, onChange }: { item: EducationItem; onChange: (v
   );
 }
 
+function CertificationFields({ item, onChange }: { item: CertificationItem; onChange: (v: CertificationItem) => void }) {
+  const { t } = useTranslation();
+  const set = (k: keyof CertificationItem, v: string) => onChange({ ...item, [k]: v });
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <Field label={t('portfolio.certName')} value={item.name} onChange={(v) => set('name', v)} />
+      <Field label={t('portfolio.issuer')} value={item.issuer} onChange={(v) => set('issuer', v)} />
+      <Field label={t('portfolio.issueDate')} value={item.issueDate} onChange={(v) => set('issueDate', v)} placeholder="2022-03" />
+      <Field label={t('portfolio.expiryDate')} value={item.expiryDate} onChange={(v) => set('expiryDate', v)} />
+      <Field label={t('portfolio.credentialId')} value={item.credentialId} onChange={(v) => set('credentialId', v)} className="sm:col-span-2" />
+    </div>
+  );
+}
+
 function Field({
   label, value, onChange, placeholder, readOnly, className = '',
 }: {
@@ -188,39 +213,118 @@ function Field({
   );
 }
 
-function SkillInput({ placeholder, onAdd }: { placeholder: string; onAdd: (name: string, level: string, category: string) => void }) {
+interface PickableSkill {
+  name: string;
+  level: string;
+  category: string;
+}
+
+function SkillPicker({ existing, onAdd }: { existing: string[]; onAdd: (items: PickableSkill[]) => void }) {
   const { t } = useTranslation();
-  const [name, setName] = useState('');
-  const [level, setLevel] = useState('intermediate');
-  const [category, setCategory] = useState('');
+  const { data: catalog = [] } = useQuery({ queryKey: ['skill-catalog'], queryFn: api.getSkillCatalog });
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [levels, setLevels] = useState<Record<string, string>>({});
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
+
+  const existingLower = new Set(existing.map((n) => n.toLowerCase()));
+  const filtered = catalog.filter(
+    (s) => !existingLower.has(s.name.toLowerCase()) && s.name.toLowerCase().includes(query.toLowerCase()),
+  );
+
+  const toggle = (name: string) => {
+    setLevels((prev) => {
+      const next = { ...prev };
+      if (next[name]) delete next[name];
+      else next[name] = 'intermediate';
+      return next;
+    });
+  };
+
+  const selectedCount = Object.keys(levels).length;
+
+  const commit = () => {
+    const items = catalog
+      .filter((s) => levels[s.name])
+      .map((s) => ({ name: s.name, level: levels[s.name], category: s.category }));
+    if (items.length === 0) return;
+    onAdd(items);
+    setLevels({});
+    setQuery('');
+    setOpen(false);
+  };
 
   return (
-    <>
-      <Input placeholder={placeholder} value={name} onChange={(e) => setName(e.target.value)} />
-      <Select value={level} onValueChange={setLevel}>
-        <SelectTrigger>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {SKILL_LEVELS.map((l) => (
-            <SelectItem key={l} value={l}>{t(`portfolio.skillLevel.${l}`)}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <div className="flex gap-2 sm:col-span-3">
-        <Input placeholder={t('portfolio.skillCategory')} value={category} onChange={(e) => setCategory(e.target.value)} />
-        <Button
-          type="button"
-          onClick={() => {
-            onAdd(name, level, category);
-            setName('');
-            setCategory('');
-          }}
-        >
-          {t('common.save')}
-        </Button>
-      </div>
-    </>
+    <div ref={containerRef} className="relative mb-2">
+      <Input
+        placeholder={t('portfolio.skillSearchPlaceholder')}
+        value={query}
+        onFocus={() => setOpen(true)}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setOpen(true);
+        }}
+      />
+      {open && (
+        <div className="absolute z-10 mt-1 w-full rounded-lg border border-input bg-popover shadow-md">
+          <div className="max-h-64 overflow-y-auto p-1">
+            {filtered.length === 0 ? (
+              <p className="p-3 text-center text-sm text-muted-foreground">{t('portfolio.noSkillMatches')}</p>
+            ) : (
+              filtered.map((s) => (
+                <label
+                  key={s.name}
+                  className="flex cursor-pointer items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted"
+                >
+                  <span className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={!!levels[s.name]}
+                      onChange={() => toggle(s.name)}
+                      className="size-4 rounded border-input"
+                    />
+                    {s.name}
+                    <span className="text-xs text-muted-foreground">{s.category}</span>
+                  </span>
+                  {levels[s.name] && (
+                    <span onClick={(e) => e.preventDefault()}>
+                      <Select value={levels[s.name]} onValueChange={(v) => setLevels((prev) => ({ ...prev, [s.name]: v }))}>
+                        <SelectTrigger className="h-7 w-24">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SKILL_LEVELS.map((l) => (
+                            <SelectItem key={l} value={l}>{t(`portfolio.skillLevel.${l}`)}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </span>
+                  )}
+                </label>
+              ))
+            )}
+          </div>
+          <div className="flex items-center justify-between border-t border-input p-2">
+            <span className="text-xs text-muted-foreground">
+              {t('portfolio.selectedCount', { count: selectedCount })}
+            </span>
+            <Button type="button" size="sm" disabled={selectedCount === 0} onClick={commit}>
+              {t('portfolio.addSelected')}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -7,6 +7,7 @@ import java.util.List;
 public record CareerPortfolioDto(
         List<CareerItemDto> careers,
         List<EducationItemDto> educations,
+        List<CertificationItemDto> certifications,
         List<SkillItemDto> skills,
         String careerStatement,
         CoverLetterSectionsDto coverLetter
@@ -14,6 +15,8 @@ public record CareerPortfolioDto(
     public record CareerItemDto(String company, String position, String startDate, String endDate, String description) {}
 
     public record EducationItemDto(String school, String major, String degree, String startDate, String endDate, String description) {}
+
+    public record CertificationItemDto(String name, String issuer, String issueDate, String expiryDate, String credentialId) {}
 
     public record SkillItemDto(String name, String level, String category) {}
 
@@ -36,6 +39,9 @@ public record CareerPortfolioDto(
                 portfolio.getEducations() == null ? List.of() : portfolio.getEducations().stream()
                         .map(e -> new EducationItemDto(e.getSchool(), e.getMajor(), e.getDegree(), e.getStartDate(), e.getEndDate(), e.getDescription()))
                         .toList(),
+                portfolio.getCertifications() == null ? List.of() : portfolio.getCertifications().stream()
+                        .map(c -> new CertificationItemDto(c.getName(), c.getIssuer(), c.getIssueDate(), c.getExpiryDate(), c.getCredentialId()))
+                        .toList(),
                 portfolio.getSkills() == null ? List.of() : portfolio.getSkills().stream()
                         .map(s -> new SkillItemDto(s.getName(), s.getLevel(), s.getCategory()))
                         .toList(),
@@ -51,7 +57,7 @@ public record CareerPortfolioDto(
     }
 
     public static CareerPortfolioDto empty() {
-        return new CareerPortfolioDto(List.of(), List.of(), List.of(), null,
+        return new CareerPortfolioDto(List.of(), List.of(), List.of(), List.of(), null,
                 new CoverLetterSectionsDto(null, null, null, null, null));
     }
 
@@ -70,6 +76,14 @@ public record CareerPortfolioDto(
                     .map(e -> CareerPortfolio.EducationItem.builder()
                             .school(e.school()).major(e.major()).degree(e.degree())
                             .startDate(e.startDate()).endDate(e.endDate()).description(e.description())
+                            .build())
+                    .toList());
+        }
+        if (certifications != null) {
+            portfolio.setCertifications(certifications.stream()
+                    .map(c -> CareerPortfolio.CertificationItem.builder()
+                            .name(c.name()).issuer(c.issuer())
+                            .issueDate(c.issueDate()).expiryDate(c.expiryDate()).credentialId(c.credentialId())
                             .build())
                     .toList());
         }

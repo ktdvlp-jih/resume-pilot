@@ -21,6 +21,9 @@ public class CareerPortfolio {
     private List<EducationItem> educations = new ArrayList<>();
 
     @Builder.Default
+    private List<CertificationItem> certifications = new ArrayList<>();
+
+    @Builder.Default
     private List<SkillItem> skills = new ArrayList<>();
 
     private String careerStatement;
@@ -51,6 +54,18 @@ public class CareerPortfolio {
         private String startDate;
         private String endDate;
         private String description;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CertificationItem {
+        private String name;
+        private String issuer;
+        private String issueDate;
+        private String expiryDate;
+        private String credentialId;
     }
 
     @Data

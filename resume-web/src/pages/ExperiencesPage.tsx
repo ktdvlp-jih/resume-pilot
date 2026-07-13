@@ -34,9 +34,11 @@ export default function ExperiencesPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('ALL');
-  const [form, setForm] = useState({ type: 'PROJECT', title: '', description: '', role: '', result: '' });
+  const emptyForm = { type: 'PROJECT', title: '', description: '', role: '', result: '' };
+  const [form, setForm] = useState(emptyForm);
 
   const { data: experiences = [], isLoading } = useQuery({ queryKey: ['experiences'], queryFn: () => api.listExperiences() });
 
@@ -70,12 +72,40 @@ export default function ExperiencesPage() {
     mutationFn: api.createExperience,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['experiences'] });
-      setShowForm(false);
-      setForm({ type: 'PROJECT', title: '', description: '', role: '', result: '' });
+      closeForm();
       toast.success(t('common.saved'));
     },
     onError: () => toast.error(t('common.error')),
   });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: typeof form }) => api.updateExperience(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['experiences'] });
+      closeForm();
+      toast.success(t('common.saved'));
+    },
+    onError: () => toast.error(t('common.error')),
+  });
+
+  const closeForm = () => {
+    setShowForm(false);
+    setEditingId(null);
+    setForm(emptyForm);
+  };
+
+  const startEdit = (exp: (typeof experiences)[0]) => {
+    setForm({
+      type: exp.type,
+      title: exp.title,
+      description: exp.description ?? '',
+      role: exp.role ?? '',
+      result: exp.result ?? '',
+    });
+    setEditingId(exp.id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const deleteMutation = useMutation({
     mutationFn: api.deleteExperience,
@@ -91,7 +121,11 @@ export default function ExperiencesPage() {
       <PageHeader
         title={t('experiences.title')}
         action={
-          <Button variant={showForm ? 'outline' : 'default'} data-testid="experience-add-btn" onClick={() => setShowForm(!showForm)}>
+          <Button
+            variant={showForm ? 'outline' : 'default'}
+            data-testid="experience-add-btn"
+            onClick={() => (showForm ? closeForm() : setShowForm(true))}
+          >
             {showForm ? t('common.cancel') : t('experiences.add')}
           </Button>
         }
@@ -100,12 +134,16 @@ export default function ExperiencesPage() {
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle>{t('experiences.add')}</CardTitle>
+            <CardTitle>{editingId ? t('common.edit') : t('experiences.add')}</CardTitle>
           </CardHeader>
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              createMutation.mutate(form);
+              if (editingId) {
+                updateMutation.mutate({ id: editingId, data: form });
+              } else {
+                createMutation.mutate(form);
+              }
             }}
           >
             <CardContent className="space-y-4">
@@ -142,7 +180,7 @@ export default function ExperiencesPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" disabled={createMutation.isPending}>
+              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                 {t('common.save')}
               </Button>
             </CardFooter>
@@ -214,7 +252,7 @@ export default function ExperiencesPage() {
               </TableHeader>
               <TableBody>
                 {paginated.map((exp) => (
-                  <TableRow key={exp.id}>
+                  <TableRow key={exp.id} className="cursor-pointer" onClick={() => startEdit(exp)}>
                     <TableCell>
                       <StatusChip label={t(`experienceType.${exp.type}`, { defaultValue: exp.type })} variant="primary" />
                     </TableCell>
@@ -230,7 +268,7 @@ export default function ExperiencesPage() {
                     <TableCell className="hidden lg:table-cell text-muted-foreground max-w-[200px] truncate">
                       {exp.result || '—'}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <ConfirmDialog
                         trigger={
                           <Button variant="ghost" size="sm" className="text-destructive">
