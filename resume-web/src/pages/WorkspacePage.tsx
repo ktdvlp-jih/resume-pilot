@@ -164,22 +164,6 @@ export default function WorkspacePage() {
       <Button variant="secondary" className="w-full" data-testid="workspace-recommend-btn" onClick={handleRecommend}>
         {t('workspace.recommend')}
       </Button>
-
-      <div className="space-y-3 border-t pt-6">
-        <WorkspacePanelTitle icon={Wand2}>{t('workspace.step2', { level: rewriteLevel })}</WorkspacePanelTitle>
-        <Slider
-          value={[rewriteLevel]}
-          onValueChange={([v]) => setDraft({ rewriteLevel: v })}
-          min={0}
-          max={100}
-          step={20}
-        />
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>0%</span>
-          <span>{rewriteLevel}%</span>
-          <span>100%</span>
-        </div>
-      </div>
     </div>
   );
 
@@ -227,6 +211,29 @@ export default function WorkspacePage() {
           <Progress className="animate-pulse" value={66} />
         </div>
       )}
+
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="space-y-3 pt-6">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-2 text-sm font-semibold">
+              <Wand2 className="size-4 text-primary" />
+              {t('workspace.step2Label')}
+            </span>
+            <Badge variant="secondary" className="tabular-nums">{rewriteLevel}%</Badge>
+          </div>
+          <Slider
+            value={[rewriteLevel]}
+            onValueChange={([v]) => setDraft({ rewriteLevel: v })}
+            min={0}
+            max={100}
+            step={20}
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>{t('workspace.step2Low')}</span>
+            <span>{t('workspace.step2High')}</span>
+          </div>
+        </CardContent>
+      </Card>
 
       <Button className="w-full" size="lg" data-testid="workspace-generate-btn" onClick={handleGenerate} disabled={loading || (!jobText && !selectedPostingId)}>
         {loading ? t('common.generating') : t('workspace.generate')}
