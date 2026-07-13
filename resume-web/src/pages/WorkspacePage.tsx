@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { Briefcase, Info, Loader2, RotateCcw, Sparkles, Wand2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Briefcase, Info, Loader2, ListPlus, Plus, RotateCcw, Sparkles, Wand2, X } from 'lucide-react';
 import { api, type JobPostingResponse } from '@/lib/api';
 import { useWorkspaceDraft } from '@/hooks/use-workspace-draft';
 import { useWorkspaceResult } from '@/hooks/use-workspace-result';
@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -33,6 +34,12 @@ const LEVEL_VARIANT: Record<string, 'success' | 'warning' | 'destructive'> = {
   YELLOW: 'warning',
   RED: 'destructive',
 };
+
+const SECTION_TITLE_PRESETS = ['지원동기', '성장과정', '직무역량', '입사 후 포부'];
+
+function splitParagraphs(content: string): string[] {
+  return content.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+}
 
 const SCORE_KEY_MAP: Record<string, string> = {
   naturalness: 'workspace.scoreNaturalness',
@@ -62,17 +69,35 @@ export default function WorkspacePage() {
     saveStatus: resultSaveStatus,
     wasResultRestored,
   } = useWorkspaceResult();
-  const { selectedPostingId, jobText, rewriteLevel } = draft;
+  const { selectedPostingId, jobText, rewriteLevel, sectionTitles } = draft;
   const [loading, setLoading] = useState(false);
   const [recommendLoading, setRecommendLoading] = useState(false);
   const [error, setError] = useState('');
   const [recommendError, setRecommendError] = useState('');
+  const [customTitle, setCustomTitle] = useState('');
+
+  const addSectionTitle = (title: string) => {
+    const trimmed = title.trim();
+    if (!trimmed || sectionTitles.includes(trimmed)) return;
+    setDraft({ sectionTitles: [...sectionTitles, trimmed] });
+  };
+  const removeSectionTitle = (index: number) => {
+    setDraft({ sectionTitles: sectionTitles.filter((_, i) => i !== index) });
+  };
+  const moveSectionTitle = (index: number, delta: number) => {
+    const next = [...sectionTitles];
+    const target = index + delta;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    setDraft({ sectionTitles: next });
+  };
 
   const saveStatus = mergeSaveStatus(draftSaveStatus, resultSaveStatus);
   const hasSavedContent =
     !!jobText ||
     !!selectedPostingId ||
     rewriteLevel !== 40 ||
+    sectionTitles.length > 0 ||
     !!result?.content ||
     recommended.length > 0 ||
     interview.length > 0 ||
@@ -122,7 +147,7 @@ export default function WorkspacePage() {
     setError('');
     try {
       const { jobAnalysis, keywords: kw, jobPostingId } = await getJobContext();
-      const res = await api.generateAi({ keywords: kw, rewriteLevel, jobAnalysis, jobPostingId });
+      const res = await api.generateAi({ keywords: kw, rewriteLevel, jobAnalysis, jobPostingId, sectionTitles });
       setBundle({ result: res, interview: [], keywords: null });
       if (res.content) {
         try {
@@ -249,6 +274,71 @@ export default function WorkspacePage() {
         </div>
       )}
 
+      <Card>
+        <CardContent className="space-y-3 pt-6">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <ListPlus className="size-4 text-primary" />
+            {t('workspace.sectionTitlesLabel')}
+          </div>
+          <p className="text-xs text-muted-foreground">{t('workspace.sectionTitlesDesc')}</p>
+
+          {sectionTitles.length > 0 && (
+            <ol className="space-y-1.5">
+              {sectionTitles.map((title, i) => (
+                <li key={`${title}-${i}`} className="flex items-center gap-1.5 rounded-md border bg-muted/20 px-2 py-1.5 text-sm">
+                  <span className="w-5 shrink-0 text-center text-xs text-muted-foreground">{i + 1}</span>
+                  <span className="flex-1 truncate">{title}</span>
+                  <button type="button" onClick={() => moveSectionTitle(i, -1)} disabled={i === 0} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
+                    <ArrowUp className="size-3.5" />
+                  </button>
+                  <button type="button" onClick={() => moveSectionTitle(i, 1)} disabled={i === sectionTitles.length - 1} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
+                    <ArrowDown className="size-3.5" />
+                  </button>
+                  <button type="button" onClick={() => removeSectionTitle(i)} className="text-muted-foreground hover:text-destructive">
+                    <X className="size-3.5" />
+                  </button>
+                </li>
+              ))}
+            </ol>
+          )}
+
+          <div className="flex flex-wrap gap-1.5">
+            {SECTION_TITLE_PRESETS.filter((p) => !sectionTitles.includes(p)).map((p) => (
+              <Button key={p} type="button" variant="outline" size="sm" onClick={() => addSectionTitle(p)}>
+                <Plus className="size-3.5" /> {p}
+              </Button>
+            ))}
+          </div>
+
+          <div className="flex gap-2">
+            <Input
+              value={customTitle}
+              onChange={(e) => setCustomTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addSectionTitle(customTitle);
+                  setCustomTitle('');
+                }
+              }}
+              placeholder={t('workspace.sectionTitleCustomPlaceholder')}
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                addSectionTitle(customTitle);
+                setCustomTitle('');
+              }}
+            >
+              {t('workspace.sectionTitleAdd')}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className="border-primary/20 bg-primary/5">
         <CardContent className="space-y-3 pt-6">
           <div className="flex items-center justify-between">
@@ -282,7 +372,25 @@ export default function WorkspacePage() {
           <CardContent className="pt-6">
             <WorkspacePanelTitle icon={Sparkles}>{t('workspace.result')}</WorkspacePanelTitle>
             <ScrollArea className="max-h-[min(60vh,520px)] pr-4">
-              <HighlightedContent content={String(result.content)} detections={detections} />
+              {(() => {
+                const paragraphs = splitParagraphs(String(result.content));
+                if (sectionTitles.length > 0 && sectionTitles.length === paragraphs.length) {
+                  return (
+                    <div className="space-y-5">
+                      {paragraphs.map((p, i) => (
+                        <div key={i}>
+                          <h4 className="mb-1.5 text-sm font-semibold text-primary">{sectionTitles[i]}</h4>
+                          <HighlightedContent
+                            content={p}
+                            detections={detections.filter((d) => p.includes(d.sentence))}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }
+                return <HighlightedContent content={String(result.content)} detections={detections} />;
+              })()}
             </ScrollArea>
           </CardContent>
         </Card>

@@ -8,10 +8,12 @@ public record AiGenerateRequest(
         List<String> keywords,
         int rewriteLevel,
         Map<String, Object> jobAnalysis,
-        UUID jobPostingId
+        UUID jobPostingId,
+        List<String> sectionTitles
 ) {
     public AiGenerateRequest {
         if (rewriteLevel < 0) rewriteLevel = 0;
         if (rewriteLevel > 100) rewriteLevel = 100;
+        if (sectionTitles == null) sectionTitles = List.of();
     }
 }

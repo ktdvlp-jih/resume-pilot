@@ -23,6 +23,7 @@ class GenerateRequest(BaseModel):
     keywords: list[str] = []
     rewrite_level: int = Field(default=40, ge=0, le=100)
     job_analysis: dict[str, Any] | None = None
+    section_titles: list[str] = []
 
 
 class ContentRequest(BaseModel):

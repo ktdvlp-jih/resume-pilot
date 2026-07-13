@@ -54,12 +54,18 @@ class GenerationService:
         style_text = state["style_text"]
         job_analysis = request.get("job_analysis")
         rewrite_level = request.get("rewrite_level", 40)
+        section_titles = request.get("section_titles") or []
+        section_titles_text = (
+            "\n".join(f"{i + 1}. {title}" for i, title in enumerate(section_titles))
+            if section_titles else ""
+        )
         try:
             prompt = await prompt_client.render("RESUME_GENERATION", {
                 "experiences": str(experiences),
                 "job_analysis": str(job_analysis),
                 "writing_style": style_text,
                 "rewrite_level": rewrite_level,
+                "section_titles": section_titles_text,
             })
         except Exception as exc:
             logger.warning("Prompt render failed: %s", exc)

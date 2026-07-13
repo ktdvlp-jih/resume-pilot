@@ -42,6 +42,7 @@ public class AiOrchestrationService {
         payload.put("keywords", request.keywords());
         payload.put("rewrite_level", request.rewriteLevel());
         payload.put("job_analysis", request.jobAnalysis());
+        payload.put("section_titles", request.sectionTitles());
         payload.put("forbidden_expressions", getForbiddenList());
 
         Map<String, Object> result = aiGatewayClient.generateResume(payload);

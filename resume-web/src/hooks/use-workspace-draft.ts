@@ -7,12 +7,14 @@ export type WorkspaceDraft = {
   selectedPostingId: string;
   jobText: string;
   rewriteLevel: number;
+  sectionTitles: string[];
 };
 
 const DEFAULTS: WorkspaceDraft = {
   selectedPostingId: '',
   jobText: '',
   rewriteLevel: 40,
+  sectionTitles: [],
 };
 
 export function loadWorkspaceDraft(): WorkspaceDraft | null {

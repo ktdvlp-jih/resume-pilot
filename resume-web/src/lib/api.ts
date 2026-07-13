@@ -251,7 +251,13 @@ export const api = {
   recommendExperiences: (keywords: string[], topK = 5) =>
     request<Array<{ id: string; title: string; type: string; description?: string; result?: string; score: number }>>(
       '/api/v1/rag/recommend-experiences', { method: 'POST', body: JSON.stringify({ keywords, topK }) }),
-  generateAi: (data: { keywords: string[]; rewriteLevel: number; jobAnalysis?: Record<string, unknown>; jobPostingId?: string }) =>
+  generateAi: (data: {
+    keywords: string[];
+    rewriteLevel: number;
+    jobAnalysis?: Record<string, unknown>;
+    jobPostingId?: string;
+    sectionTitles?: string[];
+  }) =>
     request<Record<string, unknown>>('/api/v1/ai/generate', {
       method: 'POST',
       body: JSON.stringify({
@@ -259,6 +265,7 @@ export const api = {
         rewriteLevel: data.rewriteLevel,
         jobAnalysis: data.jobAnalysis,
         jobPostingId: data.jobPostingId,
+        sectionTitles: data.sectionTitles,
       }),
     }),
   detectAi: (content: string) =>
