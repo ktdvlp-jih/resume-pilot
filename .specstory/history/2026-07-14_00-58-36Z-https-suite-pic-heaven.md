@@ -1182,10 +1182,383 @@ _**Agent (claude-sonnet-5 2026-07-14 01:08:25Z)**_
 
 Now the SpecStory sync, per repo rule.
 
-_**Agent (claude-sonnet-5 2026-07-14 01:08:26Z)**_
+_**Agent (claude-sonnet-5 2026-07-14 01:08:27Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
 <summary>Tool use: **Bash**</summary>
 
 `cd e:/workspace/resume-pilot && git add .specstory .cursor .claude && git status --short`
+
+```text
+warning: in the working copy of '.specstory/history/2026-07-10_02-38-41Z-success-ms-17959ms-vision.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.specstory/history/2026-07-14_00-58-36Z-https-suite-pic-heaven.md', LF will be replaced by CRLF the next time Git touches it
+M  .specstory/history/2026-07-10_02-38-41Z-success-ms-17959ms-vision.md
+A  .specstory/history/2026-07-14_00-58-36Z-https-suite-pic-heaven.md
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-5 2026-07-14 01:08:35Z)**_
+
+_**Agent (claude-sonnet-5 2026-07-14 01:08:36Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./\resume-api\build.gradle`
+
+```text
+1	plugins {
+2	    id 'java'
+3	    id 'org.springframework.boot' version '3.5.0'
+4	    id 'io.spring.dependency-management' version '1.1.7'
+5	}
+6	
+7	group = 'com.resumepilot'
+8	version = '0.1.0-SNAPSHOT'
+9	
+10	java {
+11	    toolchain {
+12	        languageVersion = JavaLanguageVersion.of(21)
+13	    }
+14	}
+15	
+16	configurations {
+17	    compileOnly {
+18	        extendsFrom annotationProcessor
+19	    }
+20	}
+21	
+22	repositories {
+23	    mavenCentral()
+24	}
+25	
+26	def querydslVersion = '5.1.0'
+27	
+28	dependencies {
+29	    implementation 'org.springframework.boot:spring-boot-starter-web'
+30	    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+31	    implementation 'org.springframework.boot:spring-boot-starter-security'
+32	    implementation 'org.springframework.boot:spring-boot-starter-validation'
+33	    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+34	    implementation 'org.flywaydb:flyway-core'
+35	    implementation 'org.flywaydb:flyway-database-postgresql'
+36	    implementation 'org.postgresql:postgresql'
+37	    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+38	    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
+39	    implementation 'org.apache.pdfbox:pdfbox:3.0.5'
+40	
+41	    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+42	    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+43	    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+44	
+45	    implementation 'org.mapstruct:mapstruct:1.6.3'
+46	    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+47	
+48	    implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
+49	    annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
+50	    annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+51	    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+52	
+53	    compileOnly 'org.projectlombok:lombok'
+54	    annotationProcessor 'org.projectlombok:lombok'
+55	    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+56	
+57	    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+58	    testImplementation 'org.springframework.security:spring-security-test'
+59	    testRuntimeOnly 'com.h2database:h2'
+60	    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+61	}
+62	
+63	def querydslDir = layout.buildDirectory.dir('generated/querydsl')
+64	
+65	tasks.withType(JavaCompile).configureEach {
+66	    options.generatedSourceOutputDirectory.set(querydslDir)
+67	    // MapStruct+QueryDSL+Lombok 어노테이션 프로세서 조합이 증분 컴파일 캐시를 자주 깨뜨려
+68	    // "No implementation was created for ... erroneous element" 오류를 유발함 (재시작마다 반복 발생)
+69	    options.incremental = false
+70	}
+71	
+72	sourceSets {
+73	    main.java.srcDirs += querydslDir
+74	}
+75	
+76	tasks.named('test') {
+77	    useJUnitPlatform()
+78	    maxParallelForks = 1
+79	}
+80
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-5 2026-07-14 01:08:47Z)**_
+
+_**Agent (claude-sonnet-5 2026-07-14 01:08:53Z)**_
+
+네, 이건 노이즈가 아니라 실제로 봐야 할 신호예요. Red Hat Dependency Analytics가 `build.gradle`에 명시된 버전들 — `postgresql`, `spring-boot-starter-actuator`, `querydsl-jpa/apt` — 이 Spring Boot 관리 버전에 묶여 있는데, 그 버전들에 알려진 HIGH 심각도 CVE가 있다는 뜻입니다.
+
+원인은 `resume-api/build.gradle:3`에서 Spring Boot 플러그인을 `3.5.0`으로 고정해뒀기 때문이에요(`3.5.16`이 최신 패치). Spring Boot 버전을 올리면 `postgresql`·`actuator` 등 관리 대상 의존성들이 자동으로 최신 패치 버전으로 따라 올라가서 대부분 해소될 가능성이 높습니다. querydsl은 Boot가 직접 관리하지 않는 의존성이라 별도 확인이 필요합니다.
+
+지금 요청하신 커밋/푸시부터 마무리할게요. 이어서 Spring Boot 3.5.16 패치 업그레이드를 원하시면 별도로 진행할까요? (마이너 패치라 리스크는 낮지만, 의존성 버전 변경이라 확인 후 진행하겠습니다.)
+
+_**Agent (claude-sonnet-5 2026-07-14 01:08:55Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+
+```bash
+cd e:/workspace/resume-pilot && git commit -m "$(cat <<'EOF'
+docs: SpecStory 동기화
+EOF
+)" && git status --short
+```
+
+```text
+[master bf1035a] docs: SpecStory 동기화
+ 2 files changed, 1209 insertions(+), 1 deletion(-)
+ create mode 100644 .specstory/history/2026-07-14_00-58-36Z-https-suite-pic-heaven.md
+ M .specstory/history/2026-07-14_00-58-36Z-https-suite-pic-heaven.md
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-5 2026-07-14 01:08:57Z)**_
+
+_**Agent (claude-sonnet-5 2026-07-14 01:09:03Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+
+`cd e:/workspace/resume-pilot && git push origin master`
+
+```text
+To https://github.com/ktdvlp-jih/resume-pilot
+   2568d83..bf1035a  master -> master
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-5 2026-07-14 01:09:08Z)**_
+
+_**Agent (claude-sonnet-5 2026-07-14 01:09:11Z)**_
+
+푸시 완료했습니다 (`2568d83..bf1035a`). 커밋 3건으로 나눠서 올렸어요:
+
+1. `fix:` 자소서 생성 결과 스크롤 수정
+2. `chore:` 미사용 import·deprecated API·불필요한 SuppressWarnings 정리
+3. `docs:` SpecStory 동기화
+
+위에서 물어본 build.gradle의 취약점 경고는 별개 사안이니, Spring Boot 3.5.16 패치 업그레이드 진행 여부는 말씀해주시면 이어서 처리하겠습니다.
+
+---
+
+_**User (2026-07-14 01:09:31Z)**_
+
+패치를 하자 문제없으면
+
+---
+
+_**Agent (claude-sonnet-5 2026-07-14 01:09:34Z)**_
+
+_**Agent (claude-sonnet-5 2026-07-14 01:09:36Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-api\build.gradle has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-5 2026-07-14 01:09:41Z)**_
+
+Spring Boot 버전을 3.5.16으로 올렸습니다. 이제 빌드와 테스트로 문제없는지 확인할게요.
+
+_**Agent (claude-sonnet-5 2026-07-14 01:10:15Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+
+`cd "e:/workspace/resume-pilot/resume-api" && ./gradlew.bat clean compileJava compileTestJava 2>&1 | tail -n 60`
+
+```text
+> Task :clean
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :compileTestJava
+
+BUILD SUCCESSFUL in 28s
+4 actionable tasks: 4 executed
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-5 2026-07-14 01:10:17Z)**_
+
+컴파일 성공. 이제 전체 테스트를 돌려서 런타임 이슈까지 확인하겠습니다.
+
+_**Agent (claude-sonnet-5 2026-07-14 01:10:50Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+
+`cd "e:/workspace/resume-pilot/resume-api" && ./gradlew.bat test 2>&1 | tail -n 100`
+
+```text
+> Task :compileJava
+> Task :processResources UP-TO-DATE
+> Task :classes
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources
+> Task :testClasses
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-07-14T10:10:49.248+09:00  INFO 24284 --- [resume-api] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-07-14T10:10:49.260+09:00  INFO 24284 --- [resume-api] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-07-14T10:10:49.263+09:00  INFO 24284 --- [resume-api] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-07-14T10:10:49.268+09:00  INFO 24284 --- [resume-api] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-07-14T10:10:49.270+09:00  INFO 24284 --- [resume-api] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Shutdown initiated...
+2026-07-14T10:10:49.272+09:00  INFO 24284 --- [resume-api] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Shutdown completed.
+> Task :test
+
+BUILD SUCCESSFUL in 29s
+5 actionable tasks: 3 executed, 2 up-to-date
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-5 2026-07-14 01:10:55Z)**_
+
+_**Agent (claude-sonnet-5 2026-07-14 01:11:06Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+
+```bash
+cd "e:/workspace/resume-pilot/resume-api" && ./gradlew.bat dependencyInsight --dependency postgresql --configuration runtimeClasspath 2>&1 | head -20
+echo "----ACTUATOR----"
+./gradlew.bat dependencyInsight --dependency spring-boot-starter-actuator --configuration runtimeClasspath 2>&1 | head -20
+```
+
+```text
+> Task :dependencyInsight
+org.flywaydb:flyway-database-postgresql:11.7.2 (selected by rule)
+  Variant runtime:
+    | Attribute Name                 | Provided     | Requested    |
+    |--------------------------------|--------------|--------------|
+    | org.gradle.status              | release      |              |
+    | org.gradle.category            | library      | library      |
+    | org.gradle.libraryelements     | jar          | jar          |
+    | org.gradle.usage               | java-runtime | java-runtime |
+    | org.gradle.dependency.bundling |              | external     |
+    | org.gradle.jvm.environment     |              | standard-jvm |
+    | org.gradle.jvm.version         |              | 21           |
+
+org.flywaydb:flyway-database-postgresql -> 11.7.2
+\--- runtimeClasspath
+
+org.postgresql:postgresql:42.7.11 (selected by rule)
+  Variant runtime:
+    | Attribute Name                 | Provided     | Requested    |
+----ACTUATOR----
+
+> Task :dependencyInsight
+org.springframework.boot:spring-boot-starter-actuator:3.5.16 (selected by rule)
+  Variant runtimeElements:
+    | Attribute Name                 | Provided     | Requested    |
+    |--------------------------------|--------------|--------------|
+    | org.gradle.status              | release      |              |
+    | org.gradle.category            | library      | library      |
+    | org.gradle.dependency.bundling | external     | external     |
+    | org.gradle.jvm.version         | 17           | 21           |
+    | org.gradle.libraryelements     | jar          | jar          |
+    | org.gradle.usage               | java-runtime | java-runtime |
+    | org.gradle.jvm.environment     |              | standard-jvm |
+
+org.springframework.boot:spring-boot-starter-actuator -> 3.5.16
+\--- runtimeClasspath
+
+A web-based, searchable dependency report is available by adding the --scan option.
+
+BUILD SUCCESSFUL in 3s
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-5 2026-07-14 01:11:10Z)**_
+
+postgresql 드라이버가 `42.7.5` → `42.7.11`, actuator가 `3.5.0` → `3.5.16`으로 자동으로 올라갔습니다. querydsl은 Boot가 관리하지 않는 의존성이라 그대로 `5.1.0`인데, 이게 현재 배포된 최신 버전입니다.
+
+_**Agent (claude-sonnet-5 2026-07-14 01:11:15Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+
+`cd "e:/workspace/resume-pilot/resume-api" && ./gradlew.bat --stop 2>&1 | tail -5`
+
+```text
+Stopping Daemon(s)
+3 Daemons stopped
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-5 2026-07-14 01:11:21Z)**_
+
+컴파일·전체 테스트 모두 정상 통과했고, postgresql/actuator 취약점도 최신 패치로 해소됐습니다. querydsl 관련 CVE는 Boot 관리 범위 밖이라 남아있으니, 필요하면 별도로 대체 버전 검토가 필요합니다.
+
+커밋·푸시할까요?
+
+---
+
+_**User (2026-07-14 01:27:56Z)**_
+
+<task-notification>
+<task-id>bv04nwp0z</task-id>
+<tool-use-id>toolu_01EJWV7xqi45CbHgyaeD8MRf</tool-use-id>
+<status>stopped</status>
+<summary>No completion record was found for this background shell command from the previous session. It may have been stopped (via the UI, Monitor timeout, or agent teardown — these leave no transcript marker), or it may have been running when the previous Claude Code process exited. Check the output file for partial results before assuming it completed.</summary>
+</task-notification>
+
+_**User (2026-07-14 01:27:59Z)**_
+
+<ide_opened_file>The user opened the file e:\workspace\resume-pilot\resume-api\build.gradle in the IDE. This may or may not be related to the current task.</ide_opened_file>
+
+ㅇㅇ 커밋 푸쉬해
+
+---
+
+_**Agent (claude-sonnet-5 2026-07-14 01:28:02Z)**_
+
+_**Agent (claude-sonnet-5 2026-07-14 01:28:05Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+
+`cd e:/workspace/resume-pilot && git status --short`
+
+```text
+ M .specstory/history/2026-07-14_00-58-36Z-https-suite-pic-heaven.md
+ M resume-api/build.gradle
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-5 2026-07-14 01:28:09Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+
+```bash
+cd e:/workspace/resume-pilot && git add resume-api/build.gradle && git commit -m "$(cat <<'EOF'
+chore: Spring Boot 패치 버전 3.5.16으로 업그레이드
+
+postgresql·actuator 관리 버전에 있던 HIGH 취약점 해소 (postgresql 42.7.5→42.7.11, actuator 3.5.0→3.5.16). querydsl은 Boot 관리 범위 밖이라 5.1.0 유지
+EOF
+)"
+```
+
+```text
+[master 9231476] chore: Spring Boot 패치 버전 3.5.16으로 업그레이드
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-5 2026-07-14 01:28:11Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+
+`cd e:/workspace/resume-pilot && git add .specstory && git commit -m "docs: SpecStory 동기화" && git push origin master`
 </details></tool-use>
