@@ -1,48 +1,45 @@
 import { useCallback, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const STORAGE_KEY = 'resume-pilot-workspace-panels';
-const MIN = 220;
-const MAX_LEFT = 420;
-const MAX_RIGHT = 480;
-const DEFAULTS = { left: 280, right: 320 };
+const STORAGE_KEY = 'resume-pilot-workspace-split-v2';
+const MIN = 360;
+const MAX = 640;
 
-type PanelWidths = typeof DEFAULTS;
+function clamp(width: number): number {
+  return Math.min(MAX, Math.max(MIN, width));
+}
 
-function loadWidths(): PanelWidths {
+function defaultWidth(): number {
+  if (typeof window === 'undefined') return 420;
+  return clamp(Math.round(window.innerWidth * 0.42));
+}
+
+function loadWidth(): number {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return { ...DEFAULTS, ...JSON.parse(raw) };
+    const n = raw ? Number(raw) : NaN;
+    if (Number.isFinite(n)) return clamp(n);
   } catch {
     /* ignore */
   }
-  return DEFAULTS;
+  return defaultWidth();
 }
 
-type ResizeSide = 'left' | 'right';
-
 export function useResizablePanels() {
-  const [widths, setWidths] = useState<PanelWidths>(loadWidths);
-  const [resizing, setResizing] = useState<ResizeSide | null>(null);
+  const [leftWidth, setLeftWidth] = useState<number>(loadWidth);
+  const [isResizing, setIsResizing] = useState(false);
 
   useEffect(() => {
-    if (!resizing) return;
+    if (!isResizing) return;
 
     const onMove = (e: MouseEvent) => {
-      setWidths((prev) => {
-        if (resizing === 'left') {
-          const left = Math.min(MAX_LEFT, Math.max(MIN, e.clientX));
-          return { ...prev, left };
-        }
-        const right = Math.min(MAX_RIGHT, Math.max(MIN, window.innerWidth - e.clientX));
-        return { ...prev, right };
-      });
+      setLeftWidth(clamp(e.clientX));
     };
 
     const onUp = () => {
-      setResizing(null);
-      setWidths((prev) => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(prev));
+      setIsResizing(false);
+      setLeftWidth((prev) => {
+        localStorage.setItem(STORAGE_KEY, String(prev));
         return prev;
       });
     };
@@ -57,11 +54,11 @@ export function useResizablePanels() {
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
     };
-  }, [resizing]);
+  }, [isResizing]);
 
-  const startResize = useCallback((side: ResizeSide) => setResizing(side), []);
+  const startResize = useCallback(() => setIsResizing(true), []);
 
-  return { widths, startResize, isResizing: resizing !== null };
+  return { leftWidth, startResize, isResizing };
 }
 
 export function PanelResizeHandle({
