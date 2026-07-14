@@ -4,7 +4,6 @@ import com.resumepilot.application.mapper.CompanyMapper;
 import com.resumepilot.domain.company.*;
 import com.resumepilot.global.exception.BusinessException;
 import com.resumepilot.global.exception.ErrorCode;
-import com.resumepilot.infrastructure.ai.AiGatewayClient;
 import com.resumepilot.presentation.dto.job.CompanyResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -2,7 +2,6 @@ package com.resumepilot.application.resume;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.resumepilot.presentation.dto.auth.SignupRequest;
-import com.resumepilot.presentation.dto.auth.TokenResponse;
 import com.resumepilot.presentation.dto.experience.ExperienceCreateRequest;
 import com.resumepilot.presentation.dto.resume.ResumeCreateRequest;
 import com.resumepilot.domain.experience.ExperienceType;

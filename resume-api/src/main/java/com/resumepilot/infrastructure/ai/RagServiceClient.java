@@ -60,7 +60,6 @@ public class RagServiceClient {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public Map<String, Object> buildContext(UUID userId, List<String> keywords, Map<String, Object> jobAnalysis) {
         try {
             return client().post()

@@ -109,7 +109,6 @@ public class WritingStyleService {
         return o != null ? String.valueOf(o) : null;
     }
 
-    @SuppressWarnings("unchecked")
     private List<String> toStringList(Object o) {
         if (o instanceof List<?> list) {
             return list.stream().map(String::valueOf).toList();

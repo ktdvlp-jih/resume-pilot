@@ -3,7 +3,6 @@ package com.resumepilot.presentation.controller;
 import com.resumepilot.application.admin.LlmAdminService;
 import com.resumepilot.global.response.ApiResponse;
 import com.resumepilot.presentation.dto.admin.*;
-import com.resumepilot.presentation.dto.internal.LlmRuntimeConfigResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
