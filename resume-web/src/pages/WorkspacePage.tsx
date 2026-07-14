@@ -371,7 +371,7 @@ export default function WorkspacePage() {
         <Card className="flex-1" data-testid="workspace-result-content">
           <CardContent className="pt-6">
             <WorkspacePanelTitle icon={Sparkles}>{t('workspace.result')}</WorkspacePanelTitle>
-            <ScrollArea className="max-h-[min(60vh,520px)] pr-4">
+            <ScrollArea className="h-[min(60vh,520px)] pr-4">
               {(() => {
                 const paragraphs = splitParagraphs(String(result.content));
                 if (sectionTitles.length > 0 && sectionTitles.length === paragraphs.length) {
