@@ -36,7 +36,7 @@ type LlmRoute = {
   enabled: boolean;
 };
 
-const OPERATION_ORDER = ['GENERATE', 'JOB_ANALYSIS', 'AI_DETECTION', 'AI_REVIEW', 'EMBEDDING'];
+const OPERATION_ORDER = ['GENERATE', 'JOB_ANALYSIS', 'AI_DETECTION', 'AI_REVIEW', 'INTERVIEW_QUESTIONS', 'KEYWORD_COMPARE', 'EMBEDDING'];
 
 const FREE_CHAT_MODELS_BY_PROVIDER: Record<string, string[]> = {
   gemini: ['gemini-2.5-flash', 'gemini-2.0-flash-lite'],

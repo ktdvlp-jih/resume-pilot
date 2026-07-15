@@ -283,7 +283,9 @@
     "saveToDashboardFailed": "保存失败",
     "saveToDashboardAlready": "已保存",
     "scoreFallbackNotice": "AI评估失败,正在显示默认值",
-    "reviewFallbackNotice": "AI点评失败,正在显示默认反馈"
+    "reviewFallbackNotice": "AI点评失败,正在显示默认反馈",
+    "interviewFallbackNotice": "AI生成失败,正在显示默认问题",
+    "keywordFallbackNotice": "AI分析失败,正在显示简单对比结果"
   },
   "settings": {
     "title": "账户设置",

@@ -283,7 +283,9 @@
     "saveToDashboardFailed": "保存に失敗しました",
     "saveToDashboardAlready": "保存済み",
     "scoreFallbackNotice": "AI評価に失敗し、既定値を表示しています",
-    "reviewFallbackNotice": "AI添削に失敗し、既定のフィードバックを表示しています"
+    "reviewFallbackNotice": "AI添削に失敗し、既定のフィードバックを表示しています",
+    "interviewFallbackNotice": "AI生成に失敗し、既定の質問を表示しています",
+    "keywordFallbackNotice": "AI分析に失敗し、単純比較の結果を表示しています"
   },
   "settings": {
     "title": "アカウント設定",

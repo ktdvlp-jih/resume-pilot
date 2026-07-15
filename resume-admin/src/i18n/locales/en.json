@@ -180,6 +180,8 @@
       "JOB_ANALYSIS": "Job analysis",
       "AI_DETECTION": "AI trace detection",
       "AI_REVIEW": "Review feedback",
+      "INTERVIEW_QUESTIONS": "Interview questions",
+      "KEYWORD_COMPARE": "Keyword compare",
       "EMBEDDING": "Embedding (RAG)"
     }
   }

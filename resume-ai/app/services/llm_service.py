@@ -112,8 +112,10 @@ class RuleBasedGenerator:
 OPERATION_MAX_TOKENS: dict[str, int] = {
     "JOB_ANALYSIS": 4096,
     "GENERATE": 4096,
-    "AI_DETECTION": 2048,
-    "AI_REVIEW": 2048,
+    "AI_DETECTION": 4096,
+    "AI_REVIEW": 8192,
+    "INTERVIEW_QUESTIONS": 4096,
+    "KEYWORD_COMPARE": 2048,
 }
 
 

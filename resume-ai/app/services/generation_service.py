@@ -255,19 +255,81 @@ class ReviewService:
 
 
 class InterviewService:
-    def generate(self, content: str) -> dict[str, Any]:
-        categories = ["지원동기", "협업", "갈등 해결", "성과", "프로젝트", "기술", "심화", "압박"]
+    CATEGORIES = ["지원동기", "협업", "갈등 해결", "성과", "프로젝트", "기술", "심화", "압박"]
+
+    async def generate(self, content: str) -> dict[str, Any]:
+        if await llm_service.has_routes("INTERVIEW_QUESTIONS"):
+            try:
+                prompt = await prompt_client.render("INTERVIEW_QUESTIONS", {"content": content})
+                completion = await llm_service.complete_for_operation(
+                    "INTERVIEW_QUESTIONS",
+                    prompt["system_prompt"],
+                    prompt["user_prompt"],
+                    temperature=0.5,
+                )
+                parsed = llm_service.parse_json_value(completion.content)
+                questions = parsed if isinstance(parsed, list) else (
+                    parsed.get("questions") if isinstance(parsed, dict) else None
+                )
+                if isinstance(questions, list) and questions:
+                    valid = [
+                        q for q in questions
+                        if isinstance(q, dict) and q.get("question")
+                    ]
+                    if valid:
+                        return {
+                            "questions": valid,
+                            "model": completion.model,
+                            "fallback": False,
+                        }
+                logger.warning(
+                    "INTERVIEW_QUESTIONS returned unparseable/empty response, using rule fallback. raw=%.200s",
+                    completion.content,
+                )
+            except Exception as exc:
+                logger.warning("INTERVIEW_QUESTIONS prompt failed, using rule fallback: %s", exc)
+
         return {
             "questions": [
                 {"category": cat, "question": f"{cat} 관련하여 자기소개서 내용을 바탕으로 설명해주세요.", "difficulty": "NORMAL"}
-                for cat in categories
+                for cat in self.CATEGORIES
             ],
             "model": RULE_BASED_MODEL,
+            "fallback": True,
         }
 
 
 class KeywordService:
-    def compare(self, job_keywords: list[str], resume_content: str) -> dict[str, Any]:
+    async def compare(self, job_keywords: list[str], resume_content: str) -> dict[str, Any]:
+        if await llm_service.has_routes("KEYWORD_COMPARE"):
+            try:
+                prompt = await prompt_client.render("KEYWORD_COMPARE", {
+                    "job_keywords": ", ".join(job_keywords),
+                    "resume_content": resume_content,
+                })
+                completion = await llm_service.complete_for_operation(
+                    "KEYWORD_COMPARE",
+                    prompt["system_prompt"],
+                    prompt["user_prompt"],
+                    temperature=0.2,
+                )
+                parsed = llm_service.parse_json_response(completion.content)
+                if parsed and isinstance(parsed.get("matched"), list) and isinstance(parsed.get("missing"), list):
+                    return {
+                        "matched": parsed["matched"],
+                        "missing": parsed["missing"],
+                        "recommended": parsed.get("recommended") if isinstance(parsed.get("recommended"), list) else [],
+                        "overused": parsed.get("overused") if isinstance(parsed.get("overused"), list) else [],
+                        "model": completion.model,
+                        "fallback": False,
+                    }
+                logger.warning(
+                    "KEYWORD_COMPARE returned unparseable response, using rule fallback. raw=%.200s",
+                    completion.content,
+                )
+            except Exception as exc:
+                logger.warning("KEYWORD_COMPARE prompt failed, using rule fallback: %s", exc)
+
         resume_words = set(resume_content.lower().split())
         job_set = set(k.lower() for k in job_keywords)
         matched = job_set & resume_words
@@ -278,6 +340,7 @@ class KeywordService:
             "recommended": list(missing)[:5],
             "overused": [],
             "model": RULE_BASED_MODEL,
+            "fallback": True,
         }
 
 

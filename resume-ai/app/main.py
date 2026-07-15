@@ -91,9 +91,9 @@ async def review_feedback(request: ReviewRequest):
 
 @app.post("/generate/interview-questions")
 async def generate_interview_questions(request: ContentRequest):
-    return ApiResponse(data=interview_service.generate(request.content))
+    return ApiResponse(data=await interview_service.generate(request.content))
 
 
 @app.post("/compare/keywords")
 async def compare_keywords(request: KeywordCompareRequest):
-    return ApiResponse(data=keyword_service.compare(request.job_keywords, request.resume_content))
+    return ApiResponse(data=await keyword_service.compare(request.job_keywords, request.resume_content))

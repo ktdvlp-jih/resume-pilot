@@ -283,7 +283,9 @@
     "saveToDashboardFailed": "Save failed",
     "saveToDashboardAlready": "Saved",
     "scoreFallbackNotice": "AI evaluation failed — showing default values",
-    "reviewFallbackNotice": "AI review failed — showing default feedback"
+    "reviewFallbackNotice": "AI review failed — showing default feedback",
+    "interviewFallbackNotice": "AI generation failed — showing default questions",
+    "keywordFallbackNotice": "AI analysis failed — showing simple comparison"
   },
   "settings": {
     "title": "Account settings",

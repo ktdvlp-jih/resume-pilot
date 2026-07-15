@@ -180,6 +180,8 @@
       "JOB_ANALYSIS": "招聘分析",
       "AI_DETECTION": "AI 痕迹检测",
       "AI_REVIEW": "批改反馈",
+      "INTERVIEW_QUESTIONS": "预期面试问题",
+      "KEYWORD_COMPARE": "关键词对比",
       "EMBEDDING": "嵌入 (RAG)"
     }
   }

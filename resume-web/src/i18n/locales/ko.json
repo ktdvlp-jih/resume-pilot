@@ -283,7 +283,9 @@
     "saveToDashboardFailed": "저장 실패",
     "saveToDashboardAlready": "저장됨",
     "scoreFallbackNotice": "AI 평가 실패로 기본값이 표시되고 있어요",
-    "reviewFallbackNotice": "AI 첨삭 실패로 기본 피드백이 표시되고 있어요"
+    "reviewFallbackNotice": "AI 첨삭 실패로 기본 피드백이 표시되고 있어요",
+    "interviewFallbackNotice": "AI 생성 실패로 기본 질문이 표시되고 있어요",
+    "keywordFallbackNotice": "AI 분석 실패로 단순 비교 결과가 표시되고 있어요"
   },
   "settings": {
     "title": "계정 설정",

@@ -8474,7 +8474,7 @@ _**Agent (claude-fable-5 2026-07-15 16:55:33Z)**_
 
 _**Agent (claude-fable-5 2026-07-15 16:55:33Z)**_
 
-_**Agent (claude-fable-5 2026-07-15 16:55:39Z)**_
+_**Agent (claude-fable-5 2026-07-15 16:55:42Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
 <summary>Tool use: **Bash**</summary>
@@ -8505,5 +8505,2501 @@ for path in glob.glob('.specstory/history/*.md'):
 EOF
 git add .specstory && git commit --amend --no-edit --quiet
 git show HEAD:.specstory/history/2026-07-15_13-47-49Z-http-localhost-5173-workspace.md | grep -cE 'AQ\.[A-Za-z0-9_-]{30,}|sk-proj-[A-Za-z0-9_-]{20,}|github_pat_[A-Za-z0-9_]{20,}' || echo "COMMIT_CLEAN"
+```
+
+```text
+.specstory/history\2026-07-15_13-47-49Z-http-localhost-5173-workspace.md: 5
+0
+COMMIT_CLEAN
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 16:55:54Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Verify other file clean in commit and push
+
+`cd e:/workspace/resume-pilot && git show HEAD:.specstory/history/2026-07-13_11-24-16Z-hash-1-db-docker.md | grep -cE 'AQ\.[A-Za-z0-9_-]{30,}|sk-proj-[A-Za-z0-9_-]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-or-v1-[A-Za-z0-9]{20,}' ; git push 2>&1 | tail -5`
+
+```text
+0
+To github.com:ktdvlp-jih/resume-pilot.git
+   90f741f..c7c8544  master -> master
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 16:56:02Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 16:56:02Z)**_
+
+푸시 완료. 이제 1번(토큰 제한)부터 진행합니다.
+
+_**Agent (claude-fable-5 2026-07-15 16:56:20Z)**_
+
+<tool-use data-tool-type="task" data-tool-name="TodoWrite"><details>
+<summary>Tool use: **TodoWrite**</summary>
+**Agent task list:**
+- [X] 🌡️ SpecStory 파일 비밀키 마스킹 후 커밋 amend·푸시
+- [⚡] 🌡️ 1번: AI_REVIEW max_tokens 2048→4096 상향
+- [ ] 🌡️ 2번: 면접 질문 LLM 기반 구현 (프롬프트+라우트 마이그레이션)
+- [ ] 🌡️ 3번: 키워드 비교 LLM 기반 구현 + 프론트 키워드 소스 수정
+- [ ] 🌡️ 영향 화면 수정 (폴백 배지·i18n 4개 언어)
+- [ ] 🌡️ 마이그레이션 DB 적용 및 서비스 반영
+- [ ] 🌡️ 전체 검증: 빌드·컴파일·실제 LLM 호출 테스트
+
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 16:56:30Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-ai\app\services\llm_service.py has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 16:56:39Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 16:56:39Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 16:56:42Z)**_
+
+<tool-use data-tool-type="search" data-tool-name="Grep"><details>
+<summary>Tool use: **Grep**</summary>
+ path `./\resume-api\src\main` pattern `AI_REVIEW`
+
+```text
+resume-api\src\main\java\com\resumepilot\domain\llm\LlmOperation.java:7:    AI_REVIEW,
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 16:56:52Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./\resume-api\src\main\java\com\resumepilot\domain\llm\LlmOperation.java`
+
+```text
+1	package com.resumepilot.domain.llm;
+2	
+3	public enum LlmOperation {
+4	    GENERATE,
+5	    JOB_ANALYSIS,
+6	    AI_DETECTION,
+7	    AI_REVIEW,
+8	    EMBEDDING
+9	}
+10
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 16:57:00Z)**_
+
+<tool-use data-tool-type="search" data-tool-name="Grep"><details>
+<summary>Tool use: **Grep**</summary>
+ path `./\resume-api\src\main` pattern `LlmOperation`
+
+```text
+resume-api\src\main\java\com\resumepilot\application\admin\LlmAdminService.java:78:        for (LlmOperation operation : LlmOperation.values()) {
+resume-api\src\main\java\com\resumepilot\domain\llm\LlmOperation.java:3:public enum LlmOperation {
+resume-api\src\main\java\com\resumepilot\domain\llm\LlmModelRouteRepository.java:9:    List<LlmModelRoute> findByOperationOrderByPriorityAsc(LlmOperation operation);
+resume-api\src\main\java\com\resumepilot\domain\llm\LlmModelRoute.java:22:    private LlmOperation operation;
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 16:57:07Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./\resume-api\src\main\java\com\resumepilot\application\admin\LlmAdminService.java`
+
+```text
+1	package com.resumepilot.application.admin;
+2	
+3	import com.resumepilot.domain.llm.*;
+4	import com.resumepilot.global.exception.BusinessException;
+5	import com.resumepilot.global.exception.ErrorCode;
+6	import com.resumepilot.infrastructure.security.LlmSecretsCipher;
+7	import com.resumepilot.presentation.dto.admin.*;
+8	import com.resumepilot.presentation.dto.internal.LlmRuntimeConfigResponse;
+9	import lombok.RequiredArgsConstructor;
+10	import org.springframework.stereotype.Service;
+11	import org.springframework.transaction.annotation.Transactional;
+12	
+13	import java.util.*;
+14	import java.util.stream.Collectors;
+15	
+16	@Service
+17	@RequiredArgsConstructor
+18	public class LlmAdminService {
+19	
+20	    private final LlmProviderRepository providerRepository;
+21	    private final LlmModelRouteRepository routeRepository;
+22	    private final LlmSecretsCipher secretsCipher;
+23	
+24	    @Transactional(readOnly = true)
+25	    public List<LlmProviderResponse> listProviders() {
+26	        return providerRepository.findAllByOrderByDisplayNameAsc().stream()
+27	                .map(this::toProviderResponse)
+28	                .toList();
+29	    }
+30	
+31	    @Transactional
+32	    public LlmProviderResponse updateProvider(UUID id, LlmProviderUpdateRequest req) {
+33	        LlmProvider provider = getProvider(id);
+34	        provider.setDisplayName(req.displayName());
+35	        if (req.baseUrl() != null) {
+36	            provider.setBaseUrl(req.baseUrl().isBlank() ? null : req.baseUrl().trim());
+37	        }
+38	        if (req.enabled() != null) {
+39	            if (req.enabled() && !provider.hasApiKey()) {
+40	                throw new BusinessException(ErrorCode.INVALID_INPUT, "API key is required before enabling provider");
+41	            }
+42	            provider.setEnabled(req.enabled());
+43	        }
+44	        if (req.apiKey() != null && !req.apiKey().isBlank()) {
+45	            provider.setApiKeyCiphertext(secretsCipher.encrypt(req.apiKey().trim()));
+46	        }
+47	        return toProviderResponse(providerRepository.save(provider));
+48	    }
+49	
+50	    @Transactional(readOnly = true)
+51	    public List<LlmModelRouteResponse> listRoutes() {
+52	        Map<UUID, LlmProvider> providers = providerRepository.findAll().stream()
+53	                .collect(Collectors.toMap(LlmProvider::getId, p -> p));
+54	        return routeRepository.findAllByOrderByOperationAscPriorityAsc().stream()
+55	                .map(route -> toRouteResponse(route, providers.get(route.getProviderId())))
+56	                .toList();
+57	    }
+58	
+59	    @Transactional
+60	    public LlmModelRouteResponse updateRoute(LlmModelRouteUpdateRequest req) {
+61	        LlmModelRoute route = routeRepository.findById(req.id())
+62	                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
+63	        route.setModelName(req.modelName().trim());
+64	        route.setPriority(req.priority());
+65	        route.setEnabled(req.enabled());
+66	        LlmProvider provider = getProvider(route.getProviderId());
+67	        return toRouteResponse(routeRepository.save(route), provider);
+68	    }
+69	
+70	    @Transactional(readOnly = true)
+71	    public LlmRuntimeConfigResponse getRuntimeConfig() {
+72	        Map<UUID, LlmProvider> providers = providerRepository.findAll().stream()
+73	                .filter(LlmProvider::isEnabled)
+74	                .filter(LlmProvider::hasApiKey)
+75	                .collect(Collectors.toMap(LlmProvider::getId, p -> p));
+76	
+77	        Map<String, List<LlmRuntimeConfigResponse.LlmRuntimeRoute>> routes = new LinkedHashMap<>();
+78	        for (LlmOperation operation : LlmOperation.values()) {
+79	            List<LlmRuntimeConfigResponse.LlmRuntimeRoute> chain = routeRepository
+80	                    .findByOperationOrderByPriorityAsc(operation).stream()
+81	                    .filter(LlmModelRoute::isEnabled)
+82	                    .map(route -> {
+83	                        LlmProvider provider = providers.get(route.getProviderId());
+84	                        if (provider == null) {
+85	                            return null;
+86	                        }
+87	                        return new LlmRuntimeConfigResponse.LlmRuntimeRoute(
+88	                                provider.getSlug(),
+89	                                provider.getBaseUrl(),
+90	                                secretsCipher.decrypt(provider.getApiKeyCiphertext()),
+91	                                route.getModelName(),
+92	                                route.getPriority()
+93	                        );
+94	                    })
+95	                    .filter(Objects::nonNull)
+96	                    .toList();
+97	            routes.put(operation.name(), chain);
+98	        }
+99	        return new LlmRuntimeConfigResponse(routes);
+100	    }
+101	
+102	    private LlmProvider getProvider(UUID id) {
+103	        return providerRepository.findById(id)
+104	                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "LLM provider not found"));
+105	    }
+106	
+107	    private LlmProviderResponse toProviderResponse(LlmProvider provider) {
+108	        String masked = "";
+109	        if (provider.hasApiKey()) {
+110	            masked = secretsCipher.maskApiKey(secretsCipher.decrypt(provider.getApiKeyCiphertext()));
+111	        }
+112	        return new LlmProviderResponse(
+113	                provider.getId(),
+114	                provider.getSlug(),
+115	                provider.getDisplayName(),
+116	                provider.getProviderType().name(),
+117	                provider.getBaseUrl(),
+118	                provider.isEnabled(),
+119	                provider.hasApiKey(),
+120	                masked
+121	        );
+122	    }
+123	
+124	    private LlmModelRouteResponse toRouteResponse(LlmModelRoute route, LlmProvider provider) {
+125	        return new LlmModelRouteResponse(
+126	                route.getId(),
+127	                route.getOperation().name(),
+128	                route.getProviderId(),
+129	                provider != null ? provider.getSlug() : "",
+130	                provider != null ? provider.getDisplayName() : "",
+131	                route.getModelName(),
+132	                route.getPriority(),
+133	                route.isEnabled()
+134	        );
+135	    }
+136	}
+137
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 16:57:40Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 16:57:40Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 16:58:12Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+List prompt templates and llm_model_routes schema
+
+`PGPASSWORD=resumepilot psql -h 100.77.239.52 -p 55532 -U resumepilot -d resumepilot -c "select id, type, name from prompt_templates order by id;" -c "\d llm_model_routes" 2>&1`
+
+```text
+                  id                  |       type        |     name     
+--------------------------------------+-------------------+--------------
+ a0000001-0001-0001-0001-000000000001 | RESUME_GENERATION | 자소서 생성
+ a0000001-0001-0001-0001-000000000002 | JOB_ANALYSIS      | 공고 분석
+ a0000001-0001-0001-0001-000000000003 | AI_DETECTION      | AI 흔적 탐지
+ a0000001-0001-0001-0001-000000000004 | AI_REVIEW         | AI 첨삭
+(4�� ��)
+
+                         "public.llm_model_routes" ���̺�
+   ��\xB5��   |            ����            | ��\xB7ı��\xA2 | NULL��\xBF |       ��\xB1Ⱚ       
+-------------+--------------------------+-------------+-----------+--------------------
+ id          | uuid                     |             | not null  | uuid_generate_v4()
+ operation   | character varying(50)    |             | not null  | 
+ provider_id | uuid                     |             | not null  | 
+ model_name  | character varying(100)   |             | not null  | 
+ priority    | integer                  |             | not null  | 
+ enabled     | boolean                  |             | not null  | true
+ created_at  | timestamp with time zone |             | not null  | now()
+ updated_at  | timestamp with time zone |             | not null  | now()
+�ε�����:
+    "llm_model_routes_pkey" PRIMARY KEY, btree (id)
+    "idx_llm_model_routes_operation" btree (operation)
+    "uq_llm_route_operation_priority" UNIQUE CONSTRAINT, btree (operation, priority)
+����Ű ���� ����:
+    "llm_model_routes_provider_id_fkey" FOREIGN KEY (provider_id) REFERENCES llm_providers(id) ON DELETE CASCADE
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 16:58:36Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 16:58:39Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-api\src\main\resources\db\migration\V28__ai_review_scores_v4.sql has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 16:59:23Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Write"><details>
+<summary>Tool use: **Write**</summary>
+
+```sql
+-- 예상 면접 질문(INTERVIEW_QUESTIONS)·키워드 비교(KEYWORD_COMPARE)를
+-- 규칙 기반 템플릿에서 LLM 호출 기반으로 전환한다.
+-- 프롬프트 템플릿 2종과 LLM 라우트(AI_REVIEW 라우트 체인 복제)를 추가한다.
+-- 수동 선적용을 허용하기 위해 모든 INSERT는 idempotent 하게 작성한다.
+
+-- 1) 프롬프트 템플릿 (active_version_id는 버전 생성 후 연결)
+INSERT INTO prompt_templates (id, type, name, description)
+VALUES (
+    'a0000001-0001-0001-0001-000000000005',
+    'INTERVIEW_QUESTIONS',
+    '예상 면접 질문',
+    '자기소개서 내용을 근거로 예상 면접 질문을 생성'
+)
+ON CONFLICT (type) DO NOTHING;
+
+INSERT INTO prompt_templates (id, type, name, description)
+VALUES (
+    'a0000001-0001-0001-0001-000000000006',
+    'KEYWORD_COMPARE',
+    '키워드 비교',
+    '채용공고 키워드가 자기소개서에 반영됐는지 의미 기반 비교'
+)
+ON CONFLICT (type) DO NOTHING;
+
+-- 2) 프롬프트 버전
+INSERT INTO prompt_versions (
+    id, prompt_template_id, version_number,
+    persona_prompt, guard_prompt, task_prompt, output_prompt,
+    system_prompt, user_prompt, variables, is_active
+)
+VALUES (
+    'b0000001-0001-0001-0001-000000000005',
+    'a0000001-0001-0001-0001-000000000005',
+    1,
+    $$당신은 지원자의 자기소개서를 검토하고 실전 면접 질문을 준비하는 기술·인사 면접관입니다.$$,
+    $$- 자기소개서에 실제로 언급된 경험·기술·성과만 근거로 질문하세요.
+- 자기소개서에 없는 내용을 가정한 질문을 만들지 마세요.
+- 답변을 유도하거나 평가하지 말고 질문만 생성하세요.$$,
+    $$자기소개서 내용을 근거로 예상 면접 질문 6~8개를 생성합니다.
+지원동기·협업·갈등 해결·성과·프로젝트·기술·심화·압박 카테고리를 골고루 활용하되,
+자기소개서에서 근거를 찾을 수 있는 카테고리만 사용하세요.
+각 질문은 자기소개서의 구체적 내용(프로젝트명, 기술, 성과 수치 등)을 직접 인용해 실전처럼 작성하세요.$$,
+    $$JSON 배열만 반환하세요. 각 항목:
+- category: "지원동기" | "협업" | "갈등 해결" | "성과" | "프로젝트" | "기술" | "심화" | "압박"
+- question: 실전 면접 질문 (한국어, 자기소개서 내용 인용)
+- difficulty: "EASY" | "NORMAL" | "HARD"$$,
+    $$[Persona · 페르소나]
+당신은 지원자의 자기소개서를 검토하고 실전 면접 질문을 준비하는 기술·인사 면접관입니다.
+
+[Guard · 가드레일]
+- 자기소개서에 실제로 언급된 경험·기술·성과만 근거로 질문하세요.
+- 자기소개서에 없는 내용을 가정한 질문을 만들지 마세요.
+- 답변을 유도하거나 평가하지 말고 질문만 생성하세요.
+
+[Task · 작업]
+자기소개서 내용을 근거로 예상 면접 질문 6~8개를 생성합니다.
+각 질문은 자기소개서의 구체적 내용(프로젝트명, 기술, 성과 수치 등)을 직접 인용해 실전처럼 작성하세요.
+
+[Output · 출력]
+JSON 배열만 반환하세요. 각 항목:
+{ "category": "지원동기|협업|갈등 해결|성과|프로젝트|기술|심화|압박", "question": "...", "difficulty": "EASY|NORMAL|HARD" }$$,
+    $$[자기소개서]
+{{content}}$$,
+    '["content"]'::jsonb,
+    true
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO prompt_versions (
+    id, prompt_template_id, version_number,
+    persona_prompt, guard_prompt, task_prompt, output_prompt,
+    system_prompt, user_prompt, variables, is_active
+)
+VALUES (
+    'b0000001-0001-0001-0001-000000000006',
+    'a0000001-0001-0001-0001-000000000006',
+    1,
+    $$당신은 채용공고 요구 키워드가 자기소개서에 얼마나 반영됐는지 분석하는 키워드 매칭 분석가입니다.$$,
+    $$- 단순 문자열 포함이 아니라 의미 기반으로 판단하세요 (예: "Spring Boot 백엔드 설계" 경험은 "spring" 키워드 매칭).
+- 자기소개서에 근거가 없는 키워드를 matched에 넣지 마세요.
+- recommended는 missing 중 자기소개서 문맥에 자연스럽게 추가할 수 있는 것만 고르세요.$$,
+    $$채용공고 키워드 목록과 자기소개서를 비교하여
+매칭된 키워드(matched), 누락된 키워드(missing), 추가 반영을 추천하는 키워드(recommended),
+과도하게 반복 사용된 키워드(overused)를 분류합니다.$$,
+    $$JSON 객체만 반환하세요. 형식:
+{ "matched": string[], "missing": string[], "recommended": string[], "overused": string[] }
+각 배열 원소는 입력된 공고 키워드 원문 그대로 사용하세요.$$,
+    $$[Persona · 페르소나]
+당신은 채용공고 요구 키워드가 자기소개서에 얼마나 반영됐는지 분석하는 키워드 매칭 분석가입니다.
+
+[Guard · 가드레일]
+- 단순 문자열 포함이 아니라 의미 기반으로 판단하세요.
+- 자기소개서에 근거가 없는 키워드를 matched에 넣지 마세요.
+- recommended는 missing 중 자기소개서 문맥에 자연스럽게 추가할 수 있는 것만 고르세요.
+
+[Task · 작업]
+채용공고 키워드 목록과 자기소개서를 비교하여 matched / missing / recommended / overused로 분류합니다.
+
+[Output · 출력]
+JSON 객체만 반환하세요:
+{ "matched": string[], "missing": string[], "recommended": string[], "overused": string[] }
+각 배열 원소는 입력된 공고 키워드 원문 그대로 사용하세요.$$,
+    $$[공고 키워드]
+{{job_keywords}}
+
+[자기소개서]
+{{resume_content}}$$,
+    '["job_keywords", "resume_content"]'::jsonb,
+    true
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- 3) 템플릿에 활성 버전 연결
+UPDATE prompt_templates
+SET active_version_id = 'b0000001-0001-0001-0001-000000000005', updated_at = NOW()
+WHERE type = 'INTERVIEW_QUESTIONS' AND active_version_id IS NULL;
+
+UPDATE prompt_templates
+SET active_version_id = 'b0000001-0001-0001-0001-000000000006', updated_at = NOW()
+WHERE type = 'KEYWORD_COMPARE' AND active_version_id IS NULL;
+
+-- 4) LLM 라우트: AI_REVIEW 라우트 체인을 새 operation 2개에 복제
+INSERT INTO llm_model_routes (operation, provider_id, model_name, priority, enabled)
+SELECT 'INTERVIEW_QUESTIONS', provider_id, model_name, priority, enabled
+FROM llm_model_routes
+WHERE operation = 'AI_REVIEW'
+ON CONFLICT (operation, priority) DO NOTHING;
+
+INSERT INTO llm_model_routes (operation, provider_id, model_name, priority, enabled)
+SELECT 'KEYWORD_COMPARE', provider_id, model_name, priority, enabled
+FROM llm_model_routes
+WHERE operation = 'AI_REVIEW'
+ON CONFLICT (operation, priority) DO NOTHING;
+
+```
+
+```text
+File created successfully at: e:\workspace\resume-pilot\resume-api\src\main\resources\db\migration\V29__interview_keyword_llm.sql (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 16:59:28Z)**_
+
+Java enum에 새 operation 추가:
+
+_**Agent (claude-fable-5 2026-07-15 16:59:32Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-api\src\main\java\com\resumepilot\domain\llm\LlmOperation.java has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 16:59:55Z)**_
+
+<tool-use data-tool-type="task" data-tool-name="TodoWrite"><details>
+<summary>Tool use: **TodoWrite**</summary>
+**Agent task list:**
+- [X] 🌡️ SpecStory 파일 비밀키 마스킹 후 커밋 amend·푸시
+- [X] 🌡️ 1번: AI_REVIEW max_tokens 2048→4096 상향
+- [⚡] 🌡️ 2번: 면접 질문 LLM 기반 구현 (프롬프트+라우트 마이그레이션)
+- [ ] 🌡️ 3번: 키워드 비교 LLM 기반 구현 + 프론트 키워드 소스 수정
+- [ ] 🌡️ 영향 화면 수정 (폴백 배지·i18n 4개 언어)
+- [ ] 🌡️ 마이그레이션 DB 적용 및 서비스 반영
+- [ ] 🌡️ 전체 검증: 빌드·컴파일·실제 LLM 호출 테스트
+
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:00:00Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:00:16Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-ai\app\services\generation_service.py has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:00:22Z)**_
+
+main.py의 호출부를 async로 변경:
+
+_**Agent (claude-fable-5 2026-07-15 17:00:27Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-ai\app\main.py has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:00:32Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:00:34Z)**_
+
+<tool-use data-tool-type="search" data-tool-name="Grep"><details>
+<summary>Tool use: **Grep**</summary>
+ path `./\resume-ai` pattern `interview_service|keyword_service`
+
+```text
+resume-ai\app\main.py:11:    interview_service,
+resume-ai\app\main.py:12:    keyword_service,
+resume-ai\app\main.py:94:    return ApiResponse(data=await interview_service.generate(request.content))
+resume-ai\app\main.py:99:    return ApiResponse(data=await keyword_service.compare(request.job_keywords, request.resume_content))
+resume-ai\app\services\generation_service.py:350:interview_service = InterviewService()
+resume-ai\app\services\generation_service.py:351:keyword_service = KeywordService()
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:00:45Z)**_
+
+<tool-use data-tool-type="search" data-tool-name="Grep"><details>
+<summary>Tool use: **Grep**</summary>
+ path `./\resume-ai\tests` pattern `interview|keyword|review_feedback|detect_ai_traces`
+
+```text
+resume-ai\tests\test_crowdworks_url_extraction.py:46:        "tech_keywords": ["llm", "python"],
+resume-ai\tests\test_html_entities.py:29:async def test_tech_keywords_skip_css_font_noise():
+resume-ai\tests\test_html_entities.py:36:    keywords = [k.lower() for k in result.get("tech_keywords", [])]
+resume-ai\tests\test_html_entities.py:37:    assert "java" in keywords
+resume-ai\tests\test_html_entities.py:38:    assert "pretendard" not in keywords
+resume-ai\tests\test_html_entities.py:39:    assert "blinkmacsystemfont" not in keywords
+resume-ai\tests\test_image_analysis.py:43:    assert result.get("company_name") != "Unknown" or result.get("tech_keywords")
+resume-ai\tests\test_image_analysis.py:44:    keywords = [k.lower() for k in result.get("tech_keywords", [])]
+resume-ai\tests\test_image_analysis.py:45:    assert "java" in keywords or "spring" in keywords or result.get("required_skills")
+resume-ai\tests\test_image_analysis.py:59:        "tech_keywords": ["react", "typescript", "next.js"],
+resume-ai\tests\test_image_analysis.py:92:        "tech_keywords": ["react", "typescript", "next.js"],
+resume-ai\tests\test_image_analysis.py:113:    assert "react" in result["tech_keywords"]
+resume-ai\tests\test_image_analysis.py:129:        "tech_keywords": ["python", "fastapi", "postgresql", "docker", "aws"],
+resume-ai\tests\test_image_analysis.py:158:        "tech_keywords": [],
+resume-ai\tests\test_image_analysis.py:170:        "tech_keywords": ["java", "spring", "aws"],
+resume-ai\tests\test_job_analysis_multi_source.py:46:        "tech_keywords": ["c++", "go", "redis", "mysql"],
+resume-ai\tests\test_job_analysis_multi_source.py:55:    assert "redis" in [k.lower() for k in result["tech_keywords"]]
+resume-ai\tests\test_job_analysis_multi_source.py:72:        "tech_keywords": ["java", "spring boot", "kafka", "spark"],
+resume-ai\tests\test_job_analysis_multi_source.py:81:    assert "kafka" in [k.lower() for k in result["tech_keywords"]]
+resume-ai\tests\test_job_analysis_multi_source.py:92:        "tech_keywords": ["c++", "go", "redis"],
+resume-ai\tests\test_job_analysis_multi_source.py:123:        "tech_keywords": ["java", "spring boot", "kafka", "spark"],
+resume-ai\tests\test_job_analysis_text_fallback.py:40:        "tech_keywords": ["java", "spring", "react"],
+resume-ai\tests\test_job_extraction_postprocess.py:4:    clean_tech_keywords,
+resume-ai\tests\test_job_extraction_postprocess.py:6:    enrich_tech_keywords,
+resume-ai\tests\test_job_extraction_postprocess.py:7:    filter_solution_keywords,
+resume-ai\tests\test_job_extraction_postprocess.py:12:    is_solution_product_keyword,
+resume-ai\tests\test_job_extraction_postprocess.py:20:    split_tech_and_solution_keywords,
+resume-ai\tests\test_job_extraction_postprocess.py:38:        "tech_keywords": ["java", "AS", "Boot", "spring boot"],
+resume-ai\tests\test_job_extraction_postprocess.py:47:    assert "AS" not in result["tech_keywords"]
+resume-ai\tests\test_job_extraction_postprocess.py:48:    assert "spring boot" in result["tech_keywords"] or "java" in result["tech_keywords"]
+resume-ai\tests\test_job_extraction_postprocess.py:51:def test_clean_tech_keywords_filters_noise():
+resume-ai\tests\test_job_extraction_postprocess.py:52:    keywords = ["java", "AS", "Boot", "spring boot", "Ter", "ms-sql"]
+resume-ai\tests\test_job_extraction_postprocess.py:53:    cleaned = clean_tech_keywords(keywords, "Java Spring Boot MS-SQL")
+resume-ai\tests\test_job_extraction_postprocess.py:71:def test_enrich_tech_keywords_from_preferred_skills():
+resume-ai\tests\test_job_extraction_postprocess.py:73:        "tech_keywords": ["java", "spring"],
+resume-ai\tests\test_job_extraction_postprocess.py:81:    enriched = enrich_tech_keywords(raw, build_source_blob(raw))
+resume-ai\tests\test_job_extraction_postprocess.py:139:        "tech_keywords": ["Java", "Kafka", "Redis", "Kafka"],
+resume-ai\tests\test_job_extraction_postprocess.py:149:    assert "kafka" in [k.lower() for k in result["tech_keywords"]]
+resume-ai\tests\test_job_extraction_postprocess.py:170:        "tech_keywords": ["java", "cms", "CMS Pro", "erp", "sap"],
+resume-ai\tests\test_job_extraction_postprocess.py:186:    assert "cms" in [k.lower() for k in result["tech_keywords"]]
+
+[Showing results with pagination = limit: 40]
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:00:52Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:00:52Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:01:06Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\prompt-service\app\services\prompt_service.py has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:01:15Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:01:15Z)**_
+
+이제 3번의 프론트 부분 — `getJobContext`의 키워드 소스 수정과 폴백 상태 저장:
+
+_**Agent (claude-fable-5 2026-07-15 17:01:18Z)**_
+
+<tool-use data-tool-type="search" data-tool-name="Grep"><details>
+<summary>Tool use: **Grep**</summary>
+ path `./\resume-web\src\lib\api.ts` pattern `interface JobAnalysisResponse|getJobAnalysis|interviewQuestions|compareKeywords`
+
+```text
+85:export interface JobAnalysisResponse {
+86-  id: string;
+87-  jobPostingId: string;
+88-  companyName?: string;
+89-  position?: string;
+90-  requiredSkills: string[];
+91-  preferredSkills: string[];
+92-  qualifications: string[];
+93-  jobResponsibilities: string[];
+94-  talentProfile: string[];
+95-  coreCompetencies: string[];
+96-  techKeywords: string[];
+97-  solutionKeywords?: string[];
+98-  jobDescription?: string;
+99-  orgCulture?: string;
+--
+244:  getJobAnalysis: (id: string) => request<JobAnalysisResponse>(`/api/v1/job-postings/${id}/analysis`),
+245-  deleteJobPosting: (id: string) => request<void>(`/api/v1/job-postings/${id}`, { method: 'DELETE' }),
+246-  getSkillCatalog: () => request<Array<{ name: string; category: string }>>('/api/v1/skill-catalog'),
+247-  getWritingStyle: () => request<WritingStyleResponse | null>('/api/v1/writing-styles/me'),
+248-  analyzeWritingStyle: (content: string, resumeId?: string) =>
+249-    request<WritingStyleResponse>('/api/v1/writing-styles/analyze', {
+250-      method: 'POST',
+251-      body: JSON.stringify({ content, resumeId }),
+252-    }),
+253-  recommendExperiences: (keywords: string[], topK = 5) =>
+254-    request<Array<{ id: string; title: string; type: string; description?: string; result?: string; score: number }>>(
+255-      '\api\v1\rag\recommend-experiences', { method: 'POST', body: JSON.stringify({ keywords, topK }) }),
+256-  generateAi: (data: {
+257-    keywords: string[];
+258-    rewriteLevel: number;
+--
+279:  interviewQuestions: (content: string) =>
+280-    request<Record<string, unknown>>('/api/v1/ai/interview-questions', {
+281-      method: 'POST', body: JSON.stringify({ content }),
+282-    }),
+283:  compareKeywords: (jobKeywords: string[], resumeContent: string) =>
+284-    request<Record<string, unknown>>('/api/v1/ai/compare-keywords', {
+285-      method: 'POST', body: JSON.stringify({ jobKeywords, resumeContent }),
+286-    }),
+287-  listAiGenerations: () => request<Array<{ id: string; outputContent: string; createdAt: string }>>('/api/v1/ai/generations'),
+288-};
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:01:32Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:01:32Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:01:34Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./\resume-web\src\lib\api.ts`
+
+```text
+253	  recommendExperiences: (keywords: string[], topK = 5) =>
+254	    request<Array<{ id: string; title: string; type: string; description?: string; result?: string; score: number }>>(
+255	      '/api/v1/rag/recommend-experiences', { method: 'POST', body: JSON.stringify({ keywords, topK }) }),
+256	  generateAi: (data: {
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:01:42Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:01:42Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:01:48Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-web\src\pages\WorkspacePage.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:02:12Z)**_
+
+<tool-use data-tool-type="task" data-tool-name="TodoWrite"><details>
+<summary>Tool use: **TodoWrite**</summary>
+**Agent task list:**
+- [X] 🌡️ SpecStory 파일 비밀키 마스킹 후 커밋 amend·푸시
+- [X] 🌡️ 1번: AI_REVIEW max_tokens 2048→4096 상향
+- [X] 🌡️ 2번: 면접 질문 LLM 기반 구현 (프롬프트+라우트 마이그레이션)
+- [X] 🌡️ 3번: 키워드 비교 LLM 기반 구현 + 프론트 키워드 소스 수정
+- [⚡] 🌡️ 영향 화면 수정 (폴백 배지·i18n 4개 언어)
+- [ ] 🌡️ 마이그레이션 DB 적용 및 서비스 반영
+- [ ] 🌡️ 전체 검증: 빌드·컴파일·실제 LLM 호출 테스트
+
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:02:20Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:02:20Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:02:25Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-web\src\hooks\use-workspace-result.ts has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:02:33Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:02:37Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-web\src\hooks\use-workspace-result.ts has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:02:47Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-web\src\pages\WorkspacePage.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:03:00Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-web\src\pages\WorkspacePage.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:03:06Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:03:13Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-web\src\pages\WorkspacePage.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:03:22Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-web\src\pages\WorkspacePage.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:03:30Z)**_
+
+i18n 4개 언어에 새 키 2개 추가:
+
+_**Agent (claude-fable-5 2026-07-15 17:03:34Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-web\src\i18n\locales\ko.json has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:03:45Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-web\src\i18n\locales\en.json has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:03:57Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-web\src\i18n\locales\ja.json has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:04:08Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-web\src\i18n\locales\zh.json has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:04:16Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:04:16Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:04:18Z)**_
+
+<tool-use data-tool-type="search" data-tool-name="Grep"><details>
+<summary>Tool use: **Grep**</summary>
+ path `./\resume-admin\src` pattern `AI_REVIEW|JOB_ANALYSIS`
+
+```text
+resume-admin\src\i18n\locales\zh.json:180:      "JOB_ANALYSIS": "招聘分析",
+resume-admin\src\i18n\locales\zh.json:182:      "AI_REVIEW": "批改反馈",
+resume-admin\src\i18n\locales\en.json:180:      "JOB_ANALYSIS": "Job analysis",
+resume-admin\src\i18n\locales\en.json:182:      "AI_REVIEW": "Review feedback",
+resume-admin\src\i18n\locales\ko.json:180:      "JOB_ANALYSIS": "공고 분석",
+resume-admin\src\i18n\locales\ko.json:182:      "AI_REVIEW": "첨삭 리뷰",
+resume-admin\src\i18n\locales\ja.json:180:      "JOB_ANALYSIS": "求人分析",
+resume-admin\src\i18n\locales\ja.json:182:      "AI_REVIEW": "添削レビュー",
+resume-admin\src\pages\LlmSettingsPage.tsx:39:const OPERATION_ORDER = ['GENERATE', 'JOB_ANALYSIS', 'AI_DETECTION', 'AI_REVIEW', 'EMBEDDING'];
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:04:26Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./\resume-admin\src\i18n\locales\ko.json`
+
+```text
+172	    "model": "모델",
+173	    "enabled": "사용",
+174	    "noteTitle": "참고",
+175	    "note1": "서버 .env에 INTERNAL_API_TOKEN·LLM_ENCRYPTION_KEY가 설정되어 있어야 resume-ai가 DB 키를 읽습니다.",
+176	    "note2": "Gemini 무료 한도(5 RPM)에 걸리면 OpenAI·GitHub Models·Groq 등 2차 Provider로 넘어갑니다.",
+177	    "note3": "LLM API 키는 Admin에서만 관리합니다. .env에는 INTERNAL_API_TOKEN·LLM_ENCRYPTION_KEY·EMBEDDING_DIMENSION만 두세요.",
+178	    "operations": {
+179	      "GENERATE": "자소서 생성",
+180	      "JOB_ANALYSIS": "공고 분석",
+181	      "AI_DETECTION": "AI 흔적 탐지",
+182	      "AI_REVIEW": "첨삭 리뷰",
+183	      "EMBEDDING": "임베딩 (RAG)"
+184	    }
+185	  }
+186	}
+187
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:04:34Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./\resume-admin\src\pages\LlmSettingsPage.tsx`
+
+```text
+30	  operation: string;
+31	  providerId: string;
+32	  providerSlug: string;
+33	  providerName: string;
+34	  modelName: string;
+35	  priority: number;
+36	  enabled: boolean;
+37	};
+38	
+39	const OPERATION_ORDER = ['GENERATE', 'JOB_ANALYSIS', 'AI_DETECTION', 'AI_REVIEW', 'EMBEDDING'];
+40	
+41	const FREE_CHAT_MODELS_BY_PROVIDER: Record<string, string[]> = {
+42	  gemini: ['gemini-2.5-flash', 'gemini-2.0-flash-lite'],
+43	  openai: ['gpt-4o-mini'],
+44	  github: ['openai/gpt-4o-mini', 'openai/gpt-4.1-mini', 'meta/llama-3.3-70b-instruct'],
+45	  groq: ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile'],
+46	  openrouter: ['google/gemini-2.5-flash', 'meta-llama/llama-3.1-8b-instruct:free', 'deepseek/deepseek-r1:free'],
+47	};
+48	
+49	const FREE_EMBEDDING_MODELS_BY_PROVIDER: Record<string, string[]> = {
+50	  gemini: ['gemini-embedding-001'],
+51	  openai: ['text-embedding-3-small'],
+52	  github: [],
+53	  groq: [],
+54	  openrouter: [],
+55	};
+56	
+57	export default function LlmSettingsPage() {
+58	  const { t } = useTranslation();
+59	  const queryClient = useQueryClient();
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:04:43Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-admin\src\pages\LlmSettingsPage.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:04:56Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-admin\src\i18n\locales\ko.json has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:05:03Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./\resume-admin\src\i18n\locales\en.json`
+
+```text
+178	    "operations": {
+179	      "GENERATE": "Resume generation",
+180	      "JOB_ANALYSIS": "Job analysis",
+181	      "AI_DETECTION": "AI trace detection",
+182	      "AI_REVIEW": "Review feedback",
+183	      "EMBEDDING": "Embedding (RAG)"
+184	    }
+185	  }
+186	}
+187
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:05:11Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-admin\src\i18n\locales\en.json has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:05:18Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./\resume-admin\src\i18n\locales\ja.json`
+
+```text
+178	    "operations": {
+179	      "GENERATE": "志望書生成",
+180	      "JOB_ANALYSIS": "求人分析",
+181	      "AI_DETECTION": "AI痕跡検出",
+182	      "AI_REVIEW": "添削レビュー",
+183	      "EMBEDDING": "埋め込み (RAG)"
+184	    }
+185	  }
+186	}
+187
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:05:28Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-admin\src\i18n\locales\ja.json has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:05:34Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./\resume-admin\src\i18n\locales\zh.json`
+
+```text
+178	    "operations": {
+179	      "GENERATE": "简历生成",
+180	      "JOB_ANALYSIS": "招聘分析",
+181	      "AI_DETECTION": "AI 痕迹检测",
+182	      "AI_REVIEW": "批改反馈",
+183	      "EMBEDDING": "嵌入 (RAG)"
+184	    }
+185	  }
+186	}
+187
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:05:43Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-admin\src\i18n\locales\zh.json has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:05:51Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:05:51Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:05:53Z)**_
+
+<tool-use data-tool-type="search" data-tool-name="Grep"><details>
+<summary>Tool use: **Grep**</summary>
+ path `./\resume-admin\src` pattern `RESUME_GENERATION|AI_DETECTION`
+
+```text
+resume-admin\src\i18n\locales\zh.json:181:      "AI_DETECTION": "AI 痕迹检测",
+resume-admin\src\i18n\locales\ko.json:181:      "AI_DETECTION": "AI 흔적 탐지",
+resume-admin\src\i18n\locales\ja.json:181:      "AI_DETECTION": "AI痕跡検出",
+resume-admin\src\i18n\locales\en.json:181:      "AI_DETECTION": "AI trace detection",
+resume-admin\src\pages\LlmSettingsPage.tsx:39:const OPERATION_ORDER = ['GENERATE', 'JOB_ANALYSIS', 'AI_DETECTION', 'AI_REVIEW', 'INTERVIEW_QUESTIONS', 'KEYWORD_COMPARE', 'EMBEDDING'];
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:06:02Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:06:02Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:06:20Z)**_
+
+<tool-use data-tool-type="task" data-tool-name="TodoWrite"><details>
+<summary>Tool use: **TodoWrite**</summary>
+**Agent task list:**
+- [X] 🌡️ SpecStory 파일 비밀키 마스킹 후 커밋 amend·푸시
+- [X] 🌡️ 1번: AI_REVIEW max_tokens 2048→4096 상향
+- [X] 🌡️ 2번: 면접 질문 LLM 기반 구현 (프롬프트+라우트 마이그레이션)
+- [X] 🌡️ 3번: 키워드 비교 LLM 기반 구현 + 프론트 키워드 소스 수정
+- [X] 🌡️ 영향 화면 수정 (폴백 배지·i18n 4개 언어·admin)
+- [⚡] 🌡️ 마이그레이션 DB 적용 및 서비스 반영
+- [ ] 🌡️ 전체 검증: 빌드·컴파일·실제 LLM 호출 테스트
+
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:07:06Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Apply V28 and V29 migrations to the live DB
+
+`cd e:/workspace/resume-pilot && PGPASSWORD=resumepilot psql -h 100.77.239.52 -p 55532 -U resumepilot -d resumepilot -v ON_ERROR_STOP=1 -f resume-api/src/main/resources/db/migration/V28__ai_review_scores_v4.sql -f resume-api/src/main/resources/db/migration/V29__interview_keyword_llm.sql 2>&1`
+
+```text
+INSERT 0 0
+UPDATE 3
+UPDATE 1
+UPDATE 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+UPDATE 1
+UPDATE 1
+INSERT 0 3
+INSERT 0 3
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:07:16Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:07:16Z)**_
+
+V28의 INSERT가 0건(이미 존재?)이라 상태를 검증합니다:
+
+_**Agent (claude-fable-5 2026-07-15 17:08:00Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Verify prompt versions and routes after migration
+
+`PGPASSWORD=resumepilot psql -h 100.77.239.52 -p 55532 -U resumepilot -d resumepilot -c "select t.type, v.version_number, v.is_active, t.active_version_id = v.id as linked from prompt_templates t join prompt_versions v on v.prompt_template_id = t.id where t.type in ('AI_REVIEW','INTERVIEW_QUESTIONS','KEYWORD_COMPARE') order by t.type, v.version_number;" -c "select operation, count(*) from llm_model_routes group by operation order by operation;" 2>&1`
+
+```text
+        type         | version_number | is_active | linked 
+---------------------+----------------+-----------+--------
+ AI_REVIEW           |              1 | f         | f
+ AI_REVIEW           |              2 | f         | f
+ AI_REVIEW           |              3 | f         | f
+ AI_REVIEW           |              4 | t         | t
+ INTERVIEW_QUESTIONS |              1 | t         | t
+ KEYWORD_COMPARE     |              1 | t         | t
+(6�� ��)
+
+      operation      | count 
+---------------------+-------
+ AI_DETECTION        |     3
+ AI_REVIEW           |     3
+ EMBEDDING           |     2
+ GENERATE            |     4
+ INTERVIEW_QUESTIONS |     3
+ JOB_ANALYSIS        |     4
+ KEYWORD_COMPARE     |     3
+(7�� ��)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:08:10Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:08:10Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:08:14Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Inspect running service processes command lines
+
+`powershell -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'uvicorn|bootRun|resume' -and $_.Name -match 'python|java' } | Select-Object ProcessId, Name, @{N='Cmd';E={$_.CommandLine.Substring(0, [Math]::Min(160, $_.CommandLine.Length))}} | Format-List" 2>&1`
+
+```text
+Exit code 1
+��ġ ��:1 ����:236
++ ... {N='Cmd';E={extglob.CommandLine.Substring(0, [Math]::Min(160, extglob ...
++                                                                  ~
+',' �ڿ� ���� �����ϴ�.
+��ġ ��:1 ����:237
++ ... Line.Substring(0, [Math]::Min(160, extglob.CommandLine.Length))}} | F ...
++                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+�� �Ǵ� ������ ����ġ ���� 'extglob.CommandLine.Length' ��ū�Դϴ�.
+��ġ ��:1 ����:236
++ ... {N='Cmd';E={extglob.CommandLine.Substring(0, [Math]::Min(160, extglob ...
++                                                                  ~
+�Ŀ� �ݴ� ')'�� �����ϴ�.
+��ġ ��:1 ����:186
++ ... python|java' } | Select-Object ProcessId, Name, @{N='Cmd';E={extglob. ...
++                                                                 ~
+�� ���� �Ǵ� ���� ���ǿ� �ݴ� '}'�� �����ϴ�.
+��ġ ��:1 ����:263
++ ... Line.Substring(0, [Math]::Min(160, extglob.CommandLine.Length))}} | F ...
++                                                                  ~
+�ؽ� ���ͷ��� �������� �ʽ��ϴ�.
+��ġ ��:1 ����:263
++ ... ine.Substring(0, [Math]::Min(160, extglob.CommandLine.Length))}} | Fo ...
++                                                                 ~
+�� �Ǵ� ������ ����ġ ���� ')' ��ū�Դϴ�.
+��ġ ��:1 ����:264
++ ... ne.Substring(0, [Math]::Min(160, extglob.CommandLine.Length))}} | For ...
++                                                                 ~
+�� �Ǵ� ������ ����ġ ���� ')' ��ū�Դϴ�.
+��ġ ��:1 ����:265
++ ... e.Substring(0, [Math]::Min(160, extglob.CommandLine.Length))}} | Form ...
++                                                                 ~
+�� �Ǵ� ������ ����ġ ���� '}' ��ū�Դϴ�.
+��ġ ��:1 ����:266
++ ... .Substring(0, [Math]::Min(160, extglob.CommandLine.Length))}} | Forma ...
++                                                                 ~
+�� �Ǵ� ������ ����ġ ���� '}' ��ū�Դϴ�.
+��ġ ��:1 ����:268
++ ... ubstring(0, [Math]::Min(160, extglob.CommandLine.Length))}} | Format- ...
++                                                                 ~
+�� ������ ��Ҵ� ����� �� �����ϴ�.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingExpressionAfterToken
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:08:39Z)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+<summary>Tool use: **PowerShell**</summary>
+List python/java processes with command lines
+
+```text
+16532  java.exe  "C:\Program Files\Java\jdk-21.0.11\bin\java.exe" --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:08:48Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:09:03Z)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+<summary>Tool use: **PowerShell**</summary>
+Map service ports to processes
+
+```text
+(PowerShell completed with no output)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:09:20Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Check listening ports for all services
+
+`netstat -ano | grep -E "LISTENING" | grep -E ":(8000|8001|8002|8080|5173) " `
+
+```text
+(Bash completed with no output)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:09:38Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Check ports and health endpoints
+
+`netstat -ano | grep LISTEN | grep -E "8000|8001|8002|8080|5173" | head; echo "---health---"; for p in 8000 8001 8002 8080 5173; do echo -n "$p: "; curl -s -o /dev/null -w "%{http_code}" -m 3 "http://localhost:$p/health" 2>/dev/null || echo -n "no-conn"; echo; done`
+
+```text
+---health---
+8000: 000no-conn
+8001: 000no-conn
+8002: 000no-conn
+8080: 000no-conn
+5173: 000no-conn
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:09:51Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:09:51Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:09:52Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./\docs\실행-가이드.md`
+
+```text
+1	# ResumePilot 실행 가이드
+2	
+3	개발은 **터미널에서 각 서비스를 직접 실행**하고, 배포는 **`docker-compose.yml` 하나**로 합니다.
+4	
+5	---
+6	
+7	## 사전 요구사항
+8	
+9	| 도구 | 용도 |
+10	|------|------|
+11	| Docker Desktop | PostgreSQL 컨테이너 (개발) / 전체 스택 (배포) |
+12	| Java JDK 21 | `resume-api` |
+13	| Node.js 22 | `resume-web`, `resume-admin` |
+14	| Python 3.12+ | AI 서비스 3개 |
+15	
+16	---
+17	
+18	## 1. 로컬 개발 (터미널)
+19	
+20	### 1-1. 환경 변수
+21	
+22	```powershell
+23	cd e:\workspace\resume-pilot
+24	copy .env.example .env.local
+25	# OPENAI_API_KEY, JWT_SECRET 등 필요 시 수정
+26	```
+27	
+28	각 터미널에서 서비스를 실행하기 전에 아래 스크립트로 `.env.local`을 세션 환경변수로 로드합니다.
+29	
+30	```powershell
+31	. .\scripts\load-env-local.ps1
+32	```
+33	
+34	### 1-2. PostgreSQL
+35	
+36	```powershell
+37	docker run -d --name resume-pilot-db -p 5432:5432 `
+38	  -e POSTGRES_DB=resumepilot `
+39	  -e POSTGRES_USER=resumepilot `
+40	  -e POSTGRES_PASSWORD=resumepilot `
+41	  pgvector/pgvector:pg17
+42	```
+43	
+44	이미 실행 중이면 `docker start resume-pilot-db`
+45	
+46	### 1-3. AI 서비스 (터미널 3개)
+47	
+48	각 터미널에서 저장소 루트 기준으로 `load-env-local.ps1`을 먼저 로드한 뒤 서비스 디렉터리로 이동합니다(`RAG_SERVICE_URL` 등 나머지 서비스 URL은 `application.yml` 기본값이 `localhost`를 가리키므로 단일 머신 개발에서는 생략 가능).
+49	
+50	```powershell
+51	# 터미널 1 — RAG
+52	. .\scripts\load-env-local.ps1
+53	cd rag-service
+54	pip install -r requirements.txt
+55	uvicorn app.main:app --reload --port 8002
+56	
+57	# 터미널 2 — Prompt
+58	. .\scripts\load-env-local.ps1
+59	cd prompt-service
+60	pip install -r requirements.txt
+61	uvicorn app.main:app --reload --port 8001
+62	
+63	# 터미널 3 — AI Gateway
+64	. .\scripts\load-env-local.ps1
+65	cd resume-ai
+66	pip install -r requirements.txt
+67	uvicorn app.main:app --reload --port 8000
+68	```
+69	
+70	### 1-4. Spring API (터미널 1개)
+71	
+72	```powershell
+73	. .\scripts\load-env-local.ps1
+74	cd resume-api
+75	.\gradlew.bat bootRun
+76	```
+77	
+78	### 1-5. 프론트엔드 (터미널 2개)
+79	
+80	```powershell
+81	cd resume-web
+82	npm install
+83	npm run dev
+84	# → http://localhost:5173
+85	
+86	cd resume-admin
+87	npm install
+88	npm run dev
+89	# → http://localhost:5174/admin/
+90	```
+91	
+92	### 개발 접속 URL
+93	
+94	| 서비스 | URL |
+95	|--------|-----|
+96	| Web | http://localhost:5173 |
+97	| Admin | http://localhost:5174/admin/ |
+98	| API / Swagger | http://localhost:8080/swagger-ui.html |
+99	| resume-ai | http://localhost:8000/docs |
+100	| prompt-service | http://localhost:8001/docs |
+101	| rag-service | http://localhost:8002/docs |
+102	
+103	### 포트 정리 (개발)
+104	
+105	| 서비스 | 포트 |
+106	|--------|------|
+107	| PostgreSQL | 5432 |
+108	| Spring API | 8080 |
+109	| resume-web (Vite) | 5173 |
+110	| resume-admin (Vite) | 5174 |
+111	| resume-ai | 8000 |
+112	| prompt-service | 8001 |
+113	| rag-service | 8002 |
+114	
+115	---
+116	
+117	## 2. 배포 (Docker Compose)
+118	
+119	프로덕션은 **5개 컨테이너**만 사용합니다.
+120	
+121	| 컨테이너 | 역할 | 호스트 노출 |
+122	|----------|------|-------------|
+123	| app | Spring + SPA `/` + `/admin/` + API | `APP_PORT` |
+124	| postgres | pgvector | `POSTGRES_PORT` (선택) |
+125	| resume-ai | AI Gateway | 내부만 |
+126	| prompt-service | Prompt runtime | 내부만 |
+127	| rag-service | RAG / embedding | 내부만 |
+128	
+129	### 2-1. Linux 서버
+130	
+131	[설치-가이드.md § Part 3](설치-가이드.md#part-3-ubuntu-서버) 참고. 로컬 `.env`에 `DEPLOY_HOST`, `LAN_HOST` 설정.
+132	
+133	```bash
+134	cd ~/apps/resume-pilot
+135	cp .env.production.example .env
+136	./scripts/server-up.sh
+137	```
+138	
+139	### 2-2. Windows에서 원격 배포
+140	
+141	```powershell
+142	# .env 에 DEPLOY_HOST 설정 후
+143	.\scripts\deploy-remote.ps1
+144	```
+145	
+146	### 2-3. 로컬에서 prod 스모크 테스트
+147	
+148	배포 전에 prod와 동일한 단일 app 컨테이너(SPA 번들 포함)를 띄울 때:
+149	
+150	```powershell
+151	.\scripts\local-prod-up.ps1
+152	# → http://localhost:8080/  http://localhost:8080/admin/
+153	```
+154	
+155	### 배포 접속 URL
+156	
+157	`http://<LAN_HOST>:<APP_PORT>/` — `LAN_HOST`·`APP_PORT`는 서버 `.env` 참고 (기본 9180).
+158	
+159	| 서비스 | Path |
+160	|--------|------|
+161	| Web | `/` |
+162	| Admin | `/admin/` |
+163	| API | `/api/v1` |
+164	| Swagger | `/swagger-ui.html` |
+165	
+166	### 유용한 명령 (서버)
+167	
+168	```bash
+169	cd ~/apps/resume-pilot
+170	docker compose ps
+171	docker compose logs -f app
+172	docker compose up -d --build app    # app만 재빌드
+173	./scripts/server-down.sh
+174	```
+175	
+176	---
+177	
+178	## 3. 환경 변수 파일 정리
+179	
+180	| 파일 | 용도 |
+181	|------|------|
+182	| `.env.example` | 로컬 터미널 개발 예시 (`localhost` URL) |
+183	| `.env.production.example` | Docker 배포 예시 (컨테이너 간 `postgres` 호스트명) |
+184	| `.env.local` | 로컬 개발 실제 값 (Git 제외). `. .\scripts\load-env-local.ps1`로 세션에 로드 |
+185	| `.env` | AI 서비스별 개별 설정 시드(`rag-service/.env` 등) 및 배포용 `DEPLOY_HOST`/`LAN_HOST` (Git 제외) |
+186	
+187	---
+188	
+189	## 4. 문제 해결
+190	
+191	| 증상 | 확인 |
+192	|------|------|
+193	| API 401 | 로그인·토큰 만료 |
+194	| AI 생성 실패 | resume-ai(8000), rag(8002) 실행 여부 |
+195	| RAG 결과 없음 | 경험 저장 후 임베딩 생성 여부 |
+196	| CORS | `RESUME_CORS_ORIGINS`에 `localhost:5173` 포함 |
+197	| Flyway 오류 | PostgreSQL 재시작, 필요 시 `docker compose down -v` |
+198	| 포트 충돌 | `.\scripts\kill-dev-ports.ps1` |
+199	
+200	---
+201	
+202	## 5. E2E 테스트 시나리오
+203	
+204	### 회원가입 → 자소서 (Phase 1)
+205	
+206	1. http://localhost:5173 → 회원가입
+207	2. 경험 라이브러리에 프로젝트 2~3개 등록
+208	3. 대시보드에서 자소서 생성 → 버전 diff 확인
+209	
+210	### 공고 분석 (Phase 2)
+211	
+212	1. 채용 공고 메뉴 → 텍스트/URL/PDF 업로드
+213	2. 분석 결과·문체 분석 확인
+214	
+215	### RAG + AI 생성 (Phase 3~4)
+216	
+217	1. 워크스페이스 → 관련 경험 추천 → 자소서 생성
+218	2. 품질 점수, AI 흔적, 첨삭, 면접 질문 확인
+219	
+220	### 관리자 (Phase 5)
+221	
+222	1. DB에서 role을 `ADMIN`으로 변경
+223	2. http://localhost:5174 → Prompt/금지표현/사용자 관리
+224	
+225	---
+226	
+227	## 관련 문서
+228	
+229	- [설치-가이드.md](설치-가이드.md) — 설치·배포 진입
+230	- [리눅스-서버-배포-가이드.md](리눅스-서버-배포-가이드.md) — Linux 서버 배포 상세
+231	- [서버-공존-가이드.md](서버-공존-가이드.md) — 동일 서버 포트 격리
+232	- [아키텍처.md](아키텍처.md) — 아키텍처
+233
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:10:07Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:10:07Z)**_
+
+`.env.local` 존재 여부 확인 후 서비스 4개를 백그라운드로 기동합니다:
+
+_**Agent (claude-fable-5 2026-07-15 17:10:10Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Check env files exist (not printing contents)
+
+`cd e:/workspace/resume-pilot && ls .env.local scripts/load-env-local.ps1 2>&1 && grep -c "=" .env.local`
+
+```text
+.env.local
+scripts/load-env-local.ps1
+35
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:10:29Z)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+<summary>Tool use: **PowerShell**</summary>
+Start prompt-service on 8001 in background
+
+```text
+Command running in background with ID: bx9946277. Output is being written to: C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\tasks\bx9946277.output. You will be notified when it completes. To check interim output, use Read on that file path.
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:10:39Z)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+<summary>Tool use: **PowerShell**</summary>
+Start rag-service on 8002 in background
+
+```text
+Command running in background with ID: bfc9wiiuj. Output is being written to: C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\tasks\bfc9wiiuj.output. You will be notified when it completes. To check interim output, use Read on that file path.
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:10:51Z)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+<summary>Tool use: **PowerShell**</summary>
+Start resume-ai gateway on 8000 in background
+
+```text
+Command running in background with ID: bxn18b81v. Output is being written to: C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\tasks\bxn18b81v.output. You will be notified when it completes. To check interim output, use Read on that file path.
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:11:07Z)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+<summary>Tool use: **PowerShell**</summary>
+Start resume-api (Spring Boot) on 8080 in background
+
+```text
+Command running in background with ID: b3q1e4fs1. Output is being written to: C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\tasks\b3q1e4fs1.output. You will be notified when it completes. To check interim output, use Read on that file path.
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:11:14Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:11:42Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Build resume-web
+
+`cd e:/workspace/resume-pilot/resume-web && npm run build 2>&1 | tail -5`
+
+```text
+mode      generateSW
+precache  45 entries (908.90 KiB)
+files generated
+  dist/sw.js
+  dist/workbox-9c191d2f.js
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:11:49Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\tasks\b3q1e4fs1.output`
+
+```text
+1	.env.local 로드 완료
+2	Picked up JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8
+3	> Task :compileJava
+4	> Task :processResources
+5	> Task :classes
+6	> Task :resolveMainClassName
+7	
+8	> Task :bootRun
+9	Picked up JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8
+10	Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+11	
+12	  .   ____          _            __ _ _
+13	 /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+14	( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+15	 \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+16	  '  |____| .__|_| |_|_| |_\__, | / / / /
+17	 =========|_|==============|___/=/_/_/_/
+18	
+19	 :: Spring Boot ::               (v3.5.16)
+20	
+21	2026-07-16T02:11:18.333+09:00  INFO 25740 --- [resume-api] [           main] com.resumepilot.ResumePilotApplication   : Starting ResumePilotApplication using Java 21.0.11 with PID 25740 (E:\workspace\resume-pilot\resume-api\build\classes\java\main started by 전일훈 in E:\workspace\resume-pilot\resume-api)
+22	2026-07-16T02:11:18.335+09:00 DEBUG 25740 --- [resume-api] [           main] com.resumepilot.ResumePilotApplication   : Running with Spring Boot v3.5.16, Spring v6.2.19
+23	2026-07-16T02:11:18.336+09:00  INFO 25740 --- [resume-api] [           main] com.resumepilot.ResumePilotApplication   : No active profile set, falling back to 1 default profile: "default"
+24	2026-07-16T02:11:19.661+09:00  INFO 25740 --- [resume-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+25	2026-07-16T02:11:19.896+09:00  INFO 25740 --- [resume-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 226 ms. Found 22 JPA repository interfaces.
+26	2026-07-16T02:11:20.493+09:00  INFO 25740 --- [resume-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+27	2026-07-16T02:11:20.511+09:00  INFO 25740 --- [resume-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+28	2026-07-16T02:11:20.511+09:00  INFO 25740 --- [resume-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+29	2026-07-16T02:11:20.614+09:00  INFO 25740 --- [resume-api] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+30	2026-07-16T02:11:20.615+09:00  INFO 25740 --- [resume-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2238 ms
+31	Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+32	2026-07-16T02:11:20.785+09:00 DEBUG 25740 --- [resume-api] [           main] c.r.i.security.JwtAuthenticationFilter   : Filter 'jwtAuthenticationFilter' configured for use
+33	2026-07-16T02:11:20.786+09:00 DEBUG 25740 --- [resume-api] [           main] c.r.i.security.InternalApiAuthFilter     : Filter 'internalApiAuthFilter' configured for use
+34	2026-07-16T02:11:20.998+09:00  INFO 25740 --- [resume-api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+35	2026-07-16T02:11:21.162+09:00  INFO 25740 --- [resume-api] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@5d9d8e46
+36	2026-07-16T02:11:21.164+09:00  INFO 25740 --- [resume-api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+37	2026-07-16T02:11:21.192+09:00  INFO 25740 --- [resume-api] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://100.77.239.52:55532/resumepilot (PostgreSQL 17.10)
+38	2026-07-16T02:11:21.282+09:00  WARN 25740 --- [resume-api] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Failed to initialize dependency 'flywayInitializer' of LoadTimeWeaverAware bean 'entityManagerFactory': Error creating bean with name 'flywayInitializer' defined in class path resource [org/springframework/boot/autoconfigure/flyway/FlywayAutoConfiguration$FlywayConfiguration.class]: Validate failed: Migrations have failed validation
+39	Migration checksum mismatch for migration version 28
+40	-> Applied to database : -79017893
+41	-> Resolved locally    : -1611686981
+42	Either revert the changes to the migration, or run repair to update the schema history.
+43	Need more flexibility with validation rules? Learn more: https://rd.gt/3AbJUZE
+44	2026-07-16T02:11:21.283+09:00  INFO 25740 --- [resume-api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+45	2026-07-16T02:11:21.336+09:00  INFO 25740 --- [resume-api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+46	2026-07-16T02:11:21.338+09:00  INFO 25740 --- [resume-api] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+47	2026-07-16T02:11:21.352+09:00  INFO 25740 --- [resume-api] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+48	
+49	Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+50	2026-07-16T02:11:21.368+09:00 ERROR 25740 --- [resume-api] [           main] o.s.boot.SpringApplication               : Application run failed
+51	
+52	org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Failed to initialize dependency 'flywayInitializer' of LoadTimeWeaverAware bean 'entityManagerFactory': Error creating bean with name 'flywayInitializer' defined in class path resource [org/springframework/boot/autoconfigure/flyway/FlywayAutoConfiguration$FlywayConfiguration.class]: Validate failed: Migrations have failed validation
+53	Migration checksum mismatch for migration version 28
+54	-> Applied to database : -79017893
+55	-> Resolved locally    : -1611686981
+56	Either revert the changes to the migration, or run repair to update the schema history.
+57	Need more flexibility with validation rules? Learn more: https://rd.gt/3AbJUZE
+58		at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:328) ~[spring-beans-6.2.19.jar:6.2.19]
+59		at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:207) ~[spring-beans-6.2.19.jar:6.2.19]
+60		at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:974) ~[spring-context-6.2.19.jar:6.2.19]
+61		at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:628) ~[spring-context-6.2.19.jar:6.2.19]
+62		at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.5.16.jar:3.5.16]
+63		at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:752) ~[spring-boot-3.5.16.jar:3.5.16]
+64		at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:439) ~[spring-boot-3.5.16.jar:3.5.16]
+65		at org.springframework.boot.SpringApplication.run(SpringApplication.java:318) ~[spring-boot-3.5.16.jar:3.5.16]
+66		at org.springframework.boot.SpringApplication.run(SpringApplication.java:1361) ~[spring-boot-3.5.16.jar:3.5.16]
+67		at org.springframework.boot.SpringApplication.run(SpringApplication.java:1350) ~[spring-boot-3.5.16.jar:3.5.16]
+68		at com.resumepilot.ResumePilotApplication.main(ResumePilotApplication.java:10) ~[main/:na]
+69	Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'flywayInitializer' defined in class path resource [org/springframework/boot/autoconfigure/flyway/FlywayAutoConfiguration$FlywayConfiguration.class]: Validate failed: Migrations have failed validation
+70	Migration checksum mismatch for migration version 28
+71	-> Applied to database : -79017893
+72	-> Resolved locally    : -1611686981
+73	Either revert the changes to the migration, or run repair to update the schema history.
+74	Need more flexibility with validation rules? Learn more: https://rd.gt/3AbJUZE
+75		at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1824) ~[spring-beans-6.2.19.jar:6.2.19]
+76		at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:607) ~[spring-beans-6.2.19.jar:6.2.19]
+77		at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.19.jar:6.2.19]
+78		at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.19.jar:6.2.19]
+79		at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.19.jar:6.2.19]
+80		at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.19.jar:6.2.19]
+81		at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.19.jar:6.2.19]
+82		at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:315) ~[spring-beans-6.2.19.jar:6.2.19]
+83		... 10 common frames omitted
+84	Caused by: org.flywaydb.core.api.exception.FlywayValidateException: Validate failed: Migrations have failed validation
+85	Migration checksum mismatch for migration version 28
+86	-> Applied to database : -79017893
+87	-> Resolved locally    : -1611686981
+88	Either revert the changes to the migration, or run repair to update the schema history.
+89	Need more flexibility with validation rules? Learn more: https://rd.gt/3AbJUZE
+90		at org.flywaydb.core.Flyway.lambda$migrate$1(Flyway.java:201) ~[flyway-core-11.7.2.jar:na]
+91		at org.flywaydb.core.FlywayExecutor.execute(FlywayExecutor.java:210) ~[flyway-core-11.7.2.jar:na]
+92		at org.flywaydb.core.Flyway.migrate(Flyway.java:188) ~[flyway-core-11.7.2.jar:na]
+93		at org.springframework.boot.autoconfigure.flyway.FlywayMigrationInitializer.afterPropertiesSet(FlywayMigrationInitializer.java:66) ~[spring-boot-autoconfigure-3.5.16.jar:3.5.16]
+94		at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1871) ~[spring-beans-6.2.19.jar:6.2.19]
+95		at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1820) ~[spring-beans-6.2.19.jar:6.2.19]
+96		... 17 common frames omitted
+97	
+98	
+99	> Task :bootRun FAILED
+100	
+101	FAILURE: Build failed with an exception.
+102	
+103	* What went wrong:
+104	Execution failed for task ':bootRun'.
+105	> Process 'command 'C:\Program Files\Java\jdk-21.0.11\bin\java.exe'' finished with non-zero exit value 1
+106	
+107	* Try:
+108	> Run with --stacktrace option to get the stack trace.
+109	> Run with --info or --debug option to get more log output.
+110	> Run with --scan to get full insights.
+111	> Get more help at https://help.gradle.org.
+112	
+113	BUILD FAILED in 14s
+114	4 actionable tasks: 4 executed
+115
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:12:14Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:12:14Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:12:19Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Show local V28 change vs committed version
+
+`cd e:/workspace/resume-pilot && git diff resume-api/src/main/resources/db/migration/V28__ai_review_scores_v4.sql | head -20`
+
+```text
+warning: LF will be replaced by CRLF in resume-api/src/main/resources/db/migration/V28__ai_review_scores_v4.sql.
+The file will have its original line endings in your working directory
+diff --git a/resume-api/src/main/resources/db/migration/V28__ai_review_scores_v4.sql b/resume-api/src/main/resources/db/migration/V28__ai_review_scores_v4.sql
+index bc97342..41b8c0c 100644
+--- a/resume-api/src/main/resources/db/migration/V28__ai_review_scores_v4.sql
++++ b/resume-api/src/main/resources/db/migration/V28__ai_review_scores_v4.sql
+@@ -79,7 +79,8 @@ scores의 각 값은 0~100 사이 정수이며, 실제 내용을 근거로 산
+ {{job_analysis}}$$,
+     '["content", "job_analysis"]'::jsonb,
+     true
+-);
++)
++ON CONFLICT (id) DO NOTHING;
+ 
+ UPDATE prompt_versions SET is_active = false
+ WHERE prompt_template_id = 'a0000001-0001-0001-0001-000000000004'
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:12:28Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-api\src\main\resources\db\migration\V28__ai_review_scores_v4.sql has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:12:38Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Confirm V28 reverted to committed version and check flyway history
+
+`cd e:/workspace/resume-pilot && git diff --stat resume-api/src/main/resources/db/migration/V28__ai_review_scores_v4.sql; echo "---"; PGPASSWORD=resumepilot psql -h 100.77.239.52 -p 55532 -U resumepilot -d resumepilot -c "select version, description, success from flyway_schema_history where version::int >= 27 order by installed_rank;"`
+
+```text
+warning: LF will be replaced by CRLF in resume-api/src/main/resources/db/migration/V28__ai_review_scores_v4.sql.
+The file will have its original line endings in your working directory
+---
+ version |     description     | success 
+---------+---------------------+---------
+ 27      | resume job posting  | t
+ 28      | ai review scores v4 | t
+(2�� ��)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:12:46Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:12:46Z)**_
+
+V28 파일이 커밋본과 일치. resume-api 재기동:
+
+_**Agent (claude-fable-5 2026-07-15 17:12:56Z)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+<summary>Tool use: **PowerShell**</summary>
+Start resume-api (Spring Boot) on 8080 in background
+
+```text
+Command running in background with ID: bzea0eso3. Output is being written to: C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\tasks\bzea0eso3.output. You will be notified when it completes. To check interim output, use Read on that file path.
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:13:02Z)**_
+
+기다리는 동안 admin 빌드와 Python 문법 검증을 진행합니다:
+
+_**Agent (claude-fable-5 2026-07-15 17:13:20Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Build resume-admin
+
+`cd e:/workspace/resume-pilot/resume-admin && npm run build 2>&1 | tail -4`
+
+```text
+dist/assets/index-OV_enPdC.js                               99.60 kB │ gzip: 31.64 kB
+dist/assets/react-DejI8kcV.js                              210.66 kB │ gzip: 68.15 kB
+
+✓ built in 707ms
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:13:31Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Syntax-check all modified Python files
+
+`cd e:/workspace/resume-pilot && python -c "import ast; [ast.parse(open(f, encoding='utf-8').read()) for f in ['resume-ai/app/services/generation_service.py','resume-ai/app/services/llm_service.py','resume-ai/app/main.py','prompt-service/app/services/prompt_service.py']]" && echo "PY_SYNTAX_OK"`
+
+```text
+PY_SYNTAX_OK
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:13:39Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Check AI services health
+
+`for p in 8000 8001 8002; do echo -n "$p: "; curl -s -m 3 "http://localhost:$p/health" 2>/dev/null || echo -n "down"; echo; done`
+
+```text
+8000: {"success":true,"data":{"status":"ok"},"error":null}
+8001: {"success":true,"data":{"status":"ok"},"error":null}
+8002: {"success":true,"data":{"status":"ok"},"error":null}
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:13:45Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:13:45Z)**_
+
+AI 서비스 3개 정상 기동. resume-api 부팅 상태 확인:
+
+_**Agent (claude-fable-5 2026-07-15 17:14:18Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Wait and check resume-api boot status
+
+`sleep 20 && tail -5 "C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\tasks\bzea0eso3.output" && echo "---health---" && curl -s -m 3 http://localhost:8080/actuator/health 2>/dev/null || curl -s -m 3 -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/auth/login`
+
+```text
+2026-07-16T02:13:12.230+09:00  INFO 42892 --- [resume-api] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-07-16T02:13:12.280+09:00  INFO 42892 --- [resume-api] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-07-16T02:13:12.281+09:00  WARN 42892 --- [resume-api] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+2026-07-16T02:13:12.942+09:00  INFO 42892 --- [resume-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-07-16T02:13:12.954+09:00  INFO 42892 --- [resume-api] [           main] com.resumepilot.ResumePilotApplication   : Started ResumePilotApplication in 7.24 seconds (process running for 7.841)
+---health---
+{"status":"UP"}
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:14:36Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Confirm V29 recorded by Flyway
+
+`PGPASSWORD=resumepilot psql -h 100.77.239.52 -p 55532 -U resumepilot -d resumepilot -c "select version, description, success from flyway_schema_history where version::int >= 28 order by installed_rank;" 2>&1`
+
+```text
+ version |      description      | success 
+---------+-----------------------+---------
+ 28      | ai review scores v4   | t
+ 29      | interview keyword llm | t
+(2�� ��)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:14:49Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:14:49Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:15:04Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Create test user and store access token
+
+```bash
+cd "C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\scratchpad" && curl -s -X POST http://localhost:8080/api/v1/auth/signup -H "Content-Type: application/json" -d '{"email":"llm-verify-0716@test.local","password":"Verify123!","name":"LLM검증"}' > signup.json; python -c "
+import json
+d = json.load(open('signup.json', encoding='utf-8'))
+print('success:', d.get('success'))
+tok = (d.get('data') or {}).get('accessToken')
+open('token.txt','w').write(tok or '')
+print('token_len:', len(tok or ''))
+"
+```
+
+```text
+success: False
+token_len: 0
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:15:13Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+See signup error
+
+`cd "C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\scratchpad" && cat signup.json`
+
+```text
+{"success":false,"error":{"code":"INTERNAL_ERROR","message":"Internal server error"},"timestamp":"2026-07-15T17:15:04.271643700Z"}
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:15:21Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Check resume-api error log for signup failure
+
+`grep -A 5 "ERROR" "C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\tasks\bzea0eso3.output" | tail -20`
+
+```text
+2026-07-16T02:13:12.281+09:00  WARN 42892 --- [resume-api] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+2026-07-16T02:13:12.942+09:00  INFO 42892 --- [resume-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-07-16T02:13:12.954+09:00  INFO 42892 --- [resume-api] [           main] com.resumepilot.ResumePilotApplication   : Started ResumePilotApplication in 7.24 seconds (process running for 7.841)
+2026-07-16T02:14:17.537+09:00  INFO 42892 --- [resume-api] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-07-16T02:14:17.537+09:00  INFO 42892 --- [resume-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-07-16T02:14:17.539+09:00  INFO 42892 --- [resume-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:15:31Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Extract exception cause from resume-api log
+
+`grep -B 2 -A 15 "Exception\|Caused by" "C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\tasks\bzea0eso3.output" | grep -v "^2026.*INFO\|^2026.*WARN\|at org\.\|at com\.resumepilot\.\|at jakarta\.\|at jdk\.\|at java\." | tail -30`
+
+```text
+(Bash completed with no output)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:15:39Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Tail resume-api log after signup attempt
+
+`tail -40 "C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\tasks\bzea0eso3.output"`
+
+```text
+2026-07-16T02:13:07.628+09:00  INFO 42892 --- [resume-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 224 ms. Found 22 JPA repository interfaces.
+2026-07-16T02:13:08.167+09:00  INFO 42892 --- [resume-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-07-16T02:13:08.182+09:00  INFO 42892 --- [resume-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-07-16T02:13:08.182+09:00  INFO 42892 --- [resume-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-07-16T02:13:08.275+09:00  INFO 42892 --- [resume-api] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-07-16T02:13:08.275+09:00  INFO 42892 --- [resume-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2059 ms
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+2026-07-16T02:13:08.442+09:00 DEBUG 42892 --- [resume-api] [           main] c.r.i.security.JwtAuthenticationFilter   : Filter 'jwtAuthenticationFilter' configured for use
+2026-07-16T02:13:08.443+09:00 DEBUG 42892 --- [resume-api] [           main] c.r.i.security.InternalApiAuthFilter     : Filter 'internalApiAuthFilter' configured for use
+2026-07-16T02:13:08.630+09:00  INFO 42892 --- [resume-api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-07-16T02:13:08.778+09:00  INFO 42892 --- [resume-api] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@5d9d8e46
+2026-07-16T02:13:08.780+09:00  INFO 42892 --- [resume-api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-07-16T02:13:08.809+09:00  INFO 42892 --- [resume-api] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://100.77.239.52:55532/resumepilot (PostgreSQL 17.10)
+2026-07-16T02:13:08.886+09:00  INFO 42892 --- [resume-api] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 29 migrations (execution time 00:00.046s)
+2026-07-16T02:13:08.933+09:00  INFO 42892 --- [resume-api] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 28
+2026-07-16T02:13:08.953+09:00  INFO 42892 --- [resume-api] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "29 - interview keyword llm"
+2026-07-16T02:13:09.000+09:00  INFO 42892 --- [resume-api] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "public", now at version v29 (execution time 00:00.027s)
+2026-07-16T02:13:09.117+09:00  INFO 42892 --- [resume-api] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-07-16T02:13:09.181+09:00  INFO 42892 --- [resume-api] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.53.Final
+2026-07-16T02:13:09.220+09:00  INFO 42892 --- [resume-api] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-07-16T02:13:09.508+09:00  INFO 42892 --- [resume-api] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-07-16T02:13:09.568+09:00  WARN 42892 --- [resume-api] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-07-16T02:13:09.585+09:00  INFO 42892 --- [resume-api] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 17.10
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-07-16T02:13:10.916+09:00  INFO 42892 --- [resume-api] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-07-16T02:13:10.974+09:00  INFO 42892 --- [resume-api] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-07-16T02:13:12.230+09:00  INFO 42892 --- [resume-api] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-07-16T02:13:12.280+09:00  INFO 42892 --- [resume-api] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-07-16T02:13:12.281+09:00  WARN 42892 --- [resume-api] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+2026-07-16T02:13:12.942+09:00  INFO 42892 --- [resume-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-07-16T02:13:12.954+09:00  INFO 42892 --- [resume-api] [           main] com.resumepilot.ResumePilotApplication   : Started ResumePilotApplication in 7.24 seconds (process running for 7.841)
+2026-07-16T02:14:17.537+09:00  INFO 42892 --- [resume-api] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-07-16T02:14:17.537+09:00  INFO 42892 --- [resume-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-07-16T02:14:17.539+09:00  INFO 42892 --- [resume-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:15:45Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:15:58Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Retry signup with regular email format
+
+`cd "C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\scratchpad" && curl -s -X POST http://localhost:8080/api/v1/auth/signup -H "Content-Type: application/json" -d '{"email":"llmverify0716@gmail.com","password":"Verify123!","name":"LLM Verify"}' | head -c 300`
+
+```text
+{"success":true,"data":{"accessToken":"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI1YjhlNzIxZS0yYWVkLTRjZGEtODkxNi03NTNlNzNkMjIyZGUiLCJlbWFpbCI6ImxsbXZlcmlmeTA3MTZAZ21haWwuY29tIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3ODQxMzU3NTcsImV4cCI6MTc4NDEzNjY1NywianRpIjoiODZmN2UxYjctYjAzOC00MGFmLTliZTQtY2RkYmQxZTM3NzE0In0.izM9Efq-
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:16:07Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:16:07Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:16:20Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Login and save token
+
+```bash
+cd "C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\scratchpad" && curl -s -X POST http://localhost:8080/api/v1/auth/login -H "Content-Type: application/json" -d '{"email":"llmverify0716@gmail.com","password":"Verify123!"}' > login.json && python - <<'EOF'
+import json
+d = json.load(open('login.json', encoding='utf-8'))
+open('token.txt','w').write(d['data']['accessToken'])
+print('token saved')
+EOF
+```
+
+```text
+token saved
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:16:48Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Test interview questions endpoint with real LLM
+
+```bash
+cd "C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\scratchpad" && TOKEN=$(cat token.txt) && cat > interview_req.json <<'EOF'
+{"content": "저는 화학물질관리시스템(CMS)을 신규 구축하며 Spring Boot 기반 백엔드를 설계하고 MS-SQL 쿼리 튜닝으로 응답 시간을 40% 단축했습니다. 또한 한화솔루션 CMS 프로젝트에서 파트리더로서 주간 스프린트 회의와 코드 리뷰 체계를 도입해 납기 지연 없이 프로젝트를 완료했습니다. Claude Code와 Cursor 같은 AI 코딩 도구를 팀에 도입해 반복적인 CRUD 작업 시간을 줄이고 활용 가이드를 작성해 공유했습니다."}
+EOF
+curl -s -m 120 -X POST http://localhost:8080/api/v1/ai/interview-questions -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d @interview_req.json > interview_res.json && python - <<'EOF'
+import json
+d = json.load(open('interview_res.json', encoding='utf-8'))
+data = d.get('data') or {}
+print('success:', d.get('success'))
+print('model:', data.get('model'))
+print('fallback:', data.get('fallback'))
+qs = data.get('questions') or []
+print('question_count:', len(qs))
+for q in qs[:3]:
+    print('-', q.get('category'), '|', q.get('difficulty'), '|', q.get('question'))
+EOF
+```
+
+```text
+success: True
+model: rule-based
+fallback: True
+question_count: 8
+- �������� | NORMAL | �������� �����Ͽ� �ڱ�Ұ��� ������ �������� �������ּ���.
+- ���� | NORMAL | ���� �����Ͽ� �ڱ�Ұ��� ������ �������� �������ּ���.
+- ���� �ذ� | NORMAL | ���� �ذ� �����Ͽ� �ڱ�Ұ��� ������ �������� �������ּ���.
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:16:59Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:16:59Z)**_
+
+폴백이 발생했습니다. resume-ai 로그에서 원인 확인:
+
+_**Agent (claude-fable-5 2026-07-15 17:17:03Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Check resume-ai logs for route/LLM warnings
+
+`tail -30 "C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\tasks\bxn18b81v.output"`
+
+```text
+.env.local 로드 완료
+INFO:     Started server process [43576]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:49230 - "GET /health HTTP/1.1" 200 OK
+INTERVIEW_QUESTIONS returned unparseable/empty response, using rule fallback. raw=```json
+[
+  {
+    "category": "프로젝트",
+    "question": "화학물질관리시스템(CMS) 신규 구축 프로젝트에서 Spring Boot 기반 백엔드를 설계하셨다고 했는데, 당시 설계 과정에서 가장 중요하게 고려했던 점은 무엇이었나요?",
+    "difficulty": "NORMAL"
+  },
+  {
+    "categor
+INFO:     127.0.0.1:62317 - "POST /generate/interview-questions HTTP/1.1" 200 OK
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:17:19Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:17:19Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:17:22Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file e:\workspace\resume-pilot\resume-ai\app\services\llm_service.py has been updated successfully. (file state is current in your context — no need to Read it back)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:17:29Z)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ToolSearch"><details>
+<summary>Tool use: **ToolSearch**</summary>
+
+**Input:**
+
+- max_results: `1`
+- query: `select:TaskStop`
+
+**Result:**
+
+```
+
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:17:35Z)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="TaskStop"><details>
+<summary>Tool use: **TaskStop**</summary>
+
+```text
+{"message":"Successfully stopped task: bxn18b81v (. .\\scripts\\load-env-local.ps1; Set-Location resume-ai; python -m uvicorn app.main:app --port 8000)","task_id":"bxn18b81v","task_type":"local_bash","command":". .\\scripts\\load-env-local.ps1; Set-Location resume-ai; python -m uvicorn app.main:app --port 8000"}
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:17:53Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Confirm port 8000 released
+
+`sleep 3; netstat -ano | grep ":8000 " | grep LISTEN || echo "8000 free"`
+
+```text
+8000 free
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:18:11Z)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+<summary>Tool use: **PowerShell**</summary>
+Restart resume-ai with updated token limits
+
+```text
+Command running in background with ID: beqbqu4wl. Output is being written to: C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\tasks\beqbqu4wl.output. You will be notified when it completes. To check interim output, use Read on that file path.
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:18:19Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Wait for resume-ai to come up
+
+`for i in $(seq 1 15); do s=$(curl -s -m 2 -o /dev/null -w "%{http_code}" http://localhost:8000/health 2>/dev/null); [ "$s" = "200" ] && echo "resume-ai UP" && break; sleep 2; done`
+
+```text
+resume-ai UP
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:18:49Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Retest interview questions with real LLM
+
+```bash
+cd "C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\scratchpad" && TOKEN=$(cat token.txt) && curl -s -m 120 -X POST http://localhost:8080/api/v1/ai/interview-questions -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d @interview_req.json > interview_res.json && python - <<'EOF'
+import json, io, sys
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+d = json.load(open('interview_res.json', encoding='utf-8'))
+data = d.get('data') or {}
+print('success:', d.get('success'))
+print('model:', data.get('model'))
+print('fallback:', data.get('fallback'))
+qs = data.get('questions') or []
+print('question_count:', len(qs))
+for q in qs[:4]:
+    print('-', q.get('category'), '|', q.get('difficulty'), '|', (q.get('question') or '')[:80])
+EOF
+```
+
+```text
+success: True
+model: gemini-2.5-flash
+fallback: False
+question_count: 7
+- 프로젝트 | NORMAL | 화학물질관리시스템(CMS)을 신규 구축하며 Spring Boot 기반 백엔드를 설계하셨다고 했는데, 당시 CMS 백엔드 설계 과정에서 가장 중요
+- 기술 | HARD | MS-SQL 쿼리 튜닝으로 응답 시간을 40% 단축하셨다고 했습니다. 구체적으로 어떤 종류의 쿼리에서 어떤 문제가 있었고, 이를 어떻게 튜닝하여
+- 협업 | NORMAL | 한화솔루션 CMS 프로젝트에서 파트리더로서 주간 스프린트 회의와 코드 리뷰 체계를 도입하셨다고 했습니다. 이러한 체계를 도입하게 된 배경과, 실
+- 기술 | NORMAL | Claude Code와 Cursor 같은 AI 코딩 도구를 팀에 도입하여 반복적인 CRUD 작업 시간을 줄이셨다고 했는데, 팀원들이 해당 도구를
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:18:56Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:18:56Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:19:11Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Test keyword compare with real LLM
+
+```bash
+cd "C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\scratchpad" && TOKEN=$(cat token.txt) && cat > keyword_req.json <<'EOF'
+{"jobKeywords": ["java", "spring", "ms-sql", "rdbms", "html", "css", "javascript", "ehs"], "resumeContent": "저는 화학물질관리시스템(CMS)을 신규 구축하며 Spring Boot 기반 백엔드를 설계하고 MS-SQL 쿼리 튜닝으로 응답 시간을 40% 단축했습니다. 환경 규제(화관법, 화평법) 대응 모듈을 개발하며 EHS 도메인 경험을 쌓았고, xframe 레거시 화면을 현대적인 프론트엔드로 전환했습니다."}
+EOF
+curl -s -m 120 -X POST http://localhost:8080/api/v1/ai/compare-keywords -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d @keyword_req.json > keyword_res.json && python - <<'EOF'
+import json, io, sys
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+d = json.load(open('keyword_res.json', encoding='utf-8'))
+data = d.get('data') or {}
+print('success:', d.get('success'))
+print('model:', data.get('model'))
+print('fallback:', data.get('fallback'))
+print('matched:', data.get('matched'))
+print('missing:', data.get('missing'))
+print('recommended:', data.get('recommended'))
+EOF
+```
+
+```text
+success: True
+model: gemini-2.5-flash
+fallback: False
+matched: ['java', 'spring', 'ms-sql', 'rdbms', 'html', 'css', 'javascript', 'ehs']
+missing: []
+recommended: []
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:19:28Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:19:28Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:19:57Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Test AI review with scores via real LLM
+
+```bash
+cd "C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\scratchpad" && TOKEN=$(cat token.txt) && cat > review_req.json <<'EOF'
+{"content": "복잡한 시스템을 설계하고 구현하며, 기술을 통해 실질적인 문제 해결에 기여하는 것에 깊은 보람을 느낍니다. 특히 빠르게 변화하는 환경 규제와 비즈니스 요구사항 속에서 안정적이고 효율적인 시스템을 구축하는 과정에 큰 매력을 느낍니다.\n\n다수의 환경 규제(화관법, 화평법, 산안법)에 대응하는 화학물질관리시스템(CMS)을 신규 구축하고 고도화하는 프로젝트를 성공적으로 이끌었습니다. Spring Boot 기반 백엔드를 설계하고 MS-SQL 쿼리 튜닝 및 단위 테스트 케이스 작성을 통해 시스템 안정성을 확보했습니다.\n\n고객사 및 협력사와의 ERP/SAP 연동 프로젝트에서 성공적인 협업을 통해 시스템 통합을 이루어냈습니다. 인터페이스 명세서를 공동 작성하고, 정기적인 협업 미팅을 통해 연동 테스트 케이스를 사전에 합의하는 등 긴밀한 소통을 유지했습니다.", "jobAnalysis": {"company_name": "켐토피아", "position": "백엔드 개발자", "required_skills": ["java", "spring", "ms-sql"], "tech_keywords": ["java", "spring", "ms-sql", "ehs"]}}
+EOF
+curl -s -m 180 -X POST http://localhost:8080/api/v1/ai/review -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d @review_req.json > review_res.json && python - <<'EOF'
+import json, io, sys
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+d = json.load(open('review_res.json', encoding='utf-8'))
+data = d.get('data') or {}
+print('success:', d.get('success'))
+print('model:', data.get('model'))
+print('fallback:', data.get('fallback'))
+print('scores:', data.get('scores'))
+rs = data.get('reviews') or []
+print('review_count:', len(rs))
+for r in rs[:2]:
+    print('- p%s | strengths=%s | weaknesses=%s' % (r.get('paragraph_index'), r.get('strengths'), r.get('weaknesses')))
+    print('  improvement:', (r.get('improvement') or '')[:80])
+EOF
+```
+
+```text
+success: True
+model: gemini-2.5-flash
+fallback: False
+scores: {'company_fit': 95, 'style_retention': 90, 'star_application': 70, 'experience_utilization': 85}
+review_count: 3
+- p0 | strengths=['지원자의 직무에 대한 깊은 관심과 문제 해결 의지를 잘 드러냅니다.', "채용 공고의 'EHS' 키워드와 연관된 '환경 규제' 및 '비즈니스 요구사항'이라는 표현을 사용하여 회사 및 직무 적합성을 높였습니다."] | weaknesses=['추상적인 표현이 많아 지원자의 구체적인 경험이나 역량을 파악하기 어렵습니다.', '다음 문단으로의 연결이 자연스럽지 않아, 이 문단에서 제시한 흥미가 실제 어떤 경험으로 이어졌는지 명확하게 보여주지 못합니다.']
+  improvement: 이 문단은 지원자의 가치관과 흥미를 잘 보여주지만, 추상적인 표현이 많습니다. 어떤 종류의 '복잡한 시스템'인지, '실질적인 문제 해결'의 구체
+- p1 | strengths=["채용 공고의 'EHS' 키워드와 완벽하게 일치하는 '환경 규제(화관법, 화평법, 산안법)' 대응 경험을 명확히 제시했습니다.", '요구 기술 스택(Spring Boot, MS-SQL)을 직접적으로 언급하여 직무 적합성을 높였습니다.', "'성공적으로 이끌었습니다'라는 표현을 통해 주도적인 역할 수행 경험을 보여줍니다."] | weaknesses=['프로젝트의 구체적인 상황(Situation)이나 도전 과제(Challenge)가 명확하게 제시되지 않았습니다.', "달성한 성과가 '시스템 안정성 확보'로만 표현되어 있어, 어떤 지표로 얼마나 안정성이 향상되었는지 등 정량적인 결과(Result)가 부족합니다."]
+  improvement: 프로젝트의 규모나 난이도, 그리고 달성한 성과를 수치화하여 제시하면 설득력이 더욱 높아집니다. 예를 들어, '기존 시스템의 비효율성 또는 규제
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:20:11Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:20:11Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:20:21Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Read experience create DTO fields
+
+`cat "e:\workspace\resume-pilot\resume-api\src\main\java\com\resumepilot\presentation\dto\experience\ExperienceCreateRequest.java" 2>/dev/null || find e:/workspace/resume-pilot/resume-api/src -name "ExperienceCreateRequest.java" -exec cat {} \;`
+
+```text
+package com.resumepilot.presentation.dto.experience;
+
+import com.resumepilot.domain.experience.ExperienceType;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+import java.time.LocalDate;
+import java.util.List;
+
+public record ExperienceCreateRequest(
+        @NotNull ExperienceType type,
+        @NotBlank String title,
+        String description,
+        String role,
+        String contribution,
+        String result,
+        String numericResult,
+        String starSituation,
+        String starTask,
+        String starAction,
+        String starResult,
+        List<String> skills,
+        LocalDate startDate,
+        LocalDate endDate
+) {}
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:20:41Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Register two experiences for the test user
+
+```bash
+cd "C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\scratchpad" && TOKEN=$(cat token.txt) && cat > exp1.json <<'EOF'
+{"type": "PROJECT", "title": "화학물질관리시스템(CMS) 신규 구축", "description": "다수의 환경 규제(화관법, 화평법, 산안법)에 대응하는 CMS를 신규 구축하고 고도화", "role": "백엔드 파트리더", "contribution": "Spring Boot 기반 백엔드 설계, MS-SQL 쿼리 튜닝, 단위 테스트 체계 도입", "result": "응답 시간 40% 단축, 납기 지연 없이 프로젝트 완료", "numericResult": "40%", "skills": ["java", "spring", "ms-sql"]}
+EOF
+cat > exp2.json <<'EOF'
+{"type": "PROJECT", "title": "ERP/SAP 연동 인터페이스 개발", "description": "국내 주요 화학·소재 고객사의 ERP/SAP 시스템과 연동하는 인터페이스 개발", "role": "백엔드 개발자", "contribution": "인터페이스 명세서 공동 작성, 연동 테스트 케이스 사전 합의, 인벤토리·LDAR·PRTR 규제 대응 기능 구현", "result": "고객사 커뮤니케이션 창구 일원화로 납기 지연 0건", "numericResult": "지연 0건", "skills": ["java", "spring", "sap"]}
+EOF
+curl -s -X POST http://localhost:8080/api/v1/experiences -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d @exp1.json | python -c "import json,sys; d=json.load(sys.stdin); print('exp1:', d.get('success'))"
+curl -s -X POST http://localhost:8080/api/v1/experiences -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d @exp2.json | python -c "import json,sys; d=json.load(sys.stdin); print('exp2:', d.get('success'))"
+```
+
+```text
+exp1: True
+exp2: True
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:21:52Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Test full AI generate flow end-to-end
+
+```bash
+cd "C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\scratchpad" && TOKEN=$(cat token.txt) && cat > gen_req.json <<'EOF'
+{"keywords": ["java", "spring", "ms-sql", "ehs"], "rewriteLevel": 60, "jobAnalysis": {"company_name": "켐토피아", "position": "백엔드 개발자", "required_skills": ["java", "spring", "ms-sql"], "tech_keywords": ["java", "spring", "ms-sql", "ehs"], "talent_profile": ["문제 해결", "협업"]}, "sectionTitles": ["지원동기", "직무역량"]}
+EOF
+curl -s -m 300 -X POST http://localhost:8080/api/v1/ai/generate -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d @gen_req.json > gen_res.json && python - <<'EOF'
+import json, io, sys
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+d = json.load(open('gen_res.json', encoding='utf-8'))
+data = d.get('data') or {}
+print('success:', d.get('success'))
+print('model:', data.get('model'))
+print('insufficient:', data.get('insufficient'))
+print('quality_scores:', data.get('quality_scores'))
+print('detections_fallback:', data.get('detections_fallback'))
+print('reviews_fallback:', data.get('reviews_fallback'))
+print('detections:', len(data.get('detections') or []))
+print('reviews:', len(data.get('reviews') or []))
+content = str(data.get('content') or '')
+print('content_len:', len(content))
+print('content_head:', content[:150])
+EOF
+```
+
+```text
+success: True
+model: gemini-2.5-flash
+insufficient: False
+quality_scores: {'naturalness': 87.5, 'company_fit': 90, 'style_retention': 85, 'ai_trace_percent': 12.5, 'star_application': 80, 'experience_utilization': 85, 'scored_by': 'llm'}
+detections_fallback: False
+reviews_fallback: False
+detections: 8
+reviews: 2
+content_len: 742
+content_head: 켐토피아가 화학물질 관리 및 EHS 솔루션 분야에서 선도적인 역할을 수행하며 국내외 기업의 안전하고 효율적인 비즈니스를 지원하는 점에 깊은 인상을 받았습니다. 특히 환경 규제 준수와 시스템 고도화를 위한 백엔드 개발 역량의 중요성을 이해하고 있으며, 이는 제가 그동안
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:22:14Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:22:14Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:22:25Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Verify AI usage logs record LLM models
+
+`PGPASSWORD=resumepilot psql -h 100.77.239.52 -p 55532 -U resumepilot -d resumepilot -c "select operation, model, status, duration_ms from ai_usage_logs order by created_at desc limit 6;" 2>&1`
+
+```text
+    operation     |      model       | status  | duration_ms 
+------------------+------------------+---------+-------------
+ generate         | gemini-2.5-flash | SUCCESS |       52035
+ review           | gemini-2.5-flash | SUCCESS |       19027
+ compare_keywords | gemini-2.5-flash | SUCCESS |        6112
+ interview        | gemini-2.5-flash | SUCCESS |       10708
+ interview        | rule-based       | SUCCESS |       13862
+ compare_keywords | rule-based       | SUCCESS |           3
+(6�� ��)
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:22:34Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Run resume-ai unit tests
+
+`cd e:/workspace/resume-pilot/resume-ai && python -m pytest tests -q -x --timeout 120 2>&1 | tail -15`
+
+```text
+ERROR: usage: python -m pytest [options] [file_or_dir] [file_or_dir] [...]
+python -m pytest: error: unrecognized arguments: --timeout
+  inifile: E:\workspace\resume-pilot\resume-ai\pyproject.toml
+  rootdir: E:\workspace\resume-pilot\resume-ai
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:23:00Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Run resume-ai unit tests
+
+`cd e:/workspace/resume-pilot/resume-ai && python -m pytest tests -q 2>&1 | tail -8`
+
+```text
+.......s.......................................                          [100%]
+46 passed, 1 skipped in 6.46s
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:23:17Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:23:17Z)**_
+
+46개 테스트 전부 통과. prompt-service 테스트도 확인:
+
+_**Agent (claude-fable-5 2026-07-15 17:23:25Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Run prompt-service tests if any
+
+`cd e:/workspace/resume-pilot/prompt-service && ls tests 2>/dev/null && python -m pytest tests -q 2>&1 | tail -3 || echo "no tests dir"`
+
+```text
+__pycache__
+conftest.py
+test_health.py
+.                                                                        [100%]
+1 passed in 1.62s
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:23:38Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 17:23:38Z)**_
+
+모든 테스트 통과. 최종 커밋·푸시 (SpecStory 재마스킹 포함, 한 번에 처리):
+
+_**Agent (claude-fable-5 2026-07-15 17:23:45Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Redact SpecStory, stage all changes, verify no secrets staged
+
+```bash
+cd e:/workspace/resume-pilot && python - <<'EOF'
+import re, io, glob
+patterns = [
+    (r'sk-proj-[A-Za-z0-9_-]{20,}', 'sk-proj-***REDACTED***'),
+    (r'sk-or-v1-[A-Za-z0-9]{20,}', 'sk-or-v1-***REDACTED***'),
+    (r'github_pat_[A-Za-z0-9_]{20,}', 'github_pat_***REDACTED***'),
+    (r'ghp_[A-Za-z0-9]{20,}', 'ghp_***REDACTED***'),
+    (r'AQ\.[A-Za-z0-9_-]{30,}', 'AQ.***REDACTED***'),
+    (r'AIza[A-Za-z0-9_-]{30,}', 'AIza***REDACTED***'),
+    (r'eyJhbGciOiJIUzUxMiJ9\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}', 'eyJ***REDACTED***'),
+]
+for path in glob.glob('.specstory/history/*.md'):
+    with io.open(path, encoding='utf-8') as f:
+        text = f.read()
+    total = 0
+    for pat, repl in patterns:
+        text, n = re.subn(pat, repl, text)
+        total += n
+    if total:
+        with io.open(path, 'w', encoding='utf-8') as f:
+            f.write(text)
+        print(f'{path}: {total}')
+print('redaction done')
+EOF
+git add .specstory resume-ai resume-api resume-web resume-admin prompt-service
+git diff --cached --name-only | head -30
+echo "---secret check on staged---"
+git diff --cached | grep -cE 'sk-proj-[A-Za-z0-9_-]{20,}|AQ\.[A-Za-z0-9_-]{30,}|github_pat_[A-Za-z0-9_]{20,}|sk-or-v1-[A-Za-z0-9]{20,}' || echo "STAGED_CLEAN"
 ```
 </details></tool-use>

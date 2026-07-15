@@ -180,6 +180,8 @@
       "JOB_ANALYSIS": "求人分析",
       "AI_DETECTION": "AI痕跡検出",
       "AI_REVIEW": "添削レビュー",
+      "INTERVIEW_QUESTIONS": "想定面接質問",
+      "KEYWORD_COMPARE": "キーワード比較",
       "EMBEDDING": "埋め込み (RAG)"
     }
   }

@@ -99,6 +99,7 @@ export default function WorkspacePage() {
     result,
     recommended,
     interview,
+    interviewFallback,
     keywords,
     setBundle,
     clearResult,
@@ -212,7 +213,13 @@ export default function WorkspacePage() {
         tech_keywords: analysis.techKeywords,
         talent_profile: analysis.talentProfile,
       };
-      kw = analysis.techKeywords.length ? analysis.techKeywords : kw;
+      const analysisKeywords = [
+        ...analysis.techKeywords,
+        ...analysis.requiredSkills,
+        ...analysis.preferredSkills,
+        ...analysis.coreCompetencies,
+      ].filter(Boolean);
+      kw = analysisKeywords.length ? [...new Set(analysisKeywords)].slice(0, 30) : kw;
     }
     return { jobAnalysis, keywords: kw, jobPostingId: selectedPostingId || undefined };
   };
@@ -237,14 +244,19 @@ export default function WorkspacePage() {
     try {
       const { jobAnalysis, keywords: kw, jobPostingId } = await getJobContext();
       const res = await api.generateAi({ keywords: kw, rewriteLevel, jobAnalysis, jobPostingId, sectionTitles });
-      setBundle({ result: res, interview: [], keywords: null });
+      setBundle({ result: res, interview: [], interviewFallback: false, keywords: null });
       setJustGenerated(true);
       if (res.content) {
         try {
           const iq = await api.interviewQuestions(String(res.content));
           const nextInterview = (iq.questions as typeof interview) || [];
           const nextKeywords = await api.compareKeywords(kw, String(res.content));
-          setBundle({ result: res, interview: nextInterview, keywords: nextKeywords });
+          setBundle({
+            result: res,
+            interview: nextInterview,
+            interviewFallback: Boolean(iq.fallback),
+            keywords: nextKeywords,
+          });
         } catch (followUpErr) {
           console.warn('Post-generate panels failed', followUpErr);
         }
@@ -567,7 +579,14 @@ export default function WorkspacePage() {
 
                   {keywords && (
                     <section className="space-y-1 text-sm">
-                      <h3 className="font-medium">{t('workspace.keywordCompare')}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium">{t('workspace.keywordCompare')}</h3>
+                        {Boolean(keywords.fallback) && (
+                          <Badge variant="outline" className="text-muted-foreground font-normal">
+                            {t('workspace.keywordFallbackNotice')}
+                          </Badge>
+                        )}
+                      </div>
                       <p><span className="text-muted-foreground">{t('workspace.matched')}:</span> {((keywords.matched as string[]) || []).join(', ') || t('common.none')}</p>
                       <p className="text-destructive"><span className="text-muted-foreground">{t('workspace.missing')}:</span> {((keywords.missing as string[]) || []).join(', ') || t('common.none')}</p>
                     </section>
@@ -595,7 +614,14 @@ export default function WorkspacePage() {
 
                   {interview.length > 0 && (
                     <section className="space-y-2">
-                      <h3 className="text-sm font-medium">{t('workspace.interview')}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-medium">{t('workspace.interview')}</h3>
+                        {interviewFallback && (
+                          <Badge variant="outline" className="text-muted-foreground font-normal">
+                            {t('workspace.interviewFallbackNotice')}
+                          </Badge>
+                        )}
+                      </div>
                       {interview.map((q, i) => (
                         <div key={i} className="rounded-md bg-muted/50 p-3">
                           <Badge variant="outline" className="mb-1">{q.category}</Badge>

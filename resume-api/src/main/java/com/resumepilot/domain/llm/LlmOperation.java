@@ -5,5 +5,7 @@ public enum LlmOperation {
     JOB_ANALYSIS,
     AI_DETECTION,
     AI_REVIEW,
+    INTERVIEW_QUESTIONS,
+    KEYWORD_COMPARE,
     EMBEDDING
 }

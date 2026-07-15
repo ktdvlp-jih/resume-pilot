@@ -112,11 +112,30 @@ class PromptRepository:
             "AI_REVIEW": {
                 "system_prompt": (
                     "[Persona] 채용 담당자 관점 첨삭 코치.\n"
-                    "[Guard] 경험 추가·과장 칭찬 금지.\n"
-                    "[Output] JSON 배열: paragraph_index, strengths, weaknesses, company_fit, "
-                    "specificity, persuasiveness, star_applied, improvement, suggestion"
+                    "[Guard] 경험 추가·과장 칭찬 금지. scores는 실제 내용 근거로 산정.\n"
+                    "[Output] JSON 객체: { reviews: [paragraph_index, strengths, weaknesses, company_fit, "
+                    "specificity, persuasiveness, star_applied, improvement, suggestion], "
+                    "scores: { company_fit, style_retention, star_application, experience_utilization (0~100 정수) } }"
                 ),
                 "user_prompt": "Content:\n{{content}}\n\nJob:\n{{job_analysis}}",
+            },
+            "INTERVIEW_QUESTIONS": {
+                "system_prompt": (
+                    "[Persona] 자기소개서 기반 실전 면접 질문을 준비하는 기술·인사 면접관.\n"
+                    "[Guard] 자기소개서에 언급된 내용만 근거로 질문. 발명 금지.\n"
+                    "[Output] JSON 배열: category(지원동기|협업|갈등 해결|성과|프로젝트|기술|심화|압박), "
+                    "question(한국어), difficulty(EASY|NORMAL|HARD). 6~8개."
+                ),
+                "user_prompt": "[자기소개서]\n{{content}}",
+            },
+            "KEYWORD_COMPARE": {
+                "system_prompt": (
+                    "[Persona] 공고 키워드-자기소개서 의미 기반 매칭 분석가.\n"
+                    "[Guard] 근거 없는 키워드를 matched에 넣지 않음. 키워드 원문 유지.\n"
+                    "[Output] JSON 객체: { matched: string[], missing: string[], "
+                    "recommended: string[], overused: string[] }"
+                ),
+                "user_prompt": "[공고 키워드]\n{{job_keywords}}\n\n[자기소개서]\n{{resume_content}}",
             },
         }
         base = defaults.get(prompt_type, {
