@@ -243,6 +243,13 @@
     "scoreAiTracePercent": "AI trace ratio",
     "scoreStarApplication": "STAR method use",
     "scoreExperienceUtilization": "Experience use",
+    "scoreHelpAria": "View score explanation",
+    "scoreNaturalnessDesc": "How natural the writing reads, as if written by a person rather than sounding AI-generated.",
+    "scoreCompanyFitDesc": "How well the cover letter matches the job posting's role, culture, and required skills.",
+    "scoreStyleRetentionDesc": "How much of the applicant's original tone and phrasing was preserved after rewriting.",
+    "scoreAiTracePercentDesc": "The share of sentences that read as AI-generated. Lower is better.",
+    "scoreStarApplicationDesc": "How well experiences are described using the Situation-Task-Action-Result structure.",
+    "scoreExperienceUtilizationDesc": "How specifically the experiences from your experience library are reflected in the cover letter.",
     "keywordCompare": "Keyword match",
     "matched": "Matched",
     "missing": "Missing",
@@ -270,7 +277,13 @@
     "resultRestored": "Restored your previous AI generation result.",
     "clearDraft": "Reset",
     "clearDraftDesc": "Clears saved job input, AI results, and recommendations. This cannot be undone.",
-    "clearDraftConfirm": "Reset"
+    "clearDraftConfirm": "Reset",
+    "saveToDashboard": "Save to My Cover Letters",
+    "saveToDashboardSuccess": "Saved to your cover letter list.",
+    "saveToDashboardFailed": "Save failed",
+    "saveToDashboardAlready": "Saved",
+    "scoreFallbackNotice": "AI evaluation failed — showing default values",
+    "reviewFallbackNotice": "AI review failed — showing default feedback"
   },
   "settings": {
     "title": "Account settings",

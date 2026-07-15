@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
   ArrowDown,
   ArrowUp,
   Briefcase,
   ClipboardCheck,
+  HelpCircle,
   Info,
   Loader2,
   ListPlus,
   Plus,
   RotateCcw,
+  Save,
   Sparkles,
   Wand2,
   X,
@@ -31,6 +34,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -71,6 +75,15 @@ const SCORE_KEY_MAP: Record<string, string> = {
   experience_utilization: 'workspace.scoreExperienceUtilization',
 };
 
+const SCORE_DESC_KEY_MAP: Record<string, string> = {
+  naturalness: 'workspace.scoreNaturalnessDesc',
+  company_fit: 'workspace.scoreCompanyFitDesc',
+  style_retention: 'workspace.scoreStyleRetentionDesc',
+  ai_trace_percent: 'workspace.scoreAiTracePercentDesc',
+  star_application: 'workspace.scoreStarApplicationDesc',
+  experience_utilization: 'workspace.scoreExperienceUtilizationDesc',
+};
+
 function mergeSaveStatus(a: DraftSaveStatus, b: DraftSaveStatus): DraftSaveStatus {
   if (a === 'saving' || b === 'saving') return 'saving';
   if (a === 'saved' || b === 'saved') return 'saved';
@@ -79,6 +92,7 @@ function mergeSaveStatus(a: DraftSaveStatus, b: DraftSaveStatus): DraftSaveStatu
 
 export default function WorkspacePage() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const { draft, setDraft, clearDraft, saveStatus: draftSaveStatus, wasRestored } = useWorkspaceDraft();
   const { selectedPostingId, jobText, rewriteLevel, sectionTitles } = draft;
   const {
@@ -148,6 +162,37 @@ export default function WorkspacePage() {
   };
 
   const { data: postings = [] } = useQuery({ queryKey: ['job-postings'], queryFn: api.listJobPostings });
+  const selectedPosting = postings.find((p) => p.id === selectedPostingId);
+
+  const saveMutation = useMutation({
+    mutationFn: (content: string) =>
+      api.createResume({
+        title: selectedPosting?.title || selectedPosting?.companyName || t('workspace.title'),
+        companyName: selectedPosting?.companyName,
+        content,
+        jobPostingId: selectedPostingId || undefined,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['resumes'] });
+      queryClient.invalidateQueries({ queryKey: ['resumes-by-posting', selectedPostingId] });
+      toast.success(t('workspace.saveToDashboardSuccess'));
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : t('workspace.saveToDashboardFailed')),
+  });
+
+  const { data: savedResumesForPosting = [] } = useQuery({
+    queryKey: ['resumes-by-posting', selectedPostingId],
+    queryFn: () => api.listResumes(selectedPostingId),
+    enabled: !!selectedPostingId,
+  });
+
+  useEffect(() => {
+    if (!selectedPostingId || result?.content) return;
+    const saved = savedResumesForPosting[0];
+    if (saved?.latestContent) {
+      setBundle({ result: { content: saved.latestContent } });
+    }
+  }, [selectedPostingId, savedResumesForPosting, result?.content, setBundle]);
 
   const { data: jobAnalysisPreview } = useQuery({
     queryKey: ['job-analysis-preview', selectedPostingId],
@@ -213,7 +258,8 @@ export default function WorkspacePage() {
 
   const detections = (result?.detections as Array<{ sentence: string; level: string; reason: string }>) || [];
   const reviews = (result?.reviews as Array<{ paragraph_index: number; strengths: string[]; weaknesses: string[]; improvement: string }>) || [];
-  const scores = result?.quality_scores as Record<string, number> | undefined;
+  const scores = result?.quality_scores as (Record<string, number> & { scored_by?: string }) | undefined;
+  const reviewsFallback = Boolean(result?.reviews_fallback);
   const { displayed: displayedResult, isTyping, skip: skipTyping } = useTypewriter(
     String(result?.content ?? ''),
     justGenerated,
@@ -443,13 +489,24 @@ export default function WorkspacePage() {
         <TabsContent value="result" className="mt-0 flex-1 overflow-y-auto border-t p-4 md:p-6">
           {result?.content ? (
             <div className="space-y-6" data-testid="workspace-result-content">
-              {isTyping && (
-                <div className="flex justify-end">
+              <div className="flex items-center justify-end gap-3">
+                {isTyping && (
                   <button type="button" onClick={skipTyping} className="text-xs text-muted-foreground underline hover:text-foreground">
                     {t('workspace.skipTyping')}
                   </button>
-                </div>
-              )}
+                )}
+                <Button
+                  type="button"
+                  size="sm"
+                  className="gap-1.5"
+                  data-testid="workspace-save-btn"
+                  disabled={saveMutation.isPending}
+                  onClick={() => saveMutation.mutate(String(result.content))}
+                >
+                  <Save className="size-3.5" />
+                  {saveMutation.isPending ? t('common.generating') : t('workspace.saveToDashboard')}
+                </Button>
+              </div>
 
               {(() => {
                 const paragraphs = splitParagraphs(displayedResult);
@@ -471,15 +528,40 @@ export default function WorkspacePage() {
               {!isTyping && (
                 <div className="animate-in fade-in space-y-6 duration-300">
                   {scores && (
-                    <section className="grid grid-cols-2 gap-2 md:grid-cols-3">
-                      {Object.entries(scores).map(([k, v]) => (
+                    <section className="space-y-2">
+                      {scores.scored_by === 'rule-based' && (
+                        <Badge variant="outline" className="text-muted-foreground font-normal">
+                          {t('workspace.scoreFallbackNotice')}
+                        </Badge>
+                      )}
+                      <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+                      {Object.entries(scores).filter(([k]) => SCORE_KEY_MAP[k]).map(([k, v]) => (
                         <Card key={k} size="sm">
                           <CardContent className="pt-3 text-center">
-                            <p className="truncate text-xs text-muted-foreground">{SCORE_KEY_MAP[k] ? t(SCORE_KEY_MAP[k]) : k}</p>
+                            <div className="flex items-center justify-center gap-1">
+                              <p className="truncate text-xs text-muted-foreground">{SCORE_KEY_MAP[k] ? t(SCORE_KEY_MAP[k]) : k}</p>
+                              {SCORE_DESC_KEY_MAP[k] && (
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <button
+                                      type="button"
+                                      aria-label={t('workspace.scoreHelpAria')}
+                                      className="shrink-0 text-muted-foreground/70 hover:text-foreground"
+                                    >
+                                      <HelpCircle className="size-3" />
+                                    </button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-64 text-xs leading-relaxed">
+                                    {t(SCORE_DESC_KEY_MAP[k])}
+                                  </PopoverContent>
+                                </Popover>
+                              )}
+                            </div>
                             <p className="text-lg font-semibold">{v}</p>
                           </CardContent>
                         </Card>
                       ))}
+                      </div>
                     </section>
                   )}
 
@@ -493,7 +575,14 @@ export default function WorkspacePage() {
 
                   {reviews.length > 0 && (
                     <section className="space-y-2">
-                      <h3 className="text-sm font-medium">{t('workspace.review')}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-medium">{t('workspace.review')}</h3>
+                        {reviewsFallback && (
+                          <Badge variant="outline" className="text-muted-foreground font-normal">
+                            {t('workspace.reviewFallbackNotice')}
+                          </Badge>
+                        )}
+                      </div>
                       {reviews.map((r) => (
                         <div key={r.paragraph_index} className="space-y-1 rounded-md border p-3 text-sm">
                           <p><strong>{t('workspace.strengths')}:</strong> {r.strengths.join(', ')}</p>

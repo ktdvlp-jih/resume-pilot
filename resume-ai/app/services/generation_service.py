@@ -95,20 +95,37 @@ class GenerationService:
         request = state["request"]
         result = state["result"]
         rewrite_level = request.get("rewrite_level", 40)
+        job_analysis = request.get("job_analysis")
 
         forbidden = request.get("forbidden_expressions", [])
         if forbidden and result.get("content"):
             result["content"] = self._apply_forbidden(str(result["content"]), forbidden)
 
-        detections = rule_based.detect_ai_traces(result["content"], forbidden) if not result.get("insufficient") else []
-        reviews = rule_based.review_feedback(result["content"]) if not result.get("insufficient") else []
+        if result.get("insufficient"):
+            detections: list[dict] = []
+            reviews: list[dict] = []
+            review_scores = None
+            ai_trace_percent = 0.0
+            detections_fallback = False
+            reviews_fallback = False
+        else:
+            detection_result = await detection_service.detect(result["content"], forbidden)
+            review_result = await review_service.review(result["content"], job_analysis)
+            detections = detection_result["detections"]
+            ai_trace_percent = detection_result["ai_trace_percent"]
+            detections_fallback = detection_result.get("fallback", False)
+            reviews = review_result["reviews"]
+            review_scores = review_result.get("scores")
+            reviews_fallback = review_result.get("fallback", False)
 
         response = {
             **result,
             "rewrite_level": rewrite_level,
-            "quality_scores": self._score(result["content"], detections),
+            "quality_scores": self._score(result["content"], ai_trace_percent, review_scores),
             "detections": detections,
+            "detections_fallback": detections_fallback,
             "reviews": reviews,
+            "reviews_fallback": reviews_fallback,
         }
         return {**state, "response": response}
 
@@ -118,17 +135,27 @@ class GenerationService:
                 content = content.replace(str(expr), "")
         return content
 
-    def _score(self, content: str, detections: list[dict]) -> dict[str, float]:
-        red_count = sum(1 for d in detections if d["level"] == "RED")
-        total = max(len(detections), 1)
-        ai_trace = round(red_count / total * 100, 1)
+    def _score(self, content: str, ai_trace_percent: float, review_scores: dict[str, Any] | None) -> dict[str, float]:
+        naturalness = max(0, 100 - ai_trace_percent)
+        if review_scores:
+            return {
+                "naturalness": naturalness,
+                "company_fit": review_scores.get("company_fit", 0),
+                "style_retention": review_scores.get("style_retention", 0),
+                "ai_trace_percent": ai_trace_percent,
+                "star_application": review_scores.get("star_application", 0),
+                "experience_utilization": review_scores.get("experience_utilization", 0),
+                "scored_by": "llm",
+            }
+        logger.warning("AI_REVIEW returned no usable scores, using rule-based fallback quality_scores")
         return {
-            "naturalness": max(0, 100 - ai_trace),
+            "naturalness": naturalness,
             "company_fit": 85.0,
             "style_retention": 90.0,
-            "ai_trace_percent": ai_trace,
+            "ai_trace_percent": ai_trace_percent,
             "star_application": 80.0,
             "experience_utilization": 95.0 if content else 0,
+            "scored_by": "rule-based",
         }
 
 
@@ -163,7 +190,12 @@ class DetectionService:
                         "detections": detections,
                         "ai_trace_percent": round(red / total * 100, 1),
                         "model": completion.model,
+                        "fallback": False,
                     }
+                logger.warning(
+                    "AI_DETECTION returned unparseable/empty response, using rule fallback. raw=%.200s",
+                    completion.content,
+                )
             except Exception as exc:
                 logger.warning("AI_DETECTION prompt failed, using rule fallback: %s", exc)
 
@@ -174,6 +206,7 @@ class DetectionService:
             "detections": detections,
             "ai_trace_percent": round(red / total * 100, 1),
             "model": RULE_BASED_MODEL,
+            "fallback": True,
         }
 
 
@@ -195,16 +228,30 @@ class ReviewService:
                 reviews = parsed if isinstance(parsed, list) else (
                     parsed.get("reviews") if isinstance(parsed, dict) else None
                 )
+                scores = parsed.get("scores") if isinstance(parsed, dict) else None
+                scores = scores if isinstance(scores, dict) else None
                 if isinstance(reviews, list) and reviews:
                     return {
                         "reviews": reviews,
+                        "scores": scores,
                         "job_analysis": job_analysis,
                         "model": completion.model,
+                        "fallback": False,
                     }
+                logger.warning(
+                    "AI_REVIEW returned unparseable/empty response, using rule fallback. raw=%.200s",
+                    completion.content,
+                )
             except Exception as exc:
                 logger.warning("AI_REVIEW prompt failed, using rule fallback: %s", exc)
 
-        return {"reviews": rule_based.review_feedback(content), "job_analysis": job_analysis, "model": RULE_BASED_MODEL}
+        return {
+            "reviews": rule_based.review_feedback(content),
+            "scores": None,
+            "job_analysis": job_analysis,
+            "model": RULE_BASED_MODEL,
+            "fallback": True,
+        }
 
 
 class InterviewService:

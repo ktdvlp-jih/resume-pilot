@@ -8,6 +8,7 @@ public record ResumeResponse(
         String title,
         String companyName,
         String description,
+        UUID jobPostingId,
         Integer latestVersionNumber,
         String latestContent,
         Instant createdAt,

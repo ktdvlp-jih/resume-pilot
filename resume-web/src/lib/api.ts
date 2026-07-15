@@ -35,6 +35,7 @@ export interface ResumeResponse {
   title: string;
   companyName?: string;
   description?: string;
+  jobPostingId?: string;
   latestVersionNumber?: number;
   latestContent?: string;
   createdAt: string;
@@ -209,12 +210,13 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ currentPassword, newPassword }),
     }),
-  listResumes: () => request<ResumeResponse[]>('/api/v1/resumes'),
+  listResumes: (jobPostingId?: string) =>
+    request<ResumeResponse[]>(`/api/v1/resumes${jobPostingId ? `?jobPostingId=${jobPostingId}` : ''}`),
   listResumeVersions: (id: string) => request<ResumeVersionResponse[]>(`/api/v1/resumes/${id}/versions`),
   compareResumeVersions: (id: string, a: number, b: number) =>
     request<{ versionA: ResumeVersionResponse; versionB: ResumeVersionResponse }>(
       `/api/v1/resumes/${id}/versions/compare?versionA=${a}&versionB=${b}`),
-  createResume: (data: { title: string; companyName?: string; description?: string; content?: string }) =>
+  createResume: (data: { title: string; companyName?: string; description?: string; content?: string; jobPostingId?: string }) =>
     request<ResumeResponse>('/api/v1/resumes', { method: 'POST', body: JSON.stringify(data) }),
   deleteResume: (id: string) => request<void>(`/api/v1/resumes/${id}`, { method: 'DELETE' }),
   listExperiences: (type?: string) =>

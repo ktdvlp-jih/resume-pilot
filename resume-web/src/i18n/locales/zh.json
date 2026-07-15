@@ -243,6 +243,13 @@
     "scoreAiTracePercent": "AI 痕迹比例",
     "scoreStarApplication": "STAR 方法应用度",
     "scoreExperienceUtilization": "经验利用度",
+    "scoreHelpAria": "查看评分说明",
+    "scoreNaturalnessDesc": "文章读起来是否自然,像是人写的而不是AI生成的痕迹。",
+    "scoreCompanyFitDesc": "自我介绍内容与应聘公司公告(职务、人才要求、所需能力)的匹配程度。",
+    "scoreStyleRetentionDesc": "改写后是否仍保留了申请者原文中独特的语气和表达风格。",
+    "scoreAiTracePercentDesc": "文中带有AI生成痕迹的表达所占比例,数值越低越好。",
+    "scoreStarApplicationDesc": "是否按照情境(Situation)-任务(Task)-行动(Action)-结果(Result)的结构具体描述了经验。",
+    "scoreExperienceUtilizationDesc": "经验库中登记的实际经验在自我介绍中被具体体现的程度。",
     "keywordCompare": "关键词对比",
     "matched": "匹配",
     "missing": "缺失",
@@ -270,7 +277,13 @@
     "resultRestored": "已恢复上次 AI 生成结果。",
     "clearDraft": "重置",
     "clearDraftDesc": "将清除已保存的招聘输入、AI 结果和推荐列表，且无法撤销。",
-    "clearDraftConfirm": "重置"
+    "clearDraftConfirm": "重置",
+    "saveToDashboard": "保存到我的自我介绍",
+    "saveToDashboardSuccess": "已保存到我的自我介绍列表。",
+    "saveToDashboardFailed": "保存失败",
+    "saveToDashboardAlready": "已保存",
+    "scoreFallbackNotice": "AI评估失败,正在显示默认值",
+    "reviewFallbackNotice": "AI点评失败,正在显示默认反馈"
   },
   "settings": {
     "title": "账户设置",

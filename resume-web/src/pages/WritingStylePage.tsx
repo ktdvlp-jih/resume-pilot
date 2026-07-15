@@ -25,7 +25,7 @@ export default function WritingStylePage() {
 
   const { data: resumes = [] } = useQuery({
     queryKey: ['resumes'],
-    queryFn: api.listResumes,
+    queryFn: () => api.listResumes(),
   });
 
   const analyzeMutation = useMutation({

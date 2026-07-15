@@ -23,8 +23,8 @@ public class ResumeController {
 
     @GetMapping
     @Operation(summary = "자기소개서 목록")
-    public ApiResponse<List<ResumeResponse>> list() {
-        return ApiResponse.ok(resumeService.list(SecurityUtils.getCurrentUserId()));
+    public ApiResponse<List<ResumeResponse>> list(@RequestParam(required = false) UUID jobPostingId) {
+        return ApiResponse.ok(resumeService.list(SecurityUtils.getCurrentUserId(), jobPostingId));
     }
 
     @GetMapping("/{id}")

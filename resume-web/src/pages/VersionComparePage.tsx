@@ -26,7 +26,7 @@ export default function VersionComparePage() {
   const versionA = Number(params.get('a') || 1);
   const versionB = Number(params.get('b') || 2);
 
-  const { data: resumes = [] } = useQuery({ queryKey: ['resumes'], queryFn: api.listResumes });
+  const { data: resumes = [] } = useQuery({ queryKey: ['resumes'], queryFn: () => api.listResumes() });
   const resume = resumes.find((r) => r.id === id);
 
   const { data: versions = [] } = useQuery({

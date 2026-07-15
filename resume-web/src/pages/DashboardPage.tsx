@@ -26,7 +26,7 @@ export default function DashboardPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const { data: user } = useQuery({ queryKey: ['me'], queryFn: api.getMe });
-  const { data: resumes = [], isLoading } = useQuery({ queryKey: ['resumes'], queryFn: api.listResumes });
+  const { data: resumes = [], isLoading } = useQuery({ queryKey: ['resumes'], queryFn: () => api.listResumes() });
   const { data: experiences = [] } = useQuery({ queryKey: ['experiences'], queryFn: () => api.listExperiences() });
   const { data: jobPostings = [] } = useQuery({ queryKey: ['job-postings'], queryFn: api.listJobPostings });
 

@@ -243,6 +243,13 @@
     "scoreAiTracePercent": "AI痕跡の割合",
     "scoreStarApplication": "STAR手法の適用度",
     "scoreExperienceUtilization": "経験活用度",
+    "scoreHelpAria": "スコアの説明を見る",
+    "scoreNaturalnessDesc": "AIが書いたような不自然さがなく、人が自然に書いたように読めるかを示します。",
+    "scoreCompanyFitDesc": "応募先の求人内容(職務・求める人物像・必要スキル)と自己紹介書の内容がどれだけ合っているかを示します。",
+    "scoreStyleRetentionDesc": "原文にあった応募者固有の口調や表現スタイルが、書き直し後もどれだけ維持されたかを示します。",
+    "scoreAiTracePercentDesc": "AIが生成したとわかる表現の割合です。低いほど良いです。",
+    "scoreStarApplicationDesc": "状況(Situation)-課題(Task)-行動(Action)-結果(Result)の構造で経験が具体的に書かれているかを示します。",
+    "scoreExperienceUtilizationDesc": "経験ライブラリに登録された実際の経験が、自己紹介書にどれだけ具体的に反映されているかを示します。",
     "keywordCompare": "キーワード比較",
     "matched": "一致",
     "missing": "不足",
@@ -270,7 +277,13 @@
     "resultRestored": "前回のAI生成結果を読み込みました。",
     "clearDraft": "リセット",
     "clearDraftDesc": "保存した求人入力・AI結果・おすすめをすべて削除します。元に戻せません。",
-    "clearDraftConfirm": "リセット"
+    "clearDraftConfirm": "リセット",
+    "saveToDashboard": "自己紹介書に保存",
+    "saveToDashboardSuccess": "自己紹介書リストに保存されました。",
+    "saveToDashboardFailed": "保存に失敗しました",
+    "saveToDashboardAlready": "保存済み",
+    "scoreFallbackNotice": "AI評価に失敗し、既定値を表示しています",
+    "reviewFallbackNotice": "AI添削に失敗し、既定のフィードバックを表示しています"
   },
   "settings": {
     "title": "アカウント設定",

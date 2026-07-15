@@ -32,6 +32,9 @@ public class Resume {
 
     private String description;
 
+    @Column(name = "job_posting_id")
+    private UUID jobPostingId;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;

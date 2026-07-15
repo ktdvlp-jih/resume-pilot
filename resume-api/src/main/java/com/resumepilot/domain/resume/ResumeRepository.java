@@ -7,4 +7,6 @@ import java.util.UUID;
 
 public interface ResumeRepository extends JpaRepository<Resume, UUID> {
     List<Resume> findByUserIdOrderByUpdatedAtDesc(UUID userId);
+
+    List<Resume> findByUserIdAndJobPostingIdOrderByUpdatedAtDesc(UUID userId, UUID jobPostingId);
 }

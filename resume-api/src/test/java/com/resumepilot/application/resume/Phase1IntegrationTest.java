@@ -65,7 +65,7 @@ class Phase1IntegrationTest {
                 .andExpect(jsonPath("$.data.title").value("Test Project"));
 
         ResumeCreateRequest resume = new ResumeCreateRequest(
-                "삼성 지원 자소서", "삼성", "삼성전자 SW 직무", "저는 프로젝트 경험을 바탕으로..."
+                "삼성 지원 자소서", "삼성", "삼성전자 SW 직무", "저는 프로젝트 경험을 바탕으로...", null
         );
 
         mockMvc.perform(post("/api/v1/resumes")

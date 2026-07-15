@@ -24,8 +24,11 @@ public class ResumeService {
     private final RagService ragService;
 
     @Transactional(readOnly = true)
-    public List<ResumeResponse> list(UUID userId) {
-        return resumeRepository.findByUserIdOrderByUpdatedAtDesc(userId).stream()
+    public List<ResumeResponse> list(UUID userId, UUID jobPostingId) {
+        List<Resume> resumes = jobPostingId != null
+                ? resumeRepository.findByUserIdAndJobPostingIdOrderByUpdatedAtDesc(userId, jobPostingId)
+                : resumeRepository.findByUserIdOrderByUpdatedAtDesc(userId);
+        return resumes.stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -43,6 +46,7 @@ public class ResumeService {
                 .title(request.title())
                 .companyName(request.companyName())
                 .description(request.description())
+                .jobPostingId(request.jobPostingId())
                 .build();
         resumeRepository.save(resume);
 
@@ -125,6 +129,7 @@ public class ResumeService {
                 resume.getTitle(),
                 resume.getCompanyName(),
                 resume.getDescription(),
+                resume.getJobPostingId(),
                 latest != null ? latest.getVersionNumber() : null,
                 latest != null ? latest.getContent() : null,
                 resume.getCreatedAt(),
