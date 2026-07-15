@@ -9,8 +9,8 @@ alwaysApply: true
 
 **스택:** Spring Boot 3.5 (Java 21) · React 19 / shadcn·Radix UI / Vite 8 · FastAPI × 3 · PostgreSQL 17 + pgvector · Docker prod 5컨테이너
 
-**개발:** 터미널에서 각 서비스 실행 (`docs/RUNNING.md`)
-**배포:** `docker-compose.yml` · `docs/SETUP.md#part-3-ubuntu-서버` (`DEPLOY_HOST`는 로컬 `.env`만)
+**개발:** 터미널에서 각 서비스 실행 (`docs/실행-가이드.md`)
+**배포:** `docker-compose.yml` · `docs/설치-가이드.md#part-3-ubuntu-서버` (`DEPLOY_HOST`는 로컬 `.env`만)
 
 **주요 경로**
 
@@ -21,9 +21,9 @@ alwaysApply: true
 | 관리자 UI | `resume-admin/src/` (`/admin/` base) |
 | AI Gateway | `resume-ai/app/` |
 | Prompt / RAG | `prompt-service/app/`, `rag-service/app/` |
-| 실행 가이드 | `docs/RUNNING.md` |
-| 설치·배포 | `docs/SETUP.md`, `docs/INFRASTRUCTURE.md` |
-| 아키텍처 | `docs/architecture.md` |
+| 실행 가이드 | `docs/실행-가이드.md` |
+| 설치·배포 | `docs/설치-가이드.md`, `docs/인프라-구성.md` |
+| 아키텍처 | `docs/아키텍처.md` |
 | SpecStory | `.specstory/history/` — **커밋 포함** (`.cursor/rules/specstory-commit.mdc`) |
 
 **핵심 원칙**

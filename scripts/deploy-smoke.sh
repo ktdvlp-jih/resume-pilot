@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Post-deploy smoke — TC-02 HTTP + TC-04 API (docs/deploy-test-cases.md)
+# Post-deploy smoke — TC-02 HTTP + TC-04 API (docs/배포-테스트-케이스.md)
 set -euo pipefail
 
 PORT="${APP_PORT:-9180}"

@@ -4,7 +4,7 @@
 #   Linux server: ./scripts/server-up.sh  (.env from .env.production.example)
 #   Local smoke:  .\scripts\local-prod-up.ps1
 #
-# Local development: run services in terminals — see docs/RUNNING.md
+# Local development: run services in terminals — see docs/실행-가이드.md
 
 name: resume-pilot
 

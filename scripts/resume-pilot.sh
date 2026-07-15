@@ -27,8 +27,8 @@ ResumePilot scripts (Linux/macOS)
 
 DB 스키마: resume-api/src/main/resources/db/migration/ (Flyway, prod)
 배포 시 AI 3개(resume-ai, prompt-service, rag-service)는 compose 에 포함 — 별도 명령 없음
-로컬 dev: 터미널에서 uvicorn 3개 (8002/8001/8000) — docs/RUNNING.md
-Quick Tunnel: docs/SETUP.md#part-3-9-quick-tunnel
+로컬 dev: 터미널에서 uvicorn 3개 (8002/8001/8000) — docs/실행-가이드.md
+Quick Tunnel: docs/설치-가이드.md#part-3-9-quick-tunnel
 EOF
 }
 

@@ -24,7 +24,7 @@ ResumePilot — 로컬 개발 (터미널)
    resume-web       → npm run dev   (5173)
    resume-admin     → npm run dev   (5174/admin/)
 
-상세: docs/RUNNING.md
+상세: docs/실행-가이드.md
 
 배포(Docker):  .\scripts\local-prod-up.ps1  또는  ./scripts/server-up.sh
 "@ -ForegroundColor Green

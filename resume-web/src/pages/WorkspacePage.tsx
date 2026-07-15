@@ -80,6 +80,7 @@ function mergeSaveStatus(a: DraftSaveStatus, b: DraftSaveStatus): DraftSaveStatu
 export default function WorkspacePage() {
   const { t } = useTranslation();
   const { draft, setDraft, clearDraft, saveStatus: draftSaveStatus, wasRestored } = useWorkspaceDraft();
+  const { selectedPostingId, jobText, rewriteLevel, sectionTitles } = draft;
   const {
     result,
     recommended,
@@ -87,10 +88,10 @@ export default function WorkspacePage() {
     keywords,
     setBundle,
     clearResult,
+    clearVisibleResult,
     saveStatus: resultSaveStatus,
     wasResultRestored,
-  } = useWorkspaceResult();
-  const { selectedPostingId, jobText, rewriteLevel, sectionTitles } = draft;
+  } = useWorkspaceResult(selectedPostingId);
   const [loading, setLoading] = useState(false);
   const [recommendLoading, setRecommendLoading] = useState(false);
   const [error, setError] = useState('');
@@ -106,15 +107,18 @@ export default function WorkspacePage() {
       else next.add(id);
       return next;
     });
+    if (result?.content) clearVisibleResult();
   };
 
   const addSectionTitle = (title: string) => {
     const trimmed = title.trim();
     if (!trimmed || sectionTitles.includes(trimmed)) return;
     setDraft({ sectionTitles: [...sectionTitles, trimmed] });
+    if (result?.content) clearVisibleResult();
   };
   const removeSectionTitle = (index: number) => {
     setDraft({ sectionTitles: sectionTitles.filter((_, i) => i !== index) });
+    if (result?.content) clearVisibleResult();
   };
   const moveSectionTitle = (index: number, delta: number) => {
     const next = [...sectionTitles];
@@ -122,6 +126,7 @@ export default function WorkspacePage() {
     if (target < 0 || target >= next.length) return;
     [next[index], next[target]] = [next[target], next[index]];
     setDraft({ sectionTitles: next });
+    if (result?.content) clearVisibleResult();
   };
 
   const saveStatus = mergeSaveStatus(draftSaveStatus, resultSaveStatus);

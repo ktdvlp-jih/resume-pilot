@@ -1,7 +1,7 @@
 ﻿# ResumePilot — Windows 통합 스크립트
 # Usage:
 #   .\scripts\resume-pilot.ps1 help
-#   .\scripts\resume-pilot.ps1 setup          # 1회: .env, npm, pip, compile
+#   .\scripts\resume-pilot.ps1 setup          # 1회: .env/.env.local, npm, pip, compile
 #   .\scripts\resume-pilot.ps1 github-ssh     # 1회: GitHub push SSH 키
 #   .\scripts\resume-pilot.ps1 tunnel         # 매일: Tailscale DB 터널 (창 유지)
 #   .\scripts\resume-pilot.ps1 tunnel -TailscaleIp 100.x.x.x
@@ -24,7 +24,7 @@ function Show-Help {
     Write-Host @"
 ResumePilot scripts (Windows)
 
-  .\scripts\resume-pilot.ps1 setup        1회 — .env 복사, npm/pip, Gradle compile
+  .\scripts\resume-pilot.ps1 setup        1회 — .env/.env.local 복사, npm/pip, Gradle compile
   .\scripts\resume-pilot.ps1 github-ssh   1회 — GitHub SSH 키 + remote 설정
   .\scripts\resume-pilot.ps1 db           로컬 dev PostgreSQL (localhost:5432)
   .\scripts\resume-pilot.ps1 tunnel       매일 — DB SSH 터널 localhost:55532 (창 유지)
@@ -35,7 +35,7 @@ ResumePilot scripts (Windows)
 
 DB 스키마: Flyway resume-api/src/main/resources/db/migration/ (prod Docker)
 로컬 dev: AI 3개 터미널 (8002 rag, 8001 prompt, 8000 resume-ai) — Horizon ai 1개 대비 +2
-상세: docs/SETUP.md#part-2-개발-pc
+상세: docs/설치-가이드.md#part-2-개발-pc
 "@ -ForegroundColor Cyan
 }
 
@@ -51,6 +51,11 @@ function Invoke-Setup {
     if (-not (Test-Path '.env')) {
         Copy-Item '.env.example' '.env'
         Write-Host '[ok] Created .env' -ForegroundColor Green
+    }
+
+    if (-not (Test-Path '.env.local')) {
+        Copy-Item '.env.example' '.env.local'
+        Write-Host '[ok] Created .env.local' -ForegroundColor Green
     }
 
     # Horizon ai/.env 와 동일 — 각 AI 서비스가 cwd 기준 .env 를 읽음
@@ -89,6 +94,7 @@ function Invoke-Setup {
     Write-Host @"
 
 === Next ===
+  0. .env.local 값(OPENAI_API_KEY, JWT_SECRET 등) 확인 후 각 터미널에서: . .\scripts\load-env-local.ps1
   1. .\scripts\resume-pilot.ps1 tunnel
   2. cd resume-api; .\gradlew.bat bootRun
   3. cd rag-service;       python -m uvicorn app.main:app --reload --port 8002

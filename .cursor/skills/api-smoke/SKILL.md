@@ -7,8 +7,8 @@ description: Run ResumePilot build and API smoke (health, auth, AI services). Us
 
 ## 참조
 
-- `@docs/RUNNING.md`
-- `@docs/api-conventions.md`
+- `@docs/실행-가이드.md`
+- `@docs/API-규약.md`
 
 ## 실행 순서
 

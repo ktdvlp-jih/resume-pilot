@@ -38,9 +38,9 @@ Named Tunnel origin: `http://127.0.0.1:APP_PORT` 하나.
 
 ```powershell
 # 로컬 개발
-copy .env.example .env
-.\scripts\resume-pilot.ps1 setup
+.\scripts\resume-pilot.ps1 setup   # .env, .env.local 생성 + npm/pip/compile
 .\scripts\resume-pilot.ps1 db
+. .\scripts\load-env-local.ps1     # 서비스 실행 터미널마다 먼저 로드
 
 # 배포 (Linux 서버)
 cp .env.production.example .env
@@ -54,8 +54,10 @@ cp .env.production.example .env
 
 | 파일 | 용도 |
 |------|------|
-| `.env.example` | 로컬 터미널 개발 |
-| `.env.production.example` | Docker 배포 |
+| `.env.example` | 로컬 터미널 개발 예시 |
+| `.env.production.example` | Docker 배포 예시 |
+| `.env.local` | 로컬 개발 실제 값 (`load-env-local.ps1`로 세션 로드) |
+| `.env` | AI 서비스별 시드 + 배포용 실제 값 |
 
 | 변수 | 설명 |
 |------|------|

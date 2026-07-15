@@ -22,7 +22,7 @@ REMOTE_DIR="${REMOTE_DIR:-~/apps/resume-pilot}"
 APP_PORT="${APP_PORT:-9180}"
 
 if [[ -z "$DEPLOY_HOST" ]]; then
-  echo "DEPLOY_HOST not set. Add to .env or pass as argument. See docs/SETUP.md#part-3-ubuntu-서버" >&2
+  echo "DEPLOY_HOST not set. Add to .env or pass as argument. See docs/설치-가이드.md#part-3-ubuntu-서버" >&2
   exit 1
 fi
 
@@ -59,6 +59,6 @@ echo "  App:     http://${LAN_HOST}:${APP_PORT}/"
 echo "  Admin:   http://${LAN_HOST}:${APP_PORT}/admin/"
 echo "  API:     http://${LAN_HOST}:${APP_PORT}/api/v1"
 echo ""
-echo "  .env was NOT uploaded — scp .env to server if needed (SETUP.md §3-6)"
+echo "  .env was NOT uploaded — scp .env to server if needed (설치-가이드.md §3-6)"
 echo ""
 echo "Check status: ssh ${DEPLOY_HOST} 'cd ${REMOTE_DIR} && docker compose ps'"

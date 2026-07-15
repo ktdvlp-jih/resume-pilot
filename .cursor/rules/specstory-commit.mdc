@@ -27,4 +27,4 @@ git commit -m "docs: SpecStory·Cursor 동기화"
 git push
 ```
 
-상세: `docs/SETUP.md#part-4-pc-전환`
+상세: `docs/설치-가이드.md#part-4-pc-전환`

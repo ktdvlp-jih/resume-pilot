@@ -1,6 +1,6 @@
 # ResumePilot — Cursor 설정
 
-**실행·설치:** [docs/SETUP.md](../docs/SETUP.md) · [docs/RUNNING.md](../docs/RUNNING.md)
+**실행·설치:** [docs/설치-가이드.md](../docs/설치-가이드.md) · [docs/실행-가이드.md](../docs/실행-가이드.md)
 
 프로젝트 공유 AI 워크플로. Cursor **창 새로고침** 후 `/` 명령·훅 반영.
 
@@ -32,7 +32,7 @@
 |------|------|
 | `/e2e-check` | Phase 1~5 E2E 시나리오 |
 | `/api-smoke` | 빌드·API·AI docs 스모크 |
-| `/deploy-smoke` | Ubuntu 배포 확인 (`SETUP.md` Part 3) |
+| `/deploy-smoke` | Ubuntu 배포 확인 (`설치-가이드.md` Part 3) |
 | `/handoff` | SpecStory·세션 이어가기 |
 
 ## 스킬

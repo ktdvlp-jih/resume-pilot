@@ -5820,11 +5820,142 @@ _**Agent (claude-sonnet-5 2026-07-14 03:22:35Z)**_
 
 All expected files, no secrets. Staging and committing per the SpecStory sync rule (include `.specstory/` alongside code).
 
-_**Agent (claude-sonnet-5 2026-07-14 03:22:37Z)**_
+_**Agent (claude-sonnet-5 2026-07-14 03:22:38Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
 <summary>Tool use: **Bash**</summary>
 Stage code changes and SpecStory sync files
 
 `cd e:/workspace/resume-pilot && git add resume-web/src/components/workspace/workspace-layout.tsx resume-web/src/hooks/use-resizable-panels.tsx resume-web/src/hooks/use-typewriter.ts resume-web/src/i18n/locales/en.json resume-web/src/i18n/locales/ja.json resume-web/src/i18n/locales/ko.json resume-web/src/i18n/locales/zh.json resume-web/src/pages/WorkspacePage.tsx .specstory && git status`
+
+```text
+warning: in the working copy of '.specstory/.project.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.specstory/history/2026-07-14_00-58-36Z-https-suite-pic-heaven.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'resume-web/src/components/workspace/workspace-layout.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'resume-web/src/hooks/use-resizable-panels.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'resume-web/src/pages/WorkspacePage.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'resume-web/src/hooks/use-typewriter.ts', LF will be replaced by CRLF the next time Git touches it
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   .specstory/history/2026-07-14_00-58-36Z-https-suite-pic-heaven.md
+	new file:   .specstory/history/2026-07-14_02-19-19Z-https-suite-pic-heaven.md
+	modified:   resume-web/src/components/workspace/workspace-layout.tsx
+	modified:   resume-web/src/hooks/use-resizable-panels.tsx
+	new file:   resume-web/src/hooks/use-typewriter.ts
+	modified:   resume-web/src/i18n/locales/en.json
+	modified:   resume-web/src/i18n/locales/ja.json
+	modified:   resume-web/src/i18n/locales/ko.json
+	modified:   resume-web/src/i18n/locales/zh.json
+	modified:   resume-web/src/pages/WorkspacePage.tsx
+```
 </details></tool-use>
+
+_**Agent (claude-sonnet-5 2026-07-14 03:22:42Z)**_
+
+_**Agent (claude-sonnet-5 2026-07-14 03:22:43Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Check specstory staging status specifically
+
+`cd e:/workspace/resume-pilot && git status --porcelain=v1 -- .specstory`
+
+```text
+M  .specstory/history/2026-07-14_00-58-36Z-https-suite-pic-heaven.md
+AM .specstory/history/2026-07-14_02-19-19Z-https-suite-pic-heaven.md
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-5 2026-07-14 03:22:45Z)**_
+
+_**Agent (claude-sonnet-5 2026-07-14 03:22:47Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Double check .project.json status
+
+`cd e:/workspace/resume-pilot && git diff --stat -- .specstory/.project.json; git status --porcelain=v1 .specstory/.project.json`
+
+```text
+(Bash completed with no output)
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-5 2026-07-14 03:22:49Z)**_
+
+No diff remaining there — fine, already clean. Now committing:
+
+_**Agent (claude-sonnet-5 2026-07-14 03:22:53Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Commit workspace redesign and typing animation changes
+
+```bash
+cd e:/workspace/resume-pilot && git commit -m "$(cat <<'EOF'
+feat: 워크스페이스 2분할 레이아웃 및 결과 타이핑 애니메이션 적용
+
+좌측 입력/우측 결과·진단 2분할로 재설계해 시선 분산과 스크롤 피로도를 줄이고,
+AI 흔적 탐지를 문장 정밀 진단으로 개편. 생성 결과는 타이핑 효과로 점진 표시.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+EOF
+)"
+```
+
+```text
+[master 31dc6cd] feat: 워크스페이스 2분할 레이아웃 및 결과 타이핑 애니메이션 적용
+ 10 files changed, 6298 insertions(+), 272 deletions(-)
+ create mode 100644 .specstory/history/2026-07-14_02-19-19Z-https-suite-pic-heaven.md
+ create mode 100644 resume-web/src/hooks/use-typewriter.ts
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-5 2026-07-14 03:22:55Z)**_
+
+Committed. Now pushing to origin/master.
+
+_**Agent (claude-sonnet-5 2026-07-14 03:22:59Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Push commit to origin master
+
+`cd e:/workspace/resume-pilot && git push origin master`
+
+```text
+To https://github.com/ktdvlp-jih/resume-pilot
+   6007fad..31dc6cd  master -> master
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-5 2026-07-14 03:23:03Z)**_
+
+Push 완료했습니다 (`6007fad..31dc6cd`). 서버에서 확인하실 때 참고:
+
+- `resume-web`만 변경된 프론트엔드 작업이라, 배포 시 `resume-web` 빌드·재배포만 반영하면 됩니다 (백엔드/DB 마이그레이션 없음).
+- `docs/설치-가이드.md` Part 3 절차대로 진행하면 될 것 같습니다.
+
+---
+
+_**User (2026-07-14 03:27:58Z)**_
+
+일단 F12눌리면 이런 오류 발생하는데?
+
+---
+
+_**Agent (claude-sonnet-5 2026-07-14 03:28:04Z)**_
+
+_**Agent (claude-sonnet-5 2026-07-14 03:28:10Z)**_
+
+이 에러들은 ResumePilot 코드가 아니라 **브라우저 확장 프로그램이 주입한 스크립트**에서 나는 에러입니다.
+
+- `ShowOneChild.js`, `content-script-idle.js`, `dom-utils.js`, `dev-tools-inject.js`, `ch-content-script-e2e-*.js` — 전부 확장 프로그램(익스텐션)의 content script 파일명 패턴입니다. `ActionableCoachmark`, `showOneChild` 같은 이름도 특정 확장(예: 온보딩/코치마크 툴, `[rhwp]` 접두사 붙은 개발자 확장 등)이 페이지에 주입하는 스크립트에서 나오는 변수입니다.
+- ResumePilot 소스에는 `ActionableCoachmark`, `showOneChild` 같은 이름이 전혀 없습니다 (제가 수정한 파일에도 없음).
+
+**확인 방법**: 시크릿 모드(확장 프로그램 자동 비활성화)로 같은 페이지를 열어서 에러가 사라지는지 봐 주세요. 사라진다면 100% 확장 프로그램 문제고, 실제 ResumePilot 동작에는 영향 없습니다.
+
+혹시 화면 자체(2분할 레이아웃, 탭 전환, 타이핑 애니메이션)에 이상이 있으면 그 부분을 알려주세요 — 그건 제가 봐야 할 부분입니다.

@@ -7,8 +7,8 @@ description: Ubuntu Docker deploy smoke for ResumePilot. Use for server health, 
 
 ## 참조
 
-- `@docs/SETUP.md#part-3-ubuntu-서버`
-- `@docs/server-coexistence.md`
+- `@docs/설치-가이드.md#part-3-ubuntu-서버`
+- `@docs/서버-공존-가이드.md`
 
 ## 서버 (SSH)
 

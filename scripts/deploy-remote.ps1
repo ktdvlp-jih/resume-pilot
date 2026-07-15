@@ -30,7 +30,7 @@ if (Test-Path .env) {
 }
 
 if (-not $DeployHost) {
-    Write-Error "DEPLOY_HOST not set. Add to .env or pass -DeployHost. See docs/SETUP.md#part-3-ubuntu-서버"
+    Write-Error "DEPLOY_HOST not set. Add to .env or pass -DeployHost. See docs/설치-가이드.md#part-3-ubuntu-서버"
 }
 
 $Archive = Join-Path $env:TEMP "resume-pilot-deploy.tar.gz"
@@ -84,6 +84,6 @@ Write-Host "  Admin:   http://${LanHost}:${AppPort}/admin/"
 Write-Host "  API:     http://${LanHost}:${AppPort}/api/v1"
 Write-Host "  Swagger: http://${LanHost}:${AppPort}/swagger-ui.html"
 Write-Host ""
-Write-Host "  .env was NOT uploaded — scp .env to server if needed (SETUP.md §3-6)"
+Write-Host "  .env was NOT uploaded — scp .env to server if needed (설치-가이드.md §3-6)"
 Write-Host ""
 Write-Host "Status: ssh $DeployHost 'cd ${RemoteDir} && docker compose ps'"
