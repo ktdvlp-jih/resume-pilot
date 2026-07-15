@@ -3752,7 +3752,8 @@ cd "e:\workspace\resume-pilot\resume-admin"; npm run build 2>&1
 &gt; tsc -b &amp;&amp; vite build
 
 vite v8.1.3 building client environment for production...
-[2Ktransforming...✓ 79 modules transformed.
+[2K
+transforming...✓ 79 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                   0.46 kB │ gzip:  0.29 kB
@@ -3785,7 +3786,8 @@ cd "e:\workspace\resume-pilot\resume-web"; npm run build 2>&1
 &gt; tsc -b &amp;&amp; vite build
 
 vite v8.1.3 building client environment for production...
-[2Ktransforming...✓ 80 modules transformed.
+[2K
+transforming...✓ 80 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                   0.46 kB │ gzip:  0.29 kB
@@ -10619,7 +10621,8 @@ cd "e:\workspace\resume-pilot\resume-web"; npm run build 2>&1
 &gt; tsc -b &amp;&amp; vite build
 
 vite v8.1.3 building client environment for production...
-[2Ktransforming...✓ 82 modules transformed.
+[2K
+transforming...✓ 82 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                   0.46 kB │ gzip:  0.29 kB
@@ -12335,7 +12338,8 @@ Set-Location e:\workspace\resume-pilot\resume-web; npm run build
 &gt; tsc -b &amp;&amp; vite build
 
 vite v8.1.3 building client environment for production...
-[2Ktransforming...✓ 83 modules transformed.
+[2K
+transforming...✓ 83 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                   0.46 kB │ gzip:  0.29 kB
@@ -12368,7 +12372,8 @@ Set-Location e:\workspace\resume-pilot\resume-admin; npm run build
 &gt; tsc -b &amp;&amp; vite build
 
 vite v8.1.3 building client environment for production...
-[2Ktransforming...✓ 79 modules transformed.
+[2K
+transforming...✓ 79 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                   0.46 kB │ gzip:  0.29 kB
@@ -16084,7 +16089,8 @@ Set-Location e:\workspace\resume-pilot\resume-admin; npm run build
 &gt; tsc -b &amp;&amp; vite build
 
 vite v8.1.3 building client environment for production...
-[2Ktransforming...✓ 79 modules transformed.
+[2K
+transforming...✓ 79 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                   0.46 kB │ gzip:  0.29 kB
@@ -16117,7 +16123,8 @@ Set-Location e:\workspace\resume-pilot\resume-web; npm run build
 &gt; tsc -b &amp;&amp; vite build
 
 vite v8.1.3 building client environment for production...
-[2Ktransforming...✓ 85 modules transformed.
+[2K
+transforming...✓ 85 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                   0.46 kB │ gzip:  0.29 kB
@@ -20643,7 +20650,8 @@ cd "e:\workspace\resume-pilot\resume-admin"; npm run build 2>&1
 &gt; tsc -b &amp;&amp; vite build
 
 vite v8.1.3 building client environment for production...
-[2Ktransforming...✓ 80 modules transformed.
+[2K
+transforming...✓ 80 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                   0.48 kB │ gzip:  0.29 kB
@@ -20676,7 +20684,8 @@ cd "e:\workspace\resume-pilot\resume-web"; npm run build 2>&1
 &gt; tsc -b &amp;&amp; vite build
 
 vite v8.1.3 building client environment for production...
-[2Ktransforming...✓ 86 modules transformed.
+[2K
+transforming...✓ 86 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                   0.46 kB │ gzip:  0.29 kB
@@ -31031,7 +31040,28 @@ docker :  Image resume-pilot-app Building
 #25 24.72 Preconfiguring packages ...
 #25 24.87 Fetched 34.1 MB in 9s (3874 kB/s)
 #25 25.01 Selecting previously unselected package libexpat1:amd64.
-#25 25.01 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 5645 files and directories currently installed.)
+#25 25.01 (Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 5645 files and directories currently installed.)
 #25 25.07 Preparing to unpack .../00-libexpat1_2.7.1-2_amd64.deb ...
 #25 25.12 Unpacking libexpat1:amd64 (2.7.1-2) ...
 #25 ...
@@ -32254,8 +32284,8 @@ Invoke-RestMethod -Uri http://localhost:8080/api/v1/auth/signup -Method POST -Co
 {
     "success":  true,
     "data":  {
-                 "accessToken":  "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJiNGIyZjFlMC1mZGEzLTQ0OWItYWFjZi1iZmUxYzllZTAwMjQiLCJlbWFpbCI6ImRlbW9AdGVzdC5jb20iLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc4MzI0Nzg3NywiZXhwIjoxNzgzMjQ4Nzc3fQ.S0JyOD-2wnvsbvAEDcLcmpoaM3QKbNdC08QzfUi72fSOk8ejaa_DdzHvnDY0kbYi",
-                 "refreshToken":  "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJiNGIyZjFlMC1mZGEzLTQ0OWItYWFjZi1iZmUxYzllZTAwMjQiLCJlbWFpbCI6ImRlbW9AdGVzdC5jb20iLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc4MzI0Nzg3NywiZXhwIjoxNzgzODUyNjc3fQ.c0-dja7GLtvHn1BPYFu2Sv0wPkBIpJ6tkUxBxnfahHdn0XTwK2Btgu9lZw0D50-V",
+                 "accessToken":  "eyJ***REDACTED***",
+                 "refreshToken":  "eyJ***REDACTED***",
                  "userId":  "b4b2f1e0-fda3-449b-aacf-bfe1c9ee0024",
                  "email":  "demo@test.com",
                  "role":  "USER"
@@ -33135,7 +33165,8 @@ cd "e:\workspace\resume-pilot\resume-web"; npm run build 2>&1
 &gt; tsc -b &amp;&amp; vite build
 
 vite v8.1.3 building client environment for production...
-[2Ktransforming...✓ 119 modules transformed.
+[2K
+transforming...✓ 119 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                   0.46 kB │ gzip:   0.29 kB
@@ -59660,7 +59691,8 @@ cd "e:\workspace\resume-pilot\resume-web"; npm run build 2>&1
 &gt; tsc -b &amp;&amp; vite build
 
 vite v8.1.3 building client environment for production...
-[2Ktransforming...✓ 122 modules transformed.
+[2K
+transforming...✓ 122 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                   0.43 kB │ gzip:   0.28 kB
@@ -65602,7 +65634,8 @@ cd "e:\workspace\resume-pilot\resume-web"; npm run build 2>&1
 &gt; tsc -b &amp;&amp; vite build
 
 vite v8.1.3 building client environment for production...
-[2Ktransforming...✓ 122 modules transformed.
+[2K
+transforming...✓ 122 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                   0.59 kB │ gzip:   0.37 kB
@@ -66933,7 +66966,8 @@ cd "e:\workspace\resume-pilot\resume-web"; npm run build 2>&1
 &gt; tsc -b &amp;&amp; vite build
 
 vite v8.1.3 building client environment for production...
-[2Ktransforming...✓ 121 modules transformed.
+[2K
+transforming...✓ 121 modules transformed.
 ✗ Build failed in 141ms
 error during build:
 Build failed with 1 error:
@@ -67004,7 +67038,8 @@ cd "e:\workspace\resume-pilot\resume-web"; npm run build 2>&1
 &gt; tsc -b &amp;&amp; vite build
 
 vite v8.1.3 building client environment for production...
-[2Ktransforming...✓ 122 modules transformed.
+[2K
+transforming...✓ 122 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                   0.59 kB │ gzip:   0.37 kB
@@ -67483,7 +67518,8 @@ cd "e:\workspace\resume-pilot\resume-web"; npm run build 2>&1
 &gt; tsc -b &amp;&amp; vite build
 
 vite v8.1.3 building client environment for production...
-[2Ktransforming...✓ 123 modules transformed.
+[2K
+transforming...✓ 123 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                   0.61 kB │ gzip:   0.38 kB
@@ -68499,7 +68535,8 @@ cd "e:\workspace\resume-pilot\resume-web"; npm run build 2>&1
 &gt; tsc -b &amp;&amp; vite build
 
 vite v8.1.3 building client environment for production...
-[2Ktransforming...✓ 123 modules transformed.
+[2K
+transforming...✓ 123 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                   0.61 kB │ gzip:   0.38 kB

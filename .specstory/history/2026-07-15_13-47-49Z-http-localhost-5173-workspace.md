@@ -10484,7 +10484,7 @@ Retry signup with regular email format
 `cd "C:\Temp\claude\e--workspace-resume-pilot\53c0fe0b-62d6-4c80-bae5-78f5b9831307\scratchpad" && curl -s -X POST http://localhost:8080/api/v1/auth/signup -H "Content-Type: application/json" -d '{"email":"llmverify0716@gmail.com","password":"Verify123!","name":"LLM Verify"}' | head -c 300`
 
 ```text
-{"success":true,"data":{"accessToken":"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI1YjhlNzIxZS0yYWVkLTRjZGEtODkxNi03NTNlNzNkMjIyZGUiLCJlbWFpbCI6ImxsbXZlcmlmeTA3MTZAZ21haWwuY29tIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3ODQxMzU3NTcsImV4cCI6MTc4NDEzNjY1NywianRpIjoiODZmN2UxYjctYjAzOC00MGFmLTliZTQtY2RkYmQxZTM3NzE0In0.izM9Efq-
+{"success":true,"data":{"accessToken":"eyJ***REDACTED***
 ```
 </details></tool-use>
 
@@ -10966,7 +10966,7 @@ _**Agent (claude-fable-5 2026-07-15 17:23:38Z)**_
 
 모든 테스트 통과. 최종 커밋·푸시 (SpecStory 재마스킹 포함, 한 번에 처리):
 
-_**Agent (claude-fable-5 2026-07-15 17:23:45Z)**_
+_**Agent (claude-fable-5 2026-07-15 17:24:22Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
 <summary>Tool use: **Bash**</summary>
@@ -11001,5 +11001,168 @@ git add .specstory resume-ai resume-api resume-web resume-admin prompt-service
 git diff --cached --name-only | head -30
 echo "---secret check on staged---"
 git diff --cached | grep -cE 'sk-proj-[A-Za-z0-9_-]{20,}|AQ\.[A-Za-z0-9_-]{30,}|github_pat_[A-Za-z0-9_]{20,}|sk-or-v1-[A-Za-z0-9]{20,}' || echo "STAGED_CLEAN"
+```
+
+```text
+.specstory/history\2026-07-15_13-47-49Z-http-localhost-5173-workspace.md: 5
+redaction done
+warning: LF will be replaced by CRLF in resume-api/src/main/resources/db/migration/V29__interview_keyword_llm.sql.
+The file will have its original line endings in your working directory
+.specstory/history/2026-07-15_13-47-49Z-http-localhost-5173-workspace.md
+prompt-service/app/services/prompt_service.py
+resume-admin/src/i18n/locales/en.json
+resume-admin/src/i18n/locales/ja.json
+resume-admin/src/i18n/locales/ko.json
+resume-admin/src/i18n/locales/zh.json
+resume-admin/src/pages/LlmSettingsPage.tsx
+resume-ai/app/main.py
+resume-ai/app/services/generation_service.py
+resume-ai/app/services/llm_service.py
+resume-api/src/main/java/com/resumepilot/domain/llm/LlmOperation.java
+resume-api/src/main/resources/db/migration/V29__interview_keyword_llm.sql
+resume-web/src/hooks/use-workspace-result.ts
+resume-web/src/i18n/locales/en.json
+resume-web/src/i18n/locales/ja.json
+resume-web/src/i18n/locales/ko.json
+resume-web/src/i18n/locales/zh.json
+resume-web/src/pages/WorkspacePage.tsx
+---secret check on staged---
+0
+STAGED_CLEAN
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:24:38Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Commit and push all LLM-first changes
+
+```bash
+cd e:/workspace/resume-pilot && git commit -m "feat: 면접 질문·키워드 비교 LLM 전환 및 AI 첨삭 토큰 한도 상향
+
+- INTERVIEW_QUESTIONS·KEYWORD_COMPARE 프롬프트 템플릿·LLM 라우트 추가(V29)
+- 면접 질문·키워드 비교를 규칙 기반에서 LLM 우선(실패 시 폴백)으로 전환
+- AI_REVIEW 8192·AI_DETECTION 4096·INTERVIEW 4096 토큰으로 상향(한국어 JSON 응답 잘림 해결)
+- 저장된 공고 선택 시 키워드 소스를 techKeywords+requiredSkills 등으로 확장
+- 면접·키워드 폴백 배지 표시, admin LLM 설정 화면에 신규 operation 반영
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>" && git push 2>&1 | tail -3
+```
+
+```text
+[master f29f508] feat: 면접 질문·키워드 비교 LLM 전환 및 AI 첨삭 토큰 한도 상향
+ 18 files changed, 2782 insertions(+), 23 deletions(-)
+ create mode 100644 resume-api/src/main/resources/db/migration/V29__interview_keyword_llm.sql
+To github.com:ktdvlp-jih/resume-pilot.git
+   c7c8544..f29f508  master -> master
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:25:00Z)**_
+
+<tool-use data-tool-type="task" data-tool-name="TodoWrite"><details>
+<summary>Tool use: **TodoWrite**</summary>
+**Agent task list:**
+- [X] 🌡️ SpecStory 파일 비밀키 마스킹 후 커밋 amend·푸시
+- [X] 🌡️ 1번: AI_REVIEW max_tokens 상향
+- [X] 🌡️ 2번: 면접 질문 LLM 기반 구현
+- [X] 🌡️ 3번: 키워드 비교 LLM 기반 구현 + 프론트 키워드 소스 수정
+- [X] 🌡️ 영향 화면 수정 (폴백 배지·i18n·admin)
+- [X] 🌡️ 마이그레이션 DB 적용 및 서비스 반영
+- [X] 🌡️ 전체 검증: 빌드·컴파일·실제 LLM 호출 테스트
+
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 17:25:25Z)**_
+
+모두 완료하고 검증까지 마쳤습니다. 커밋 2개 푸시됨 (`c7c8544`, `f29f508`).
+
+## 실제 LLM 호출 검증 결과 (전부 gemini-2.5-flash, 폴백 없음)
+
+| 기능 | 결과 |
+|------|------|
+| 예상 면접 질문 | 자소서 내용을 직접 인용한 실전 질문 7개 ("MS-SQL 쿼리 튜닝으로 40% 단축했다고 했는데, 어떤 쿼리에서…" HARD 등) |
+| 키워드 비교 | 의미 기반 매칭 (Spring Boot→java, MS-SQL→rdbms 인정) |
+| AI 첨삭 | 문단별 강점·약점 + 개선안, 공고 키워드(EHS)와 대조한 실질 피드백 |
+| 품질 점수 | `scored_by: llm` — 기업적합도 90·STAR 70~80 등 내용 따라 변별력 있게 산정 |
+| 전체 생성 플로우 | 경험 등록→생성→탐지→첨삭→점수 전 구간 LLM, `ai_usage_logs`에 모델명 기록 확인 |
+
+테스트: resume-ai 46개·prompt-service 1개 전부 통과, web/admin 빌드 성공, resume-api Flyway V29까지 정상 적용.
+
+## 이번에 고친 원인들
+
+1. **토큰 한도** — 한국어 JSON 응답이 2048 토큰에서 잘려 파싱 실패 → 조용히 규칙 기반 폴백되던 게 근본 원인. AI_REVIEW 8192, AI_DETECTION·INTERVIEW 4096으로 상향.
+2. **면접 질문** — 애초에 LLM 미구현(고정 템플릿) → `INTERVIEW_QUESTIONS` 프롬프트·라우트 신설(V29)로 LLM 전환.
+3. **키워드 비교** — 단순 단어 교집합 + 저장된 공고 선택 시 키워드가 빈 배열이 되는 버그 → LLM 의미 비교로 전환하고 키워드 소스를 requiredSkills 등까지 확장.
+4. 모든 폴백 경로에 **경고 로그 + 화면 배지**를 넣어 이제 가짜 결과가 조용히 나가는 일은 없습니다.
+
+## 참고사항 2가지
+
+- **서비스는 제가 백그라운드로 띄워뒀습니다** (resume-ai/prompt/rag/resume-api 모두 새 코드로 기동 중). 프론트 dev 서버(5173)는 꺼져 있으니 `npm run dev`로 띄우고 워크스페이스에서 새로 생성해보세요.
+- **보안**: SpecStory 기록에 실제 API 키(Gemini·OpenAI·GitHub PAT·OpenRouter)가 평문으로 저장돼 푸시가 차단됐었습니다. 파일에서는 마스킹했지만 키 자체는 이미 노출된 적이 있으므로 **4개 키 모두 재발급(rotate)을 권장**합니다. 특히 admin 화면의 runtime-config 응답이 복호화된 키를 그대로 반환하는 구조라 대화 기록에 남기 쉽습니다.
+
+---
+
+_**User (2026-07-15 22:59:58Z)**_
+
+왜 계속 키를 노출하는거야
+대화기록 도 지우고
+일단 커밋 푸쉬해줘
+
+---
+
+_**Agent (claude-fable-5 2026-07-15 23:00:21Z)**_
+
+_**Agent (claude-fable-5 2026-07-15 23:00:23Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Check working tree status
+
+`cd e:/workspace/resume-pilot && git status --short`
+
+```text
+ M .claude/settings.json
+ M .specstory/history/2026-07-15_13-47-49Z-http-localhost-5173-workspace.md
+```
+</details></tool-use>
+
+_**Agent (claude-fable-5 2026-07-15 23:00:37Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Redact keys in SpecStory history, stage, verify clean
+
+```bash
+cd e:/workspace/resume-pilot && python - <<'EOF'
+import re, io, glob
+patterns = [
+    (r'sk-proj-[A-Za-z0-9_-]{20,}', 'sk-proj-***REDACTED***'),
+    (r'sk-or-v1-[A-Za-z0-9]{20,}', 'sk-or-v1-***REDACTED***'),
+    (r'github_pat_[A-Za-z0-9_]{20,}', 'github_pat_***REDACTED***'),
+    (r'ghp_[A-Za-z0-9]{20,}', 'ghp_***REDACTED***'),
+    (r'AQ\.[A-Za-z0-9_-]{30,}', 'AQ.***REDACTED***'),
+    (r'AIza[A-Za-z0-9_-]{30,}', 'AIza***REDACTED***'),
+    (r'eyJhbGciOiJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{20,}(\.[A-Za-z0-9_-]{5,})?', 'eyJ***REDACTED***'),
+]
+total_all = 0
+for path in glob.glob('.specstory/history/*.md'):
+    with io.open(path, encoding='utf-8') as f:
+        text = f.read()
+    total = 0
+    for pat, repl in patterns:
+        text, n = re.subn(pat, repl, text)
+        total += n
+    if total:
+        with io.open(path, 'w', encoding='utf-8') as f:
+            f.write(text)
+        print(f'{path}: {total}건 마스킹')
+    total_all += total
+print('done, total:', total_all)
+EOF
+git add .specstory .claude
+echo "---staged secret check---"
+git diff --cached | grep -cE 'sk-proj-[A-Za-z0-9_-]{20,}|AQ\.[A-Za-z0-9_-]{30,}|github_pat_[A-Za-z0-9_]{20,}|sk-or-v1-[A-Za-z0-9]{20,}|eyJhbGciOiJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{20,}' || echo "STAGED_CLEAN"
 ```
 </details></tool-use>
