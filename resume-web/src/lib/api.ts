@@ -259,6 +259,7 @@ export const api = {
     jobAnalysis?: Record<string, unknown>;
     jobPostingId?: string;
     sectionTitles?: string[];
+    experienceIds?: string[];
   }) =>
     request<Record<string, unknown>>('/api/v1/ai/generate', {
       method: 'POST',
@@ -268,6 +269,7 @@ export const api = {
         jobAnalysis: data.jobAnalysis,
         jobPostingId: data.jobPostingId,
         sectionTitles: data.sectionTitles,
+        experienceIds: data.experienceIds,
       }),
     }),
   detectAi: (content: string) =>

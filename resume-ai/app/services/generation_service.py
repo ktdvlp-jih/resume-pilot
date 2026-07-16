@@ -36,6 +36,7 @@ class GenerationService:
                 request["user_id"],
                 request.get("keywords", []),
                 request.get("job_analysis"),
+                request.get("experience_ids"),
             )
         except Exception as exc:
             logger.warning("RAG context build failed: %s", exc)

@@ -22,4 +22,5 @@ class ContextBuildRequest(BaseModel):
     user_id: str
     keywords: list[str]
     job_analysis: dict[str, Any] | None = None
+    experience_ids: list[str] = Field(default_factory=list)
     top_k: int = Field(default=5, ge=1, le=20)

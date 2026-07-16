@@ -37,12 +37,14 @@ public class AiOrchestrationService {
             log.warn("문체 자동 분석 스킵 (userId={}): {}", userId, e.getMessage());
         }
         long start = System.currentTimeMillis();
+        List<String> selectedExperienceIds = filterOwnedExperienceIds(userId, request.experienceIds());
         Map<String, Object> payload = new HashMap<>();
         payload.put("user_id", userId.toString());
         payload.put("keywords", request.keywords());
         payload.put("rewrite_level", request.rewriteLevel());
         payload.put("job_analysis", request.jobAnalysis());
         payload.put("section_titles", request.sectionTitles());
+        payload.put("experience_ids", selectedExperienceIds);
         payload.put("forbidden_expressions", getForbiddenList());
 
         Map<String, Object> result = aiGatewayClient.generateResume(payload);
@@ -54,7 +56,7 @@ public class AiOrchestrationService {
                     .userId(userId)
                     .jobPostingId(request.jobPostingId())
                     .rewriteLevel(request.rewriteLevel())
-                    .inputContext(Map.of("keywords", request.keywords(), "job_analysis", request.jobAnalysis() != null ? request.jobAnalysis() : Map.of()))
+                    .inputContext(Map.of("keywords", request.keywords(), "job_analysis", request.jobAnalysis() != null ? request.jobAnalysis() : Map.of(), "experience_ids", selectedExperienceIds))
                     .outputContent(String.valueOf(result.get("content")))
                     .qualityScores(castMap(result.get("quality_scores")))
                     .experienceIds(toStringList(result.get("experience_ids")))
@@ -107,6 +109,14 @@ public class AiOrchestrationService {
                 .map(g -> new AiGenerationResponse(g.getId(), g.getOutputContent(), g.getRewriteLevel(),
                         g.getQualityScores(), g.getExperienceIds(), g.getCreatedAt()))
                 .toList();
+    }
+
+    private List<String> filterOwnedExperienceIds(UUID userId, List<UUID> experienceIds) {
+        if (experienceIds == null || experienceIds.isEmpty()) return List.of();
+        Set<String> owned = new HashSet<>();
+        experienceRepository.findByUserIdOrderByUpdatedAtDesc(userId)
+                .forEach(e -> owned.add(e.getId().toString()));
+        return experienceIds.stream().map(UUID::toString).filter(owned::contains).toList();
     }
 
     private void validateExperienceIds(UUID userId, Map<String, Object> result) {

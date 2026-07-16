@@ -10,10 +10,21 @@ _shared_client = httpx.AsyncClient(
 
 
 class RagClient:
-    async def build_context(self, user_id: str, keywords: list[str], job_analysis: dict | None = None) -> dict:
+    async def build_context(
+        self,
+        user_id: str,
+        keywords: list[str],
+        job_analysis: dict | None = None,
+        experience_ids: list[str] | None = None,
+    ) -> dict:
         response = await _shared_client.post(
             f"{settings.rag_service_url}/context/build",
-            json={"user_id": user_id, "keywords": keywords, "job_analysis": job_analysis},
+            json={
+                "user_id": user_id,
+                "keywords": keywords,
+                "job_analysis": job_analysis,
+                "experience_ids": experience_ids or [],
+            },
         )
         response.raise_for_status()
         return response.json()["data"]

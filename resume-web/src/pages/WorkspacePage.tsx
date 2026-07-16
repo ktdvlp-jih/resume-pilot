@@ -229,7 +229,8 @@ export default function WorkspacePage() {
     setRecommendError('');
     try {
       const { keywords: kw } = await getJobContext();
-      const rec = await api.recommendExperiences(kw);
+      // 문항 제목(성장과정/지원동기 등)도 검색어에 포함시켜, 구성한 문항이 바뀌면 추천도 함께 갱신되도록 한다.
+      const rec = await api.recommendExperiences([...kw, ...sectionTitles]);
       setBundle({ recommended: rec.map((r) => ({ id: r.id, title: r.title, score: r.score })) });
     } catch (err) {
       setRecommendError(err instanceof Error ? err.message : t('workspace.recommendFailed'));
@@ -243,7 +244,14 @@ export default function WorkspacePage() {
     setError('');
     try {
       const { jobAnalysis, keywords: kw, jobPostingId } = await getJobContext();
-      const res = await api.generateAi({ keywords: kw, rewriteLevel, jobAnalysis, jobPostingId, sectionTitles });
+      const res = await api.generateAi({
+        keywords: kw,
+        rewriteLevel,
+        jobAnalysis,
+        jobPostingId,
+        sectionTitles,
+        experienceIds: Array.from(selectedExperienceIds),
+      });
       setBundle({ result: res, interview: [], interviewFallback: false, keywords: null });
       setJustGenerated(true);
       if (res.content) {
