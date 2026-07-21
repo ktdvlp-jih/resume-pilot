@@ -12,7 +12,7 @@
 | **스킬** | `.cursor/skills/*/SKILL.md` | 긴 워크플로 |
 | **명령어** | `.cursor/commands/*.md` | 채팅 `/` 슬래시 명령 |
 | **훅** | `.cursor/hooks.json` | 쉘·세션 가드 |
-| **대화 이력** | `.specstory/history/` | SpecStory 동기화 |
+| **대화 이력** | `.specstory/history/` | SpecStory (로컬 전용, Git 제외) |
 
 ## 규칙 (Rules)
 
@@ -20,7 +20,7 @@
 |------|------|
 | `resume-pilot-project.mdc` | 항상 — 프로젝트 정체성 |
 | `secrets-handling.mdc` | 항상 — 키·`.env` 금지 |
-| `specstory-commit.mdc` | 항상 — SpecStory 커밋 |
+| `specstory-commit.mdc` | 항상 — SpecStory Git 제외 |
 | `git-commit-ko.mdc` | 항상 — 커밋 메시지 한글 |
 | `resume-pilot-backend.mdc` | `resume-api/src/main/java/**` |
 | `resume-pilot-frontend.mdc` | `resume-web/**`, `resume-admin/**` |

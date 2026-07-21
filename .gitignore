@@ -95,8 +95,8 @@ logs/
 .docker-deploy-ci/
 docker-data/
 
-# SpecStory — 자주 바뀌는 메타만 제외 (history/*.md 는 Git 동기화)
-.specstory/statistics.json
+# SpecStory — 로컬 전용 (대화에 API 키 등이 섞일 수 있어 Git 제외)
+.specstory/
 
 # 로컬 API 스모크 테스트 payload (Cursor 임시 생성)
 tmp-smoke-eval.json

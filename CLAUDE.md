@@ -19,7 +19,7 @@
 | 실행 가이드 | `docs/실행-가이드.md` |
 | 설치·배포 | `docs/설치-가이드.md`, `docs/인프라-구성.md` |
 | 아키텍처 | `docs/아키텍처.md` |
-| SpecStory | `.specstory/history/` — **커밋 포함** |
+| SpecStory | `.specstory/history/` — **로컬 전용** (Git 제외) |
 
 ## 핵심 원칙
 

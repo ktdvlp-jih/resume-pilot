@@ -17,7 +17,7 @@
 | 파일 | 적용 |
 |------|------|
 | `secrets-handling.md` | 항상 — 키·`.env` 금지 |
-| `specstory-commit.md` | 항상 — SpecStory 커밋 |
+| `specstory-commit.md` | 항상 — SpecStory Git 제외 |
 | `git-commit-ko.md` | 항상 — 커밋 메시지 한글 |
 | `backend.md` | `resume-api/src/main/java/**` |
 | `frontend.md` | `resume-web/**`, `resume-admin/**` |
