@@ -26,7 +26,7 @@
 ## 본문(선택)
 
 - 한글로 1~2문장, **왜** 변경했는지
-- SpecStory 동기화 커밋: `docs: SpecStory·Cursor 동기화`
+- SpecStory는 Git에 커밋하지 않음 (`.gitignore`)
 
 ## 금지
 
