@@ -304,11 +304,11 @@ export default function JobPostingsPage() {
             <Card>
               <CardContent className="space-y-4 pt-6 text-sm">
                 <div>
-                  <p className="text-muted-foreground">{t('jobPostings.company')}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t('jobPostings.company')}</p>
                   <p className="text-lg font-semibold">{analysis.companyName || '-'}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">{t('jobPostings.position')}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t('jobPostings.position')}</p>
                   <p>{analysis.position || '-'}</p>
                 </div>
                 <TagSection title={t('jobPostings.qualifications')} tags={analysis.qualifications ?? []} color="slate" />
@@ -323,13 +323,13 @@ export default function JobPostingsPage() {
                 <TagSection title={t('jobPostings.coreCompetencies')} tags={analysis.coreCompetencies} color="gray" />
                 {analysis.orgCulture && (
                   <div>
-                    <p className="text-muted-foreground">{t('jobPostings.orgCulture')}</p>
+                    <p className="text-xs font-medium text-muted-foreground">{t('jobPostings.orgCulture')}</p>
                     <p>{analysis.orgCulture}</p>
                   </div>
                 )}
                 {analysis.jobDescription && (
                   <div>
-                    <p className="text-muted-foreground">{t('jobPostings.summary')}</p>
+                    <p className="text-xs font-medium text-muted-foreground">{t('jobPostings.summary')}</p>
                     <p className="whitespace-pre-wrap leading-relaxed">{analysis.jobDescription}</p>
                   </div>
                 )}
@@ -346,8 +346,8 @@ function TagSection({ title, tags, color }: { title: string; tags: string[]; col
   if (!tags.length) return null;
   return (
     <div>
-      <p className="mb-1 text-muted-foreground">{title}</p>
-      <div className="flex flex-wrap gap-1">
+      <p className="mb-1.5 text-xs font-medium text-muted-foreground">{title}</p>
+      <div className="flex flex-wrap gap-1.5">
         {tags.map((tag) => (
           <span key={tag} className={cn('rounded-md px-2 py-0.5 text-xs', tagColors[color])}>
             {tag}

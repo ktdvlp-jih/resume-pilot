@@ -43,7 +43,7 @@ export default function LandingPage() {
               {t('landing.badge')}
             </Badge>
             <h1 className="text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl">{t('app.name')}</h1>
-            <p className="mt-4 text-lg text-muted-foreground md:text-xl">{t('landing.heroSubtitle')}</p>
+            <p className="mt-4 text-lg text-pretty text-muted-foreground md:text-xl">{t('landing.heroSubtitle')}</p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               {isLoggedIn ? (
                 <Button size="lg" asChild>

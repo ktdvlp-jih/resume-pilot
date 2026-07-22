@@ -92,6 +92,7 @@ export default function DashboardPage() {
                 <SortableTableHead label={t('dashboard.columns.title')} sortKey="title" activeKey={sortKey} direction={direction} onSort={toggleSort} />
                 <SortableTableHead label={t('dashboard.columns.company')} sortKey="company" activeKey={sortKey} direction={direction} onSort={toggleSort} className="hidden sm:table-cell" />
                 <SortableTableHead label={t('dashboard.columns.updated')} sortKey="updated" activeKey={sortKey} direction={direction} onSort={toggleSort} className="hidden md:table-cell" />
+                <TableHead className="text-right">{t('dashboard.columns.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableSkeletonRows rows={5} cols={4} />
@@ -135,7 +136,7 @@ export default function DashboardPage() {
                       </div>
                     </TableCell>
                     <TableCell className="hidden sm:table-cell text-muted-foreground">{r.companyName || '—'}</TableCell>
-                    <TableCell className="hidden md:table-cell text-muted-foreground">
+                    <TableCell className="hidden md:table-cell text-muted-foreground tabular-nums">
                       {new Date(r.updatedAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">

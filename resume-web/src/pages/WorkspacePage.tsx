@@ -588,7 +588,7 @@ export default function WorkspacePage() {
                   {keywords && (
                     <section className="space-y-1 text-sm">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-medium">{t('workspace.keywordCompare')}</h3>
+                        <h3 className="text-sm font-medium">{t('workspace.keywordCompare')}</h3>
                         {Boolean(keywords.fallback) && (
                           <Badge variant="outline" className="text-muted-foreground font-normal">
                             {t('workspace.keywordFallbackNotice')}

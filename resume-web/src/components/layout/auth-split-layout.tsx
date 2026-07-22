@@ -58,7 +58,7 @@ export function AuthSplitLayout({ children, title, subtitle }: AuthSplitLayoutPr
           <div className="w-full max-w-md space-y-6">
             <div className="space-y-1 text-center lg:text-left">
               <h2 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h2>
-              {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+              {subtitle && <p className="text-sm text-pretty text-muted-foreground">{subtitle}</p>}
             </div>
             {children}
           </div>
@@ -72,7 +72,7 @@ export function AuthFormCard({ children, className }: { children: ReactNode; cla
   return (
     <div
       className={cn(
-        'rounded-xl border border-border bg-card p-6 text-card-foreground shadow-sm ring-1 ring-foreground/10',
+        'rounded-xl border border-border bg-card p-6 text-card-foreground shadow-sm',
         className,
       )}
     >
