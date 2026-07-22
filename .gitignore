@@ -107,21 +107,21 @@ tmp-*.json
 
 # ---------------------------------------------------------------------------
 # Agent Skills (npx skills)
-# - 외부(Vercel 등) Skill 대부분은 "다운로드/링크"만을 위해 로컬에서 생성
-# - 프로젝트 커스텀 Skill만 커밋 소스 오브 트루스(source of truth)로 남김
+# - 외부(Vercel 등) Skill은 각 PC에서 npx skills add로 설치·링크 (커밋 안 함)
+# - 커스텀 Skill(api-smoke·deploy-smoke)은 .claude/skills·.cursor/skills에 직접 커밋
+#   → 상세: docs/AI-Agent-스킬-정책.md
 # ---------------------------------------------------------------------------
 
-# Vercel/외부로 받은 Skill은 기본적으로 커밋하지 않음
+# npx skills 소스 저장소(생성물) — 전체 무시
 .agents/skills/**
-!.agents/skills/api-smoke/
-!.agents/skills/api-smoke/SKILL.md
-!.agents/skills/deploy-smoke/
-!.agents/skills/deploy-smoke/SKILL.md
 
-# skills CLI가 생성하는 잠금/메타(재현은 install script/명령으로)
+# skills CLI가 생성하는 잠금/메타(재현은 정책 문서의 명령으로)
 skills-lock.json
 
-# Cursor/Claude 에이전트는 위 .agents를 기반으로 링크/복사되며,
-# 여기의 skills 폴더는 대개 생성물(로컬 링크)이라 커밋하지 않음
-.cursor/skills/
-.claude/skills/
+# 에이전트 스킬 폴더: npx가 만든 링크(Junction)는 무시, 커스텀 스킬만 예외로 커밋
+.cursor/skills/*
+!.cursor/skills/api-smoke/
+!.cursor/skills/deploy-smoke/
+.claude/skills/*
+!.claude/skills/api-smoke/
+!.claude/skills/deploy-smoke/

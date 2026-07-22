@@ -47,4 +47,4 @@
 
 ## SpecStory
 
-PC 전환: `git add .specstory .cursor` → commit → push. 이어가기: `/handoff`
+로컬 전용 (Git 제외). PC 전환: `git add .cursor .claude` → commit → push. 이어가기: `/handoff` (로컬 `.specstory/history/` 참조)
