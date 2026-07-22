@@ -44,6 +44,8 @@ export default defineConfig({
           /^\/actuator(?:\/|$)/,
         ],
         globPatterns: ['**/*.{js,css,html,ico,svg,woff2}'],
+        /* Pretendard 동적 서브셋(92개 woff2)은 unicode-range 기반 온디맨드 로딩 — 프리캐시 제외 */
+        globIgnores: ['**/PretendardVariable.subset*'],
       },
     }),
   ],
