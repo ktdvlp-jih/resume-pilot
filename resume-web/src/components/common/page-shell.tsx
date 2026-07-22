@@ -15,7 +15,7 @@ const widths = {
 
 export function PageShell({ children, className, size = 'xl' }: PageShellProps) {
   return (
-    <div className={cn('mx-auto w-full space-y-6', widths[size], className)}>
+    <div className={cn('mx-auto w-full space-y-6 md:space-y-8', widths[size], className)}>
       {children}
     </div>
   );

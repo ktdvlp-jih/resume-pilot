@@ -20,7 +20,7 @@ export function EmptyState({ icon, title, description, action, className }: Empt
         </div>
         <div className="space-y-1">
           <h3 className="text-base font-medium">{title}</h3>
-          {description && <p className="max-w-sm text-sm text-muted-foreground">{description}</p>}
+          {description && <p className="max-w-sm text-sm text-pretty text-muted-foreground">{description}</p>}
         </div>
         {action}
       </CardContent>

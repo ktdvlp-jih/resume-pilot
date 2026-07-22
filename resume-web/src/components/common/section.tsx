@@ -20,7 +20,7 @@ export function Section({
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-1">
             {title && <h2 className="text-lg font-semibold tracking-tight">{title}</h2>}
-            {description && <p className="text-sm text-muted-foreground">{description}</p>}
+            {description && <p className="text-sm text-pretty text-muted-foreground">{description}</p>}
           </div>
           {action}
         </div>
