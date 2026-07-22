@@ -27,7 +27,7 @@ export default defineConfig({
         short_name: 'ResumePilot',
         description: 'RAG 기반 기업 맞춤 자기소개서 작성·첨삭',
         theme_color: '#7c3aed',
-        background_color: '#0a0a0a',
+        background_color: '#fcfcfd',
         display: 'standalone',
         start_url: '/',
         icons: [

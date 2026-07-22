@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 type Theme = 'light' | 'dark';
 
 const ThemeContext = createContext<{ theme: Theme; toggle: () => void }>({
-  theme: 'dark',
+  theme: 'light',
   toggle: () => {},
 });
 
@@ -12,7 +12,7 @@ function applyTheme(theme: Theme) {
   localStorage.setItem('theme', theme);
 }
 
-const DEFAULT_THEME: Theme = 'dark';
+const DEFAULT_THEME: Theme = 'light';
 
 function resolveTheme(stored: string | null): Theme {
   if (stored === 'light' || stored === 'dark') return stored;

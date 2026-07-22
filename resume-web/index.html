@@ -4,7 +4,7 @@
     <script>
       (function () {
         var t = localStorage.getItem('theme');
-        if (t !== 'light') document.documentElement.classList.add('dark');
+        if (t === 'dark') document.documentElement.classList.add('dark');
       })();
     </script>
     <meta charset="UTF-8" />
