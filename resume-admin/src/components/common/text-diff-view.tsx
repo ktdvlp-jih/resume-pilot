@@ -72,7 +72,7 @@ export function TextDiffView({ rows, mode, labelA, labelB }: TextDiffViewProps) 
   if (mode === 'unified') {
     return (
       <div className="overflow-hidden rounded-lg border">
-        <div className="border-b bg-muted/50 px-4 py-2 text-sm font-medium">{t('versionCompare.unifiedView')}</div>
+        <div className="border-b bg-muted/50 px-4 py-2 text-sm font-medium">{t('prompts.unifiedView')}</div>
         <div className="overflow-x-auto font-mono text-sm">
           {rows.map((row, i) => (
             <UnifiedRow key={i} row={row} index={i} />
