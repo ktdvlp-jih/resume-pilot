@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { LogoMark } from '@/components/Logo';
 import { api, clearTokens, setTokens } from '@/lib/api';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-4">
           <div className="flex justify-end"><LanguageSwitcher className="w-36" /></div>
+          <div className="flex justify-center"><LogoMark size={40} /></div>
           <CardTitle className="text-center text-2xl">{t('auth.loginTitle')}</CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit}>

@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Building2, Bot, FileText, LogOut, ScrollText, Settings2, ShieldBan, Sparkles, Users } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { LogoMark } from '@/components/Logo';
 import { clearTokens } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,8 +37,16 @@ export function AdminSidebar() {
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
-        <a href="/admin/" className="flex items-center gap-2 px-2 py-1 font-semibold tracking-tight hover:text-primary">
-          ResumePilot
+        <a
+          href="/admin/"
+          aria-label="ResumePilot Admin"
+          className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 font-semibold tracking-tight transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        >
+          <LogoMark size={28} className="shrink-0" />
+          <span className="group-data-[collapsible=icon]:hidden">
+            ResumePilot
+            <span className="ml-1.5 text-xs font-medium text-muted-foreground">Admin</span>
+          </span>
         </a>
       </SidebarHeader>
       <SidebarContent>
