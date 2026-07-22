@@ -30,6 +30,13 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-tag-blue: var(--tag-blue);
+  --color-tag-green: var(--tag-green);
+  --color-tag-purple: var(--tag-purple);
+  --color-tag-orange: var(--tag-orange);
+  --color-tag-amber: var(--tag-amber);
+  --color-tag-teal: var(--tag-teal);
+  --color-tag-slate: var(--tag-slate);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -51,6 +58,14 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --shadow-2xs: 0 1px 2px 0 color-mix(in oklab, var(--shadow-color) 4%, transparent);
+  --shadow-xs: 0 1px 2px 0 color-mix(in oklab, var(--shadow-color) 6%, transparent);
+  --shadow-sm:
+    0 1px 2px 0 color-mix(in oklab, var(--shadow-color) 6%, transparent),
+    0 2px 8px -2px color-mix(in oklab, var(--shadow-color) 6%, transparent);
+  --shadow-md:
+    0 2px 4px -1px color-mix(in oklab, var(--shadow-color) 7%, transparent),
+    0 6px 16px -4px color-mix(in oklab, var(--shadow-color) 8%, transparent);
 }
 
 :root {
@@ -74,6 +89,14 @@
   --success-foreground: oklch(0.985 0.003 286);
   --warning: oklch(0.769 0.188 70.08);
   --warning-foreground: oklch(0.28 0.06 70);
+  --tag-blue: oklch(0.55 0.15 255);
+  --tag-green: oklch(0.55 0.14 150);
+  --tag-purple: oklch(0.55 0.18 300);
+  --tag-orange: oklch(0.6 0.14 50);
+  --tag-amber: oklch(0.62 0.13 80);
+  --tag-teal: oklch(0.55 0.11 185);
+  --tag-slate: oklch(0.45 0.02 286);
+  --shadow-color: oklch(0.2 0.04 293);
   --border: oklch(0.91 0.01 286);
   --input: oklch(0.91 0.01 286);
   --ring: oklch(0.541 0.281 293.009);
@@ -114,6 +137,14 @@
   --success-foreground: oklch(0.98 0.003 286);
   --warning: oklch(0.828 0.189 84.429);
   --warning-foreground: oklch(0.98 0.003 286);
+  --tag-blue: oklch(0.75 0.12 255);
+  --tag-green: oklch(0.76 0.13 150);
+  --tag-purple: oklch(0.78 0.13 300);
+  --tag-orange: oklch(0.78 0.13 55);
+  --tag-amber: oklch(0.8 0.12 85);
+  --tag-teal: oklch(0.76 0.1 185);
+  --tag-slate: oklch(0.75 0.02 286);
+  --shadow-color: oklch(0 0 0);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 14%);
   --ring: oklch(0.65 0.22 293);

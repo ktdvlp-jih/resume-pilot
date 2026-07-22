@@ -43,9 +43,9 @@ function UnifiedRow({ row, index }: { row: DiffRow; index: number }) {
   }
   if (row.kind === 'insert') {
     return (
-      <div key={index} className="flex border-b border-border/40 bg-emerald-500/10 px-2 py-0.5">
+      <div key={index} className="flex border-b border-border/40 bg-success/10 px-2 py-0.5">
         <LineNum n={row.rightNum} />
-        <span className="w-4 shrink-0 text-emerald-600 dark:text-emerald-400">+</span>
+        <span className="w-4 shrink-0 text-success">+</span>
         <span className="whitespace-pre-wrap break-all">{row.right}</span>
       </div>
     );
@@ -57,9 +57,9 @@ function UnifiedRow({ row, index }: { row: DiffRow; index: number }) {
         <span className="w-4 shrink-0 text-destructive">-</span>
         <span className="whitespace-pre-wrap break-all">{row.left}</span>
       </div>
-      <div key={`${index}-new`} className="flex border-b border-border/40 bg-emerald-500/10 px-2 py-0.5">
+      <div key={`${index}-new`} className="flex border-b border-border/40 bg-success/10 px-2 py-0.5">
         <LineNum n={row.rightNum} />
-        <span className="w-4 shrink-0 text-emerald-600 dark:text-emerald-400">+</span>
+        <span className="w-4 shrink-0 text-success">+</span>
         <span className="whitespace-pre-wrap break-all">{row.right}</span>
       </div>
     </>
@@ -72,7 +72,7 @@ export function TextDiffView({ rows, mode, labelA, labelB }: TextDiffViewProps) 
   if (mode === 'unified') {
     return (
       <div className="overflow-hidden rounded-lg border">
-        <div className="border-b bg-muted/50 px-4 py-2 text-sm font-medium">{t('prompts.unifiedView')}</div>
+        <div className="border-b bg-muted/50 px-4 py-2 text-sm font-medium">{t('versionCompare.unifiedView')}</div>
         <div className="overflow-x-auto font-mono text-sm">
           {rows.map((row, i) => (
             <UnifiedRow key={i} row={row} index={i} />
@@ -111,7 +111,7 @@ export function TextDiffView({ rows, mode, labelA, labelB }: TextDiffViewProps) 
           {rows.map((row, i) => {
             const bg =
               row.kind === 'insert' || row.kind === 'change'
-                ? 'bg-emerald-500/10'
+                ? 'bg-success/10'
                 : row.kind === 'delete'
                   ? 'bg-muted/30'
                   : '';
