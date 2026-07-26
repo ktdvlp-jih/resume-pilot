@@ -109,7 +109,9 @@ npx -y skills add ibelick/ui-skills -a cursor -a claude-code `
 npx -y skills add vercel-labs/skills --skill find-skills -a cursor -a claude-code -y
 ```
 
-### B-4) shadcn/ui (옵션)
+### B-4) shadcn/ui (표준)
+
+`resume-web`·`resume-admin`이 정식 shadcn 프로젝트(`components.json`)이고 UI 컴포넌트를 실사용하므로 표준으로 설치합니다.
 
 ```powershell
 npx -y skills add shadcn/ui --skill shadcn -a cursor -a claude-code -y
@@ -117,11 +119,15 @@ npx -y skills add shadcn/ui --skill shadcn -a cursor -a claude-code -y
 
 ### B-5) Code Review Expert (옵션)
 
+Cursor Bugbot 등과 겹칠 수 있어 필요할 때만 설치합니다.
+
 ```powershell
 npx -y skills add sanyuan0704/code-review-expert --skill code-review-expert -a cursor -a claude-code -y
 ```
 
 ### B-6) Cloudflare / Tunnel (옵션 — 문서·참고용)
+
+Docker + Quick Tunnel만 쓸 때는 불필요. Named Tunnel·Access 등 Zero Trust로 갈 때 설치합니다.
 
 ```powershell
 npx -y skills add cloudflare/skills -a cursor -a claude-code --skill cloudflare-one -y
@@ -158,7 +164,7 @@ ResumePilot은 **Docker 5컨테이너 배포**(Vercel 아님)·웹 전용이므�
 ## PC 전환 체크리스트
 
 1. `git pull` → 커스텀 2개는 즉시 인식 (Cursor·Claude Code 재시작)
-2. 섹션 **B-1 ~ B-3** 실행 → 표준 외부 스킬 설치
+2. 섹션 **B-1 ~ B-4** 실행 → 표준 외부 스킬 설치 (Vercel·ibelick·find-skills·shadcn)
 3. `npx skills ls -a claude-code`로 확인
 4. 스모크가 필요하면 채팅에 **A-2** 문장 붙여넣기
 
