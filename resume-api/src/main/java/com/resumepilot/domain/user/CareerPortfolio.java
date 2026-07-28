@@ -61,11 +61,20 @@ public class CareerPortfolio {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CertificationItem {
+        /** 사용자가 자유롭게 입력한 자격증 텍스트 (주 입력) */
+        private String text;
+        /** 외부 종목 API 등으로 보강된 공식 자격명 (선택) */
         private String name;
         private String issuer;
         private String issueDate;
         private String expiryDate;
         private String credentialId;
+        /** Q-Net 등 외부 종목 코드 */
+        private String externalCode;
+        /** 공식 종목 목록과 매칭됐는지 */
+        private Boolean matched;
+        /** 매칭 출처 (예: QNET) */
+        private String matchSource;
     }
 
     @Data

@@ -16,7 +16,17 @@ public record CareerPortfolioDto(
 
     public record EducationItemDto(String school, String major, String degree, String startDate, String endDate, String description) {}
 
-    public record CertificationItemDto(String name, String issuer, String issueDate, String expiryDate, String credentialId) {}
+    public record CertificationItemDto(
+            String text,
+            String name,
+            String issuer,
+            String issueDate,
+            String expiryDate,
+            String credentialId,
+            String externalCode,
+            Boolean matched,
+            String matchSource
+    ) {}
 
     public record SkillItemDto(String name, String level, String category) {}
 
@@ -40,7 +50,16 @@ public record CareerPortfolioDto(
                         .map(e -> new EducationItemDto(e.getSchool(), e.getMajor(), e.getDegree(), e.getStartDate(), e.getEndDate(), e.getDescription()))
                         .toList(),
                 portfolio.getCertifications() == null ? List.of() : portfolio.getCertifications().stream()
-                        .map(c -> new CertificationItemDto(c.getName(), c.getIssuer(), c.getIssueDate(), c.getExpiryDate(), c.getCredentialId()))
+                        .map(c -> new CertificationItemDto(
+                                displayText(c),
+                                c.getName(),
+                                c.getIssuer(),
+                                c.getIssueDate(),
+                                c.getExpiryDate(),
+                                c.getCredentialId(),
+                                c.getExternalCode(),
+                                c.getMatched(),
+                                c.getMatchSource()))
                         .toList(),
                 portfolio.getSkills() == null ? List.of() : portfolio.getSkills().stream()
                         .map(s -> new SkillItemDto(s.getName(), s.getLevel(), s.getCategory()))
@@ -81,10 +100,20 @@ public record CareerPortfolioDto(
         }
         if (certifications != null) {
             portfolio.setCertifications(certifications.stream()
-                    .map(c -> CareerPortfolio.CertificationItem.builder()
-                            .name(c.name()).issuer(c.issuer())
-                            .issueDate(c.issueDate()).expiryDate(c.expiryDate()).credentialId(c.credentialId())
-                            .build())
+                    .map(c -> {
+                        String text = firstNonBlank(c.text(), c.name());
+                        return CareerPortfolio.CertificationItem.builder()
+                                .text(text)
+                                .name(c.name())
+                                .issuer(c.issuer())
+                                .issueDate(c.issueDate())
+                                .expiryDate(c.expiryDate())
+                                .credentialId(c.credentialId())
+                                .externalCode(c.externalCode())
+                                .matched(c.matched())
+                                .matchSource(c.matchSource())
+                                .build();
+                    })
                     .toList());
         }
         if (skills != null) {
@@ -105,5 +134,17 @@ public record CareerPortfolioDto(
                     .build());
         }
         return portfolio;
+    }
+
+    private static String displayText(CareerPortfolio.CertificationItem c) {
+        return firstNonBlank(c.getText(), c.getName());
+    }
+
+    private static String firstNonBlank(String... values) {
+        if (values == null) return null;
+        for (String v : values) {
+            if (v != null && !v.isBlank()) return v;
+        }
+        return null;
     }
 }

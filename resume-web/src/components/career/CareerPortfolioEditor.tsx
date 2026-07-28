@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { CareerPortfolio, CareerItem, EducationItem, CertificationItem } from '@/lib/career-portfolio';
-import { emptyCareerItem, emptyEducationItem, emptyCertificationItem, SKILL_LEVELS } from '@/lib/career-portfolio';
+import { emptyCareerItem, emptyEducationItem, emptyCertificationItem, SKILL_LEVELS, certificationDisplayText } from '@/lib/career-portfolio';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { ArrowDown, ArrowUp, Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
 
 interface Props {
   value: CareerPortfolio;
@@ -61,20 +63,28 @@ export function CareerPortfolioEditor({ value, onChange }: Props) {
         <AddButton label={t('portfolio.addEducation')} onClick={() => patch({ educations: [...value.educations, emptyEducationItem()] })} />
       </Section>
 
-      <Section title={t('portfolio.certifications')} subtitle={t('portfolio.certificationsHint')}>
-        {value.certifications.map((item, i) => (
-          <ItemCard key={i} onRemove={() => patch({ certifications: value.certifications.filter((_, j) => j !== i) })}>
-            <CertificationFields
-              item={item}
-              onChange={(next) => {
-                const certifications = [...value.certifications];
-                certifications[i] = next;
-                patch({ certifications });
-              }}
-            />
-          </ItemCard>
-        ))}
-        <AddButton label={t('portfolio.addCertification')} onClick={() => patch({ certifications: [...value.certifications, emptyCertificationItem()] })} />
+      <Section
+        title={t('portfolio.certifications')}
+        subtitle={t('portfolio.certificationsHint')}
+        action={
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="gap-1 text-primary"
+            onClick={() => {
+              patch({ certifications: [...value.certifications, emptyCertificationItem()] });
+            }}
+          >
+            <Plus className="size-3.5" />
+            {t('portfolio.addCertification')}
+          </Button>
+        }
+      >
+        <CertificationList
+          items={value.certifications}
+          onChange={(certifications) => patch({ certifications })}
+        />
       </Section>
 
       <Section title={t('portfolio.skills')} subtitle={t('portfolio.skillsHint')}>
@@ -120,11 +130,24 @@ export function CareerPortfolioEditor({ value, onChange }: Props) {
   );
 }
 
-function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+function Section({
+  title,
+  subtitle,
+  children,
+  action,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
   return (
     <section>
-      <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
-      {subtitle && <p className="mt-1 mb-4 text-sm text-muted-foreground">{subtitle}</p>}
+      <div className="mb-1 flex items-start justify-between gap-3">
+        <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
+        {action}
+      </div>
+      {subtitle && <p className="mb-4 text-sm text-muted-foreground">{subtitle}</p>}
       {!subtitle && <div className="mb-4" />}
       <div className="space-y-3">{children}</div>
     </section>
@@ -186,16 +209,365 @@ function EducationFields({ item, onChange }: { item: EducationItem; onChange: (v
   );
 }
 
-function CertificationFields({ item, onChange }: { item: CertificationItem; onChange: (v: CertificationItem) => void }) {
+function CertificationList({
+  items,
+  onChange,
+}: {
+  items: CertificationItem[];
+  onChange: (next: CertificationItem[]) => void;
+}) {
   const { t } = useTranslation();
-  const set = (k: keyof CertificationItem, v: string) => onChange({ ...item, [k]: v });
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    const emptyIdx = items.findIndex((c) => !certificationDisplayText(c));
+    if (emptyIdx >= 0) setEditingIndex(emptyIdx);
+  }, [items]);
+
+  const updateAt = (index: number, next: CertificationItem) => {
+    const certifications = [...items];
+    certifications[index] = next;
+    onChange(certifications);
+  };
+
+  const removeAt = (index: number) => {
+    onChange(items.filter((_, j) => j !== index));
+    setEditingIndex((prev) => {
+      if (prev == null) return null;
+      if (prev === index) return null;
+      if (prev > index) return prev - 1;
+      return prev;
+    });
+  };
+
+  const move = (index: number, dir: -1 | 1) => {
+    const target = index + dir;
+    if (target < 0 || target >= items.length) return;
+    const next = [...items];
+    [next[index], next[target]] = [next[target], next[index]];
+    onChange(next);
+    setEditingIndex((prev) => {
+      if (prev === index) return target;
+      if (prev === target) return index;
+      return prev;
+    });
+  };
+
+  if (items.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
+        {t('portfolio.emptyCertifications')}
+      </div>
+    );
+  }
+
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      <Field label={t('portfolio.certName')} value={item.name} onChange={(v) => set('name', v)} />
-      <Field label={t('portfolio.issuer')} value={item.issuer} onChange={(v) => set('issuer', v)} />
-      <Field label={t('portfolio.issueDate')} value={item.issueDate} onChange={(v) => set('issueDate', v)} placeholder="2022-03" />
-      <Field label={t('portfolio.expiryDate')} value={item.expiryDate} onChange={(v) => set('expiryDate', v)} />
-      <Field label={t('portfolio.credentialId')} value={item.credentialId} onChange={(v) => set('credentialId', v)} className="sm:col-span-2" />
+    <div className="overflow-hidden rounded-xl border border-border bg-card">
+      {items.map((item, i) => {
+        const title = certificationDisplayText(item);
+        const isEditing = editingIndex === i || !title;
+        return (
+          <div
+            key={i}
+            className={i === 0 ? '' : 'border-t border-border'}
+          >
+            {isEditing ? (
+              <div className="space-y-3 p-4">
+                <CertificationFields
+                  item={item}
+                  compact
+                  onChange={(next) => updateAt(i, next)}
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <Field
+                    label={t('portfolio.issueDate')}
+                    value={item.issueDate ?? ''}
+                    onChange={(v) => updateAt(i, { ...item, issueDate: v })}
+                    placeholder="2022-03"
+                    className="min-w-[140px] flex-1"
+                  />
+                  <div className="ml-auto flex gap-1 pt-5">
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={!certificationDisplayText(item)}
+                      onClick={() => setEditingIndex(null)}
+                    >
+                      {t('common.done')}
+                    </Button>
+                    <Button type="button" size="sm" variant="ghost" className="text-destructive" onClick={() => removeAt(i)}>
+                      {t('common.delete')}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start gap-2 px-3 py-3.5 sm:px-4">
+                <div className="mt-0.5 flex flex-col gap-0.5">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="size-7 text-muted-foreground"
+                    disabled={i === 0}
+                    onClick={() => move(i, -1)}
+                    aria-label={t('common.moveUp')}
+                  >
+                    <ArrowUp className="size-3.5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="size-7 text-muted-foreground"
+                    disabled={i === items.length - 1}
+                    onClick={() => move(i, 1)}
+                    aria-label={t('common.moveDown')}
+                  >
+                    <ArrowDown className="size-3.5" />
+                  </Button>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm">
+                    <span className="font-semibold">{title}</span>
+                    {item.issueDate ? (
+                      <span className="text-muted-foreground">
+                        {' '}| {item.issueDate}
+                      </span>
+                    ) : null}
+                  </p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    {item.issuer
+                      || (item.matched ? t('portfolio.certMatchedBadge', { name: item.name || title }) : t('portfolio.certFreeText'))}
+                  </p>
+                </div>
+                <div className="flex shrink-0 gap-0.5">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="size-8"
+                    onClick={() => setEditingIndex(i)}
+                    aria-label={t('common.edit')}
+                  >
+                    <Pencil className="size-3.5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="size-8 text-destructive"
+                    onClick={() => removeAt(i)}
+                    aria-label={t('common.delete')}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function CertificationFields({
+  item,
+  onChange,
+  compact = false,
+}: {
+  item: CertificationItem;
+  onChange: (v: CertificationItem) => void;
+  compact?: boolean;
+}) {
+  const { t } = useTranslation();
+  const text = certificationDisplayText(item) || item.text || '';
+  const [open, setOpen] = useState(false);
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [matches, setMatches] = useState<Array<{
+    name: string;
+    seriesName?: string;
+    qualTypeName?: string;
+    issuer: string;
+    externalCode?: string;
+    matchSource: string;
+  }>>([]);
+  const [configured, setConfigured] = useState<boolean | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  const inputWrapRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const reqIdRef = useRef(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.getCertificationLookupStatus()
+      .then((s) => { if (!cancelled) setConfigured(s.configured); })
+      .catch(() => { if (!cancelled) setConfigured(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const updateMenuPos = () => {
+    const el = inputWrapRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setMenuPos({
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width,
+    });
+  };
+
+  useLayoutEffect(() => {
+    if (!open || matches.length === 0) {
+      setMenuPos(null);
+      return;
+    }
+    updateMenuPos();
+    const onReposition = () => updateMenuPos();
+    window.addEventListener('resize', onReposition);
+    window.addEventListener('scroll', onReposition, true);
+    return () => {
+      window.removeEventListener('resize', onReposition);
+      window.removeEventListener('scroll', onReposition, true);
+    };
+  }, [open, matches.length, text]);
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      const target = e.target as Node;
+      if (inputWrapRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
+    }
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const q = text.trim();
+    if (!q || configured === false) {
+      setMatches([]);
+      setLookupLoading(false);
+      return;
+    }
+    if (configured === null) return;
+    if (item.matched && item.name === q) {
+      setMatches([]);
+      setOpen(false);
+      return;
+    }
+
+    const reqId = ++reqIdRef.current;
+    setLookupLoading(true);
+    const timer = window.setTimeout(async () => {
+      try {
+        const res = await api.lookupCertification(q);
+        if (reqId !== reqIdRef.current) return;
+        if (!res.configured) {
+          setConfigured(false);
+          setMatches([]);
+          return;
+        }
+        setConfigured(true);
+        const next = res.success ? (res.matches ?? []) : [];
+        setMatches(next);
+        setOpen(next.length > 0);
+      } catch {
+        if (reqId === reqIdRef.current) setMatches([]);
+      } finally {
+        if (reqId === reqIdRef.current) setLookupLoading(false);
+      }
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [text, configured, item.matched, item.name]);
+
+  const selectMatch = (m: (typeof matches)[number]) => {
+    onChange({
+      ...item,
+      text: m.name,
+      name: m.name,
+      issuer: m.issuer,
+      externalCode: m.externalCode,
+      matched: true,
+      matchSource: m.matchSource,
+    });
+    setMatches([]);
+    setOpen(false);
+  };
+
+  const showMenu = open && matches.length > 0 && menuPos;
+
+  return (
+    <div className="space-y-2">
+      {!compact ? <Label>{t('portfolio.certText')}</Label> : null}
+      <div ref={inputWrapRef} className="relative">
+        <Input
+          value={text}
+          placeholder={t('portfolio.certTextPlaceholder')}
+          autoComplete="off"
+          onFocus={() => {
+            if (matches.length > 0) setOpen(true);
+          }}
+          onChange={(e) =>
+            onChange({
+              ...item,
+              text: e.target.value,
+              matched: false,
+              matchSource: undefined,
+              externalCode: undefined,
+              name: undefined,
+              issuer: undefined,
+            })
+          }
+        />
+        {lookupLoading ? (
+          <Loader2 className="pointer-events-none absolute top-1/2 right-3 size-3.5 -translate-y-1/2 animate-spin text-muted-foreground" />
+        ) : null}
+      </div>
+      {showMenu
+        ? createPortal(
+            <div
+              ref={menuRef}
+              style={{
+                position: 'fixed',
+                top: menuPos.top,
+                left: menuPos.left,
+                width: menuPos.width,
+                maxHeight: 312,
+              }}
+              className="z-50 overflow-y-auto rounded-lg border border-input bg-popover p-1 shadow-md"
+            >
+              <ul>
+                {matches.map((m) => (
+                  <li key={`${m.externalCode ?? ''}-${m.name}`}>
+                    <button
+                      type="button"
+                      className="flex w-full flex-col items-start gap-0.5 rounded-md px-2.5 py-2 text-left text-sm hover:bg-muted"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => selectMatch(m)}
+                    >
+                      <span className="font-medium">{m.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {[m.qualTypeName, m.seriesName, m.issuer].filter(Boolean).join(' · ')}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>,
+            document.body,
+          )
+        : null}
+      {!compact ? <p className="text-xs text-muted-foreground">{t('portfolio.certTextHint')}</p> : null}
+      {item.matched && item.name ? (
+        <Badge variant="secondary" className="font-normal">
+          {t('portfolio.certMatchedBadge', { name: item.name })}
+        </Badge>
+      ) : null}
+      {configured === false ? (
+        <p className="text-xs text-muted-foreground">{t('portfolio.certLookupNotConfigured')}</p>
+      ) : null}
     </div>
   );
 }

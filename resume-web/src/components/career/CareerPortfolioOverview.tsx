@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { CareerPortfolio } from '@/lib/career-portfolio';
-import { portfolioCompletion } from '@/lib/career-portfolio';
+import { portfolioCompletion, certificationDisplayText } from '@/lib/career-portfolio';
 import { brandSurfaceClass, brandSurfaceMutedClass } from '@/lib/brand-surface';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -97,13 +97,26 @@ export function CareerPortfolioOverview({ name, portfolio }: Props) {
             {portfolio.certifications.length === 0 ? (
               <EmptyHint text={t('portfolio.emptyCertifications')} />
             ) : (
-              <ul className="space-y-2">
-                {portfolio.certifications.map((c, i) => (
-                  <li key={i}>
-                    <p className="text-sm font-medium">{c.name}</p>
-                    <p className="text-xs text-muted-foreground">{c.issuer} · {c.issueDate}</p>
-                  </li>
-                ))}
+              <ul className="divide-y divide-border">
+                {portfolio.certifications.map((c, i) => {
+                  const title = certificationDisplayText(c);
+                  if (!title) return null;
+                  return (
+                    <li key={i} className="py-2 first:pt-0 last:pb-0">
+                      <p className="text-sm">
+                        <span className="font-medium">{title}</span>
+                        {c.issueDate ? (
+                          <span className="text-muted-foreground"> | {c.issueDate}</span>
+                        ) : null}
+                      </p>
+                      {(c.issuer || c.matched) && (
+                        <p className="text-xs text-muted-foreground">
+                          {c.issuer || t('portfolio.certMatchedBadge', { name: c.name || title })}
+                        </p>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </CardContent>

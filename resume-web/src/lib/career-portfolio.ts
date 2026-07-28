@@ -16,11 +16,17 @@ export interface EducationItem {
 }
 
 export interface CertificationItem {
-  name: string;
-  issuer: string;
-  issueDate: string;
-  expiryDate: string;
-  credentialId: string;
+  /** 자유 입력 텍스트 (주 입력) */
+  text: string;
+  /** 외부 종목 API 보강 필드 (선택) */
+  name?: string;
+  issuer?: string;
+  issueDate?: string;
+  expiryDate?: string;
+  credentialId?: string;
+  externalCode?: string;
+  matched?: boolean;
+  matchSource?: string;
 }
 
 export interface SkillItem {
@@ -64,12 +70,12 @@ export const emptyEducationItem = (): EducationItem => ({
 });
 
 export const emptyCertificationItem = (): CertificationItem => ({
-  name: '',
-  issuer: '',
-  issueDate: '',
-  expiryDate: '',
-  credentialId: '',
+  text: '',
 });
+
+export function certificationDisplayText(c: CertificationItem): string {
+  return (c.text || c.name || '').trim();
+}
 
 export const emptySkillItem = (): SkillItem => ({
   name: '',
@@ -99,7 +105,17 @@ export function normalizeCareerPortfolio(raw?: Partial<CareerPortfolio> | null):
   return {
     careers: raw.careers?.length ? raw.careers : [],
     educations: raw.educations?.length ? raw.educations : [],
-    certifications: raw.certifications?.length ? raw.certifications : [],
+    certifications: (raw.certifications ?? []).map((c) => ({
+      text: (c.text || c.name || '').trim(),
+      name: c.name,
+      issuer: c.issuer,
+      issueDate: c.issueDate,
+      expiryDate: c.expiryDate,
+      credentialId: c.credentialId,
+      externalCode: c.externalCode,
+      matched: c.matched,
+      matchSource: c.matchSource,
+    })),
     skills: raw.skills?.length ? raw.skills : [],
     careerStatement: raw.careerStatement ?? '',
     coverLetter: { ...emptyCoverLetter(), ...raw.coverLetter },
@@ -111,7 +127,7 @@ export function portfolioCompletion(p: CareerPortfolio): number {
   const total = 10;
   if (p.careers.some((c) => c.company || c.position)) filled++;
   if (p.educations.some((e) => e.school)) filled++;
-  if (p.certifications.some((c) => c.name)) filled++;
+  if (p.certifications.some((c) => certificationDisplayText(c))) filled++;
   if (p.skills.some((s) => s.name)) filled++;
   if (p.careerStatement?.trim()) filled++;
   const cl = p.coverLetter;
