@@ -571,7 +571,7 @@ export default function JobPostingsPage() {
   );
 
   return (
-    <PageShell size="wide">
+    <PageShell>
       <PageHeader title={t('jobPostings.title')} action={layoutToggle} />
 
       {importCard}

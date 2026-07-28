@@ -58,7 +58,7 @@ export default function SettingsPage() {
   const pct = portfolioCompletion(portfolio);
 
   return (
-    <PageShell size="md">
+    <PageShell>
       <PageHeader title={t('settings.myPage')} description={t('settings.myPageSubtitle')} />
 
       <Tabs value={tab} onValueChange={setTab}>

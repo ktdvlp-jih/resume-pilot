@@ -40,7 +40,7 @@ export default function WritingStylePage() {
   const resumesWithContent = resumes.filter((r) => r.latestContent);
 
   return (
-    <PageShell size="md">
+    <PageShell>
       <PageHeader title={t('writingStyle.title')} description={t('writingStyle.description')} />
 
       {resumesWithContent.length > 0 && (

@@ -41,7 +41,7 @@ export default function VersionComparePage() {
   const changed = countChangedLines(rows);
 
   return (
-    <PageShell size="lg">
+    <PageShell>
       <PageBreadcrumb
         items={[
           { label: t('nav.dashboard'), href: '/dashboard' },

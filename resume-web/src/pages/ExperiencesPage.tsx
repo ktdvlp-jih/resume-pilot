@@ -117,7 +117,7 @@ export default function ExperiencesPage() {
   });
 
   return (
-    <PageShell size="lg">
+    <PageShell>
       <PageHeader
         title={t('experiences.title')}
         action={
