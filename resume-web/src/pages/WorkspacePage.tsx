@@ -265,13 +265,22 @@ export default function WorkspacePage() {
     return { jobAnalysis, keywords: kw, jobPostingId: selectedPostingId || undefined };
   };
 
+  const recommendSeq = useRef(0);
+
   const handleRecommend = async () => {
+    if (!jobText && !selectedPostingId) {
+      setBundle({ recommended: [] });
+      setSelectedExperienceIds(new Set());
+      return;
+    }
+    const seq = ++recommendSeq.current;
     setRecommendLoading(true);
     setRecommendError('');
     try {
       const { keywords: kw } = await getJobContext();
       // 문항 제목(성장과정/지원동기 등)도 검색어에 포함시켜, 구성한 문항이 바뀌면 추천도 함께 갱신되도록 한다.
       const rec = await api.recommendExperiences([...kw, ...sectionTitles], MAX_EXPERIENCES);
+      if (seq !== recommendSeq.current) return;
       setBundle({
         recommended: rec
           .slice(0, MAX_EXPERIENCES)
@@ -279,14 +288,33 @@ export default function WorkspacePage() {
       });
       setSelectedExperienceIds((prev) => {
         const allowed = new Set(rec.slice(0, MAX_EXPERIENCES).map((r) => r.id));
-        return new Set([...prev].filter((id) => allowed.has(id)).slice(0, MAX_EXPERIENCES));
+        // 공고 전환 직후에는 이전 선택을 유지하되, 새 추천에 없는 ID는 제거
+        const kept = [...prev].filter((id) => allowed.has(id)).slice(0, MAX_EXPERIENCES);
+        return new Set(kept);
       });
     } catch (err) {
+      if (seq !== recommendSeq.current) return;
       setRecommendError(err instanceof Error ? err.message : t('workspace.recommendFailed'));
     } finally {
-      setRecommendLoading(false);
+      if (seq === recommendSeq.current) setRecommendLoading(false);
     }
   };
+
+  // 공고·문항이 바뀌면 관련 경험 추천을 자동 갱신
+  const sectionTitlesKey = sectionTitles.join('\u0001');
+  useEffect(() => {
+    if (!jobText && !selectedPostingId) {
+      setBundle({ recommended: [] });
+      setSelectedExperienceIds(new Set());
+      return;
+    }
+    const delay = selectedPostingId ? 200 : 500;
+    const timer = window.setTimeout(() => {
+      void handleRecommend();
+    }, delay);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 공고/문항/공고텍스트 변경 시에만 자동 추천
+  }, [selectedPostingId, sectionTitlesKey, jobText]);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -479,6 +507,15 @@ export default function WorkspacePage() {
                 <AlertDescription>{recommendError}</AlertDescription>
               </Alert>
             )}
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">{t('workspace.recommendAutoHint')}</p>
+              {recommendLoading ? (
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Loader2 className="size-3 animate-spin" />
+                  {t('common.generating')}
+                </span>
+              ) : null}
+            </div>
             <Button
               variant="secondary"
               className="w-full"
