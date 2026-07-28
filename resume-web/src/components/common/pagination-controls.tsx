@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,25 @@ type PaginationControlsProps = {
   className?: string;
 };
 
+type PageItem = number | 'ellipsis';
+
+function buildPageItems(page: number, totalPages: number): PageItem[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  const items: PageItem[] = [1];
+  const start = Math.max(2, page - 1);
+  const end = Math.min(totalPages - 1, page + 1);
+
+  if (start > 2) items.push('ellipsis');
+  for (let p = start; p <= end; p += 1) items.push(p);
+  if (end < totalPages - 1) items.push('ellipsis');
+  items.push(totalPages);
+
+  return items;
+}
+
 export function PaginationControls({
   page,
   totalPages,
@@ -23,6 +43,7 @@ export function PaginationControls({
   className,
 }: PaginationControlsProps) {
   const { t } = useTranslation();
+  const pageItems = useMemo(() => buildPageItems(page, totalPages), [page, totalPages]);
 
   if (total === 0) return null;
 
@@ -31,31 +52,51 @@ export function PaginationControls({
       <p className="text-sm text-muted-foreground">
         {t('common.paginationSummary', { from, to, total })}
       </p>
-      <div className="flex items-center gap-1">
+      <nav className="flex items-center gap-1" aria-label={t('common.pagination', { defaultValue: 'Pagination' })}>
         <Button
           variant="outline"
-          size="sm"
+          size="icon-sm"
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
           aria-label={t('common.previous')}
         >
           <ChevronLeft className="size-4" />
-          {t('common.previous')}
         </Button>
-        <span className="px-2 text-sm text-muted-foreground">
-          {page} / {totalPages}
-        </span>
+
+        {pageItems.map((item, index) =>
+          item === 'ellipsis' ? (
+            <span
+              key={`ellipsis-${index}`}
+              className="px-1.5 text-sm text-muted-foreground"
+              aria-hidden
+            >
+              …
+            </span>
+          ) : (
+            <Button
+              key={item}
+              variant={item === page ? 'secondary' : 'ghost'}
+              size="icon-sm"
+              className={cn('min-w-8', item === page && 'pointer-events-none')}
+              onClick={() => onPageChange(item)}
+              aria-label={t('common.pageNumber', { defaultValue: 'Page {{page}}', page: item })}
+              aria-current={item === page ? 'page' : undefined}
+            >
+              {item}
+            </Button>
+          ),
+        )}
+
         <Button
           variant="outline"
-          size="sm"
+          size="icon-sm"
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
           aria-label={t('common.next')}
         >
-          {t('common.next')}
           <ChevronRight className="size-4" />
         </Button>
-      </div>
+      </nav>
     </div>
   );
 }

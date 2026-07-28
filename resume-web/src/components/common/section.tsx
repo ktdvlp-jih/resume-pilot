@@ -15,9 +15,9 @@ export function Section({
   className?: string;
 }) {
   return (
-    <section className={cn('space-y-4', className)}>
+    <section className={cn('flex flex-col gap-4 space-y-0', className)}>
       {(title || action) && (
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-1">
             {title && <h2 className="text-lg font-semibold tracking-tight">{title}</h2>}
             {description && <p className="text-sm text-pretty text-muted-foreground">{description}</p>}

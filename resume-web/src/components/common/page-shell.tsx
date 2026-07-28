@@ -4,13 +4,16 @@ import { cn } from '@/lib/utils';
 type PageShellProps = {
   children: ReactNode;
   className?: string;
-  size?: 'md' | 'lg' | 'xl';
+  /** md≈768 · lg≈1024 · xl≈1152 · 2xl≈1536 · wide≈1728 (QHD 여유) */
+  size?: 'md' | 'lg' | 'xl' | '2xl' | 'wide';
 };
 
 const widths = {
   md: 'max-w-3xl',
   lg: 'max-w-5xl',
   xl: 'max-w-6xl',
+  '2xl': 'max-w-7xl',
+  wide: 'max-w-[108rem]', // 1728px — QHD에서 양옆 여백 축소
 } as const;
 
 export function PageShell({ children, className, size = 'xl' }: PageShellProps) {

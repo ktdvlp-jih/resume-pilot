@@ -1,3 +1,5 @@
+import ast
+import json
 import re
 from typing import Any
 
@@ -46,6 +48,37 @@ SOLUTION_EXTRACT_PATTERN = re.compile(
     r"cms\s*pro|xframe|ldar[- ]?prtr|carbon[- ]?slim|ai\s*\(\s*xframe\s*\))\b",
     re.IGNORECASE,
 )
+
+
+def coerce_to_string_list(value: Any) -> list[str]:
+    """LLM이 배열 대신 문자열/문자열화 리스트를 줄 때도 항목 배열로 정규화한다."""
+    if value is None:
+        return []
+    if isinstance(value, list):
+        items = value
+    elif isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return []
+        if text.startswith("[") and text.endswith("]"):
+            parsed: Any = None
+            try:
+                parsed = json.loads(text)
+            except Exception:
+                try:
+                    parsed = ast.literal_eval(text)
+                except Exception:
+                    parsed = None
+            if isinstance(parsed, list):
+                items = parsed
+            else:
+                items = [line.strip(" -•·▪︎") for line in text.splitlines() if line.strip()]
+        else:
+            items = [line.strip(" -•·▪︎") for line in text.splitlines() if line.strip()]
+    else:
+        return []
+    return [str(item).strip() for item in items if item and str(item).strip()]
+
 
 TECH_TOKEN_PATTERN = re.compile(
     r"\b("
@@ -862,6 +895,99 @@ def clean_string_list(items: Any, *, max_items: int = 15) -> list[str]:
     return dedupe_list(cleaned)[:max_items]
 
 
+def normalize_recruitment_sections(value: Any) -> list[dict[str, Any]]:
+    """모집부문 복수 직무를 객체 배열로 정규화한다."""
+    if value is None:
+        return []
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return []
+        parsed: Any = None
+        if text.startswith("["):
+            try:
+                parsed = json.loads(text)
+            except Exception:
+                try:
+                    parsed = ast.literal_eval(text)
+                except Exception:
+                    parsed = None
+        if not isinstance(parsed, list):
+            return []
+        value = parsed
+    if not isinstance(value, list):
+        return []
+
+    sections: list[dict[str, Any]] = []
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        title = str(
+            item.get("title")
+            or item.get("name")
+            or item.get("position")
+            or item.get("모집부문")
+            or ""
+        ).strip()
+        if not title:
+            continue
+        headcount = item.get("headcount") or item.get("인원")
+        headcount_str = str(headcount).strip() if headcount not in (None, "") else None
+        sections.append(
+            {
+                "title": title,
+                "job_responsibilities": coerce_to_string_list(
+                    item.get("job_responsibilities") or item.get("responsibilities") or item.get("담당업무")
+                ),
+                "required_skills": coerce_to_string_list(
+                    item.get("required_skills") or item.get("필수") or item.get("자격요건")
+                ),
+                "preferred_skills": coerce_to_string_list(
+                    item.get("preferred_skills") or item.get("우대사항") or item.get("우대")
+                ),
+                "qualifications": coerce_to_string_list(
+                    item.get("qualifications")
+                ),
+                "headcount": headcount_str,
+            }
+        )
+    return sections
+
+
+def merge_flat_fields_from_sections(
+    sections: list[dict[str, Any]],
+    *,
+    job_responsibilities: list[str],
+    required_skills: list[str],
+    preferred_skills: list[str],
+    qualifications: list[str],
+) -> tuple[list[str], list[str], list[str], list[str]]:
+    """부문별 항목을 상위 배열에 접두어로 합친다(하위 호환·RAG용)."""
+    if len(sections) < 2:
+        return job_responsibilities, required_skills, preferred_skills, qualifications
+
+    def prefixed(section_title: str, items: list[str]) -> list[str]:
+        return [f"[{section_title}] {item}" for item in items if item]
+
+    merged_resp: list[str] = []
+    merged_req: list[str] = []
+    merged_pref: list[str] = []
+    merged_qual: list[str] = []
+    for section in sections:
+        title = str(section.get("title") or "").strip() or "모집부문"
+        merged_resp.extend(prefixed(title, coerce_to_string_list(section.get("job_responsibilities"))))
+        merged_req.extend(prefixed(title, coerce_to_string_list(section.get("required_skills"))))
+        merged_pref.extend(prefixed(title, coerce_to_string_list(section.get("preferred_skills"))))
+        merged_qual.extend(prefixed(title, coerce_to_string_list(section.get("qualifications"))))
+
+    return (
+        merged_resp or job_responsibilities,
+        merged_req or required_skills,
+        merged_pref or preferred_skills,
+        merged_qual or qualifications,
+    )
+
+
 def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[str, Any]:
     result = dict(data)
 
@@ -972,7 +1098,21 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
         job_responsibilities + kept_required + preferred_skills,
     )
     culture = result.get("org_culture")
-    culture_str = str(culture).strip() if culture else None
+    culture_list = coerce_to_string_list(culture)
+
+    sections = normalize_recruitment_sections(
+        result.get("recruitment_sections") or result.get("job_sections")
+    )
+    if len(sections) >= 2:
+        job_responsibilities, kept_required, preferred_skills, qualifications = merge_flat_fields_from_sections(
+            sections,
+            job_responsibilities=job_responsibilities,
+            required_skills=kept_required,
+            preferred_skills=preferred_skills,
+            qualifications=qualifications,
+        )
+        if not position_str:
+            position_str = " / ".join(str(s.get("title")) for s in sections if s.get("title"))
 
     return {
         **result,
@@ -988,6 +1128,11 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
         "talent_profile": talent_profile,
         "core_competencies": kept_core,
         "job_description": description[:2000] if description else None,
-        "org_culture": culture_str,
+        "org_culture": culture_list,
+        "work_conditions": coerce_to_string_list(result.get("work_conditions")),
+        "benefits": coerce_to_string_list(result.get("benefits")),
+        "hiring_process": coerce_to_string_list(result.get("hiring_process")),
+        "notes": coerce_to_string_list(result.get("notes")),
+        "recruitment_sections": sections,
         "core_values": talent_profile[:3],
     }

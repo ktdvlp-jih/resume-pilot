@@ -82,6 +82,15 @@ export interface JobPostingResponse {
   createdAt: string;
 }
 
+export interface RecruitmentSection {
+  title: string;
+  jobResponsibilities?: string[];
+  requiredSkills?: string[];
+  preferredSkills?: string[];
+  qualifications?: string[];
+  headcount?: string | null;
+}
+
 export interface JobAnalysisResponse {
   id: string;
   jobPostingId: string;
@@ -95,8 +104,13 @@ export interface JobAnalysisResponse {
   coreCompetencies: string[];
   techKeywords: string[];
   solutionKeywords?: string[];
+  workConditions?: string[];
+  benefits?: string[];
+  hiringProcess?: string[];
+  notes?: string[];
+  recruitmentSections?: RecruitmentSection[];
   jobDescription?: string;
-  orgCulture?: string;
+  orgCulture?: string[];
   fitScore?: number;
   analysisJson?: Record<string, unknown>;
   createdAt: string;
@@ -244,6 +258,23 @@ export const api = {
   getJobAnalysis: (id: string) => request<JobAnalysisResponse>(`/api/v1/job-postings/${id}/analysis`),
   deleteJobPosting: (id: string) => request<void>(`/api/v1/job-postings/${id}`, { method: 'DELETE' }),
   getSkillCatalog: () => request<Array<{ name: string; category: string }>>('/api/v1/skill-catalog'),
+  lookupCertification: (q: string) =>
+    request<{
+      configured: boolean;
+      success: boolean;
+      message?: string | null;
+      matches: Array<{
+        name: string;
+        seriesName?: string;
+        qualTypeName?: string;
+        issuer: string;
+        externalCode?: string;
+        matchSource: string;
+        score: number;
+      }>;
+    }>(`/api/v1/certifications/lookup?q=${encodeURIComponent(q)}`),
+  getCertificationLookupStatus: () =>
+    request<{ configured: boolean; provider?: string | null }>('/api/v1/certifications/status'),
   getWritingStyle: () => request<WritingStyleResponse | null>('/api/v1/writing-styles/me'),
   analyzeWritingStyle: (content: string, resumeId?: string) =>
     request<WritingStyleResponse>('/api/v1/writing-styles/analyze', {

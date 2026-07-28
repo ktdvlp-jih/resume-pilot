@@ -57,6 +57,16 @@ public class JobPostingService {
 
         Map<String, Object> aiResult = analyzeWithAi(request.sourceType().name(), content, request.sourceUrl(), null, null);
         logUsage(userId, request.sourceType().name(), startedAt, !aiResult.containsKey("error"), aiResult);
+        if (request.sourceType() == JobSourceType.URL && aiResult.containsKey("error")) {
+            throw new BusinessException(
+                    ErrorCode.INVALID_INPUT,
+                    "채용공고 URL에서 본문을 가져오지 못했습니다. 링크를 확인하거나 텍스트로 붙여넣어 주세요."
+            );
+        }
+        Object rawFromAi = aiResult.get("raw_content");
+        if (rawFromAi != null && !String.valueOf(rawFromAi).isBlank()) {
+            posting.setRawContent(String.valueOf(rawFromAi));
+        }
         posting.setParsedJson(aiResult);
         if (aiResult.get("title") != null && posting.getTitle() == null) {
             posting.setTitle(String.valueOf(aiResult.get("title")));
@@ -151,7 +161,8 @@ public class JobPostingService {
             if (request.sourceUrl() == null || request.sourceUrl().isBlank()) {
                 throw new BusinessException(ErrorCode.INVALID_INPUT, "sourceUrl is required for URL type");
             }
-            return request.content() != null ? request.content() : request.sourceUrl();
+            // URL 문자열(searchword 등)을 본문으로 넣지 않는다. 본문은 AI fetch 결과로 채운다.
+            return request.content() != null ? request.content() : "";
         }
         if (request.content() == null || request.content().isBlank()) {
             throw new BusinessException(ErrorCode.INVALID_INPUT, "content is required");
@@ -192,7 +203,7 @@ public class JobPostingService {
                 .coreCompetencies(toStringList(aiResult.get("core_competencies")))
                 .techKeywords(toStringList(aiResult.get("tech_keywords")))
                 .jobDescription(str(aiResult.get("job_description")))
-                .orgCulture(str(aiResult.get("org_culture")))
+                .orgCulture(joinList(toStringList(aiResult.get("org_culture"))))
                 .fitScore(aiResult.get("fit_score") != null
                         ? new BigDecimal(String.valueOf(aiResult.get("fit_score"))) : null)
                 .analysisJson(aiResult)
@@ -222,25 +233,102 @@ public class JobPostingService {
     }
 
     private JobAnalysisResponse toAnalysisResponse(JobAnalysis a) {
-        List<String> solutionKeywords = a.getAnalysisJson() != null
-                ? toStringList(a.getAnalysisJson().get("solution_keywords"))
-                : List.of();
+        Map<String, Object> json = a.getAnalysisJson() != null ? a.getAnalysisJson() : Map.of();
+        List<String> orgCulture = firstNonEmptyList(
+                toStringList(json.get("org_culture")),
+                coerceTextList(a.getOrgCulture())
+        );
         return new JobAnalysisResponse(
                 a.getId(), a.getJobPostingId(), a.getCompanyName(), a.getPosition(),
                 a.getRequiredSkills(), a.getPreferredSkills(), a.getQualifications(), a.getJobResponsibilities(),
                 a.getTalentProfile(),
-                a.getCoreCompetencies(), a.getTechKeywords(), solutionKeywords, a.getJobDescription(),
-                a.getOrgCulture(), a.getFitScore(), a.getAnalysisJson(), a.getCreatedAt()
+                a.getCoreCompetencies(), a.getTechKeywords(),
+                toStringList(json.get("solution_keywords")),
+                toStringList(json.get("work_conditions")),
+                toStringList(json.get("benefits")),
+                toStringList(json.get("hiring_process")),
+                toStringList(json.get("notes")),
+                toRecruitmentSections(json.get("recruitment_sections")),
+                a.getJobDescription(),
+                orgCulture, a.getFitScore(), a.getAnalysisJson(), a.getCreatedAt()
         );
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<RecruitmentSectionResponse> toRecruitmentSections(Object raw) {
+        if (!(raw instanceof List<?> list) || list.isEmpty()) {
+            return List.of();
+        }
+        List<RecruitmentSectionResponse> out = new ArrayList<>();
+        for (Object item : list) {
+            if (!(item instanceof Map<?, ?> map)) {
+                continue;
+            }
+            String title = str(map.get("title"));
+            if (title == null || title.isBlank()) {
+                title = str(map.get("name"));
+            }
+            if (title == null || title.isBlank()) {
+                continue;
+            }
+            out.add(new RecruitmentSectionResponse(
+                    title,
+                    toStringList(map.get("job_responsibilities")),
+                    toStringList(map.get("required_skills")),
+                    toStringList(map.get("preferred_skills")),
+                    toStringList(map.get("qualifications")),
+                    str(map.get("headcount"))
+            ));
+        }
+        return out;
     }
 
     private String str(Object o) {
         return o != null ? String.valueOf(o) : null;
     }
 
+    private String joinList(List<String> items) {
+        if (items == null || items.isEmpty()) {
+            return null;
+        }
+        return String.join("\n", items);
+    }
+
+    private List<String> firstNonEmptyList(List<String> primary, List<String> fallback) {
+        if (primary != null && !primary.isEmpty()) {
+            return primary;
+        }
+        return fallback != null ? fallback : List.of();
+    }
+
+    private List<String> coerceTextList(String text) {
+        if (text == null || text.isBlank()) {
+            return List.of();
+        }
+        String trimmed = text.trim();
+        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+            // Python/JSON style stringified list: ['a', 'b']
+            String inner = trimmed.substring(1, trimmed.length() - 1).trim();
+            if (inner.isBlank()) {
+                return List.of();
+            }
+            return java.util.Arrays.stream(inner.split(",(?=(?:[^']*'[^']*')*[^']*$)"))
+                    .map(part -> part.trim().replaceAll("^['\"]|['\"]$", ""))
+                    .filter(s -> !s.isBlank())
+                    .toList();
+        }
+        return java.util.Arrays.stream(trimmed.split("\\R"))
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .toList();
+    }
+
     private List<String> toStringList(Object o) {
         if (o instanceof List<?> list) {
-            return list.stream().map(String::valueOf).toList();
+            return list.stream().map(String::valueOf).filter(s -> s != null && !s.isBlank()).toList();
+        }
+        if (o instanceof String s) {
+            return coerceTextList(s);
         }
         return List.of();
     }

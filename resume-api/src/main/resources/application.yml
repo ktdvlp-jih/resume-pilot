@@ -41,6 +41,12 @@ app:
   internal-api-token: ${INTERNAL_API_TOKEN:}
   llm:
     encryption-key: ${LLM_ENCRYPTION_KEY:}
+  certification:
+    qnet:
+      # 공공데이터포털에서 발급한 인증키. 비어 있으면 종목 조회는 비활성(텍스트 입력만 가능).
+      enabled: ${QNET_LOOKUP_ENABLED:false}
+      service-key: ${QNET_SERVICE_KEY:}
+      base-url: ${QNET_BASE_URL:http://openapi.q-net.or.kr/api/service/rest/InquiryListNationalQualifcationSVC/getList}
 
 management:
   endpoints:
