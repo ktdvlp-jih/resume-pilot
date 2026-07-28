@@ -48,7 +48,10 @@ export default function AiLogsPage() {
   const { t, i18n } = useTranslation();
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<LogRow | null>(null);
-  const { data = [], isLoading } = useQuery({ queryKey: ['admin-ai-logs'], queryFn: api.listAiLogs });
+  const { data = [], isLoading, isError, error, refetch, isFetching } = useQuery({
+    queryKey: ['admin-ai-logs'],
+    queryFn: api.listAiLogs,
+  });
 
   const dateLocale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'ja' ? 'ja-JP' : i18n.language === 'zh' ? 'zh-CN' : 'en-US';
 
@@ -86,7 +89,17 @@ export default function AiLogsPage() {
   return (
     <div className="space-y-4">
       <PageHeader title={t('aiLogs.title')} description={t('aiLogs.subtitle')} />
-      {isLoading ? (
+      {isError ? (
+        <EmptyState
+          title={t('aiLogs.loadFailed', { defaultValue: 'AI 사용 로그를 불러오지 못했습니다.' })}
+          description={error instanceof Error ? error.message : undefined}
+          action={
+            <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
+              {t('common.retry', { defaultValue: '다시 시도' })}
+            </Button>
+          }
+        />
+      ) : isLoading ? (
         <DataTableCard>
           <Table>
             <TableHeader>

@@ -12,6 +12,10 @@ function getAccessToken(): string | null {
   return localStorage.getItem('accessToken');
 }
 
+function getRefreshToken(): string | null {
+  return localStorage.getItem('refreshToken');
+}
+
 export { getAccessToken };
 
 export function getUserRole(): string | null {
@@ -32,6 +36,8 @@ export function clearTokens() {
   localStorage.removeItem('userRole');
 }
 
+type TokenPayload = { accessToken: string; refreshToken: string; role?: string };
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -40,7 +46,43 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getAccessToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const response = await fetch(`${API_URL}${path}`, { ...options, headers });
+  let response = await fetch(`${API_URL}${path}`, { ...options, headers });
+
+  const shouldRefresh =
+    response.status === 401 && !!getRefreshToken() && !path.includes('/auth/');
+
+  if (shouldRefresh) {
+    const refreshRes = await fetch(`${API_URL}/api/v1/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: getRefreshToken() }),
+    });
+    if (refreshRes.ok) {
+      const refreshed: ApiResponse<TokenPayload> = await refreshRes.json();
+      setTokens(
+        refreshed.data.accessToken,
+        refreshed.data.refreshToken,
+        refreshed.data.role ?? getUserRole() ?? undefined,
+      );
+      headers['Authorization'] = `Bearer ${refreshed.data.accessToken}`;
+      response = await fetch(`${API_URL}${path}`, { ...options, headers });
+    } else {
+      clearTokens();
+      if (!path.includes('/auth/')) {
+        window.location.assign('/admin/login');
+      }
+      throw new Error('Session expired');
+    }
+  }
+
+  if (response.status === 401) {
+    clearTokens();
+    if (!path.includes('/auth/')) {
+      window.location.assign('/admin/login');
+    }
+    throw new Error('Authentication required');
+  }
+
   const json: ApiResponse<T> = await response.json();
   if (!response.ok || !json.success) {
     throw new Error(json.error?.message || 'Request failed');
