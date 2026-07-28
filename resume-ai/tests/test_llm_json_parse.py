@@ -56,13 +56,21 @@ def test_parse_json_value_truncated_object(parser: LlmService) -> None:
 
 
 def test_looks_truncated_resume_respects_section_length(parser: LlmService) -> None:
-    short = "가" * 300 + ".\n\n" + "나" * 300 + "."
+    # 섹션 모드: 극단적으로 짧을 때만 truncated (분량보다 사실 우선)
+    short = "가" * 80 + ".\n\n" + "나" * 80 + "."
     assert parser._looks_truncated_resume(short, experience_count=2, section_count=2) is True
 
-    long_para = ("경험과 성과를 구체적으로 서술합니다. " * 70).strip() + "다."
+    long_para = ("경험과 성과를 구체적으로 서술합니다. " * 20).strip() + "다."
     long = f"{long_para}\n\n{long_para}"
-    assert len(long_para) >= 900
+    assert len(long_para) >= 200
     assert parser._looks_truncated_resume(long, experience_count=2, section_count=2) is False
+
+
+def test_rewrite_level_rules_forbid_fabrication(parser: LlmService) -> None:
+    rules = parser._rewrite_level_rules(100)
+    assert "100%" in rules
+    assert "허구" in rules
+    assert "사실" in rules
 
 
 def test_normalize_section_paragraphs_merges_extras(parser: LlmService) -> None:

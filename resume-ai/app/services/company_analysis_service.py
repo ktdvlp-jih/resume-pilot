@@ -16,7 +16,9 @@ class CompanyAnalysisService:
                 "core_values": job_analysis.get("core_values", talent[:3]),
                 "talent_profile": talent,
                 "tech_stack": tech,
-                "culture": job_analysis.get("org_culture"),
+                "culture": job_analysis.get("org_culture")
+                if isinstance(job_analysis.get("org_culture"), list)
+                else ([job_analysis.get("org_culture")] if job_analysis.get("org_culture") else []),
                 "hiring_keywords": tech + talent,
             },
         }

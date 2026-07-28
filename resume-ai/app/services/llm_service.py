@@ -438,6 +438,7 @@ class LlmService:
                     system_prompt=system_prompt,
                     base_user_msg=user_msg,
                     titles=titles,
+                    rewrite_level=rewrite_level,
                 )
                 content = self._normalize_section_paragraphs(content, section_count)
                 return {
@@ -486,27 +487,43 @@ class LlmService:
             "model": model_name,
         }
 
+    @staticmethod
+    def _rewrite_level_rules(rewrite_level: int) -> str:
+        """rewrite_level은 표현 강도만 — 사실·수치·시점은 불변."""
+        return (
+            f"[Rewrite · 재작성 강도 {rewrite_level}%]\n"
+            "- rewrite_level은 표현·문장 구조·어투만 바꿉니다.\n"
+            "- 사실·수치·프로젝트명·역할·기술·시점(학창/실무)은 RAG에 있는 그대로 유지합니다.\n"
+            "- 100%여도 없는 사실을 만들지 마세요. 100% = 표현 전면 재작성이지 허구 허용이 아닙니다.\n"
+            "- 분량보다 사실 우선. RAG로 STAR를 채울 수 없으면 짧게 쓰거나 "
+            "'내용이 부족하여 생성하지 않음'만 출력하세요.\n"
+        )
+
     async def _generate_by_sections(
         self,
         system_prompt: str,
         base_user_msg: str,
         titles: list[str],
+        rewrite_level: int = 40,
     ) -> tuple[str, str]:
-        """문항별로 본문을 생성한다. 각 문단 목표 900~1600자."""
+        """문항별로 본문을 생성한다. 목표 900~1600자, 사실 부족 시 짧게."""
         paragraphs: list[str] = []
         model_name = ""
+        rewrite_rules = self._rewrite_level_rules(rewrite_level)
         section_system = (
             system_prompt
             + "\n\n[Section Mode]\n"
             "- 지금은 한 문항의 본문만 작성합니다.\n"
             "- 문항 제목·번호·마크다운을 본문에 넣지 마세요.\n"
-            "- 반드시 900~1600자(한국어)로 작성하세요. 700자 미만은 실패입니다.\n"
-            "- STAR를 구체화하고, 사실을 지어내지 마세요. 수치는 RAG에 있는 것만.\n"
+            "- 목표 분량 900~1600자. RAG 사실만으로 불가능하면 사실 범위에서 짧게 끝내세요.\n"
+            "- 지어내서 분량을 채우면 실패입니다. 분량보다 사실 우선.\n"
+            "- STAR를 구체화하되 수치는 RAG에 있는 것만.\n"
             "- 문항당 주요 소재 경험은 최대 1~2개. 경험 카탈로그 나열 금지.\n"
             "- 실무 경험을 학창시절로 옮기지 마세요.\n"
             "- 빈 줄로 문단을 쪼개지 마세요. 연속 본문만 출력하세요.\n"
             "- 번역투·공허한 마무리·상투구 금지. 쉼표 문장당 1개, 문두 부사 뒤 쉼표 금지.\n"
-            "- 이미 작성한 문항과 같은 문장·경험 국면을 반복하지 마세요."
+            "- 이미 작성한 문항과 같은 문장·경험 국면을 반복하지 마세요.\n"
+            + rewrite_rules
         )
 
         for i, title in enumerate(titles):
@@ -520,9 +537,10 @@ class LlmService:
                 f"## 이번에 작성할 문항 ({i + 1}/{len(titles)})\n"
                 f"제목: {title}\n"
                 f"이 문항 본문만 출력하세요. 제목/번호 없이 순수 문장만.\n"
-                f"목표 분량: 900~1600자 (최소 900자 필수).\n"
+                f"목표 분량: 900~1600자. 사실 부족 시 짧게 써도 됩니다 (허구 금지).\n"
                 f"다른 문항과 내용이 중복되지 않게, 이 제목 의미에 맞게 쓰세요.\n"
                 f"{slot_rule}\n"
+                f"{rewrite_rules}"
                 f"## 이미 작성한 문항 (참고·중복 금지)\n{prev}\n"
             )
             completion = await self.complete_for_operation(
@@ -530,9 +548,10 @@ class LlmService:
             )
             model_name = completion.model or model_name
             para = self._clean_single_section(completion.content or "", title)
-            if len(para) < 800:
+            # 너무 짧을 때만 확장 시도. 새 사실 추가는 금지.
+            if len(para) < 500 and "내용이 부족하여 생성하지 않음" not in para:
                 logger.warning(
-                    "Section %s/%s (%s) too short (%s chars), expanding once",
+                    "Section %s/%s (%s) too short (%s chars), expanding once (facts only)",
                     i + 1,
                     len(titles),
                     title,
@@ -541,13 +560,13 @@ class LlmService:
                 expand = await self.complete_for_operation(
                     "GENERATE",
                     section_system
-                    + "\n[Expand] 아래 초안을 같은 사실만으로 900~1600자로 늘리세요. "
-                    "상황·역할·협업·기술·결과를 더 구체적으로 쓰세요. "
-                    "번역투·공허한 마무리 없이. 제목 없이 본문만.",
+                    + "\n[Expand] 아래 초안을 RAG에 이미 있는 사실만으로 더 풀어 쓰세요. "
+                    "상황·행동·결과를 구체화하되 새 프로젝트·수치·역할·시점을 추가하면 실패입니다. "
+                    "더 풀 사실이 없으면 초안을 유지하세요. 제목 없이 본문만.",
                     section_user
-                    + f"\n\n## 현재 초안 ({len(para)}자, 너무 짧음)\n{para}\n\n"
-                    "위 초안을 최소 900자 이상으로 확장한 완성본만 출력하세요.",
-                    temperature=0.45,
+                    + f"\n\n## 현재 초안 ({len(para)}자)\n{para}\n\n"
+                    "RAG 사실만으로 확장 가능하면 확장본을, 불가능하면 초안을 그대로 출력하세요.",
+                    temperature=0.35,
                 )
                 expanded = self._clean_single_section(expand.content or "", title)
                 if len(expanded) > len(para):
@@ -566,15 +585,15 @@ class LlmService:
                 fixed = await self.complete_for_operation(
                     "GENERATE",
                     section_system
-                    + "\n[Style Fix] 사실·분량을 유지하고 문체·문항 초점만 고치세요. "
-                    "문항 슬롯에 맞지 않는 소재(예: 지원동기의 AI도구)는 삭제하거나 "
-                    "해당 문항에 맞는 소재로 바꾸세요.",
+                    + "\n[Style Fix] 사실·수치·시점은 유지하고 문체·문항 초점만 고치세요. "
+                    "분량을 늘리기 위해 새 사실을 넣지 마세요. "
+                    "문항 슬롯에 맞지 않는 소재(예: 지원동기의 AI도구)는 삭제하세요.",
                     (
                         f"아래 본문에서 다음을 고치세요: {violations}\n"
                         f"문항 제목: {title}\n"
                         f"{slot_rule}"
                         f"쉼표는 문장당 1개 이하, 문두 부사 뒤 쉼표 금지.\n"
-                        f"사실을 지어내지 말고 분량은 유지하세요. 본문만 출력.\n\n{para}"
+                        f"사실을 지어내지 마세요. 분량보다 사실 우선. 본문만 출력.\n\n{para}"
                     ),
                     temperature=0.3,
                 )
@@ -768,8 +787,9 @@ class LlmService:
     ) -> bool:
         if not content:
             return True
+        # 분량보다 사실 우선: 섹션 모드에서는 극단적으로 짧을 때만 truncated로 본다.
         if section_count > 0:
-            min_chars = max(900, min(section_count, 5) * 900)
+            min_chars = max(400, min(section_count, 5) * 400)
         else:
             min_chars = 2500 if experience_count >= 2 else 1000
         if len(content) < min_chars:
@@ -777,7 +797,7 @@ class LlmService:
         paragraphs = [p.strip() for p in re.split(r"\n\s*\n", content) if p.strip()]
         if section_count > 0 and len(paragraphs) < section_count:
             return True
-        if section_count > 0 and any(len(p) < 700 for p in paragraphs):
+        if section_count > 0 and any(len(p) < 200 for p in paragraphs):
             return True
         stripped = content.rstrip()
         if stripped.endswith((",", "·", "/", "(", "[")):
