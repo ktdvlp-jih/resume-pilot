@@ -22,6 +22,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ExperienceService {
 
+    /** 사용자당 경험 라이브러리 최대 건수 (자소서 생성 선택 상한 5개와 별개) */
+    public static final int MAX_LIBRARY_SIZE = 30;
+
     private final ExperienceRepository experienceRepository;
     private final ExperienceQueryRepository experienceQueryRepository;
     private final ExperienceMapper experienceMapper;
@@ -41,6 +44,12 @@ public class ExperienceService {
 
     @Transactional
     public ExperienceResponse create(UUID userId, ExperienceCreateRequest request) {
+        if (experienceRepository.countByUserId(userId) >= MAX_LIBRARY_SIZE) {
+            throw new BusinessException(
+                    ErrorCode.EXPERIENCE_LIMIT_EXCEEDED,
+                    "경험 라이브러리는 최대 " + MAX_LIBRARY_SIZE + "개까지 등록할 수 있습니다."
+            );
+        }
         Experience experience = mapCreate(userId, request);
         experienceRepository.save(experience);
         ragService.embedExperience(userId, experience);

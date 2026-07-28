@@ -8,4 +8,5 @@ import java.util.UUID;
 public interface ExperienceRepository extends JpaRepository<Experience, UUID> {
     List<Experience> findByUserIdOrderByUpdatedAtDesc(UUID userId);
     List<Experience> findByUserIdAndTypeOrderByUpdatedAtDesc(UUID userId, ExperienceType type);
+    long countByUserId(UUID userId);
 }

@@ -43,14 +43,26 @@ public class RagService {
     }
 
     public void embedExperience(UUID userId, Experience exp) {
+        // 자소서 RAG 추천 품질을 위해 제목·역할·본문·성과·STAR·기술을 모두 임베딩한다.
         String text = String.join("\n",
-                exp.getTitle(),
-                Optional.ofNullable(exp.getDescription()).orElse(""),
-                Optional.ofNullable(exp.getRole()).orElse(""),
-                Optional.ofNullable(exp.getResult()).orElse(""),
-                Optional.ofNullable(exp.getStarAction()).orElse("")
-        );
+                nullToEmpty(exp.getTitle()),
+                exp.getType() != null ? exp.getType().name() : "",
+                nullToEmpty(exp.getRole()),
+                nullToEmpty(exp.getDescription()),
+                nullToEmpty(exp.getContribution()),
+                nullToEmpty(exp.getResult()),
+                nullToEmpty(exp.getNumericResult()),
+                nullToEmpty(exp.getStarSituation()),
+                nullToEmpty(exp.getStarTask()),
+                nullToEmpty(exp.getStarAction()),
+                nullToEmpty(exp.getStarResult()),
+                exp.getSkills() == null ? "" : String.join(", ", exp.getSkills())
+        ).trim();
         ragServiceClient.createEmbedding(userId, "EXPERIENCE", exp.getId(), text);
+    }
+
+    private static String nullToEmpty(String value) {
+        return value == null ? "" : value;
     }
 
     public void embedResume(UUID userId, UUID versionId, String content) {
