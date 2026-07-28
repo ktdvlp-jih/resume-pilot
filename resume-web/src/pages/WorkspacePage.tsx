@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -61,9 +61,24 @@ const LEVEL_LABEL_KEY: Record<string, string> = {
 };
 
 const SECTION_TITLE_PRESETS = ['지원동기', '성장과정', '직무역량', '입사 후 포부'];
+/** 문항 제목·경험 추천/선택 공통 상한 */
+const MAX_SECTIONS = 5;
+const MAX_EXPERIENCES = 5;
 
 function splitParagraphs(content: string): string[] {
   return content.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+}
+
+/** 문항 수에 맞게 문단을 맞춘다. 문단이 더 많으면 뒤에 합치고, 적으면 있는 만큼만 쓴다. */
+function alignParagraphsToTitles(paragraphs: string[], titles: string[]): string[] {
+  if (titles.length === 0) return paragraphs;
+  if (paragraphs.length === titles.length) return paragraphs;
+  if (paragraphs.length > titles.length) {
+    const head = paragraphs.slice(0, titles.length - 1);
+    const tail = paragraphs.slice(titles.length - 1).join(' ');
+    return [...head, tail];
+  }
+  return paragraphs;
 }
 
 const SCORE_KEY_MAP: Record<string, string> = {
@@ -97,6 +112,7 @@ export default function WorkspacePage() {
   const { selectedPostingId, jobText, rewriteLevel, sectionTitles } = draft;
   const {
     result,
+    sectionTitles: savedSectionTitles,
     recommended,
     interview,
     interviewFallback,
@@ -114,12 +130,37 @@ export default function WorkspacePage() {
   const [customTitle, setCustomTitle] = useState('');
   const [selectedExperienceIds, setSelectedExperienceIds] = useState<Set<string>>(new Set());
   const [justGenerated, setJustGenerated] = useState(false);
+  /** 공고별로 복원 토스트를 한 번만 띄움 (생성 완료 후 justGenerated 해제 시 재노출 방지) */
+  const resultRestoredToastKey = useRef<string | null>(null);
+  const draftRestoredToastShown = useRef(false);
+
+  // 저장된 결과는 진입·공고 전환 시 toast로만 잠깐 안내. 패널에 상시 문구를 두지 않음.
+  useEffect(() => {
+    if (justGenerated || loading) return;
+    if (!wasResultRestored || !result?.content) return;
+    const key = selectedPostingId || '__none__';
+    if (resultRestoredToastKey.current === key) return;
+    resultRestoredToastKey.current = key;
+    toast.message(t('workspace.resultRestored'), { duration: 3500 });
+  }, [wasResultRestored, selectedPostingId, justGenerated, loading, result?.content, t]);
+
+  useEffect(() => {
+    if (!wasRestored || !jobText) return;
+    if (draftRestoredToastShown.current) return;
+    draftRestoredToastShown.current = true;
+    toast.message(t('workspace.draftRestored'), { duration: 3500 });
+  }, [wasRestored, jobText, t]);
 
   const toggleExperience = (id: string) => {
     setSelectedExperienceIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else if (next.size >= MAX_EXPERIENCES) {
+        return prev;
+      } else {
+        next.add(id);
+      }
       return next;
     });
     if (result?.content) clearVisibleResult();
@@ -127,7 +168,7 @@ export default function WorkspacePage() {
 
   const addSectionTitle = (title: string) => {
     const trimmed = title.trim();
-    if (!trimmed || sectionTitles.includes(trimmed)) return;
+    if (!trimmed || sectionTitles.includes(trimmed) || sectionTitles.length >= MAX_SECTIONS) return;
     setDraft({ sectionTitles: [...sectionTitles, trimmed] });
     if (result?.content) clearVisibleResult();
   };
@@ -230,8 +271,16 @@ export default function WorkspacePage() {
     try {
       const { keywords: kw } = await getJobContext();
       // 문항 제목(성장과정/지원동기 등)도 검색어에 포함시켜, 구성한 문항이 바뀌면 추천도 함께 갱신되도록 한다.
-      const rec = await api.recommendExperiences([...kw, ...sectionTitles]);
-      setBundle({ recommended: rec.map((r) => ({ id: r.id, title: r.title, score: r.score })) });
+      const rec = await api.recommendExperiences([...kw, ...sectionTitles], MAX_EXPERIENCES);
+      setBundle({
+        recommended: rec
+          .slice(0, MAX_EXPERIENCES)
+          .map((r) => ({ id: r.id, title: r.title, score: r.score })),
+      });
+      setSelectedExperienceIds((prev) => {
+        const allowed = new Set(rec.slice(0, MAX_EXPERIENCES).map((r) => r.id));
+        return new Set([...prev].filter((id) => allowed.has(id)).slice(0, MAX_EXPERIENCES));
+      });
     } catch (err) {
       setRecommendError(err instanceof Error ? err.message : t('workspace.recommendFailed'));
     } finally {
@@ -249,10 +298,16 @@ export default function WorkspacePage() {
         rewriteLevel,
         jobAnalysis,
         jobPostingId,
-        sectionTitles,
-        experienceIds: Array.from(selectedExperienceIds),
+        sectionTitles: sectionTitles.slice(0, MAX_SECTIONS),
+        experienceIds: Array.from(selectedExperienceIds).slice(0, MAX_EXPERIENCES),
       });
-      setBundle({ result: res, interview: [], interviewFallback: false, keywords: null });
+      setBundle({
+        result: res,
+        sectionTitles: sectionTitles.slice(0, MAX_SECTIONS),
+        interview: [],
+        interviewFallback: false,
+        keywords: null,
+      });
       setJustGenerated(true);
       if (res.content) {
         try {
@@ -261,6 +316,7 @@ export default function WorkspacePage() {
           const nextKeywords = await api.compareKeywords(kw, String(res.content));
           setBundle({
             result: res,
+            sectionTitles: sectionTitles.slice(0, MAX_SECTIONS),
             interview: nextInterview,
             interviewFallback: Boolean(iq.fallback),
             keywords: nextKeywords,
@@ -349,6 +405,9 @@ export default function WorkspacePage() {
         <CardContent className="space-y-3 pt-6">
           <WorkspacePanelTitle icon={ListPlus}>{t('workspace.step2Title')}</WorkspacePanelTitle>
           <p className="text-xs text-muted-foreground">{t('workspace.sectionTitlesDesc')}</p>
+          <p className="text-xs text-muted-foreground">
+            {t('workspace.sectionTitlesLimit', { max: MAX_SECTIONS, count: sectionTitles.length })}
+          </p>
 
           {sectionTitles.length > 0 && (
             <ol className="space-y-1.5">
@@ -372,7 +431,14 @@ export default function WorkspacePage() {
 
           <div className="flex flex-wrap gap-1.5">
             {SECTION_TITLE_PRESETS.filter((p) => !sectionTitles.includes(p)).map((p) => (
-              <Button key={p} type="button" variant="outline" size="sm" onClick={() => addSectionTitle(p)}>
+              <Button
+                key={p}
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={sectionTitles.length >= MAX_SECTIONS}
+                onClick={() => addSectionTitle(p)}
+              >
                 <Plus className="size-3.5" /> {p}
               </Button>
             ))}
@@ -391,11 +457,13 @@ export default function WorkspacePage() {
               }}
               placeholder={t('workspace.sectionTitleCustomPlaceholder')}
               className="flex-1"
+              disabled={sectionTitles.length >= MAX_SECTIONS}
             />
             <Button
               type="button"
               variant="secondary"
               size="sm"
+              disabled={sectionTitles.length >= MAX_SECTIONS}
               onClick={() => {
                 addSectionTitle(customTitle);
                 setCustomTitle('');
@@ -424,17 +492,26 @@ export default function WorkspacePage() {
             {recommended.length > 0 && (
               <div className="mt-2 space-y-1.5 rounded-md border bg-background p-2">
                 <p className="text-xs text-muted-foreground">{t('workspace.recommendedHint')}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t('workspace.experiencesLimit', {
+                    max: MAX_EXPERIENCES,
+                    count: selectedExperienceIds.size,
+                  })}
+                </p>
                 <div className="max-h-56 space-y-1.5 overflow-y-auto">
                   {recommended.map((r) => {
                     const selected = selectedExperienceIds.has(r.id);
+                    const atLimit = !selected && selectedExperienceIds.size >= MAX_EXPERIENCES;
                     return (
                       <button
                         key={r.id}
                         type="button"
+                        disabled={atLimit}
                         onClick={() => toggleExperience(r.id)}
                         className={cn(
                           'flex w-full items-center justify-between rounded-md border px-2 py-1.5 text-left text-sm transition-colors',
                           selected ? 'border-primary bg-primary/10' : 'border-transparent bg-muted/30 hover:bg-muted/60',
+                          atLimit && 'cursor-not-allowed opacity-50',
                         )}
                       >
                         <span className="truncate pr-2">{r.title}</span>
@@ -478,9 +555,6 @@ export default function WorkspacePage() {
   const rightPanel = (
     <div className="flex h-full flex-col">
       <div className="space-y-3 px-4 pt-4 md:px-6 md:pt-6">
-        {wasResultRestored && !!result?.content && (
-          <p className="text-xs text-muted-foreground">{t('workspace.resultRestored')}</p>
-        )}
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
@@ -529,16 +603,24 @@ export default function WorkspacePage() {
               </div>
 
               {(() => {
-                const paragraphs = splitParagraphs(displayedResult);
-                if (sectionTitles.length > 0 && sectionTitles.length === paragraphs.length) {
+                const rawParagraphs = splitParagraphs(displayedResult);
+                const displayTitles =
+                  savedSectionTitles.length > 0 ? savedSectionTitles : sectionTitles;
+                if (displayTitles.length > 0 && rawParagraphs.length > 0) {
+                  const paragraphs = alignParagraphsToTitles(rawParagraphs, displayTitles);
                   return (
                     <div className="space-y-5">
                       {paragraphs.map((p, i) => (
                         <div key={i}>
-                          <h4 className="mb-1.5 text-sm font-semibold text-primary">{sectionTitles[i]}</h4>
+                          {displayTitles[i] && (
+                            <h4 className="mb-1.5 text-sm font-semibold text-primary">{displayTitles[i]}</h4>
+                          )}
                           <HighlightedContent content={p} detections={detections.filter((d) => p.includes(d.sentence))} />
                         </div>
                       ))}
+                      {paragraphs.length < displayTitles.length && !isTyping && (
+                        <p className="text-xs text-muted-foreground">{t('workspace.sectionTitleCountMismatch')}</p>
+                      )}
                     </div>
                   );
                 }
@@ -694,8 +776,6 @@ export default function WorkspacePage() {
           )}
         </div>
       </div>
-
-      {wasRestored && jobText && <p className="text-xs text-muted-foreground">{t('workspace.draftRestored')}</p>}
 
       <Alert className="border-primary/20 bg-primary/5">
         <Info className="size-4 text-primary" />

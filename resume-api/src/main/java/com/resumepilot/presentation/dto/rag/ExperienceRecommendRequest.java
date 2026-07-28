@@ -5,5 +5,6 @@ import java.util.List;
 public record ExperienceRecommendRequest(List<String> keywords, int topK) {
     public ExperienceRecommendRequest {
         if (topK <= 0) topK = 5;
+        if (topK > 5) topK = 5;
     }
 }

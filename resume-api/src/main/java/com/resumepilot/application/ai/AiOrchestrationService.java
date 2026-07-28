@@ -56,21 +56,29 @@ public class AiOrchestrationService {
                     .userId(userId)
                     .jobPostingId(request.jobPostingId())
                     .rewriteLevel(request.rewriteLevel())
-                    .inputContext(Map.of("keywords", request.keywords(), "job_analysis", request.jobAnalysis() != null ? request.jobAnalysis() : Map.of(), "experience_ids", selectedExperienceIds))
+                    .inputContext(Map.of(
+                            "keywords", request.keywords(),
+                            "job_analysis", request.jobAnalysis() != null ? request.jobAnalysis() : Map.of(),
+                            "experience_ids", selectedExperienceIds,
+                            "section_titles", request.sectionTitles() != null ? request.sectionTitles() : List.of()))
                     .outputContent(String.valueOf(result.get("content")))
                     .qualityScores(castMap(result.get("quality_scores")))
                     .experienceIds(toStringList(result.get("experience_ids")))
                     .build();
             generationRepository.save(gen);
             result.put("generation_id", gen.getId().toString());
-            persistArtifacts(gen.getId(), result);
+            try {
+                persistArtifacts(gen.getId(), result);
+            } catch (Exception e) {
+                log.warn("AI artifact persist skipped (generationId={}): {}", gen.getId(), e.getMessage());
+            }
         }
         return result;
     }
 
     public Map<String, Object> detect(UUID userId, String content) {
         long start = System.currentTimeMillis();
-        Map<String, Object> payload = Map.of("content", content, "forbidden_expressions", getForbiddenList());
+        Map<String, Object> payload = Map.of("content", content, "forbidden_expressions", getAllForbiddenList());
         Map<String, Object> result = aiGatewayClient.detectAiTraces(payload);
         logUsage(userId, "detect", start, true, str(result != null ? result.get("model") : null));
         return result;
@@ -144,13 +152,22 @@ public class AiOrchestrationService {
         if (detections instanceof List<?> list) {
             for (Object item : list) {
                 if (item instanceof Map<?, ?> d) {
+                    String level = normalizeDetectionLevel(d.get("level"));
+                    if (level == null) {
+                        log.warn("Skip detection with invalid level={} (generationId={})", d.get("level"), generationId);
+                        continue;
+                    }
+                    String sentence = str(d.get("sentence"));
+                    if (sentence == null || sentence.isBlank()) {
+                        continue;
+                    }
                     detectionRepository.save(AiDetection.builder()
                             .generationId(generationId)
                             .sentenceIndex(intVal(d.get("sentence_index")))
-                            .sentence(String.valueOf(d.get("sentence")))
-                            .level(String.valueOf(d.get("level")))
-                            .reason(d.get("reason") != null ? String.valueOf(d.get("reason")) : null)
-                            .suggestion(d.get("suggestion") != null ? String.valueOf(d.get("suggestion")) : null)
+                            .sentence(sentence)
+                            .level(level)
+                            .reason(str(d.get("reason")))
+                            .suggestion(str(d.get("suggestion")))
                             .build());
                 }
             }
@@ -176,6 +193,20 @@ public class AiOrchestrationService {
         }
     }
 
+    /** DB CHECK: GREEN / YELLOW / RED 만 허용. 그 외는 null 반환해 스킵. */
+    private String normalizeDetectionLevel(Object raw) {
+        if (raw == null) return null;
+        String level = String.valueOf(raw).trim().toUpperCase();
+        if (level.isEmpty() || "NULL".equals(level)) return null;
+        return switch (level) {
+            case "GREEN", "YELLOW", "RED" -> level;
+            case "G" -> "GREEN";
+            case "Y" -> "YELLOW";
+            case "R" -> "RED";
+            default -> null;
+        };
+    }
+
     private int intVal(Object o) {
         return o instanceof Number n ? n.intValue() : 0;
     }
@@ -184,7 +215,15 @@ public class AiOrchestrationService {
         return o != null ? String.valueOf(o) : null;
     }
 
+    /** 생성용 — STYLE은 문자열 삭제에 쓰면 문장이 깨지므로 제외 */
     private List<String> getForbiddenList() {
+        return forbiddenRepository.findByEnabledTrue().stream()
+                .filter(f -> !"STYLE".equalsIgnoreCase(f.getSeverity()))
+                .map(f -> f.getExpression()).toList();
+    }
+
+    /** 탐지용 — STYLE(번역투 등) 포함 전체 */
+    private List<String> getAllForbiddenList() {
         return forbiddenRepository.findByEnabledTrue().stream()
                 .map(f -> f.getExpression()).toList();
     }

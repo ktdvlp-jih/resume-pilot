@@ -55,7 +55,7 @@ class GenerationService:
         style_text = state["style_text"]
         job_analysis = request.get("job_analysis")
         rewrite_level = request.get("rewrite_level", 40)
-        section_titles = request.get("section_titles") or []
+        section_titles = (request.get("section_titles") or [])[:5]
         section_titles_text = (
             "\n".join(f"{i + 1}. {title}" for i, title in enumerate(section_titles))
             if section_titles else ""
@@ -89,6 +89,7 @@ class GenerationService:
             writing_style=state["style_text"],
             system_prompt=prompt["system_prompt"],
             user_prompt=prompt["user_prompt"],
+            section_titles=request.get("section_titles") or [],
         )
         return {**state, "result": result}
 
@@ -174,27 +175,30 @@ class DetectionService:
                     "content": content,
                     "forbidden_expressions": forbidden_text,
                 })
-                completion = await llm_service.complete_for_operation(
+                parsed, completion = await llm_service.complete_json_value_for_operation(
                     "AI_DETECTION",
                     prompt["system_prompt"],
                     prompt["user_prompt"],
                     temperature=0.2,
                 )
-                parsed = llm_service.parse_json_value(completion.content)
                 detections = parsed if isinstance(parsed, list) else (
                     parsed.get("detections") if isinstance(parsed, dict) else None
                 )
-                if isinstance(detections, list) and detections:
-                    red = sum(1 for d in detections if d.get("level") == "RED")
+                if isinstance(detections, list):
+                    detections = [
+                        d for d in detections
+                        if isinstance(d, dict) and str(d.get("level", "")).upper() in {"GREEN", "YELLOW", "RED"}
+                    ]
+                    red = sum(1 for d in detections if str(d.get("level", "")).upper() == "RED")
                     total = max(len(detections), 1)
                     return {
                         "detections": detections,
-                        "ai_trace_percent": round(red / total * 100, 1),
+                        "ai_trace_percent": round(red / total * 100, 1) if detections else 0.0,
                         "model": completion.model,
                         "fallback": False,
                     }
                 logger.warning(
-                    "AI_DETECTION returned unparseable/empty response, using rule fallback. raw=%.200s",
+                    "AI_DETECTION returned unparseable response, using rule fallback. raw=%.200s",
                     completion.content,
                 )
             except Exception as exc:
@@ -219,15 +223,14 @@ class ReviewService:
                     "content": content,
                     "job_analysis": str(job_analysis or {}),
                 })
-                completion = await llm_service.complete_for_operation(
+                parsed, completion = await llm_service.complete_json_value_for_operation(
                     "AI_REVIEW",
                     prompt["system_prompt"],
                     prompt["user_prompt"],
                     temperature=0.3,
                 )
-                parsed = llm_service.parse_json_value(completion.content)
-                reviews = parsed if isinstance(parsed, list) else (
-                    parsed.get("reviews") if isinstance(parsed, dict) else None
+                reviews = parsed.get("reviews") if isinstance(parsed, dict) else (
+                    parsed if isinstance(parsed, list) else None
                 )
                 scores = parsed.get("scores") if isinstance(parsed, dict) else None
                 scores = scores if isinstance(scores, dict) else None
@@ -240,7 +243,7 @@ class ReviewService:
                         "fallback": False,
                     }
                 logger.warning(
-                    "AI_REVIEW returned unparseable/empty response, using rule fallback. raw=%.200s",
+                    "AI_REVIEW returned unparseable response, using rule fallback. raw=%.200s",
                     completion.content,
                 )
             except Exception as exc:
@@ -262,13 +265,12 @@ class InterviewService:
         if await llm_service.has_routes("INTERVIEW_QUESTIONS"):
             try:
                 prompt = await prompt_client.render("INTERVIEW_QUESTIONS", {"content": content})
-                completion = await llm_service.complete_for_operation(
+                parsed, completion = await llm_service.complete_json_value_for_operation(
                     "INTERVIEW_QUESTIONS",
                     prompt["system_prompt"],
                     prompt["user_prompt"],
                     temperature=0.5,
                 )
-                parsed = llm_service.parse_json_value(completion.content)
                 questions = parsed if isinstance(parsed, list) else (
                     parsed.get("questions") if isinstance(parsed, dict) else None
                 )
@@ -284,7 +286,7 @@ class InterviewService:
                             "fallback": False,
                         }
                 logger.warning(
-                    "INTERVIEW_QUESTIONS returned unparseable/empty response, using rule fallback. raw=%.200s",
+                    "INTERVIEW_QUESTIONS returned unparseable response, using rule fallback. raw=%.200s",
                     completion.content,
                 )
             except Exception as exc:
@@ -304,18 +306,21 @@ class KeywordService:
     async def compare(self, job_keywords: list[str], resume_content: str) -> dict[str, Any]:
         if await llm_service.has_routes("KEYWORD_COMPARE"):
             try:
+                # 긴 공고 키워드·자소서 전문은 응답이 잘려 JSON 파싱이 실패하기 쉬움
+                compact_keywords = ", ".join(job_keywords[:40])
+                compact_resume = resume_content[:4000]
                 prompt = await prompt_client.render("KEYWORD_COMPARE", {
-                    "job_keywords": ", ".join(job_keywords),
-                    "resume_content": resume_content,
+                    "job_keywords": compact_keywords,
+                    "resume_content": compact_resume,
                 })
-                completion = await llm_service.complete_for_operation(
+                parsed, completion = await llm_service.complete_json_value_for_operation(
                     "KEYWORD_COMPARE",
-                    prompt["system_prompt"],
+                    prompt["system_prompt"]
+                    + "\n[Compact] Prefer short keyword tokens. Keep each array under 30 items.",
                     prompt["user_prompt"],
                     temperature=0.2,
                 )
-                parsed = llm_service.parse_json_response(completion.content)
-                if parsed and isinstance(parsed.get("matched"), list) and isinstance(parsed.get("missing"), list):
+                if isinstance(parsed, dict) and isinstance(parsed.get("matched"), list) and isinstance(parsed.get("missing"), list):
                     return {
                         "matched": parsed["matched"],
                         "missing": parsed["missing"],

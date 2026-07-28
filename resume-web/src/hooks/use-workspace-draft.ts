@@ -22,7 +22,11 @@ export function loadWorkspaceDraft(): WorkspaceDraft | null {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<WorkspaceDraft>;
-    return { ...DEFAULTS, ...parsed };
+    const draft = { ...DEFAULTS, ...parsed };
+    if (Array.isArray(draft.sectionTitles) && draft.sectionTitles.length > 5) {
+      draft.sectionTitles = draft.sectionTitles.slice(0, 5);
+    }
+    return draft;
   } catch {
     return null;
   }

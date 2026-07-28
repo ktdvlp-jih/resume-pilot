@@ -9,6 +9,8 @@ export type InterviewItem = { category: string; question: string };
 
 export type WorkspaceResultState = {
   result: Record<string, unknown> | null;
+  /** 생성 시점의 문항 제목 — 결과 복원 시에도 문단 헤더 표시용 */
+  sectionTitles: string[];
   recommended: RecommendedItem[];
   interview: InterviewItem[];
   interviewFallback: boolean;
@@ -17,6 +19,7 @@ export type WorkspaceResultState = {
 
 const EMPTY: WorkspaceResultState = {
   result: null,
+  sectionTitles: [],
   recommended: [],
   interview: [],
   interviewFallback: false,
@@ -96,7 +99,7 @@ export function useWorkspaceResult(postingId: string) {
   // 문항 제목·경험 선택 등 생성 조건이 바뀌어 기존 결과가 더 이상 유효하지 않을 때
   // 화면에서만 지운다 (다른 공고의 저장 데이터는 건드리지 않음).
   const clearVisibleResult = useCallback(() => {
-    setBundle({ result: null, interview: [], interviewFallback: false, keywords: null });
+    setBundle({ result: null, sectionTitles: [], interview: [], interviewFallback: false, keywords: null });
   }, [setBundle]);
 
   const state = byPosting[postingKey] ?? EMPTY;
