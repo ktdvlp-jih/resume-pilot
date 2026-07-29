@@ -55,6 +55,13 @@ public class ExperienceController {
         return ApiResponse.ok(null);
     }
 
+    @PostMapping("/embed-all")
+    @Operation(summary = "경험 전체 재임베딩 (RAG)")
+    public ApiResponse<java.util.Map<String, Integer>> embedAll() {
+        int count = experienceService.embedAll(SecurityUtils.getCurrentUserId());
+        return ApiResponse.ok(java.util.Map.of("count", count));
+    }
+
     @PostMapping("/{id}/embed")
     @Operation(summary = "경험 임베딩 생성 (RAG)")
     public ApiResponse<Void> embed(@PathVariable UUID id) {

@@ -281,9 +281,14 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ content, resumeId }),
     }),
-  recommendExperiences: (keywords: string[], topK = 5) =>
+  recommendExperiences: (keywords: string[], topK = 5, minScore = 0.4) =>
     request<Array<{ id: string; title: string; type: string; description?: string; result?: string; score: number }>>(
-      '/api/v1/rag/recommend-experiences', { method: 'POST', body: JSON.stringify({ keywords, topK }) }),
+      '/api/v1/rag/recommend-experiences', {
+        method: 'POST',
+        body: JSON.stringify({ keywords, topK, minScore }),
+      }),
+  reembedAllExperiences: () =>
+    request<{ count: number }>('/api/v1/experiences/embed-all', { method: 'POST' }),
   generateAi: (data: {
     keywords: string[];
     rewriteLevel: number;

@@ -31,6 +31,9 @@ public class RagController {
     @Operation(summary = "공고 키워드 기반 경험 추천")
     public ApiResponse<List<ExperienceRecommendResponse>> recommend(@RequestBody ExperienceRecommendRequest request) {
         return ApiResponse.ok(ragService.recommendExperiences(
-                SecurityUtils.getCurrentUserId(), request.keywords(), request.topK()));
+                SecurityUtils.getCurrentUserId(),
+                request.keywords(),
+                request.topK(),
+                request.minScore()));
     }
 }

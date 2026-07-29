@@ -74,6 +74,16 @@ public class ExperienceService {
         ragService.embedExperience(userId, getOwned(userId, id));
     }
 
+    /** 사용자 경험 전체를 현재 임베딩 규칙으로 다시 색인한다. */
+    @Transactional
+    public int embedAll(UUID userId) {
+        List<Experience> experiences = experienceRepository.findByUserIdOrderByUpdatedAtDesc(userId);
+        for (Experience experience : experiences) {
+            ragService.embedExperience(userId, experience);
+        }
+        return experiences.size();
+    }
+
     private Experience getOwned(UUID userId, UUID id) {
         Experience experience = experienceRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));

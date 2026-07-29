@@ -19,6 +19,11 @@ import {
   X,
 } from 'lucide-react';
 import { api, type JobPostingResponse } from '@/lib/api';
+import {
+  buildRecommendKeywords,
+  EXPERIENCE_REEMBED_SESSION_KEY,
+  RECOMMEND_MIN_SCORE,
+} from '@/lib/recommend-keywords';
 import { useWorkspaceDraft } from '@/hooks/use-workspace-draft';
 import { useWorkspaceResult } from '@/hooks/use-workspace-result';
 import { useTypewriter } from '@/hooks/use-typewriter';
@@ -244,7 +249,7 @@ export default function WorkspacePage() {
 
   const getJobContext = async () => {
     let jobAnalysis: Record<string, unknown> = { raw_content: jobText };
-    let kw: string[] = jobText.split(/\s+/).filter(Boolean).slice(0, 20);
+    let kw: string[] = buildRecommendKeywords(null, jobText);
     if (selectedPostingId) {
       const analysis = await api.getJobAnalysis(selectedPostingId);
       jobAnalysis = {
@@ -254,18 +259,23 @@ export default function WorkspacePage() {
         tech_keywords: analysis.techKeywords,
         talent_profile: analysis.talentProfile,
       };
-      const analysisKeywords = [
-        ...analysis.techKeywords,
-        ...analysis.requiredSkills,
-        ...analysis.preferredSkills,
-        ...analysis.coreCompetencies,
-      ].filter(Boolean);
-      kw = analysisKeywords.length ? [...new Set(analysisKeywords)].slice(0, 30) : kw;
+      kw = buildRecommendKeywords(analysis, jobText);
     }
     return { jobAnalysis, keywords: kw, jobPostingId: selectedPostingId || undefined };
   };
 
   const recommendSeq = useRef(0);
+
+  const ensureExperienceEmbeddings = async () => {
+    if (typeof sessionStorage === 'undefined') return;
+    if (sessionStorage.getItem(EXPERIENCE_REEMBED_SESSION_KEY)) return;
+    try {
+      await api.reembedAllExperiences();
+      sessionStorage.setItem(EXPERIENCE_REEMBED_SESSION_KEY, '1');
+    } catch {
+      // 재임베딩 실패해도 기존 벡터로 추천 시도
+    }
+  };
 
   const handleRecommend = async () => {
     if (!jobText && !selectedPostingId) {
@@ -277,9 +287,11 @@ export default function WorkspacePage() {
     setRecommendLoading(true);
     setRecommendError('');
     try {
+      await ensureExperienceEmbeddings();
+      if (seq !== recommendSeq.current) return;
       const { keywords: kw } = await getJobContext();
-      // 문항 제목(성장과정/지원동기 등)도 검색어에 포함시켜, 구성한 문항이 바뀌면 추천도 함께 갱신되도록 한다.
-      const rec = await api.recommendExperiences([...kw, ...sectionTitles], MAX_EXPERIENCES);
+      // 문항 제목은 쿼리에서 제외 — 공고(회사·직무·스킬·JD)만으로 변별
+      const rec = await api.recommendExperiences(kw, MAX_EXPERIENCES, RECOMMEND_MIN_SCORE);
       if (seq !== recommendSeq.current) return;
       setBundle({
         recommended: rec
@@ -288,7 +300,6 @@ export default function WorkspacePage() {
       });
       setSelectedExperienceIds((prev) => {
         const allowed = new Set(rec.slice(0, MAX_EXPERIENCES).map((r) => r.id));
-        // 공고 전환 직후에는 이전 선택을 유지하되, 새 추천에 없는 ID는 제거
         const kept = [...prev].filter((id) => allowed.has(id)).slice(0, MAX_EXPERIENCES);
         return new Set(kept);
       });
@@ -300,8 +311,7 @@ export default function WorkspacePage() {
     }
   };
 
-  // 공고·문항이 바뀌면 관련 경험 추천을 자동 갱신
-  const sectionTitlesKey = sectionTitles.join('\u0001');
+  // 공고·공고 텍스트가 바뀌면 관련 경험 추천을 자동 갱신 (문항 제목은 추천 쿼리에 미포함)
   useEffect(() => {
     if (!jobText && !selectedPostingId) {
       setBundle({ recommended: [] });
@@ -313,8 +323,8 @@ export default function WorkspacePage() {
       void handleRecommend();
     }, delay);
     return () => window.clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 공고/문항/공고텍스트 변경 시에만 자동 추천
-  }, [selectedPostingId, sectionTitlesKey, jobText]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 공고/공고텍스트 변경 시에만 자동 추천
+  }, [selectedPostingId, jobText]);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -526,7 +536,7 @@ export default function WorkspacePage() {
               {recommendLoading ? t('common.generating') : t('workspace.recommend')}
             </Button>
 
-            {recommended.length > 0 && (
+            {recommended.length > 0 ? (
               <div className="mt-2 space-y-1.5 rounded-md border bg-background p-2">
                 <p className="text-xs text-muted-foreground">{t('workspace.recommendedHint')}</p>
                 <p className="text-xs text-muted-foreground">
@@ -558,7 +568,9 @@ export default function WorkspacePage() {
                   })}
                 </div>
               </div>
-            )}
+            ) : !recommendLoading && (jobText || selectedPostingId) ? (
+              <p className="mt-2 text-xs text-muted-foreground">{t('workspace.recommendEmpty')}</p>
+            ) : null}
           </div>
         </CardContent>
       </Card>

@@ -23,16 +23,31 @@ public class RagService {
     }
 
     @Transactional(readOnly = true)
-    public List<ExperienceRecommendResponse> recommendExperiences(UUID userId, List<String> keywords, int topK) {
-        String query = String.join(" ", keywords);
+    public List<ExperienceRecommendResponse> recommendExperiences(
+            UUID userId, List<String> keywords, int topK, double minScore) {
+        if (keywords == null || keywords.isEmpty()) {
+            return List.of();
+        }
+        String query = String.join(" ", keywords).trim();
+        if (query.isEmpty()) {
+            return List.of();
+        }
+        // 임계값 필터 후 topK를 채우기 위해 여유분 조회
+        int fetchK = Math.min(Math.max(topK * 3, 10), 20);
         List<Map<String, Object>> results = ragServiceClient.search(
-                userId, query, List.of("EXPERIENCE"), topK);
+                userId, query, List.of("EXPERIENCE"), fetchK);
+        if (results == null || results.isEmpty()) {
+            return List.of();
+        }
 
         List<ExperienceRecommendResponse> recommendations = new ArrayList<>();
         for (Map<String, Object> r : results) {
+            if (recommendations.size() >= topK) break;
+            double score = r.get("score") instanceof Number n ? n.doubleValue() : 0;
+            if (score < minScore) continue;
             UUID expId = UUID.fromString(String.valueOf(r.get("entity_id")));
             experienceRepository.findById(expId).ifPresent(exp -> {
-                double score = r.get("score") instanceof Number n ? n.doubleValue() : 0;
+                if (!exp.getUserId().equals(userId)) return;
                 recommendations.add(new ExperienceRecommendResponse(
                         exp.getId(), exp.getTitle(), exp.getType().name(),
                         exp.getDescription(), exp.getResult(), score

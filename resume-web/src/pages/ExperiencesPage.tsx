@@ -169,6 +169,19 @@ export default function ExperiencesPage() {
     onError: () => toast.error(t('common.error')),
   });
 
+  const reembedMutation = useMutation({
+    mutationFn: () => api.reembedAllExperiences(),
+    onSuccess: (res) => {
+      try {
+        sessionStorage.setItem('rp-exp-embed-v2', '1');
+      } catch {
+        /* ignore */
+      }
+      toast.success(t('experiences.reembedDone', { count: res.count }));
+    },
+    onError: () => toast.error(t('experiences.reembedFailed')),
+  });
+
   const closeForm = () => {
     setShowForm(false);
     setEditingId(null);
@@ -236,6 +249,14 @@ export default function ExperiencesPage() {
                 max: MAX_LIBRARY_EXPERIENCES,
               })}
             </Badge>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={experiences.length === 0 || reembedMutation.isPending}
+              onClick={() => reembedMutation.mutate()}
+            >
+              {reembedMutation.isPending ? t('common.generating') : t('experiences.reembed')}
+            </Button>
             <Button
               variant={showForm ? 'outline' : 'default'}
               data-testid="experience-add-btn"
