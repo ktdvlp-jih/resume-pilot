@@ -4,7 +4,10 @@ import com.resumepilot.domain.ai.*;
 import com.resumepilot.domain.admin.AiUsageLog;
 import com.resumepilot.domain.admin.AiUsageLogRepository;
 import com.resumepilot.domain.admin.ForbiddenExpressionRepository;
+import com.resumepilot.domain.experience.Experience;
 import com.resumepilot.domain.experience.ExperienceRepository;
+import com.resumepilot.global.exception.BusinessException;
+import com.resumepilot.global.exception.ErrorCode;
 import com.resumepilot.infrastructure.ai.AiGatewayClient;
 import com.resumepilot.application.style.WritingStyleService;
 import com.resumepilot.presentation.dto.ai.*;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -38,6 +42,7 @@ public class AiOrchestrationService {
         }
         long start = System.currentTimeMillis();
         List<String> selectedExperienceIds = filterOwnedExperienceIds(userId, request.experienceIds());
+        assertExperiencesUsable(userId, selectedExperienceIds);
         Map<String, Object> payload = new HashMap<>();
         payload.put("user_id", userId.toString());
         payload.put("keywords", request.keywords());
@@ -125,6 +130,44 @@ public class AiOrchestrationService {
         experienceRepository.findByUserIdOrderByUpdatedAtDesc(userId)
                 .forEach(e -> owned.add(e.getId().toString()));
         return experienceIds.stream().map(UUID::toString).filter(owned::contains).toList();
+    }
+
+    /**
+     * 날조 방지: 선택 경험이 없거나 전부 제목 수준이면 LLM 호출 전에 막는다.
+     * thin(설명 일부)은 UI 경고 후 허용 — 여기서는 empty급만 차단.
+     */
+    private void assertExperiencesUsable(UUID userId, List<String> selectedIds) {
+        if (selectedIds == null || selectedIds.isEmpty()) {
+            throw new BusinessException(
+                    ErrorCode.EXPERIENCE_INSUFFICIENT,
+                    "생성에 사용할 경험을 1개 이상 선택하세요. 경험 라이브러리에서 설명·역할·성과를 채운 뒤 선택해 주세요."
+            );
+        }
+        Set<UUID> idSet = selectedIds.stream().map(UUID::fromString).collect(Collectors.toSet());
+        List<Experience> selected = experienceRepository.findByUserIdOrderByUpdatedAtDesc(userId).stream()
+                .filter(e -> idSet.contains(e.getId()))
+                .toList();
+        boolean anySubstance = selected.stream().anyMatch(AiOrchestrationService::hasMinimalSubstance);
+        if (!anySubstance) {
+            throw new BusinessException(
+                    ErrorCode.EXPERIENCE_INSUFFICIENT,
+                    "선택한 경험에 생성에 쓸 내용이 부족합니다. 설명·성과·STAR 중 하나 이상을 보강한 뒤 다시 시도하세요."
+            );
+        }
+    }
+
+    private static boolean hasMinimalSubstance(Experience e) {
+        String desc = nullToEmpty(e.getDescription()).trim();
+        String result = nullToEmpty(e.getResult()).trim();
+        String star = (nullToEmpty(e.getStarSituation())
+                + nullToEmpty(e.getStarTask())
+                + nullToEmpty(e.getStarAction())
+                + nullToEmpty(e.getStarResult())).trim();
+        return desc.length() >= 30 || result.length() >= 5 || star.length() >= 40;
+    }
+
+    private static String nullToEmpty(String value) {
+        return value == null ? "" : value;
     }
 
     private void validateExperienceIds(UUID userId, Map<String, Object> result) {

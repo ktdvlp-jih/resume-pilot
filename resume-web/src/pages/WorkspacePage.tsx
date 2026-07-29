@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
@@ -24,6 +25,7 @@ import {
   EXPERIENCE_REEMBED_SESSION_KEY,
   RECOMMEND_MIN_SCORE,
 } from '@/lib/recommend-keywords';
+import { experienceReadiness } from '@/lib/experience-limits';
 import { useWorkspaceDraft } from '@/hooks/use-workspace-draft';
 import { useWorkspaceResult } from '@/hooks/use-workspace-result';
 import { useTypewriter } from '@/hooks/use-typewriter';
@@ -34,6 +36,16 @@ import { PageHeader } from '@/components/common/page-header';
 import { WorkspaceLayout, WorkspacePanelTitle } from '@/components/workspace/workspace-layout';
 import { StatusChip } from '@/components/common/status-chip';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -135,6 +147,7 @@ export default function WorkspacePage() {
   const [customTitle, setCustomTitle] = useState('');
   const [selectedExperienceIds, setSelectedExperienceIds] = useState<Set<string>>(new Set());
   const [justGenerated, setJustGenerated] = useState(false);
+  const [thinConfirmOpen, setThinConfirmOpen] = useState(false);
   /** 공고별로 복원 토스트를 한 번만 띄움 (생성 완료 후 justGenerated 해제 시 재노출 방지) */
   const resultRestoredToastKey = useRef<string | null>(null);
   const draftRestoredToastShown = useRef(false);
@@ -209,7 +222,32 @@ export default function WorkspacePage() {
   };
 
   const { data: postings = [] } = useQuery({ queryKey: ['job-postings'], queryFn: api.listJobPostings });
+  const { data: experiences = [] } = useQuery({ queryKey: ['experiences'], queryFn: () => api.listExperiences() });
   const selectedPosting = postings.find((p) => p.id === selectedPostingId);
+
+  const experienceById = useMemo(() => {
+    const map = new Map(experiences.map((e) => [e.id, e]));
+    return map;
+  }, [experiences]);
+
+  const selectedReadiness = useMemo(() => {
+    let ready = 0;
+    let thin = 0;
+    let empty = 0;
+    for (const id of selectedExperienceIds) {
+      const exp = experienceById.get(id);
+      const r = exp ? experienceReadiness(exp) : 'empty';
+      if (r === 'ready') ready += 1;
+      else if (r === 'thin') thin += 1;
+      else empty += 1;
+    }
+    return { ready, thin, empty, total: selectedExperienceIds.size };
+  }, [selectedExperienceIds, experienceById]);
+
+  const generateBlocked =
+    selectedReadiness.total === 0 || (selectedReadiness.ready < 1 && selectedReadiness.thin === 0);
+  const needsThinConfirm = selectedReadiness.ready < 1 && selectedReadiness.thin > 0;
+  const rewriteHigh = rewriteLevel >= 70;
 
   const saveMutation = useMutation({
     mutationFn: (content: string) =>
@@ -368,6 +406,23 @@ export default function WorkspacePage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const requestGenerate = () => {
+    setError('');
+    if (generateBlocked) {
+      setError(
+        selectedReadiness.total === 0
+          ? t('workspace.preflightNeedSelect')
+          : t('workspace.preflightNeedReady'),
+      );
+      return;
+    }
+    if (needsThinConfirm) {
+      setThinConfirmOpen(true);
+      return;
+    }
+    void handleGenerate();
   };
 
   const detections = (result?.detections as Array<{ sentence: string; level: string; reason: string }>) || [];
@@ -593,11 +648,68 @@ export default function WorkspacePage() {
             <span>{t('workspace.step2Low')}</span>
             <span>{t('workspace.step2High')}</span>
           </div>
-          <Button className="w-full" size="lg" data-testid="workspace-generate-btn" onClick={handleGenerate} disabled={loading || (!jobText && !selectedPostingId)}>
+
+          <div className="space-y-2 rounded-md border bg-background/80 p-3">
+            <p className="text-xs font-medium">{t('workspace.preflightTitle')}</p>
+            <p className="text-xs text-muted-foreground">
+              {t('workspace.preflightSelected', {
+                ready: selectedReadiness.ready,
+                thin: selectedReadiness.thin,
+                empty: selectedReadiness.empty,
+                total: selectedReadiness.total,
+                max: MAX_EXPERIENCES,
+              })}
+            </p>
+            {generateBlocked ? (
+              <p className="text-xs text-amber-700 dark:text-amber-400">
+                {selectedReadiness.total === 0
+                  ? t('workspace.preflightNeedSelect')
+                  : t('workspace.preflightNeedReady')}{' '}
+                <Link to="/experiences" className="underline underline-offset-2">
+                  {t('workspace.preflightOpenLibrary')}
+                </Link>
+              </p>
+            ) : needsThinConfirm ? (
+              <p className="text-xs text-amber-700 dark:text-amber-400">{t('workspace.preflightThinWarn')}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">{t('workspace.preflightOk')}</p>
+            )}
+            {rewriteHigh ? (
+              <p className="text-xs text-muted-foreground">{t('workspace.preflightRewriteHigh')}</p>
+            ) : null}
+          </div>
+
+          <Button
+            className="w-full"
+            size="lg"
+            data-testid="workspace-generate-btn"
+            onClick={requestGenerate}
+            disabled={loading || (!jobText && !selectedPostingId) || generateBlocked}
+          >
             {loading ? t('common.generating') : t('workspace.generate')}
           </Button>
         </CardContent>
       </Card>
+
+      <AlertDialog open={thinConfirmOpen} onOpenChange={setThinConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('workspace.preflightThinConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('workspace.preflightThinConfirmDesc')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setThinConfirmOpen(false);
+                void handleGenerate();
+              }}
+            >
+              {t('workspace.preflightThinConfirmAction')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 

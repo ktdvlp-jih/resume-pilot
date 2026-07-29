@@ -506,7 +506,7 @@ class LlmService:
         titles: list[str],
         rewrite_level: int = 40,
     ) -> tuple[str, str]:
-        """문항별로 본문을 생성한다. 목표 900~1600자, 사실 부족 시 짧게."""
+        """문항별로 본문을 생성한다. 권장 상한 ~1600자, 사실 부족 시 짧게 (자동 확장 없음)."""
         paragraphs: list[str] = []
         model_name = ""
         rewrite_rules = self._rewrite_level_rules(rewrite_level)
@@ -515,11 +515,12 @@ class LlmService:
             + "\n\n[Section Mode]\n"
             "- 지금은 한 문항의 본문만 작성합니다.\n"
             "- 문항 제목·번호·마크다운을 본문에 넣지 마세요.\n"
-            "- 목표 분량 900~1600자. RAG 사실만으로 불가능하면 사실 범위에서 짧게 끝내세요.\n"
-            "- 지어내서 분량을 채우면 실패입니다. 분량보다 사실 우선.\n"
+            "- 권장 상한 약 1600자. 필수 하한 없음. RAG 사실만으로 가능한 길이로 쓰세요.\n"
+            "- 지어내서 분량을 채우면 실패입니다. 분량보다 사실 우선. 짧은 사실 문단은 성공입니다.\n"
             "- STAR를 구체화하되 수치는 RAG에 있는 것만.\n"
             "- 문항당 주요 소재 경험은 최대 1~2개. 경험 카탈로그 나열 금지.\n"
             "- 실무 경험을 학창시절로 옮기지 마세요.\n"
+            "- 성장과정: 학창 근거 없으면 일반론 1~2문장 + 실무 입문만.\n"
             "- 빈 줄로 문단을 쪼개지 마세요. 연속 본문만 출력하세요.\n"
             "- 번역투·공허한 마무리·상투구 금지. 쉼표 문장당 1개, 문두 부사 뒤 쉼표 금지.\n"
             "- 이미 작성한 문항과 같은 문장·경험 국면을 반복하지 마세요.\n"
@@ -537,41 +538,18 @@ class LlmService:
                 f"## 이번에 작성할 문항 ({i + 1}/{len(titles)})\n"
                 f"제목: {title}\n"
                 f"이 문항 본문만 출력하세요. 제목/번호 없이 순수 문장만.\n"
-                f"목표 분량: 900~1600자. 사실 부족 시 짧게 써도 됩니다 (허구 금지).\n"
+                f"권장 상한 약 1600자. 필수 하한 없음. 사실 부족 시 짧게 (허구 금지).\n"
                 f"다른 문항과 내용이 중복되지 않게, 이 제목 의미에 맞게 쓰세요.\n"
                 f"{slot_rule}\n"
                 f"{rewrite_rules}"
                 f"## 이미 작성한 문항 (참고·중복 금지)\n{prev}\n"
             )
             completion = await self.complete_for_operation(
-                "GENERATE", section_system, section_user, temperature=0.55,
+                "GENERATE", section_system, section_user, temperature=0.4,
             )
             model_name = completion.model or model_name
             para = self._clean_single_section(completion.content or "", title)
-            # 너무 짧을 때만 확장 시도. 새 사실 추가는 금지.
-            if len(para) < 500 and "내용이 부족하여 생성하지 않음" not in para:
-                logger.warning(
-                    "Section %s/%s (%s) too short (%s chars), expanding once (facts only)",
-                    i + 1,
-                    len(titles),
-                    title,
-                    len(para),
-                )
-                expand = await self.complete_for_operation(
-                    "GENERATE",
-                    section_system
-                    + "\n[Expand] 아래 초안을 RAG에 이미 있는 사실만으로 더 풀어 쓰세요. "
-                    "상황·행동·결과를 구체화하되 새 프로젝트·수치·역할·시점을 추가하면 실패입니다. "
-                    "더 풀 사실이 없으면 초안을 유지하세요. 제목 없이 본문만.",
-                    section_user
-                    + f"\n\n## 현재 초안 ({len(para)}자)\n{para}\n\n"
-                    "RAG 사실만으로 확장 가능하면 확장본을, 불가능하면 초안을 그대로 출력하세요.",
-                    temperature=0.35,
-                )
-                expanded = self._clean_single_section(expand.content or "", title)
-                if len(expanded) > len(para):
-                    para = expanded
-                    model_name = expand.model or model_name
+            # 자동 expand 제거: 짧은 사실 문단을 늘리려다 날조가 생기던 경로를 차단
 
             violations = self._style_violations(para) + self._section_topic_violations(title, para)
             if violations:
@@ -635,8 +613,9 @@ class LlmService:
         if "성장" in t:
             return (
                 "【문항 슬롯·성장과정】\n"
-                "- 흐름: 흥미→관심→전공→팀 협업(일반)→졸업 후 실무 입문→관점 변화.\n"
-                "- 금지: CMS/ERP/AI/MSDS를 포트폴리오처럼 나열. 대학 시절 실무 프로젝트 날조.\n"
+                "- RAG에 학창·전공·팀 협업 구체 근거가 없으면 일반론 1~2문장만 쓰고 실무 입문·관점 변화로 이어가세요.\n"
+                "- 흐름(근거 있을 때만): 흥미→관심→전공→팀 협업(일반)→졸업 후 실무 입문→관점 변화.\n"
+                "- 금지: CMS/ERP/AI/MSDS를 포트폴리오처럼 나열. 대학 시절 실무 프로젝트 날조. 없는 수치·수상.\n"
                 "- 졸업 후는 한 프로젝트로 '일하는 방식이 어떻게 바뀌었는지'만 짧게.\n"
             )
         if "직무역량" in t or "직무" in t:
@@ -788,8 +767,9 @@ class LlmService:
         if not content:
             return True
         # 분량보다 사실 우선: 섹션 모드에서는 극단적으로 짧을 때만 truncated로 본다.
+        # 문단이 짧아도(사실만으로 끝난 경우) 재생성으로 몰지 않는다.
         if section_count > 0:
-            min_chars = max(400, min(section_count, 5) * 400)
+            min_chars = max(120, min(section_count, 5) * 80)
         else:
             min_chars = 2500 if experience_count >= 2 else 1000
         if len(content) < min_chars:
@@ -797,7 +777,8 @@ class LlmService:
         paragraphs = [p.strip() for p in re.split(r"\n\s*\n", content) if p.strip()]
         if section_count > 0 and len(paragraphs) < section_count:
             return True
-        if section_count > 0 and any(len(p) < 200 for p in paragraphs):
+        # 이전: any(len(p) < 200) → 짧은 사실 문단을 실패로 처리해 재생성·날조를 유발
+        if section_count > 0 and any(len(p) < 40 for p in paragraphs):
             return True
         stripped = content.rstrip()
         if stripped.endswith((",", "·", "/", "(", "[")):

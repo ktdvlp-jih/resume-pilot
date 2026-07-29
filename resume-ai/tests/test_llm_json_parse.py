@@ -57,8 +57,14 @@ def test_parse_json_value_truncated_object(parser: LlmService) -> None:
 
 def test_looks_truncated_resume_respects_section_length(parser: LlmService) -> None:
     # 섹션 모드: 극단적으로 짧을 때만 truncated (분량보다 사실 우선)
-    short = "가" * 80 + ".\n\n" + "나" * 80 + "."
+    short = "가" * 20 + ".\n\n" + "나" * 20 + "."
     assert parser._looks_truncated_resume(short, experience_count=2, section_count=2) is True
+
+    # 짧은 사실 문단(~100자)은 실패로 몰지 않음
+    factual = ("실무에서 Spring으로 API를 구현했습니다. " * 4).strip() + "다."
+    factual_pair = f"{factual}\n\n{factual}"
+    assert len(factual) >= 40
+    assert parser._looks_truncated_resume(factual_pair, experience_count=2, section_count=2) is False
 
     long_para = ("경험과 성과를 구체적으로 서술합니다. " * 20).strip() + "다."
     long = f"{long_para}\n\n{long_para}"

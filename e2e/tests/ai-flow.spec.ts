@@ -86,13 +86,16 @@ test.describe('TC-AI-05 AI E2E flow', () => {
 
     await page
       .getByTestId('workspace-recommend-btn')
-      .or(page.getByRole('button', { name: /관련 경험 추천|Recommend/i }))
+      .or(page.getByRole('button', { name: /관련 경험 추천|Recommend|다시 추천|Refresh/i }))
       .click();
     await expect(page.getByText(recommendations[0].title).first()).toBeVisible({ timeout: 30_000 });
+    // 생성 전 경험 선택 필수 (날조 방지 게이트)
+    await page.getByText(recommendations[0].title).first().click();
 
     const generateBtn = page
       .getByTestId('workspace-generate-btn')
       .or(page.getByRole('button', { name: /자기소개서 생성|Generate/i }));
+    await expect(generateBtn).toBeEnabled({ timeout: 10_000 });
     await generateBtn.click();
     await expect(generateBtn).not.toBeDisabled({ timeout: 120_000 });
 

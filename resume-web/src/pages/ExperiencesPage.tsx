@@ -269,13 +269,16 @@ export default function ExperiencesPage() {
         }
       />
 
-      <Alert className="border-primary/20 bg-primary/5">
+      <Alert className={readyCount === 0 && experiences.length > 0 ? 'border-amber-500/40 bg-amber-500/5' : 'border-primary/20 bg-primary/5'}>
         <Info className="size-4 text-primary" />
         <AlertDescription className="text-sm space-y-1">
           <p>{t('experiences.guideMain')}</p>
           <p className="text-muted-foreground">{t('experiences.guideSelect')}</p>
-          <p className="text-muted-foreground">
-            {t('experiences.readySummary', { ready: readyCount, total: experiences.length })}
+          <p className="text-muted-foreground">{t('experiences.guideReady')}</p>
+          <p className={readyCount === 0 && experiences.length > 0 ? 'font-medium text-amber-800 dark:text-amber-300' : 'font-medium'}>
+            {readyCount === 0 && experiences.length > 0
+              ? t('experiences.readySummaryWarn')
+              : t('experiences.readySummary', { ready: readyCount, total: experiences.length })}
           </p>
         </AlertDescription>
       </Alert>
@@ -291,6 +294,7 @@ export default function ExperiencesPage() {
           <CardHeader>
             <CardTitle>{editingId ? t('common.edit') : t('experiences.add')}</CardTitle>
             <p className="text-sm text-muted-foreground">{t('experiences.formHint')}</p>
+            <p className="text-xs text-muted-foreground">{t('experiences.formRequiredForGen')}</p>
           </CardHeader>
           <form
             onSubmit={(e) => {

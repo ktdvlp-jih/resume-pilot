@@ -11,6 +11,7 @@ public enum ErrorCode {
     NOT_FOUND(HttpStatus.NOT_FOUND, "NOT_FOUND", "Resource not found"),
     CONFLICT(HttpStatus.CONFLICT, "CONFLICT", "Resource conflict"),
     EXPERIENCE_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "EXPERIENCE_LIMIT_EXCEEDED", "Experience library limit exceeded"),
+    EXPERIENCE_INSUFFICIENT(HttpStatus.BAD_REQUEST, "EXPERIENCE_INSUFFICIENT", "Selected experiences are too thin for generation"),
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "EMAIL_ALREADY_EXISTS", "Email already registered"),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "Invalid email or password"),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN", "Invalid or expired token"),
