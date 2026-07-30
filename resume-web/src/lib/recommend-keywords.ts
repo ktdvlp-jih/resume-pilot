@@ -60,5 +60,8 @@ export function buildRecommendKeywords(
   return parts.slice(0, MAX_PARTS);
 }
 
-export const RECOMMEND_MIN_SCORE = 0.4;
+export const RECOMMEND_MIN_SCORE = 0.28;
+/** 생성 선택 상한과 별개 — 목록·페이징용 RAG 조회 상한 */
+export const RECOMMEND_FETCH_LIMIT = 30;
+export const RECOMMEND_PAGE_SIZE = 5;
 export const EXPERIENCE_REEMBED_SESSION_KEY = 'rp-exp-embed-v2';

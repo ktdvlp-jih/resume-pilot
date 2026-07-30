@@ -32,8 +32,8 @@ public class RagService {
         if (query.isEmpty()) {
             return List.of();
         }
-        // 임계값 필터 후 topK를 채우기 위해 여유분 조회
-        int fetchK = Math.min(Math.max(topK * 3, 10), 20);
+        // 임계값 필터 후 topK를 채우기 위해 여유분 조회 (rag-service top_k 상한 30)
+        int fetchK = Math.min(Math.max(topK, 10), 30);
         List<Map<String, Object>> results = ragServiceClient.search(
                 userId, query, List.of("EXPERIENCE"), fetchK);
         if (results == null || results.isEmpty()) {

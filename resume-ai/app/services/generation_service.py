@@ -61,8 +61,9 @@ class GenerationService:
             if section_titles else ""
         )
         try:
+            # experiences는 문항별 할당을 위해 llm_service에서 채운다.
             prompt = await prompt_client.render("RESUME_GENERATION", {
-                "experiences": str(experiences),
+                "experiences": "{{experiences}}",
                 "job_analysis": str(job_analysis),
                 "writing_style": style_text,
                 "rewrite_level": rewrite_level,
@@ -73,7 +74,8 @@ class GenerationService:
             prompt = {
                 "system_prompt": "You rewrite cover letters using ONLY the user's provided experiences.",
                 "user_prompt": (
-                    f"Experiences:\n{experiences}\n\nJob:\n{job_analysis}\n\n"
+                    "Experiences:\n{{experiences}}\n\n"
+                    f"Job:\n{job_analysis}\n\n"
                     f"Style:\n{style_text}\n\nRewrite level: {rewrite_level}%"
                 ),
             }

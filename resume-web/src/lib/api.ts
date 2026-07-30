@@ -281,7 +281,7 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ content, resumeId }),
     }),
-  recommendExperiences: (keywords: string[], topK = 5, minScore = 0.4) =>
+  recommendExperiences: (keywords: string[], topK = 30, minScore = 0.28) =>
     request<Array<{ id: string; title: string; type: string; description?: string; result?: string; score: number }>>(
       '/api/v1/rag/recommend-experiences', {
         method: 'POST',

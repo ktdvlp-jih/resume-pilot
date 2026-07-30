@@ -154,7 +154,7 @@ def test_style_violations_repeat_phrase_twice_flagged(parser: LlmService) -> Non
 
 def test_section_topic_violations_motivation_rejects_ai_tools(parser: LlmService) -> None:
     text = (
-        "CMS 구축 경험을 바탕으로 지원합니다. "
+        "백엔드 구축 경험을 바탕으로 지원합니다. "
         "저는 AI 도구를 활용하여 개발 생산성을 향상시킨 경험도 있습니다. "
         "Claude Code와 Cursor를 도입했습니다."
     )
@@ -162,10 +162,10 @@ def test_section_topic_violations_motivation_rejects_ai_tools(parser: LlmService
     assert any("AI도구" in x for x in v)
 
 
-def test_section_topic_violations_motivation_allows_cms_only(parser: LlmService) -> None:
+def test_section_topic_violations_motivation_allows_domain_agnostic(parser: LlmService) -> None:
     text = (
-        "CMS 신규 구축에서 Spring Boot 백엔드를 맡으며 "
-        "규제 대응 도메인 경험이 이 직무와 맞다고 판단했습니다."
+        "물류 시스템 고도화에서 백엔드 API를 맡으며 "
+        "도메인 경험이 이 직무와 맞다고 판단했습니다."
     )
     assert parser._section_topic_violations("지원동기", text) == []
 
@@ -174,3 +174,74 @@ def test_section_slot_rules_motivation_mentions_ai_ban(parser: LlmService) -> No
     rules = parser._section_slot_rules("지원동기")
     assert "AI" in rules
     assert "금지" in rules
+    assert "CMS" not in rules
+    assert "SI" not in rules
+
+
+def test_assign_section_experiences_spreads_primary(parser: LlmService) -> None:
+    experiences = [
+        {"entity_id": "a", "content": "경험A " * 20},
+        {"entity_id": "b", "content": "경험B " * 20},
+        {"entity_id": "c", "content": "경험C " * 20},
+    ]
+    titles = ["성장과정", "직무역량", "지원동기", "열정적으로 노력했던 경험", "입사 후 포부"]
+    assigned = parser._assign_section_experiences(titles, experiences)
+    assert len(assigned) == 5
+    # 1차 배분: 성장a, 직무b, 동기c — 서로 겹치지 않음. 열정·포부는 재사용/빈목록.
+    assert assigned[0][0]["entity_id"] == "a"
+    assert assigned[1][0]["entity_id"] == "b"
+    assert assigned[2][0]["entity_id"] == "c"
+    primary_three = {
+        assigned[0][0]["entity_id"],
+        assigned[1][0]["entity_id"],
+        assigned[2][0]["entity_id"],
+    }
+    assert primary_three == {"a", "b", "c"}
+
+
+def test_filter_job_relevant_drops_unrelated_domain(parser: LlmService) -> None:
+    experiences = [
+        {
+            "entity_id": "nurse1",
+            "content": "병동 간호사 투약 체크리스트 감염관리 환자 안전 개선",
+        },
+        {
+            "entity_id": "hr1",
+            "content": "채용 인터뷰 루브릭 HR 온보딩 인사 담당 면접관 교육",
+        },
+        {
+            "entity_id": "nurse2",
+            "content": "응급실 간호사 다학제 협진 골든타임 환자 대응",
+        },
+    ]
+    job = {
+        "position": "병동 간호사",
+        "company_name": "한빛종합병원",
+        "required_skills": ["투약", "감염관리", "환자안전"],
+        "job_responsibilities": ["병동 간호", "투약 관리", "감염관리 지침 준수"],
+    }
+    kept = parser._filter_job_relevant_experiences(experiences, job)
+    ids = {e["entity_id"] for e in kept}
+    assert "nurse1" in ids
+    assert "nurse2" in ids
+    assert "hr1" not in ids
+
+
+def test_assign_with_job_prefers_relevant_only(parser: LlmService) -> None:
+    experiences = [
+        {"entity_id": "hr1", "content": "채용 인터뷰 루브릭 HR 인사 온보딩"},
+        {"entity_id": "nurse1", "content": "병동 투약 체크리스트 감염관리 간호사"},
+        {"entity_id": "nurse2", "content": "응급 환자 다학제 대응 응급실 간호사"},
+        {"entity_id": "mkt", "content": "SNS 광고 캠페인 퍼포먼스 마케터 CAC"},
+    ]
+    job = {
+        "position": "병동 간호사",
+        "requiredSkills": ["투약", "감염관리"],
+        "jobResponsibilities": ["환자 간호", "병동 업무"],
+    }
+    titles = ["성장과정", "직무역량", "지원동기", "열정적으로 노력했던 경험"]
+    assigned = parser._assign_section_experiences(titles, experiences, job)
+    flat_ids = {e["entity_id"] for group in assigned for e in group}
+    assert "hr1" not in flat_ids
+    assert "mkt" not in flat_ids
+    assert flat_ids <= {"nurse1", "nurse2"}

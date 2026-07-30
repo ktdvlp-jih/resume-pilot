@@ -23,7 +23,9 @@ import { api, type JobPostingResponse } from '@/lib/api';
 import {
   buildRecommendKeywords,
   EXPERIENCE_REEMBED_SESSION_KEY,
+  RECOMMEND_FETCH_LIMIT,
   RECOMMEND_MIN_SCORE,
+  RECOMMEND_PAGE_SIZE,
 } from '@/lib/recommend-keywords';
 import { experienceReadiness } from '@/lib/experience-limits';
 import { useWorkspaceDraft } from '@/hooks/use-workspace-draft';
@@ -33,6 +35,7 @@ import { HighlightedContent } from '@/components/HighlightedContent';
 import { AutosaveIndicator } from '@/components/common/autosave-indicator';
 import { ConfirmDialog } from '@/components/common/confirm-dialog';
 import { PageHeader } from '@/components/common/page-header';
+import { PaginationControls } from '@/components/common/pagination-controls';
 import { WorkspaceLayout, WorkspacePanelTitle } from '@/components/workspace/workspace-layout';
 import { StatusChip } from '@/components/common/status-chip';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -148,6 +151,7 @@ export default function WorkspacePage() {
   const [selectedExperienceIds, setSelectedExperienceIds] = useState<Set<string>>(new Set());
   const [justGenerated, setJustGenerated] = useState(false);
   const [thinConfirmOpen, setThinConfirmOpen] = useState(false);
+  const [recommendPage, setRecommendPage] = useState(1);
   /** 공고별로 복원 토스트를 한 번만 띄움 (생성 완료 후 justGenerated 해제 시 재노출 방지) */
   const resultRestoredToastKey = useRef<string | null>(null);
   const draftRestoredToastShown = useRef(false);
@@ -249,6 +253,15 @@ export default function WorkspacePage() {
   const needsThinConfirm = selectedReadiness.ready < 1 && selectedReadiness.thin > 0;
   const rewriteHigh = rewriteLevel >= 70;
 
+  const recommendTotalPages = Math.max(1, Math.ceil(recommended.length / RECOMMEND_PAGE_SIZE));
+  const recommendPageSafe = Math.min(recommendPage, recommendTotalPages);
+  const recommendFrom = recommended.length === 0 ? 0 : (recommendPageSafe - 1) * RECOMMEND_PAGE_SIZE + 1;
+  const recommendTo = Math.min(recommendPageSafe * RECOMMEND_PAGE_SIZE, recommended.length);
+  const pagedRecommended = recommended.slice(
+    (recommendPageSafe - 1) * RECOMMEND_PAGE_SIZE,
+    recommendPageSafe * RECOMMEND_PAGE_SIZE,
+  );
+
   const saveMutation = useMutation({
     mutationFn: (content: string) =>
       api.createResume({
@@ -329,19 +342,17 @@ export default function WorkspacePage() {
       if (seq !== recommendSeq.current) return;
       const { keywords: kw } = await getJobContext();
       // 문항 제목은 쿼리에서 제외 — 공고(회사·직무·스킬·JD)만으로 변별
-      const rec = await api.recommendExperiences(kw, MAX_EXPERIENCES, RECOMMEND_MIN_SCORE);
+      const rec = await api.recommendExperiences(kw, RECOMMEND_FETCH_LIMIT, RECOMMEND_MIN_SCORE);
       if (seq !== recommendSeq.current) return;
+      setRecommendPage(1);
       setBundle({
-        recommended: rec
-          .slice(0, MAX_EXPERIENCES)
-          .map((r) => ({ id: r.id, title: r.title, score: r.score })),
+        recommended: rec.map((r) => ({ id: r.id, title: r.title, score: r.score })),
       });
       setSelectedExperienceIds((prev) => {
-        const allowed = new Set(rec.slice(0, MAX_EXPERIENCES).map((r) => r.id));
+        const allowed = new Set(rec.map((r) => r.id));
         const kept = [...prev].filter((id) => allowed.has(id)).slice(0, MAX_EXPERIENCES);
         return new Set(kept);
-      });
-    } catch (err) {
+      });    } catch (err) {
       if (seq !== recommendSeq.current) return;
       setRecommendError(err instanceof Error ? err.message : t('workspace.recommendFailed'));
     } finally {
@@ -572,8 +583,9 @@ export default function WorkspacePage() {
                 <AlertDescription>{recommendError}</AlertDescription>
               </Alert>
             )}
-            <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="mb-2 space-y-1">
               <p className="text-xs text-muted-foreground">{t('workspace.recommendAutoHint')}</p>
+              <p className="text-xs text-muted-foreground">{t('workspace.recommendManualHint')}</p>
               {recommendLoading ? (
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Loader2 className="size-3 animate-spin" />
@@ -582,7 +594,8 @@ export default function WorkspacePage() {
               ) : null}
             </div>
             <Button
-              variant="secondary"
+              variant="outline"
+              size="sm"
               className="w-full"
               data-testid="workspace-recommend-btn"
               onClick={handleRecommend}
@@ -600,8 +613,9 @@ export default function WorkspacePage() {
                     count: selectedExperienceIds.size,
                   })}
                 </p>
-                <div className="max-h-56 space-y-1.5 overflow-y-auto">
-                  {recommended.map((r) => {
+                <p className="text-xs text-muted-foreground">{t('workspace.recommendPageKeep')}</p>
+                <div className="space-y-1.5">
+                  {pagedRecommended.map((r) => {
                     const selected = selectedExperienceIds.has(r.id);
                     const atLimit = !selected && selectedExperienceIds.size >= MAX_EXPERIENCES;
                     return (
@@ -622,6 +636,17 @@ export default function WorkspacePage() {
                     );
                   })}
                 </div>
+                {recommended.length > RECOMMEND_PAGE_SIZE ? (
+                  <PaginationControls
+                    page={recommendPageSafe}
+                    totalPages={recommendTotalPages}
+                    from={recommendFrom}
+                    to={recommendTo}
+                    total={recommended.length}
+                    onPageChange={setRecommendPage}
+                    className="pt-1"
+                  />
+                ) : null}
               </div>
             ) : !recommendLoading && (jobText || selectedPostingId) ? (
               <p className="mt-2 text-xs text-muted-foreground">{t('workspace.recommendEmpty')}</p>
@@ -855,8 +880,8 @@ export default function WorkspacePage() {
                       </div>
                       {reviews.map((r) => (
                         <div key={r.paragraph_index} className="space-y-1 rounded-md border p-3 text-sm">
-                          <p><strong>{t('workspace.strengths')}:</strong> {r.strengths.join(', ')}</p>
-                          <p><strong>{t('workspace.weaknesses')}:</strong> {r.weaknesses.join(', ')}</p>
+                          <p><strong>{t('workspace.strengths')}:</strong> {(r.strengths ?? []).join(', ') || t('common.none')}</p>
+                          <p><strong>{t('workspace.weaknesses')}:</strong> {(r.weaknesses ?? []).join(', ') || t('common.none')}</p>
                           <p className="text-primary">{r.improvement}</p>
                         </div>
                       ))}

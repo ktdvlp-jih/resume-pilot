@@ -421,10 +421,33 @@ class LlmService:
         titles = [t for t in (section_titles or []) if t][:5]
         section_count = len(titles)
 
-        user_msg = user_prompt.replace("{{experiences}}", exp_text)
-        user_msg = user_msg.replace("{{rewrite_level}}", str(rewrite_level))
-        user_msg = user_msg.replace("{{writing_style}}", writing_style or "사용자 기본 문체")
-        user_msg = user_msg.replace("{{job_analysis}}", str(job_analysis or {}))
+        def _fill_user_prompt(selected: list[dict]) -> str:
+            selected_text = "\n".join(
+                f"- [{e.get('entity_id', 'unknown')}] {e.get('content', '')}"
+                for e in selected
+                if e.get("content")
+            )
+            if not selected_text.strip():
+                selected_text = (
+                    "(이 문항에 배정된 경험 없음 — 과거 프로젝트를 쓰지 말고 "
+                    "문항 초점에 맞게만 작성)"
+                )
+            msg = user_prompt.replace("{{experiences}}", selected_text)
+            msg = msg.replace("{{rewrite_level}}", str(rewrite_level))
+            msg = msg.replace("{{writing_style}}", writing_style or "사용자 기본 문체")
+            msg = msg.replace("{{job_analysis}}", str(job_analysis or {}))
+            msg = msg.replace(
+                "{{section_titles}}",
+                "\n".join(f"{i + 1}. {t}" for i, t in enumerate(titles)) if titles else "(기본 구성)",
+            )
+            return msg
+
+        # 비문항 모드도 공고와 약한 경험은 컨텍스트에서 제외
+        if section_count == 0:
+            experiences_for_msg = self._filter_job_relevant_experiences(experiences, job_analysis)
+            user_msg = _fill_user_prompt(experiences_for_msg)
+        else:
+            user_msg = _fill_user_prompt(experiences)
 
         try:
             if not await self.has_routes("GENERATE"):
@@ -436,9 +459,11 @@ class LlmService:
             if section_count > 0:
                 content, model_name = await self._generate_by_sections(
                     system_prompt=system_prompt,
-                    base_user_msg=user_msg,
+                    fill_user_prompt=_fill_user_prompt,
+                    experiences=experiences,
                     titles=titles,
                     rewrite_level=rewrite_level,
+                    job_analysis=job_analysis,
                 )
                 content = self._normalize_section_paragraphs(content, section_count)
                 return {
@@ -493,23 +518,191 @@ class LlmService:
         return (
             f"[Rewrite · 재작성 강도 {rewrite_level}%]\n"
             "- rewrite_level은 표현·문장 구조·어투만 바꿉니다.\n"
-            "- 사실·수치·프로젝트명·역할·기술·시점(학창/실무)은 RAG에 있는 그대로 유지합니다.\n"
+            "- 사실·수치·프로젝트명·역할·기술·시점은 RAG(경험)에 있는 그대로 유지합니다.\n"
+            "- 입력에 없는 역할·직군 라벨을 붙이지 마세요. 기간이 없으면 즉시성·연속성을 단정하지 마세요.\n"
             "- 100%여도 없는 사실을 만들지 마세요. 100% = 표현 전면 재작성이지 허구 허용이 아닙니다.\n"
             "- 분량보다 사실 우선. RAG로 STAR를 채울 수 없으면 짧게 쓰거나 "
             "'내용이 부족하여 생성하지 않음'만 출력하세요.\n"
         )
 
+    @staticmethod
+    def _section_kind(title: str) -> str:
+        t = (title or "").replace(" ", "")
+        if "지원동기" in t:
+            return "motivation"
+        if "성장" in t:
+            return "growth"
+        if "직무역량" in t or ("직무" in t and "역량" in t):
+            return "competency"
+        if "포부" in t:
+            return "aspiration"
+        if "열정" in t or "노력" in t:
+            return "passion"
+        return "generic"
+
+    @staticmethod
+    def _extract_job_tokens(job_analysis: dict | None) -> list[str]:
+        """공고 분석에서 적합도 판별용 토큰 추출 (다사용자·다직군 공통)."""
+        if not job_analysis:
+            return []
+        blobs: list[str] = []
+        for key in (
+            "company_name", "companyName", "position", "job_description", "jobDescription",
+            "summary",
+        ):
+            val = job_analysis.get(key)
+            if isinstance(val, str) and val.strip():
+                blobs.append(val)
+        for key in (
+            "required_skills", "requiredSkills", "preferred_skills", "preferredSkills",
+            "tech_keywords", "techKeywords", "job_responsibilities", "jobResponsibilities",
+            "qualifications",
+        ):
+            val = job_analysis.get(key)
+            if isinstance(val, list):
+                blobs.extend(str(x) for x in val if x)
+            elif isinstance(val, str) and val.strip():
+                blobs.append(val)
+        text = " ".join(blobs).lower()
+        # 한글·영문 토큰 (2글자 이상). 공고 특화 고유명만으로 판별.
+        raw = re.findall(r"[0-9a-zA-Z가-힣]{2,}", text)
+        # 너무 흔한 토큰은 제외
+        stop = {
+            "및", "또는", "관련", "경험", "우대", "필수", "담당", "업무", "개발", "가능",
+            "이상", "이하", "경력", "채용", "모집", "회사", "저희", "기반", "사용",
+            "and", "or", "the", "for", "with", "from", "year", "years",
+        }
+        seen: set[str] = set()
+        tokens: list[str] = []
+        for t in raw:
+            tl = t.lower()
+            if tl in stop or tl in seen:
+                continue
+            seen.add(tl)
+            tokens.append(tl)
+            if len(tokens) >= 40:
+                break
+        return tokens
+
+    @classmethod
+    def _experience_job_score(cls, exp: dict, tokens: list[str]) -> int:
+        if not tokens:
+            return 0
+        text = (exp.get("content") or "").lower()
+        return sum(1 for t in tokens if t in text)
+
+    @classmethod
+    def _filter_job_relevant_experiences(
+        cls,
+        experiences: list[dict],
+        job_analysis: dict | None,
+    ) -> list[dict]:
+        """공고와 토큰 겹침이 약한 경험은 생성 배정에서 제외."""
+        pool = [e for e in experiences if e.get("content")]
+        if not pool:
+            return []
+        tokens = cls._extract_job_tokens(job_analysis)
+        if not tokens:
+            return pool
+
+        scored = [(cls._experience_job_score(e, tokens), e) for e in pool]
+        scored.sort(key=lambda x: (-x[0], str(x[1].get("entity_id") or "")))
+        best = scored[0][0]
+        if best <= 0:
+            # 공고와 맞는 경험이 선택되지 않음 → 무관 카탈로그 덤프 대신 최상위 1개만
+            return [scored[0][1]]
+        min_score = max(1, best // 3)  # 최고점 대비 완화 — 같은 직군 경험은 유지, 무관(0점)은 제외
+        kept = [e for s, e in scored if s >= min_score]
+        return kept or [scored[0][1]]
+
+    @classmethod
+    def _assign_section_experiences(
+        cls,
+        titles: list[str],
+        experiences: list[dict],
+        job_analysis: dict | None = None,
+    ) -> list[list[dict]]:
+        """문항별로 primary 경험을 나눈다. 공고 적합도 높은 경험만 풀로 사용.
+
+        1차: 문항당 미사용 경험 1개 (포부는 남는 경험만, 없으면 빈 목록)
+        2차: 직무역량에만 미사용 경험 1개 추가
+        """
+        relevant = cls._filter_job_relevant_experiences(experiences, job_analysis)
+        tokens = cls._extract_job_tokens(job_analysis)
+        pool = sorted(
+            relevant,
+            key=lambda e: (-cls._experience_job_score(e, tokens), str(e.get("entity_id") or "")),
+        )
+        if not pool:
+            return [[] for _ in titles]
+
+        used: set[str] = set()
+
+        def _eid(exp: dict) -> str:
+            return str(exp.get("entity_id") or "")
+
+        def next_unused() -> dict | None:
+            for exp in pool:
+                eid = _eid(exp)
+                if eid and eid in used:
+                    continue
+                if eid:
+                    used.add(eid)
+                return exp
+            return None
+
+        kinds = [cls._section_kind(t) for t in titles]
+        assignments: list[list[dict]] = [[] for _ in titles]
+
+        # 1차: 포부 제외하고 하나씩 (적합도 높은 순의 pool)
+        for i, kind in enumerate(kinds):
+            if kind == "aspiration":
+                continue
+            picked = next_unused()
+            if picked is not None:
+                assignments[i].append(picked)
+
+        # 2차: 직무역량에 추가 1개
+        for i, kind in enumerate(kinds):
+            if kind != "competency":
+                continue
+            picked = next_unused()
+            if picked is not None:
+                assignments[i].append(picked)
+
+        # 포부: 남은 미사용만 (없으면 빈 목록 → 계획만)
+        for i, kind in enumerate(kinds):
+            if kind != "aspiration":
+                continue
+            picked = next_unused()
+            if picked is not None:
+                assignments[i].append(picked)
+
+        # 아무 것도 못 받은 비-포부 문항: 적합 풀 안에서만 재사용
+        if pool:
+            cursor = 0
+            for i, kind in enumerate(kinds):
+                if assignments[i] or kind == "aspiration":
+                    continue
+                assignments[i].append(pool[cursor % len(pool)])
+                cursor += 1
+
+        return assignments
+
     async def _generate_by_sections(
         self,
         system_prompt: str,
-        base_user_msg: str,
+        fill_user_prompt,
+        experiences: list[dict],
         titles: list[str],
         rewrite_level: int = 40,
+        job_analysis: dict | None = None,
     ) -> tuple[str, str]:
         """문항별로 본문을 생성한다. 권장 상한 ~1600자, 사실 부족 시 짧게 (자동 확장 없음)."""
         paragraphs: list[str] = []
         model_name = ""
         rewrite_rules = self._rewrite_level_rules(rewrite_level)
+        assignments = self._assign_section_experiences(titles, experiences, job_analysis)
         section_system = (
             system_prompt
             + "\n\n[Section Mode]\n"
@@ -518,9 +711,10 @@ class LlmService:
             "- 권장 상한 약 1600자. 필수 하한 없음. RAG 사실만으로 가능한 길이로 쓰세요.\n"
             "- 지어내서 분량을 채우면 실패입니다. 분량보다 사실 우선. 짧은 사실 문단은 성공입니다.\n"
             "- STAR를 구체화하되 수치는 RAG에 있는 것만.\n"
-            "- 문항당 주요 소재 경험은 최대 1~2개. 경험 카탈로그 나열 금지.\n"
-            "- 실무 경험을 학창시절로 옮기지 마세요.\n"
-            "- 성장과정: 학창 근거 없으면 일반론 1~2문장 + 실무 입문만.\n"
+            "- 이 문항에 배정된 경험만 사용하세요. 경험 카탈로그 나열 금지.\n"
+            "- 역할·직군 표현은 경험에 적힌 것만. 입력에 없는 라벨을 붙이지 마세요.\n"
+            "- 시점은 기간·본문에 있을 때만. 학창↔실무 이동·즉시성 단정 금지.\n"
+            "- 성장과정: 학창 근거 없으면 일반론 1~2문장 + 배정된 실무만.\n"
             "- 빈 줄로 문단을 쪼개지 마세요. 연속 본문만 출력하세요.\n"
             "- 번역투·공허한 마무리·상투구 금지. 쉼표 문장당 1개, 문두 부사 뒤 쉼표 금지.\n"
             "- 이미 작성한 문항과 같은 문장·경험 국면을 반복하지 마세요.\n"
@@ -528,6 +722,14 @@ class LlmService:
         )
 
         for i, title in enumerate(titles):
+            kind = self._section_kind(title)
+            section_exps = assignments[i] if i < len(assignments) else []
+            if not section_exps and kind != "aspiration":
+                section_exps = experiences[:1] if experiences else []
+            base_user_msg = fill_user_prompt(section_exps)
+            assigned_ids = ", ".join(
+                str(e.get("entity_id")) for e in section_exps if e.get("entity_id")
+            ) or "(없음 — 과거 프로젝트 서술 없이 문항 초점에 맞게만 작성)"
             prev = "\n".join(
                 f"- {titles[j]}: {paragraphs[j][:250]}…"
                 for j in range(len(paragraphs))
@@ -537,6 +739,8 @@ class LlmService:
                 f"{base_user_msg}\n\n"
                 f"## 이번에 작성할 문항 ({i + 1}/{len(titles)})\n"
                 f"제목: {title}\n"
+                f"이 문항에서만 사용할 경험 id: {assigned_ids}\n"
+                f"위에 배정되지 않은 경험은 쓰지 마세요.\n"
                 f"이 문항 본문만 출력하세요. 제목/번호 없이 순수 문장만.\n"
                 f"권장 상한 약 1600자. 필수 하한 없음. 사실 부족 시 짧게 (허구 금지).\n"
                 f"다른 문항과 내용이 중복되지 않게, 이 제목 의미에 맞게 쓰세요.\n"
@@ -563,9 +767,9 @@ class LlmService:
                 fixed = await self.complete_for_operation(
                     "GENERATE",
                     section_system
-                    + "\n[Style Fix] 사실·수치·시점은 유지하고 문체·문항 초점만 고치세요. "
+                    + "\n[Style Fix] 사실·수치·시점·역할은 유지하고 문체·문항 초점만 고치세요. "
                     "분량을 늘리기 위해 새 사실을 넣지 마세요. "
-                    "문항 슬롯에 맞지 않는 소재(예: 지원동기의 AI도구)는 삭제하세요.",
+                    "문항 초점에 맞지 않는 소재(예: 지원동기의 AI 코딩 도구 제품명)는 삭제하세요.",
                     (
                         f"아래 본문에서 다음을 고치세요: {violations}\n"
                         f"문항 제목: {title}\n"
@@ -600,51 +804,52 @@ class LlmService:
 
     @staticmethod
     def _section_slot_rules(title: str) -> str:
-        """문항 제목에 맞는 경험 슬롯·금지 소재 안내."""
+        """문항 제목에 맞는 초점·금지 소재 (다사용자 공통 + AI도구 UX 정책)."""
         t = (title or "").replace(" ", "")
         if "지원동기" in t:
             return (
                 "【문항 슬롯·지원동기】\n"
-                "- 초점: 왜 이 직무/회사인가. 공고 핵심 요구와 경험 1개(최대 2개)만 연결.\n"
-                "- 금지: AI 코딩 도구(Claude/Cursor), 개발 생산성 도구, 경험 카탈로그 나열, "
-                "파트리더·일정관리를 길게 쓰기.\n"
-                "- 허용: CMS/규제 도메인·Spring 백엔드 등 공고와 직접 맞는 경험만.\n"
+                "- 초점: 왜 이 직무/회사인가. 공고 핵심 요구와 배정 경험 1개(최대 2개)만 연결.\n"
+                "- 제품 UX 금지: AI 코딩 도구 제품명(Claude/Cursor 등), 개발 생산성 도구 도입을 "
+                "지원동기의 주요 소재로 쓰지 말 것. 경험 카탈로그 나열 금지.\n"
+                "- 역할·시점은 배정 경험에 적힌 표현·기간만 사용.\n"
             )
         if "성장" in t:
             return (
                 "【문항 슬롯·성장과정】\n"
-                "- RAG에 학창·전공·팀 협업 구체 근거가 없으면 일반론 1~2문장만 쓰고 실무 입문·관점 변화로 이어가세요.\n"
-                "- 흐름(근거 있을 때만): 흥미→관심→전공→팀 협업(일반)→졸업 후 실무 입문→관점 변화.\n"
-                "- 금지: CMS/ERP/AI/MSDS를 포트폴리오처럼 나열. 대학 시절 실무 프로젝트 날조. 없는 수치·수상.\n"
-                "- 졸업 후는 한 프로젝트로 '일하는 방식이 어떻게 바뀌었는지'만 짧게.\n"
+                "- 학창·전공·팀 협업 구체 근거가 없으면 일반론 1~2문장만 쓰고 "
+                "배정된 실무 경험으로 관점 변화로 이어가세요.\n"
+                "- 금지: 실무 경험 포트폴리오 나열, 학창으로의 시점 이동, "
+                "기간 없는 즉시성 단정, 없는 수치·수상, AI 코딩 도구 제품명.\n"
+                "- 배정 경험은 '일하는 방식이 어떻게 바뀌었는지'만 짧게.\n"
             )
-        if "직무역량" in t or "직무" in t:
+        if "직무역량" in t or ("직무" in t and "역량" in t):
             return (
                 "【문항 슬롯·직무역량】\n"
-                "- 초점: 기술적 의사결정·구현·성능/자동화. 경험마다 다른 기술 국면.\n"
-                "- AI 도구(Claude/Cursor) 경험은 이 문항에서만 주요 소재로 허용.\n"
+                "- 초점: 기술적 의사결정·구현·성능/자동화. 배정 경험마다 다른 기술 국면.\n"
+                "- AI 코딩 도구 경험은 이 문항에서만 주요 소재로 허용(제품 UX).\n"
             )
         if "포부" in t:
             return (
                 "【문항 슬롯·입사 후 포부】\n"
                 "- 초점: 앞으로 할 일·실행 계획만 (3·6·12개월 수준).\n"
-                "- 금지: CMS/ERP/AI 등 과거 프로젝트를 다시 길게 서술. Claude/Cursor 제품명 나열.\n"
-                "- 과거는 한 문장 근거만 허용.\n"
+                "- 금지: 과거 프로젝트를 다시 길게 서술. AI 코딩 도구 제품명 나열.\n"
+                "- 과거는 한 문장 근거만 허용(배정된 경우에 한함).\n"
             )
         if "열정" in t or "노력" in t:
             return (
                 "【문항 슬롯·열정/노력 경험】\n"
-                "- 초점: 단일 사건 심층(문제·고민·행동·결과).\n"
-                "- 금지: ERP·AI 등 다른 프로젝트를 끼워 넣기. 성공담만으로 끝내기.\n"
+                "- 초점: 단일 사건 심층(문제·고민·행동·결과). 배정 경험만.\n"
+                "- 금지: 다른 경험을 끼워 넣기. AI 코딩 도구를 주요 소재로 쓰기. 성공담만으로 끝내기.\n"
             )
         return (
             "【문항 슬롯】\n"
-            "- 이 제목 의미에 맞는 경험만 1~2개. 다른 문항과 같은 국면 반복 금지.\n"
+            "- 이 제목 의미에 맞는 배정 경험만 1~2개. 다른 문항과 같은 국면 반복 금지.\n"
         )
 
     @staticmethod
     def _section_topic_violations(title: str, text: str) -> list[str]:
-        """문항 슬롯에 맞지 않는 소재가 본문에 있으면 위반으로 반환."""
+        """문항 초점·제품 UX(AI 도구) 위반. 특정 사용자 도메인 키워드는 쓰지 않음."""
         if not text:
             return []
         title_norm = (title or "").replace(" ", "")
@@ -653,42 +858,23 @@ class LlmService:
         def _match_title(*keys: str) -> bool:
             return any(k.replace(" ", "") in title_norm for k in keys)
 
+        ai_tool = re.compile(r"AI\s*도구|Claude|Cursor|코딩\s*도구|개발\s*생산성")
+
         if _match_title("지원동기"):
-            for label, pat in (
-                ("AI도구", re.compile(r"AI\s*도구|Claude|Cursor|코딩\s*도구|개발\s*생산성")),
-                ("파트리더", re.compile(r"파트리더")),
-            ):
-                if pat.search(text):
-                    found.append(f"슬롯위반:{label}")
-            catalog_hits = sum(1 for kw in ("CMS", "ERP", "AI", "파트리더", "연동") if kw in text)
-            if catalog_hits >= 3:
-                found.append("슬롯위반:경험카탈로그")
+            if ai_tool.search(text):
+                found.append("슬롯위반:AI도구")
 
         if _match_title("성장과정", "성장"):
-            for label, pat in (
-                ("AI도구", re.compile(r"AI\s*도구|Claude|Cursor")),
-                ("ERP", re.compile(r"ERP\s*/\s*SAP|ERP/SAP")),
-                ("MSDS", re.compile(r"MSDS")),
-                ("인터페이스명세서", re.compile(r"인터페이스\s*명세서")),
-            ):
-                if pat.search(text):
-                    found.append(f"슬롯위반:{label}")
+            if ai_tool.search(text):
+                found.append("슬롯위반:AI도구")
 
         if _match_title("포부"):
-            for label, pat in (
-                ("Claude/Cursor", re.compile(r"Claude|Cursor")),
-                ("과거프로젝트재서술", re.compile(r"신규\s*구축\s*프로젝트에서")),
-            ):
-                if pat.search(text):
-                    found.append(f"슬롯위반:{label}")
-
-        if _match_title("열정", "노력했던"):
-            # 열정 문항에서 AI·여러 프로젝트 끼워넣기
-            if re.search(r"Claude|Cursor|AI\s*도구", text):
+            if re.search(r"Claude|Cursor", text):
                 found.append("슬롯위반:AI도구")
-            side = sum(1 for kw in ("ERP", "MSDS", "Claude", "Cursor") if kw in text)
-            if side >= 2:
-                found.append("슬롯위반:다중프로젝트")
+
+        if _match_title("열정", "노력했던", "노력"):
+            if ai_tool.search(text):
+                found.append("슬롯위반:AI도구")
 
         return found
 

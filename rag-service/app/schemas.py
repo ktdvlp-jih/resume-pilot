@@ -15,7 +15,7 @@ class SearchRequest(BaseModel):
     query: str
     user_id: str | None = None
     entity_types: list[str] | None = None
-    top_k: int = Field(default=5, ge=1, le=20)
+    top_k: int = Field(default=5, ge=1, le=30)
 
 
 class ContextBuildRequest(BaseModel):
@@ -23,4 +23,4 @@ class ContextBuildRequest(BaseModel):
     keywords: list[str]
     job_analysis: dict[str, Any] | None = None
     experience_ids: list[str] = Field(default_factory=list)
-    top_k: int = Field(default=5, ge=1, le=20)
+    top_k: int = Field(default=5, ge=1, le=30)

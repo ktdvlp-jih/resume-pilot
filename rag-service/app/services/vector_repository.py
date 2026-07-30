@@ -107,11 +107,33 @@ class VectorRepository:
 
         if entity_type == "EXPERIENCE":
             row = await self._pool.fetchrow(
-                "SELECT title, description, role, result, star_action FROM experiences WHERE id = $1",
+                "SELECT title, description, role, result, star_action, start_date, end_date "
+                "FROM experiences WHERE id = $1",
                 eid,
             )
             if row:
-                return "\n".join(filter(None, [row["title"], row["description"], row["role"], row["result"], row["star_action"]]))
+                period = None
+                start = row["start_date"]
+                end = row["end_date"]
+                if start or end:
+                    start_s = start.isoformat() if start else "?"
+                    end_s = end.isoformat() if end else "진행중"
+                    period = f"기간: {start_s} ~ {end_s}"
+                role = row["role"]
+                role_line = f"역할: {role}" if role else None
+                return "\n".join(
+                    filter(
+                        None,
+                        [
+                            row["title"],
+                            row["description"],
+                            role_line,
+                            period,
+                            row["result"],
+                            row["star_action"],
+                        ],
+                    )
+                )
         elif entity_type == "RESUME":
             row = await self._pool.fetchrow("SELECT content FROM resume_versions WHERE id = $1", eid)
             if row:
