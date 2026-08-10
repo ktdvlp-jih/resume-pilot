@@ -164,7 +164,7 @@ class PromptTestService:
 
     def test(self, system_prompt: str, user_prompt: str) -> str:
         if not self._client:
-            return f"[Rule-based test]\nSystem: {system_prompt[:100]}...\nUser: {user_prompt[:200]}..."
+            raise RuntimeError("OPENAI_API_KEY required for prompt test")
         response = self._client.chat.completions.create(
             model=settings.openai_model,
             messages=[

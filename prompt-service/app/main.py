@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from app.core.response import ApiResponse
@@ -16,6 +17,18 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="ResumePilot Prompt Service", version="0.1.0", lifespan=lifespan)
+
+
+@app.exception_handler(RuntimeError)
+async def runtime_error_handler(_request: Request, exc: RuntimeError):
+    return JSONResponse(
+        status_code=503,
+        content={
+            "success": False,
+            "data": None,
+            "error": {"code": "AI_SERVICE_ERROR", "message": str(exc) or "AI service error"},
+        },
+    )
 
 
 class RenderRequest(BaseModel):
