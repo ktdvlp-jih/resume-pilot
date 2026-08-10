@@ -360,11 +360,7 @@
     "saveToDashboard": "Save to My Cover Letters",
     "saveToDashboardSuccess": "Saved to your cover letter list.",
     "saveToDashboardFailed": "Save failed",
-    "saveToDashboardAlready": "Saved",
-    "scoreFallbackNotice": "AI evaluation failed — showing default values",
-    "reviewFallbackNotice": "AI review failed — showing default feedback",
-    "interviewFallbackNotice": "AI generation failed — showing default questions",
-    "keywordFallbackNotice": "AI analysis failed — showing simple comparison"
+    "saveToDashboardAlready": "Saved"
   },
   "settings": {
     "title": "Account settings",

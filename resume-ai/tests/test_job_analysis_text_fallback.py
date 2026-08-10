@@ -3,11 +3,10 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from app.services.job_analysis_service import job_analysis_service
-from app.services.llm_service import RULE_BASED_MODEL
 
 
 @pytest.mark.asyncio
-async def test_text_analysis_without_llm_routes_uses_rule_based_model():
+async def test_text_analysis_without_llm_routes_raises():
     text = """
     [테스트소프트] 백엔드 개발자
     필수사항:
@@ -16,10 +15,8 @@ async def test_text_analysis_without_llm_routes_uses_rule_based_model():
     - React
     """
     with patch.object(job_analysis_service, "_can_use_llm", AsyncMock(return_value=False)):
-        result = await job_analysis_service.analyze("TEXT", text)
-
-    assert result.get("model") == RULE_BASED_MODEL
-    assert result.get("extraction_method") == "text+rule"
+        with pytest.raises(RuntimeError, match="JOB_ANALYSIS"):
+            await job_analysis_service.analyze("TEXT", text)
 
 
 @pytest.mark.asyncio
@@ -54,7 +51,7 @@ async def test_text_analysis_with_llm_sets_model():
 
 
 @pytest.mark.asyncio
-async def test_text_analysis_llm_json_parse_fail_falls_back_to_rule_based():
+async def test_text_analysis_llm_json_parse_fail_raises():
     text = "[테스트소프트] Java 개발자 채용"
 
     with patch.object(job_analysis_service, "_can_use_llm", AsyncMock(return_value=True)):
@@ -63,7 +60,5 @@ async def test_text_analysis_llm_json_parse_fail_falls_back_to_rule_based():
             "_extract_with_llm",
             AsyncMock(return_value=(None, "gpt-4o-mini")),
         ):
-            result = await job_analysis_service.analyze("TEXT", text)
-
-    assert result.get("model") == RULE_BASED_MODEL
-    assert result.get("extraction_method") == "text+rule"
+            with pytest.raises(RuntimeError, match="JOB_ANALYSIS"):
+                await job_analysis_service.analyze("TEXT", text)

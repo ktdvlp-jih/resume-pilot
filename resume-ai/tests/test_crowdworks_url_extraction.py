@@ -27,14 +27,6 @@ LLM Agent 기반 시스템 구현 경험 (멀티 에이전트, 툴 호출, 오�
 """
 
 
-def test_rule_extractor_finds_support_qualification_section():
-    extracted = job_analysis_service._extract_from_text(CROWDWORKS_SNIPPET)
-    assert len(extracted["required_skills"]) >= 3
-    assert any("경력 5년" in item for item in extracted["required_skills"])
-    assert len(extracted["preferred_skills"]) >= 2
-    assert any("LLM Agent" in item for item in extracted["preferred_skills"])
-
-
 def test_postprocess_recovers_required_when_llm_left_empty():
     raw = {
         "company_name": "크라우드웍스",
@@ -62,6 +54,3 @@ async def test_fetch_crowdworks_url_has_support_sections():
         pytest.skip("network unavailable")
     assert "지원 자격" in text
     assert "우대요건" in text
-    extracted = job_analysis_service._extract_from_text(text)
-    assert len(extracted["required_skills"]) >= 3
-    assert len(extracted["preferred_skills"]) >= 2

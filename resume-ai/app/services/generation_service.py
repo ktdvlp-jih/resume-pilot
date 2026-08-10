@@ -4,7 +4,7 @@ from typing import Any
 from langchain_core.runnables import RunnableLambda
 
 from app.clients.service_clients import prompt_client, rag_client
-from app.services.llm_service import RULE_BASED_MODEL, llm_service, rule_based
+from app.services.llm_service import llm_service
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,6 @@ class GenerationService:
 
     async def _render_prompt(self, state: dict[str, Any]) -> dict[str, Any]:
         request = state["request"]
-        experiences = state["experiences"]
         style_text = state["style_text"]
         job_analysis = request.get("job_analysis")
         rewrite_level = request.get("rewrite_level", 40)
@@ -60,25 +59,13 @@ class GenerationService:
             "\n".join(f"{i + 1}. {title}" for i, title in enumerate(section_titles))
             if section_titles else ""
         )
-        try:
-            # experiences는 문항별 할당을 위해 llm_service에서 채운다.
-            prompt = await prompt_client.render("RESUME_GENERATION", {
-                "experiences": "{{experiences}}",
-                "job_analysis": str(job_analysis),
-                "writing_style": style_text,
-                "rewrite_level": rewrite_level,
-                "section_titles": section_titles_text,
-            })
-        except Exception as exc:
-            logger.warning("Prompt render failed: %s", exc)
-            prompt = {
-                "system_prompt": "You rewrite cover letters using ONLY the user's provided experiences.",
-                "user_prompt": (
-                    "Experiences:\n{{experiences}}\n\n"
-                    f"Job:\n{job_analysis}\n\n"
-                    f"Style:\n{style_text}\n\nRewrite level: {rewrite_level}%"
-                ),
-            }
+        prompt = await prompt_client.render("RESUME_GENERATION", {
+            "experiences": "{{experiences}}",
+            "job_analysis": str(job_analysis),
+            "writing_style": style_text,
+            "rewrite_level": rewrite_level,
+            "section_titles": section_titles_text,
+        })
         return {**state, "prompt": prompt}
 
     async def _generate(self, state: dict[str, Any]) -> dict[str, Any]:
@@ -110,26 +97,20 @@ class GenerationService:
             reviews: list[dict] = []
             review_scores = None
             ai_trace_percent = 0.0
-            detections_fallback = False
-            reviews_fallback = False
         else:
             detection_result = await detection_service.detect(result["content"], forbidden)
             review_result = await review_service.review(result["content"], job_analysis)
             detections = detection_result["detections"]
             ai_trace_percent = detection_result["ai_trace_percent"]
-            detections_fallback = detection_result.get("fallback", False)
             reviews = review_result["reviews"]
             review_scores = review_result.get("scores")
-            reviews_fallback = review_result.get("fallback", False)
 
         response = {
             **result,
             "rewrite_level": rewrite_level,
             "quality_scores": self._score(result["content"], ai_trace_percent, review_scores),
             "detections": detections,
-            "detections_fallback": detections_fallback,
             "reviews": reviews,
-            "reviews_fallback": reviews_fallback,
         }
         return {**state, "response": response}
 
@@ -141,214 +122,148 @@ class GenerationService:
 
     def _score(self, content: str, ai_trace_percent: float, review_scores: dict[str, Any] | None) -> dict[str, float]:
         naturalness = max(0, 100 - ai_trace_percent)
-        if review_scores:
-            return {
-                "naturalness": naturalness,
-                "company_fit": review_scores.get("company_fit", 0),
-                "style_retention": review_scores.get("style_retention", 0),
-                "ai_trace_percent": ai_trace_percent,
-                "star_application": review_scores.get("star_application", 0),
-                "experience_utilization": review_scores.get("experience_utilization", 0),
-                "scored_by": "llm",
-            }
-        logger.warning("AI_REVIEW returned no usable scores, using rule-based fallback quality_scores")
+        if not review_scores:
+            raise RuntimeError("AI_REVIEW returned no usable scores")
         return {
             "naturalness": naturalness,
-            "company_fit": 85.0,
-            "style_retention": 90.0,
+            "company_fit": review_scores.get("company_fit", 0),
+            "style_retention": review_scores.get("style_retention", 0),
             "ai_trace_percent": ai_trace_percent,
-            "star_application": 80.0,
-            "experience_utilization": 95.0 if content else 0,
-            "scored_by": "rule-based",
+            "star_application": review_scores.get("star_application", 0),
+            "experience_utilization": review_scores.get("experience_utilization", 0),
+            "scored_by": "llm",
         }
 
 
 class DetectionService:
     async def detect(self, content: str, forbidden: list[str] | None = None) -> dict[str, Any]:
+        if not await llm_service.has_routes("AI_DETECTION"):
+            raise RuntimeError("LLM routes unavailable for AI_DETECTION")
         forbidden_lines = [e for e in (forbidden or []) if e]
         forbidden_text = (
             "금지 표현 목록:\n" + "\n".join(f"- {e}" for e in forbidden_lines)
             if forbidden_lines
             else ""
         )
-        if await llm_service.has_routes("AI_DETECTION"):
-            try:
-                prompt = await prompt_client.render("AI_DETECTION", {
-                    "content": content,
-                    "forbidden_expressions": forbidden_text,
-                })
-                parsed, completion = await llm_service.complete_json_value_for_operation(
-                    "AI_DETECTION",
-                    prompt["system_prompt"],
-                    prompt["user_prompt"],
-                    temperature=0.2,
-                )
-                detections = parsed if isinstance(parsed, list) else (
-                    parsed.get("detections") if isinstance(parsed, dict) else None
-                )
-                if isinstance(detections, list):
-                    detections = [
-                        d for d in detections
-                        if isinstance(d, dict) and str(d.get("level", "")).upper() in {"GREEN", "YELLOW", "RED"}
-                    ]
-                    red = sum(1 for d in detections if str(d.get("level", "")).upper() == "RED")
-                    total = max(len(detections), 1)
-                    return {
-                        "detections": detections,
-                        "ai_trace_percent": round(red / total * 100, 1) if detections else 0.0,
-                        "model": completion.model,
-                        "fallback": False,
-                    }
-                logger.warning(
-                    "AI_DETECTION returned unparseable response, using rule fallback. raw=%.200s",
-                    completion.content,
-                )
-            except Exception as exc:
-                logger.warning("AI_DETECTION prompt failed, using rule fallback: %s", exc)
-
-        detections = rule_based.detect_ai_traces(content, forbidden)
-        red = sum(1 for d in detections if d["level"] == "RED")
+        prompt = await prompt_client.render("AI_DETECTION", {
+            "content": content,
+            "forbidden_expressions": forbidden_text,
+        })
+        parsed, completion = await llm_service.complete_json_value_for_operation(
+            "AI_DETECTION",
+            prompt["system_prompt"],
+            prompt["user_prompt"],
+            temperature=0.2,
+        )
+        detections = parsed if isinstance(parsed, list) else (
+            parsed.get("detections") if isinstance(parsed, dict) else None
+        )
+        if not isinstance(detections, list):
+            raise RuntimeError(
+                f"AI_DETECTION returned unparseable response: {(completion.content or '')[:200]}"
+            )
+        detections = [
+            d for d in detections
+            if isinstance(d, dict) and str(d.get("level", "")).upper() in {"GREEN", "YELLOW", "RED"}
+        ]
+        red = sum(1 for d in detections if str(d.get("level", "")).upper() == "RED")
         total = max(len(detections), 1)
         return {
             "detections": detections,
-            "ai_trace_percent": round(red / total * 100, 1),
-            "model": RULE_BASED_MODEL,
-            "fallback": True,
+            "ai_trace_percent": round(red / total * 100, 1) if detections else 0.0,
+            "model": completion.model,
         }
 
 
 class ReviewService:
     async def review(self, content: str, job_analysis: dict | None = None) -> dict[str, Any]:
-        if await llm_service.has_routes("AI_REVIEW"):
-            try:
-                prompt = await prompt_client.render("AI_REVIEW", {
-                    "content": content,
-                    "job_analysis": str(job_analysis or {}),
-                })
-                parsed, completion = await llm_service.complete_json_value_for_operation(
-                    "AI_REVIEW",
-                    prompt["system_prompt"],
-                    prompt["user_prompt"],
-                    temperature=0.3,
-                )
-                reviews = parsed.get("reviews") if isinstance(parsed, dict) else (
-                    parsed if isinstance(parsed, list) else None
-                )
-                scores = parsed.get("scores") if isinstance(parsed, dict) else None
-                scores = scores if isinstance(scores, dict) else None
-                if isinstance(reviews, list) and reviews:
-                    return {
-                        "reviews": reviews,
-                        "scores": scores,
-                        "job_analysis": job_analysis,
-                        "model": completion.model,
-                        "fallback": False,
-                    }
-                logger.warning(
-                    "AI_REVIEW returned unparseable response, using rule fallback. raw=%.200s",
-                    completion.content,
-                )
-            except Exception as exc:
-                logger.warning("AI_REVIEW prompt failed, using rule fallback: %s", exc)
-
+        if not await llm_service.has_routes("AI_REVIEW"):
+            raise RuntimeError("LLM routes unavailable for AI_REVIEW")
+        prompt = await prompt_client.render("AI_REVIEW", {
+            "content": content,
+            "job_analysis": str(job_analysis or {}),
+        })
+        parsed, completion = await llm_service.complete_json_value_for_operation(
+            "AI_REVIEW",
+            prompt["system_prompt"],
+            prompt["user_prompt"],
+            temperature=0.3,
+        )
+        reviews = parsed.get("reviews") if isinstance(parsed, dict) else (
+            parsed if isinstance(parsed, list) else None
+        )
+        scores = parsed.get("scores") if isinstance(parsed, dict) else None
+        scores = scores if isinstance(scores, dict) else None
+        if not isinstance(reviews, list) or not reviews:
+            raise RuntimeError(
+                f"AI_REVIEW returned unparseable response: {(completion.content or '')[:200]}"
+            )
         return {
-            "reviews": rule_based.review_feedback(content),
-            "scores": None,
+            "reviews": reviews,
+            "scores": scores,
             "job_analysis": job_analysis,
-            "model": RULE_BASED_MODEL,
-            "fallback": True,
+            "model": completion.model,
         }
 
 
 class InterviewService:
-    CATEGORIES = ["지원동기", "협업", "갈등 해결", "성과", "프로젝트", "기술", "심화", "압박"]
-
     async def generate(self, content: str) -> dict[str, Any]:
-        if await llm_service.has_routes("INTERVIEW_QUESTIONS"):
-            try:
-                prompt = await prompt_client.render("INTERVIEW_QUESTIONS", {"content": content})
-                parsed, completion = await llm_service.complete_json_value_for_operation(
-                    "INTERVIEW_QUESTIONS",
-                    prompt["system_prompt"],
-                    prompt["user_prompt"],
-                    temperature=0.5,
-                )
-                questions = parsed if isinstance(parsed, list) else (
-                    parsed.get("questions") if isinstance(parsed, dict) else None
-                )
-                if isinstance(questions, list) and questions:
-                    valid = [
-                        q for q in questions
-                        if isinstance(q, dict) and q.get("question")
-                    ]
-                    if valid:
-                        return {
-                            "questions": valid,
-                            "model": completion.model,
-                            "fallback": False,
-                        }
-                logger.warning(
-                    "INTERVIEW_QUESTIONS returned unparseable response, using rule fallback. raw=%.200s",
-                    completion.content,
-                )
-            except Exception as exc:
-                logger.warning("INTERVIEW_QUESTIONS prompt failed, using rule fallback: %s", exc)
-
+        if not await llm_service.has_routes("INTERVIEW_QUESTIONS"):
+            raise RuntimeError("LLM routes unavailable for INTERVIEW_QUESTIONS")
+        prompt = await prompt_client.render("INTERVIEW_QUESTIONS", {"content": content})
+        parsed, completion = await llm_service.complete_json_value_for_operation(
+            "INTERVIEW_QUESTIONS",
+            prompt["system_prompt"],
+            prompt["user_prompt"],
+            temperature=0.5,
+        )
+        questions = parsed if isinstance(parsed, list) else (
+            parsed.get("questions") if isinstance(parsed, dict) else None
+        )
+        if not isinstance(questions, list) or not questions:
+            raise RuntimeError(
+                f"INTERVIEW_QUESTIONS returned unparseable response: {(completion.content or '')[:200]}"
+            )
+        valid = [q for q in questions if isinstance(q, dict) and q.get("question")]
+        if not valid:
+            raise RuntimeError("INTERVIEW_QUESTIONS returned no valid questions")
         return {
-            "questions": [
-                {"category": cat, "question": f"{cat} 관련하여 자기소개서 내용을 바탕으로 설명해주세요.", "difficulty": "NORMAL"}
-                for cat in self.CATEGORIES
-            ],
-            "model": RULE_BASED_MODEL,
-            "fallback": True,
+            "questions": valid,
+            "model": completion.model,
         }
 
 
 class KeywordService:
     async def compare(self, job_keywords: list[str], resume_content: str) -> dict[str, Any]:
-        if await llm_service.has_routes("KEYWORD_COMPARE"):
-            try:
-                # 긴 공고 키워드·자소서 전문은 응답이 잘려 JSON 파싱이 실패하기 쉬움
-                compact_keywords = ", ".join(job_keywords[:40])
-                compact_resume = resume_content[:4000]
-                prompt = await prompt_client.render("KEYWORD_COMPARE", {
-                    "job_keywords": compact_keywords,
-                    "resume_content": compact_resume,
-                })
-                parsed, completion = await llm_service.complete_json_value_for_operation(
-                    "KEYWORD_COMPARE",
-                    prompt["system_prompt"]
-                    + "\n[Compact] Prefer short keyword tokens. Keep each array under 30 items.",
-                    prompt["user_prompt"],
-                    temperature=0.2,
-                )
-                if isinstance(parsed, dict) and isinstance(parsed.get("matched"), list) and isinstance(parsed.get("missing"), list):
-                    return {
-                        "matched": parsed["matched"],
-                        "missing": parsed["missing"],
-                        "recommended": parsed.get("recommended") if isinstance(parsed.get("recommended"), list) else [],
-                        "overused": parsed.get("overused") if isinstance(parsed.get("overused"), list) else [],
-                        "model": completion.model,
-                        "fallback": False,
-                    }
-                logger.warning(
-                    "KEYWORD_COMPARE returned unparseable response, using rule fallback. raw=%.200s",
-                    completion.content,
-                )
-            except Exception as exc:
-                logger.warning("KEYWORD_COMPARE prompt failed, using rule fallback: %s", exc)
-
-        resume_words = set(resume_content.lower().split())
-        job_set = set(k.lower() for k in job_keywords)
-        matched = job_set & resume_words
-        missing = job_set - resume_words
+        if not await llm_service.has_routes("KEYWORD_COMPARE"):
+            raise RuntimeError("LLM routes unavailable for KEYWORD_COMPARE")
+        compact_keywords = ", ".join(job_keywords[:40])
+        compact_resume = resume_content[:4000]
+        prompt = await prompt_client.render("KEYWORD_COMPARE", {
+            "job_keywords": compact_keywords,
+            "resume_content": compact_resume,
+        })
+        parsed, completion = await llm_service.complete_json_value_for_operation(
+            "KEYWORD_COMPARE",
+            prompt["system_prompt"]
+            + "\n[Compact] Prefer short keyword tokens. Keep each array under 30 items.",
+            prompt["user_prompt"],
+            temperature=0.2,
+        )
+        if not (
+            isinstance(parsed, dict)
+            and isinstance(parsed.get("matched"), list)
+            and isinstance(parsed.get("missing"), list)
+        ):
+            raise RuntimeError(
+                f"KEYWORD_COMPARE returned unparseable response: {(completion.content or '')[:200]}"
+            )
         return {
-            "matched": list(matched),
-            "missing": list(missing),
-            "recommended": list(missing)[:5],
-            "overused": [],
-            "model": RULE_BASED_MODEL,
-            "fallback": True,
+            "matched": parsed["matched"],
+            "missing": parsed["missing"],
+            "recommended": parsed.get("recommended") if isinstance(parsed.get("recommended"), list) else [],
+            "overused": parsed.get("overused") if isinstance(parsed.get("overused"), list) else [],
+            "model": completion.model,
         }
 
 

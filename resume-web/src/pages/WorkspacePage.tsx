@@ -135,7 +135,6 @@ export default function WorkspacePage() {
     sectionTitles: savedSectionTitles,
     recommended,
     interview,
-    interviewFallback,
     keywords,
     setBundle,
     clearResult,
@@ -392,7 +391,6 @@ export default function WorkspacePage() {
         result: res,
         sectionTitles: sectionTitles.slice(0, MAX_SECTIONS),
         interview: [],
-        interviewFallback: false,
         keywords: null,
       });
       setJustGenerated(true);
@@ -405,7 +403,6 @@ export default function WorkspacePage() {
             result: res,
             sectionTitles: sectionTitles.slice(0, MAX_SECTIONS),
             interview: nextInterview,
-            interviewFallback: Boolean(iq.fallback),
             keywords: nextKeywords,
           });
         } catch (followUpErr) {
@@ -438,8 +435,7 @@ export default function WorkspacePage() {
 
   const detections = (result?.detections as Array<{ sentence: string; level: string; reason: string }>) || [];
   const reviews = (result?.reviews as Array<{ paragraph_index: number; strengths: string[]; weaknesses: string[]; improvement: string }>) || [];
-  const scores = result?.quality_scores as (Record<string, number> & { scored_by?: string }) | undefined;
-  const reviewsFallback = Boolean(result?.reviews_fallback);
+  const scores = result?.quality_scores as Record<string, number> | undefined;
   const { displayed: displayedResult, isTyping, skip: skipTyping } = useTypewriter(
     String(result?.content ?? ''),
     justGenerated,
@@ -815,13 +811,8 @@ export default function WorkspacePage() {
 
               {!isTyping && (
                 <div className="animate-in fade-in space-y-6 duration-300">
-                  {scores && (
+                      {scores && (
                     <section className="space-y-2">
-                      {scores.scored_by === 'rule-based' && (
-                        <Badge variant="outline" className="text-muted-foreground font-normal">
-                          {t('workspace.scoreFallbackNotice')}
-                        </Badge>
-                      )}
                       <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
                       {Object.entries(scores).filter(([k]) => SCORE_KEY_MAP[k]).map(([k, v]) => (
                         <Card key={k} size="sm">
@@ -857,11 +848,6 @@ export default function WorkspacePage() {
                     <section className="space-y-1 text-sm">
                       <div className="flex items-center gap-2">
                         <h3 className="text-sm font-medium">{t('workspace.keywordCompare')}</h3>
-                        {Boolean(keywords.fallback) && (
-                          <Badge variant="outline" className="text-muted-foreground font-normal">
-                            {t('workspace.keywordFallbackNotice')}
-                          </Badge>
-                        )}
                       </div>
                       <p><span className="text-muted-foreground">{t('workspace.matched')}:</span> {((keywords.matched as string[]) || []).join(', ') || t('common.none')}</p>
                       <p className="text-destructive"><span className="text-muted-foreground">{t('workspace.missing')}:</span> {((keywords.missing as string[]) || []).join(', ') || t('common.none')}</p>
@@ -872,11 +858,6 @@ export default function WorkspacePage() {
                     <section className="space-y-2">
                       <div className="flex items-center gap-2">
                         <h3 className="text-sm font-medium">{t('workspace.review')}</h3>
-                        {reviewsFallback && (
-                          <Badge variant="outline" className="text-muted-foreground font-normal">
-                            {t('workspace.reviewFallbackNotice')}
-                          </Badge>
-                        )}
                       </div>
                       {reviews.map((r) => (
                         <div key={r.paragraph_index} className="space-y-1 rounded-md border p-3 text-sm">
@@ -892,11 +873,6 @@ export default function WorkspacePage() {
                     <section className="space-y-2">
                       <div className="flex items-center gap-2">
                         <h3 className="text-sm font-medium">{t('workspace.interview')}</h3>
-                        {interviewFallback && (
-                          <Badge variant="outline" className="text-muted-foreground font-normal">
-                            {t('workspace.interviewFallbackNotice')}
-                          </Badge>
-                        )}
                       </div>
                       {interview.map((q, i) => (
                         <div key={i} className="rounded-md bg-muted/50 p-3">

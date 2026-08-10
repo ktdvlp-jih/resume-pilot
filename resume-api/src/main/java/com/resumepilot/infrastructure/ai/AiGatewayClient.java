@@ -1,11 +1,14 @@
 package com.resumepilot.infrastructure.ai;
 
+import com.resumepilot.global.exception.BusinessException;
+import com.resumepilot.global.exception.ErrorCode;
 import com.resumepilot.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.Map;
 
@@ -51,12 +54,41 @@ public class AiGatewayClient {
     }
 
     private Map<String, Object> post(String path, Map<String, Object> request) {
-        return client().post()
-                .uri(resumeAiUrl + path)
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<ApiResponse<Map<String, Object>>>() {})
-                .map(ApiResponse::getData)
-                .block();
+        try {
+            return client().post()
+                    .uri(resumeAiUrl + path)
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<ApiResponse<Map<String, Object>>>() {})
+                    .map(ApiResponse::getData)
+                    .block();
+        } catch (WebClientResponseException ex) {
+            String body = ex.getResponseBodyAsString();
+            String message = extractErrorMessage(body);
+            if (message == null || message.isBlank()) {
+                message = "AI service error: HTTP " + ex.getStatusCode().value();
+            }
+            throw new BusinessException(ErrorCode.AI_SERVICE_ERROR, message);
+        }
+    }
+
+    private static String extractErrorMessage(String body) {
+        if (body == null || body.isBlank()) {
+            return null;
+        }
+        String key = "\"message\"";
+        int idx = body.indexOf(key);
+        if (idx < 0) {
+            return null;
+        }
+        int start = body.indexOf('"', idx + key.length());
+        if (start < 0) {
+            return null;
+        }
+        int end = body.indexOf('"', start + 1);
+        if (end < 0) {
+            return null;
+        }
+        return body.substring(start + 1, end);
     }
 }

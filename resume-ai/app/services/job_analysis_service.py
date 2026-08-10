@@ -17,40 +17,9 @@ from app.services.job_extraction_postprocess import (
     ocr_is_low_quality,
     postprocess_extraction,
 )
-from app.services.llm_service import RULE_BASED_MODEL, llm_service
+from app.services.llm_service import llm_service
 
 logger = logging.getLogger(__name__)
-
-TECH_KEYWORDS = {
-    "java", "python", "javascript", "typescript", "react", "vue", "spring", "kotlin",
-    "aws", "docker", "kubernetes", "postgresql", "mysql", "redis", "kafka",
-    "node", "go", "golang", "flutter", "android", "ios", "swift",
-    "ai", "ml", "tensorflow", "pytorch", "llm", "rag",
-    "next.js", "nextjs", "nestjs", "express", "django", "fastapi", "graphql",
-    "mongodb", "elasticsearch", "terraform", "jenkins", "gitlab", "github",
-    "c++", "c#", ".net", "rust", "scala", "spark", "hadoop",
-}
-
-COMPANY_PATTERNS = [
-    r"(?:\[?\s*)?([가-힣A-Za-z0-9]+(?:전자|그룹|증권|은행|카드|화재|생명|손해보험|모터스|자동차|건설|중공업|제약|바이오|소프트|테크|테크놀로지|커뮤니케이션|네트웍스|네트워크|엔터|엔터테인먼트|게임즈|스튜디오|랩|랩스|코퍼레이션|코리아|Korea|Inc\.?|Corp\.?))\s*(?:\]|\||채용|모집)",
-    r"([가-힣A-Za-z0-9]+)\s*(?:에서|의)\s*(?:함께|일할|근무)",
-]
-
-POSITION_PATTERNS = [
-    r"(?:직무|포지션|모집분야|채용분야)\s*[:\：]?\s*([^\n]+)",
-    r"([가-힣A-Za-z/\s]+(?:개발자|엔지니어|디자이너|기획자|PM|매니저|분석가|연구원))\s*(?:모집|채용|구함)",
-]
-
-SKILL_SECTION_PATTERNS = [
-    r"(?:필수|요구)\s*(?:사항|조건|기술)[:\：]?\s*([\s\S]*?)(?=\n\s*(?:우대|선호|지원|근무|복리|채용|전형|주요|담당|※|$))",
-    r"(?:우대|선호)\s*(?:사항|조건|기술|요건)[:\：]?\s*([\s\S]*?)(?=\n\s*(?:필수|지원|근무|복리|채용|전형|주요|담당|※|$))",
-    r"지원\s*자격[:\：]?\s*([\s\S]*?)(?=\n\s*(?:우대|선호|근무|복리|채용|전형|주요|담당|※|$))",
-    r"자격\s*요건[:\：]?\s*([\s\S]*?)(?=\n\s*(?:우대|선호|근무|복리|채용|전형|주요|담당|※|$))",
-]
-
-RESPONSIBILITY_SECTION_PATTERNS = [
-    r"(?:담당\s*업무|주요\s*업무)[:\：]?\s*([\s\S]*?)(?=\n\s*(?:자격|필수|우대|지원|근무|복리|채용|전형|※|$))",
-]
 
 JOB_EXTRACTION_SYSTEM = """You extract structured data from Korean or English job postings.
 The input may be clean text, HTML text, PDF text, OCR output, or a recruitment poster image.
@@ -205,15 +174,7 @@ class JobAnalysisService:
             return vision_result
 
         if ocr_text:
-            rule_result = self._finalize_fields(
-                self._extract_from_text(ocr_text),
-                source_text=ocr_text,
-                extraction_method="ocr+rule",
-                source_type=source_type,
-                model=RULE_BASED_MODEL,
-            )
-            rule_result["raw_content"] = ocr_text[:5000]
-            return rule_result
+            raise RuntimeError("JOB_ANALYSIS LLM unavailable after OCR")
 
         return {"error": "empty content", "company_name": "Unknown", "source_type": source_type}
 
@@ -223,42 +184,29 @@ class JobAnalysisService:
         extraction_method: str,
         source_type: str,
     ) -> dict[str, Any]:
-        if await self._can_use_llm():
-            try:
-                llm_raw, model = await self._extract_with_llm(text)
-                if llm_raw:
-                    return self._finalize_fields(
-                        llm_raw,
-                        source_text=text,
-                        extraction_method=f"{extraction_method}+llm",
-                        source_type=source_type,
-                        model=model,
-                        raw_content=text[:5000],
-                    )
-                if model:
-                    logger.warning(
-                        "JOB_ANALYSIS LLM returned unparseable JSON (model=%s, source=%s)",
-                        model,
-                        source_type,
-                    )
-            except Exception as exc:
-                logger.warning("JOB_ANALYSIS LLM failed, using rule fallback: %s", exc)
-        else:
-            logger.info(
-                "JOB_ANALYSIS LLM unavailable: routes=%s credentials=%s",
-                await llm_service.has_routes("JOB_ANALYSIS"),
-                bool(settings.openai_api_key or settings.internal_api_token),
+        if not await self._can_use_llm():
+            raise RuntimeError(
+                "JOB_ANALYSIS LLM unavailable: "
+                f"routes={await llm_service.has_routes('JOB_ANALYSIS')} "
+                f"credentials={bool(settings.openai_api_key or settings.internal_api_token)}"
             )
-
-        rule_result = self._finalize_fields(
-            self._extract_from_text(text),
-            source_text=text,
-            extraction_method=f"{extraction_method}+rule",
-            source_type=source_type,
-            model=RULE_BASED_MODEL,
-            raw_content=text[:5000],
+        try:
+            llm_raw, model = await self._extract_with_llm(text)
+        except Exception as exc:
+            logger.exception("JOB_ANALYSIS LLM failed: %s", exc)
+            raise
+        if llm_raw:
+            return self._finalize_fields(
+                llm_raw,
+                source_text=text,
+                extraction_method=f"{extraction_method}+llm",
+                source_type=source_type,
+                model=model,
+                raw_content=text[:5000],
+            )
+        raise RuntimeError(
+            f"JOB_ANALYSIS LLM returned unparseable JSON (model={model}, source={source_type})"
         )
-        return rule_result
 
     async def _can_use_llm(self) -> bool:
         return bool(settings.openai_api_key or settings.internal_api_token) and await llm_service.has_routes("JOB_ANALYSIS")
@@ -368,48 +316,6 @@ class JobAnalysisService:
             "recruitment_sections": parsed.get("recruitment_sections") or parsed.get("job_sections") or [],
             "fit_score": None,
         }
-
-    def _extract_from_text(self, text: str) -> dict[str, Any]:
-        company = self._extract_company(text)
-        position = self._extract_position(text)
-        required, preferred = self._extract_skills(text)
-        qualifications, required = self._split_qualifications(required)
-        responsibilities = self._extract_responsibilities(text)
-        tech_keywords = self._extract_tech_keywords(text)
-        talent = self._extract_talent_profile(text)
-        competencies = self._extract_competencies(text)
-        culture = self._extract_culture(text)
-
-        return {
-            "company_name": company,
-            "position": position,
-            "title": f"{company} {position}".strip() if company or position else None,
-            "qualifications": qualifications,
-            "required_skills": required,
-            "preferred_skills": preferred,
-            "job_responsibilities": responsibilities,
-            "tech_keywords": tech_keywords,
-            "talent_profile": talent,
-            "core_competencies": competencies,
-            "core_values": talent[:3],
-            "job_description": text[:2000],
-            "org_culture": [culture] if culture else [],
-            "work_conditions": [],
-            "benefits": [],
-            "hiring_process": [],
-            "notes": [],
-            "fit_score": None,
-        }
-
-    def _split_qualifications(self, items: list[str]) -> tuple[list[str], list[str]]:
-        qualifications: list[str] = []
-        skills: list[str] = []
-        for item in items:
-            if re.search(r"(4년제|대학|졸업|학사|석사|박사|전문학사)", item) and "경험" not in item:
-                qualifications.append(item)
-            else:
-                skills.append(item)
-        return dedupe_list(qualifications), dedupe_list(skills)
 
     def _extract_pdf_base64(self, file_base64: str) -> str | None:
         try:
@@ -627,87 +533,6 @@ class JobAnalysisService:
         decoded = decoded.replace("\u200b", "").replace("\ufeff", "")
         lines = [re.sub(r"\s+", " ", line).strip() for line in decoded.splitlines()]
         return "\n".join(line for line in lines if line).strip()
-
-    def _extract_company(self, text: str) -> str:
-        for pattern in COMPANY_PATTERNS:
-            match = re.search(pattern, text, re.IGNORECASE)
-            if match:
-                candidate = match.group(1).strip()
-                if not has_ocr_garbage(candidate):
-                    return candidate
-        first_line = text.split("\n")[0].strip()
-        if len(first_line) <= 30 and not has_ocr_garbage(first_line):
-            return first_line
-        return "Unknown"
-
-    def _extract_position(self, text: str) -> str | None:
-        for pattern in POSITION_PATTERNS:
-            match = re.search(pattern, text, re.IGNORECASE)
-            if match:
-                return match.group(1).strip()[:100]
-        return None
-
-    def _extract_skills(self, text: str) -> tuple[list[str], list[str]]:
-        required: list[str] = []
-        preferred: list[str] = []
-        for i, pattern in enumerate(SKILL_SECTION_PATTERNS):
-            match = re.search(pattern, text, re.IGNORECASE)
-            if not match:
-                continue
-            items = self._split_bullet_items(match.group(1))
-            if i in {0, 2, 3}:
-                required.extend(items)
-            elif i == 1:
-                preferred.extend(items)
-        return dedupe_list(required)[:15], dedupe_list(preferred)[:15]
-
-    def _extract_responsibilities(self, text: str) -> list[str]:
-        for pattern in RESPONSIBILITY_SECTION_PATTERNS:
-            match = re.search(pattern, text, re.IGNORECASE)
-            if match:
-                return self._split_bullet_items(match.group(1))[:12]
-        return []
-
-    def _split_bullet_items(self, section: str) -> list[str]:
-        section = section.replace("\u200b", "").replace("\ufeff", "")
-        cleaned: list[str] = []
-        for line in section.splitlines():
-            normalized = re.sub(r"^[\s\-\*•·]+", "", line.strip())
-            normalized = re.sub(r"\s+", " ", normalized)
-            if normalized and len(normalized) > 1:
-                cleaned.append(normalized)
-        if cleaned:
-            return cleaned[:15]
-        items = re.split(r"[\n•·]+", section)
-        return [i.strip() for i in items if i.strip() and len(i.strip()) > 1][:15]
-
-    def _extract_tech_keywords(self, text: str) -> list[str]:
-        lower = text.lower()
-        found = [kw for kw in TECH_KEYWORDS if kw in lower]
-        return dedupe_list(found)[:20]
-
-    def _extract_talent_profile(self, text: str) -> list[str]:
-        keywords = []
-        patterns = [
-            r"인재상[:\：]?\s*([^\n]+)",
-            r"(책임감|주인의식|협업|커뮤니케이션|도전|창의|열정|성장|리더십|문제\s*해결)",
-        ]
-        for pattern in patterns:
-            for match in re.finditer(pattern, text, re.IGNORECASE):
-                val = match.group(1).strip() if match.lastindex else match.group(0).strip()
-                if val and val not in keywords:
-                    keywords.append(val[:50])
-        return keywords[:10]
-
-    def _extract_competencies(self, text: str) -> list[str]:
-        section = re.search(r"(?:핵심\s*역량)[:\：]?\s*([\s\S]*?)(?=\n\s*\n|\Z)", text)
-        if section:
-            return self._split_bullet_items(section.group(1))[:10]
-        return []
-
-    def _extract_culture(self, text: str) -> str | None:
-        match = re.search(r"(?:조직\s*문화|기업\s*문화|워크\s*환경)[:\：]?\s*([^\n]+)", text)
-        return match.group(1).strip() if match else None
 
     def _merge_extraction(self, base: dict[str, Any], llm: dict[str, Any]) -> dict[str, Any]:
         merged = dict(base)

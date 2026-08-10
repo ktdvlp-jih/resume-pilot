@@ -1,6 +1,7 @@
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from app.core.response import ApiResponse
@@ -16,6 +17,18 @@ from app.services.job_analysis_service import job_analysis_service
 from app.services.writing_style_service import writing_style_service
 
 app = FastAPI(title="ResumePilot AI Gateway", version="0.1.0")
+
+
+@app.exception_handler(RuntimeError)
+async def runtime_error_handler(_request: Request, exc: RuntimeError):
+    return JSONResponse(
+        status_code=503,
+        content={
+            "success": False,
+            "data": None,
+            "error": {"code": "AI_SERVICE_ERROR", "message": str(exc) or "AI service error"},
+        },
+    )
 
 
 class GenerateRequest(BaseModel):

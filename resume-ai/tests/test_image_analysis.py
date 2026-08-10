@@ -33,18 +33,16 @@ def _make_job_posting_png() -> str:
 
 
 @pytest.mark.asyncio
-async def test_image_ocr_extracts_company_and_skills():
+async def test_image_ocr_requires_llm_when_ocr_succeeds():
     b64 = _make_job_posting_png()
-    result = await job_analysis_service.analyze("IMAGE", "", file_base64=b64, mime_type="image/png")
-
-    if result.get("error") == "empty content":
-        pytest.skip("tesseract OCR unavailable or could not read synthetic image")
-
-    assert result.get("company_name") != "Unknown" or result.get("tech_keywords")
-    keywords = [k.lower() for k in result.get("tech_keywords", [])]
-    assert "java" in keywords or "spring" in keywords or result.get("required_skills")
-    assert result.get("extraction_method") in ("ocr", "ocr+llm", "vision")
-    assert result.get("raw_content")
+    with patch.object(job_analysis_service, "_can_use_llm", AsyncMock(return_value=False)):
+        with patch.object(
+            job_analysis_service,
+            "_extract_image_text",
+            return_value="[테스트소프트] Java Spring 채용",
+        ):
+            with pytest.raises(RuntimeError, match="JOB_ANALYSIS LLM unavailable after OCR"):
+                await job_analysis_service.analyze("IMAGE", "", file_base64=b64, mime_type="image/png")
 
 
 @pytest.mark.asyncio
