@@ -148,6 +148,26 @@ export function clearTokens() {
   localStorage.removeItem('refreshToken');
 }
 
+async function parseApiJson<T>(response: Response): Promise<ApiResponse<T>> {
+  const raw = await response.text();
+  const trimmed = raw.trimStart();
+  if (trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<html') || trimmed.startsWith('<HTML')) {
+    if (response.status === 502 || response.status === 504 || response.status === 524) {
+      throw new Error(
+        '서버 응답이 지연되어 연결이 끊겼습니다. 잠시 후 다시 생성해 주세요. (프록시/터널 타임아웃)',
+      );
+    }
+    throw new Error(
+      `API가 JSON 대신 HTML을 반환했습니다 (HTTP ${response.status}). 서버·터널 상태를 확인하세요.`,
+    );
+  }
+  try {
+    return JSON.parse(raw) as ApiResponse<T>;
+  } catch {
+    throw new Error(`응답 JSON 파싱 실패 (HTTP ${response.status})`);
+  }
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -168,7 +188,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       body: JSON.stringify({ refreshToken: getRefreshToken() }),
     });
     if (refreshRes.ok) {
-      const refreshed: ApiResponse<TokenResponse> = await refreshRes.json();
+      const refreshed = await parseApiJson<TokenResponse>(refreshRes);
       setTokens(refreshed.data.accessToken, refreshed.data.refreshToken);
       headers['Authorization'] = `Bearer ${refreshed.data.accessToken}`;
       response = await fetch(`${API_URL}${path}`, { ...options, headers });
@@ -193,7 +213,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new Error('Access denied');
   }
 
-  const json: ApiResponse<T> = await response.json();
+  const json = await parseApiJson<T>(response);
   if (!response.ok || !json.success) {
     throw new Error(json.error?.message || 'Request failed');
   }
@@ -251,7 +271,7 @@ export const api = {
     const headers: Record<string, string> = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
     const response = await fetch(`${API_URL}/api/v1/job-postings/upload/file`, { method: 'POST', headers, body: form });
-    const json: ApiResponse<JobPostingResponse> = await response.json();
+    const json = await parseApiJson<JobPostingResponse>(response);
     if (!response.ok || !json.success) throw new Error(json.error?.message || 'Upload failed');
     return json.data;
   },
