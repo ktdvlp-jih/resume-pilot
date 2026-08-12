@@ -248,6 +248,8 @@ public class JobPostingService {
                 toStringList(json.get("benefits")),
                 toStringList(json.get("hiring_process")),
                 toStringList(json.get("notes")),
+                toStringList(json.get("pain_points")),
+                toStringList(json.get("must_solve")),
                 toRecruitmentSections(json.get("recruitment_sections")),
                 a.getJobDescription(),
                 orgCulture, a.getFitScore(), a.getAnalysisJson(), a.getCreatedAt()

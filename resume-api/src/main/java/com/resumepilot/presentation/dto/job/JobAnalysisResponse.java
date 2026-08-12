@@ -23,6 +23,8 @@ public record JobAnalysisResponse(
         List<String> benefits,
         List<String> hiringProcess,
         List<String> notes,
+        List<String> painPoints,
+        List<String> mustSolve,
         List<RecruitmentSectionResponse> recruitmentSections,
         String jobDescription,
         List<String> orgCulture,

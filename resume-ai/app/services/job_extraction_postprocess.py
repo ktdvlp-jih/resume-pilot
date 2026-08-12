@@ -1133,6 +1133,8 @@ def postprocess_extraction(data: dict[str, Any], source_text: str = "") -> dict[
         "benefits": coerce_to_string_list(result.get("benefits")),
         "hiring_process": coerce_to_string_list(result.get("hiring_process")),
         "notes": coerce_to_string_list(result.get("notes")),
+        "pain_points": clean_string_list(result.get("pain_points"), max_items=8),
+        "must_solve": clean_string_list(result.get("must_solve"), max_items=8),
         "recruitment_sections": sections,
         "core_values": talent_profile[:3],
     }

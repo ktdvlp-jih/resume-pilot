@@ -313,6 +313,7 @@
     "step2Low": "Keep original",
     "step2High": "Rewrite expression",
     "generate": "3. Generate cover letter",
+    "generateDraftHint": "Output is a draft. Add missing decisions or tradeoffs to your experience library, then regenerate the section.",
     "generateFailed": "Generation failed",
     "result": "Generated content",
     "scoreNaturalness": "Naturalness",
@@ -370,7 +371,7 @@
     "interviewFailed": "Interview questions failed",
     "keywordsFailed": "Keyword compare failed",
     "diagnosisFailed": "Review & diagnosis failed",
-    "panelIdleHint": "Runs automatically after generate. Use the button to retry on failure or regenerate.",
+    "panelIdleHint": "Runs automatically after generate as a check. Use the button to retry on failure or regenerate.",
     "sectionStatus": {
       "idle": "Idle",
       "loading": "Writing",

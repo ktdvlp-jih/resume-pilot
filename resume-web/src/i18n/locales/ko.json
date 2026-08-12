@@ -313,6 +313,7 @@
     "step2Low": "원문 유지",
     "step2High": "표현 전면 재작성",
     "generate": "3. 자기소개서 생성",
+    "generateDraftHint": "생성 결과는 초안입니다. 경험에 없는 고민·선택 이유는 라이브러리에 보강한 뒤 문항을 다시 쓰세요.",
     "generateFailed": "생성 실패",
     "result": "생성 결과",
     "scoreNaturalness": "자연스러움",
@@ -370,7 +371,7 @@
     "interviewFailed": "면접 질문 생성 실패",
     "keywordsFailed": "키워드 비교 실패",
     "diagnosisFailed": "첨삭·진단 실패",
-    "panelIdleHint": "생성 후 자동 실행됩니다. 실패했거나 결과가 마음에 안 들면 버튼으로 다시 실행하세요.",
+    "panelIdleHint": "생성 후 자동으로 검증합니다. 실패했거나 결과가 마음에 안 들면 버튼으로 다시 실행하세요.",
     "sectionStatus": {
       "idle": "대기",
       "loading": "작성 중",

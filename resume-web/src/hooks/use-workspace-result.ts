@@ -31,18 +31,6 @@ export type WorkspaceResultState = {
   diagnosisStatus: PanelAiStatus;
 };
 
-const EMPTY: WorkspaceResultState = {
-  result: null,
-  sectionTitles: [],
-  sectionStatuses: [],
-  recommended: [],
-  interview: [],
-  keywords: null,
-  interviewStatus: 'idle',
-  keywordsStatus: 'idle',
-  diagnosisStatus: 'idle',
-};
-
 type ResultsByPosting = Record<string, WorkspaceResultState>;
 
 function loadAllResults(): ResultsByPosting {

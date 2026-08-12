@@ -368,8 +368,12 @@ export default function WorkspacePage() {
         company_name: analysis.companyName,
         position: analysis.position,
         required_skills: analysis.requiredSkills,
+        preferred_skills: analysis.preferredSkills,
         tech_keywords: analysis.techKeywords,
         talent_profile: analysis.talentProfile,
+        job_responsibilities: analysis.jobResponsibilities,
+        pain_points: analysis.painPoints ?? [],
+        must_solve: analysis.mustSolve ?? [],
       };
       kw = buildRecommendKeywords(analysis, jobText);
     }
@@ -914,6 +918,7 @@ export default function WorkspacePage() {
           >
             {loading ? t('common.generating') : t('workspace.generate')}
           </Button>
+          <p className="text-xs text-muted-foreground">{t('workspace.generateDraftHint')}</p>
         </CardContent>
       </Card>
 

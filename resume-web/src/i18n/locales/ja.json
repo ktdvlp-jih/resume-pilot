@@ -274,6 +274,7 @@
     "step2Low": "原文を維持",
     "step2High": "表現を全面書き直し",
     "generate": "3. 志望動機を生成",
+    "generateDraftHint": "生成結果は下書きです。経験にない判断・選択理由はライブラリに追記してから該当項目を再生成してください。",
     "generateFailed": "生成失敗",
     "result": "生成結果",
     "scoreNaturalness": "自然さ",
@@ -331,7 +332,7 @@
     "interviewFailed": "面接質問の生成に失敗",
     "keywordsFailed": "キーワード比較に失敗",
     "diagnosisFailed": "添削・診断に失敗",
-    "panelIdleHint": "生成後に自動実行されます。失敗時や再生成はボタンで実行してください。",
+    "panelIdleHint": "生成後に自動で検証します。失敗時や再生成はボタンで実行してください。",
     "sectionStatus": {
       "idle": "待機",
       "loading": "作成中",

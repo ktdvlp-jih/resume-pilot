@@ -108,6 +108,8 @@ export interface JobAnalysisResponse {
   benefits?: string[];
   hiringProcess?: string[];
   notes?: string[];
+  painPoints?: string[];
+  mustSolve?: string[];
   recruitmentSections?: RecruitmentSection[];
   jobDescription?: string;
   orgCulture?: string[];

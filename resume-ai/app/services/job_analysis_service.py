@@ -48,6 +48,8 @@ Return ONLY valid JSON with these keys:
 - talent_profile (array — 인재상 keywords)
 - core_competencies (array — soft skills only, NOT job duties)
 - org_culture (array — 조직문화 bullets only; NOT welfare/benefits; [] if none)
+- pain_points (array — problems this role must solve, derived ONLY from 담당업무/자격; verb+object; max 8; [] if none — do NOT invent industry-generic pains)
+- must_solve (array — day-one expected work restated as problems from 담당업무 only; no new facts; max 8; [] if none)
 - job_description (string — 3-5 sentence summary; do NOT paste bullets from other fields)
 
 Section mapping (common on Saramin/company postings, but not required on every JD;
@@ -83,7 +85,8 @@ VISION_USER_PROMPT = (
     "지원 자격/자격요건/필수사항 → required_skills; "
     "우대사항/우대요건 → preferred_skills; "
     "dr.* product grid → tech_keywords (tokens only). "
-    "Do NOT duplicate the same bullet across fields. "
+    "Also fill pain_points and must_solve ONLY from visible 담당업무/자격 text (verb+object); else []. "
+    "Do NOT invent pains. Do NOT duplicate the same bullet across fields. "
     "job_description is a short summary only, not a bullet dump. "
     "Keep original bullet text where possible."
 )
@@ -252,6 +255,7 @@ class JobAnalysisService:
         "job_responsibilities", "tech_keywords", "solution_keywords",
         "core_competencies", "talent_profile", "core_values",
         "org_culture", "work_conditions", "benefits", "hiring_process", "notes",
+        "pain_points", "must_solve",
     )
     _MERGE_SCALAR_FIELDS = ("position", "job_description", "title")
 
@@ -311,6 +315,8 @@ class JobAnalysisService:
             "benefits": self._coerce_string_list(parsed.get("benefits")),
             "hiring_process": self._coerce_string_list(parsed.get("hiring_process")),
             "notes": self._coerce_string_list(parsed.get("notes")),
+            "pain_points": self._coerce_string_list(parsed.get("pain_points")),
+            "must_solve": self._coerce_string_list(parsed.get("must_solve")),
             "job_description": description[:2000] if description else None,
             "org_culture": self._coerce_string_list(parsed.get("org_culture")),
             "recruitment_sections": parsed.get("recruitment_sections") or parsed.get("job_sections") or [],
