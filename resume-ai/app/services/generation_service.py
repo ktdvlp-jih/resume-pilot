@@ -79,6 +79,8 @@ class GenerationService:
             system_prompt=prompt["system_prompt"],
             user_prompt=prompt["user_prompt"],
             section_titles=request.get("section_titles") or [],
+            section_index=request.get("section_index"),
+            existing_paragraphs=request.get("existing_paragraphs") or [],
         )
         return {**state, "result": result}
 
@@ -87,23 +89,50 @@ class GenerationService:
         result = state["result"]
         rewrite_level = request.get("rewrite_level", 40)
         job_analysis = request.get("job_analysis")
+        skip_postprocess = bool(request.get("skip_postprocess"))
+        sections = result.get("sections") if isinstance(result.get("sections"), list) else []
 
         forbidden = request.get("forbidden_expressions", [])
         if forbidden and result.get("content"):
             result["content"] = self._apply_forbidden(str(result["content"]), forbidden)
 
         if result.get("insufficient"):
-            detections: list[dict] = []
-            reviews: list[dict] = []
-            review_scores = None
-            ai_trace_percent = 0.0
-        else:
-            detection_result = await detection_service.detect(result["content"], forbidden)
-            review_result = await review_service.review(result["content"], job_analysis)
-            detections = detection_result["detections"]
-            ai_trace_percent = detection_result["ai_trace_percent"]
-            reviews = review_result["reviews"]
-            review_scores = review_result.get("scores")
+            response = {
+                **result,
+                "rewrite_level": rewrite_level,
+                "quality_scores": {
+                    "naturalness": 0,
+                    "company_fit": 0,
+                    "style_retention": 0,
+                    "ai_trace_percent": 0,
+                    "star_application": 0,
+                    "experience_utilization": 0,
+                    "scored_by": "none",
+                },
+                "detections": [],
+                "reviews": [],
+                "sections": sections,
+            }
+            return {**state, "response": response}
+
+        if skip_postprocess:
+            # 문항 부분 재생성: detect/review 생략(할당량 절약). 점수는 클라이언트가 유지.
+            response = {
+                **result,
+                "rewrite_level": rewrite_level,
+                "quality_scores": None,
+                "detections": [],
+                "reviews": [],
+                "sections": sections,
+            }
+            return {**state, "response": response}
+
+        detection_result = await detection_service.detect(result["content"], forbidden)
+        review_result = await review_service.review(result["content"], job_analysis)
+        detections = detection_result["detections"]
+        ai_trace_percent = detection_result["ai_trace_percent"]
+        reviews = review_result["reviews"]
+        review_scores = review_result.get("scores")
 
         response = {
             **result,
@@ -111,6 +140,7 @@ class GenerationService:
             "quality_scores": self._score(result["content"], ai_trace_percent, review_scores),
             "detections": detections,
             "reviews": reviews,
+            "sections": sections,
         }
         return {**state, "response": response}
 
@@ -176,6 +206,12 @@ class DetectionService:
 
 
 class ReviewService:
+    _SCORES_RETRY_HINT = (
+        "\n\n[Retry] Previous reply omitted usable scores. "
+        "Return ONE JSON object with BOTH non-empty \"reviews\" array AND \"scores\" object "
+        "containing integer fields: company_fit, style_retention, star_application, experience_utilization."
+    )
+
     async def review(self, content: str, job_analysis: dict | None = None) -> dict[str, Any]:
         if not await llm_service.has_routes("AI_REVIEW"):
             raise RuntimeError("LLM routes unavailable for AI_REVIEW")
@@ -183,20 +219,41 @@ class ReviewService:
             "content": content,
             "job_analysis": str(job_analysis or {}),
         })
+        system = prompt["system_prompt"]
+        user = prompt["user_prompt"]
+
+        parsed, completion = await llm_service.complete_json_value_for_operation(
+            "AI_REVIEW", system, user, temperature=0.3,
+        )
+        reviews, scores = self._extract_reviews_and_scores(parsed)
+        if reviews and scores:
+            return {
+                "reviews": reviews,
+                "scores": scores,
+                "job_analysis": job_analysis,
+                "model": completion.model,
+            }
+
+        logger.warning(
+            "AI_REVIEW missing reviews/scores (reviews=%s scores=%s); retrying once. raw=%.400s",
+            bool(reviews),
+            bool(scores),
+            (completion.content or ""),
+        )
         parsed, completion = await llm_service.complete_json_value_for_operation(
             "AI_REVIEW",
-            prompt["system_prompt"],
-            prompt["user_prompt"],
-            temperature=0.3,
+            system + self._SCORES_RETRY_HINT,
+            user + "\n\nInclude scores object with 0-100 integers.",
+            temperature=0.2,
         )
-        reviews = parsed.get("reviews") if isinstance(parsed, dict) else (
-            parsed if isinstance(parsed, list) else None
-        )
-        scores = parsed.get("scores") if isinstance(parsed, dict) else None
-        scores = scores if isinstance(scores, dict) else None
-        if not isinstance(reviews, list) or not reviews:
+        reviews, scores = self._extract_reviews_and_scores(parsed)
+        if not reviews:
             raise RuntimeError(
-                f"AI_REVIEW returned unparseable response: {(completion.content or '')[:200]}"
+                f"AI_REVIEW returned unparseable reviews: {(completion.content or '')[:240]}"
+            )
+        if not scores:
+            raise RuntimeError(
+                f"AI_REVIEW returned no usable scores after retry: {(completion.content or '')[:240]}"
             )
         return {
             "reviews": reviews,
@@ -204,6 +261,27 @@ class ReviewService:
             "job_analysis": job_analysis,
             "model": completion.model,
         }
+
+    @staticmethod
+    def _extract_reviews_and_scores(
+        parsed: dict[str, Any] | list[Any] | None,
+    ) -> tuple[list[dict] | None, dict[str, Any] | None]:
+        if isinstance(parsed, list):
+            reviews = parsed if parsed else None
+            return reviews, None
+        if not isinstance(parsed, dict):
+            return None, None
+        reviews = parsed.get("reviews")
+        reviews = reviews if isinstance(reviews, list) and reviews else None
+        scores = parsed.get("scores")
+        if not isinstance(scores, dict) or not scores:
+            return reviews, None
+        # require at least one numeric-like quality key
+        usable = any(
+            k in scores and scores[k] is not None
+            for k in ("company_fit", "style_retention", "star_application", "experience_utilization")
+        )
+        return reviews, scores if usable else None
 
 
 class InterviewService:

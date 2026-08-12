@@ -117,9 +117,9 @@ cmd_deploy() {
 }
 
 cmd_tunnel() {
-  local ip="${1:-100.x.x.x}"
+  local ip="${1:-your-server-host}"
   local user="${SSH_USER:-jeon}"
-  echo "=== ResumePilot DB tunnel (Tailscale) ==="
+  echo "=== ResumePilot DB SSH tunnel ==="
   echo "User: ${user}@${ip}"
   echo "Forward: localhost:55532 -> ${ip}:55532"
   echo ".env: jdbc:postgresql://localhost:55532/resumepilot"

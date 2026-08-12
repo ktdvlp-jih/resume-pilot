@@ -6,22 +6,41 @@ const MANUAL_KEY = '__manual__';
 
 export type RecommendedItem = { id: string; title: string; score: number };
 export type InterviewItem = { category: string; question: string };
+export type SectionAiStatus = 'idle' | 'loading' | 'ok' | 'error' | 'skipped';
+export type PanelAiStatus = 'idle' | 'loading' | 'ok' | 'error';
+
+export type SectionResultMeta = {
+  index: number;
+  title: string;
+  content: string;
+  status: SectionAiStatus;
+  error?: string | null;
+};
 
 export type WorkspaceResultState = {
   result: Record<string, unknown> | null;
   /** 생성 시점의 문항 제목 — 결과 복원 시에도 문단 헤더 표시용 */
   sectionTitles: string[];
+  /** 문항별 AI 작성 상태 (화면 표시·부분 재생성용) */
+  sectionStatuses: SectionResultMeta[];
   recommended: RecommendedItem[];
   interview: InterviewItem[];
   keywords: Record<string, unknown> | null;
+  interviewStatus: PanelAiStatus;
+  keywordsStatus: PanelAiStatus;
+  diagnosisStatus: PanelAiStatus;
 };
 
 const EMPTY: WorkspaceResultState = {
   result: null,
   sectionTitles: [],
+  sectionStatuses: [],
   recommended: [],
   interview: [],
   keywords: null,
+  interviewStatus: 'idle',
+  keywordsStatus: 'idle',
+  diagnosisStatus: 'idle',
 };
 
 type ResultsByPosting = Record<string, WorkspaceResultState>;
@@ -31,10 +50,31 @@ function loadAllResults(): ResultsByPosting {
     const raw = localStorage.getItem(RESULT_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw) as ResultsByPosting;
-    return parsed && typeof parsed === 'object' ? parsed : {};
+    if (!parsed || typeof parsed !== 'object') return {};
+    return Object.fromEntries(
+      Object.entries(parsed).map(([k, v]) => [k, normalizeState(v)]),
+    );
   } catch {
     return {};
   }
+}
+
+function normalizeState(raw: Partial<WorkspaceResultState> | null | undefined): WorkspaceResultState {
+  const result = raw?.result ?? null;
+  const detections = (result?.detections as unknown[]) || [];
+  const interview = Array.isArray(raw?.interview) ? raw.interview : [];
+  const keywords = raw?.keywords ?? null;
+  return {
+    result,
+    sectionTitles: Array.isArray(raw?.sectionTitles) ? raw.sectionTitles : [],
+    sectionStatuses: Array.isArray(raw?.sectionStatuses) ? raw.sectionStatuses : [],
+    recommended: Array.isArray(raw?.recommended) ? raw.recommended : [],
+    interview,
+    keywords,
+    interviewStatus: raw?.interviewStatus ?? (interview.length > 0 ? 'ok' : 'idle'),
+    keywordsStatus: raw?.keywordsStatus ?? (keywords ? 'ok' : 'idle'),
+    diagnosisStatus: raw?.diagnosisStatus ?? (detections.length > 0 ? 'ok' : 'idle'),
+  };
 }
 
 export type DraftSaveStatus = 'idle' | 'saving' | 'saved';
@@ -73,9 +113,9 @@ export function useWorkspaceResult(postingId: string) {
   const setBundle = useCallback(
     (patch: Partial<WorkspaceResultState> | ((prev: WorkspaceResultState) => WorkspaceResultState)) => {
       setByPosting((prev) => {
-        const prevState = prev[postingKey] ?? EMPTY;
+        const prevState = normalizeState(prev[postingKey]);
         const nextState = typeof patch === 'function' ? patch(prevState) : { ...prevState, ...patch };
-        const next = { ...prev, [postingKey]: nextState };
+        const next = { ...prev, [postingKey]: normalizeState(nextState) };
         persist(next);
         return next;
       });
@@ -97,10 +137,19 @@ export function useWorkspaceResult(postingId: string) {
   // 문항 제목·경험 선택 등 생성 조건이 바뀌어 기존 결과가 더 이상 유효하지 않을 때
   // 화면에서만 지운다 (다른 공고의 저장 데이터는 건드리지 않음).
   const clearVisibleResult = useCallback(() => {
-    setBundle({ result: null, sectionTitles: [], interview: [], keywords: null });
+    setBundle({
+      result: null,
+      sectionTitles: [],
+      sectionStatuses: [],
+      interview: [],
+      keywords: null,
+      interviewStatus: 'idle',
+      keywordsStatus: 'idle',
+      diagnosisStatus: 'idle',
+    });
   }, [setBundle]);
 
-  const state = byPosting[postingKey] ?? EMPTY;
+  const state = normalizeState(byPosting[postingKey]);
   const wasResultRestored = initial.current[postingKey]?.result != null;
 
   useEffect(

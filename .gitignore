@@ -98,6 +98,9 @@ docker-data/
 # SpecStory — 로컬 전용 (대화에 API 키 등이 섞일 수 있어 Git 제외)
 .specstory/
 
+# 로컬 전용 메모·인벤토리 (실 IP 등 — Git 제외, 노션 업로드용)
+docs/local/
+
 # 로컬 API 스모크 테스트 payload (Cursor 임시 생성)
 tmp-smoke-eval.json
 tmp-*.json

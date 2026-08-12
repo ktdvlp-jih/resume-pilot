@@ -37,6 +37,11 @@ class GenerateRequest(BaseModel):
     rewrite_level: int = Field(default=40, ge=0, le=100)
     job_analysis: dict[str, Any] | None = None
     section_titles: list[str] = []
+    experience_ids: list[str] = []
+    # 0-based: set to regenerate only this section
+    section_index: int | None = Field(default=None, ge=0, le=4)
+    existing_paragraphs: list[str] = []
+    skip_postprocess: bool = False
 
 
 class ContentRequest(BaseModel):

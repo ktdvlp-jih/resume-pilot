@@ -316,6 +316,9 @@ export const api = {
     jobPostingId?: string;
     sectionTitles?: string[];
     experienceIds?: string[];
+    sectionIndex?: number;
+    existingParagraphs?: string[];
+    skipPostprocess?: boolean;
   }) =>
     request<Record<string, unknown>>('/api/v1/ai/generate', {
       method: 'POST',
@@ -326,6 +329,9 @@ export const api = {
         jobPostingId: data.jobPostingId,
         sectionTitles: data.sectionTitles,
         experienceIds: data.experienceIds,
+        sectionIndex: data.sectionIndex,
+        existingParagraphs: data.existingParagraphs,
+        skipPostprocess: data.skipPostprocess,
       }),
     }),
   detectAi: (content: string) =>

@@ -114,7 +114,9 @@ class LlmService:
                 )
                 last_error = exc
         if last_error:
-            raise last_error
+            raise RuntimeError(
+                f"LLM routes failed for {operation}: {last_error}"
+            ) from last_error
         raise RuntimeError(f"LLM routes failed for {operation}")
 
     async def complete_json_for_operation(
@@ -198,7 +200,9 @@ class LlmService:
                 )
                 last_error = exc
         if last_error:
-            raise last_error
+            raise RuntimeError(
+                f"LLM vision routes failed for {operation}: {last_error}"
+            ) from last_error
         raise RuntimeError(f"LLM vision routes failed for {operation}")
 
     async def complete_with_image_json_for_operation(
@@ -314,6 +318,8 @@ class LlmService:
         system_prompt: str,
         user_prompt: str,
         section_titles: list[str] | None = None,
+        section_index: int | None = None,
+        existing_paragraphs: list[str] | None = None,
     ) -> dict[str, Any]:
         if not experiences:
             return {
@@ -321,6 +327,7 @@ class LlmService:
                 "experience_ids": [],
                 "insufficient": True,
                 "model": None,
+                "sections": [],
             }
 
         exp_text = "\n".join(
@@ -333,6 +340,7 @@ class LlmService:
                 "experience_ids": [e.get("entity_id") for e in experiences],
                 "insufficient": True,
                 "model": None,
+                "sections": [],
             }
 
         titles = [t for t in (section_titles or []) if t][:5]
@@ -372,20 +380,31 @@ class LlmService:
 
             # 문항 제목이 있으면 문항별로 생성해 문단 수·분량을 맞춘다.
             if section_count > 0:
-                content, model_name = await self._generate_by_sections(
+                content, model_name, sections = await self._generate_by_sections(
                     system_prompt=system_prompt,
                     fill_user_prompt=_fill_user_prompt,
                     experiences=experiences,
                     titles=titles,
                     rewrite_level=rewrite_level,
                     job_analysis=job_analysis,
+                    section_index=section_index,
+                    existing_paragraphs=existing_paragraphs or [],
                 )
                 content = self._normalize_section_paragraphs(content, section_count)
+                ok_count = sum(1 for s in sections if s.get("status") == "ok" and (s.get("content") or "").strip())
+                if ok_count == 0 and section_index is None:
+                    raise RuntimeError("All section generations failed")
+                if section_index is not None:
+                    target = next((s for s in sections if s.get("index") == section_index), None)
+                    if not target or target.get("status") != "ok":
+                        err = (target or {}).get("error") or "Section generation failed"
+                        raise RuntimeError(err)
                 return {
                     "content": content,
                     "experience_ids": [e.get("entity_id") for e in experiences if e.get("entity_id")],
                     "insufficient": False,
                     "model": model_name,
+                    "sections": sections,
                 }
 
             completion = await self.complete_for_operation("GENERATE", system_prompt, user_msg)
@@ -423,6 +442,7 @@ class LlmService:
             "experience_ids": [e.get("entity_id") for e in experiences if e.get("entity_id")],
             "insufficient": False,
             "model": model_name,
+            "sections": [],
         }
 
     @staticmethod
@@ -610,9 +630,21 @@ class LlmService:
         titles: list[str],
         rewrite_level: int = 40,
         job_analysis: dict | None = None,
-    ) -> tuple[str, str]:
-        """문항별로 본문을 생성한다. 권장 상한 ~1600자, 사실 부족 시 짧게 (자동 확장 없음)."""
-        paragraphs: list[str] = []
+        section_index: int | None = None,
+        existing_paragraphs: list[str] | None = None,
+    ) -> tuple[str, str, list[dict[str, Any]]]:
+        """문항별로 본문을 생성한다. 권장 상한 ~1600자, 사실 부족 시 짧게 (자동 확장 없음).
+
+        section_index가 있으면 해당 문항만 LLM을 호출하고 나머지는 existing_paragraphs를 유지한다.
+        문항별 실패는 전체 중단 없이 status=error로 기록한다.
+        """
+        existing = list(existing_paragraphs or [])
+        while len(existing) < len(titles):
+            existing.append("")
+        existing = existing[: len(titles)]
+
+        paragraphs: list[str] = list(existing)
+        sections: list[dict[str, Any]] = []
         model_name = ""
         rewrite_rules = self._rewrite_level_rules(rewrite_level)
         assignments = self._assign_section_experiences(titles, experiences, job_analysis)
@@ -634,86 +666,126 @@ class LlmService:
             + rewrite_rules
         )
 
-        for i, title in enumerate(titles):
-            kind = self._section_kind(title)
-            section_exps = assignments[i] if i < len(assignments) else []
-            if not section_exps and kind != "aspiration":
-                section_exps = experiences[:1] if experiences else []
-            base_user_msg = fill_user_prompt(section_exps)
-            assigned_ids = ", ".join(
-                str(e.get("entity_id")) for e in section_exps if e.get("entity_id")
-            ) or "(없음 — 과거 프로젝트 서술 없이 문항 초점에 맞게만 작성)"
-            prev = "\n".join(
-                f"- {titles[j]}: {paragraphs[j][:250]}…"
-                for j in range(len(paragraphs))
-            ) or "(없음)"
-            slot_rule = self._section_slot_rules(title)
-            section_user = (
-                f"{base_user_msg}\n\n"
-                f"## 이번에 작성할 문항 ({i + 1}/{len(titles)})\n"
-                f"제목: {title}\n"
-                f"이 문항에서만 사용할 경험 id: {assigned_ids}\n"
-                f"위에 배정되지 않은 경험은 쓰지 마세요.\n"
-                f"이 문항 본문만 출력하세요. 제목/번호 없이 순수 문장만.\n"
-                f"권장 상한 약 1600자. 필수 하한 없음. 사실 부족 시 짧게 (허구 금지).\n"
-                f"다른 문항과 내용이 중복되지 않게, 이 제목 의미에 맞게 쓰세요.\n"
-                f"{slot_rule}\n"
-                f"{rewrite_rules}"
-                f"## 이미 작성한 문항 (참고·중복 금지)\n{prev}\n"
-            )
-            completion = await self.complete_for_operation(
-                "GENERATE", section_system, section_user, temperature=0.4,
-            )
-            model_name = completion.model or model_name
-            para = self._clean_single_section(completion.content or "", title)
-            # 자동 expand 제거: 짧은 사실 문단을 늘리려다 날조가 생기던 경로를 차단
+        target_indices = (
+            {section_index}
+            if section_index is not None and 0 <= section_index < len(titles)
+            else set(range(len(titles)))
+        )
 
-            violations = self._style_violations(para) + self._section_topic_violations(title, para)
-            if violations:
-                logger.warning(
-                    "Section %s/%s (%s) style violations: %s",
+        for i, title in enumerate(titles):
+            if i not in target_indices:
+                kept = (paragraphs[i] if i < len(paragraphs) else "").strip()
+                sections.append({
+                    "index": i,
+                    "title": title,
+                    "content": kept,
+                    "status": "ok" if kept else "skipped",
+                    "error": None,
+                })
+                continue
+
+            try:
+                kind = self._section_kind(title)
+                section_exps = assignments[i] if i < len(assignments) else []
+                if not section_exps and kind != "aspiration":
+                    section_exps = experiences[:1] if experiences else []
+                base_user_msg = fill_user_prompt(section_exps)
+                assigned_ids = ", ".join(
+                    str(e.get("entity_id")) for e in section_exps if e.get("entity_id")
+                ) or "(없음 — 과거 프로젝트 서술 없이 문항 초점에 맞게만 작성)"
+                prev = "\n".join(
+                    f"- {titles[j]}: {(paragraphs[j] or '')[:250]}…"
+                    for j in range(len(titles))
+                    if j != i and (paragraphs[j] or "").strip()
+                ) or "(없음)"
+                slot_rule = self._section_slot_rules(title)
+                section_user = (
+                    f"{base_user_msg}\n\n"
+                    f"## 이번에 작성할 문항 ({i + 1}/{len(titles)})\n"
+                    f"제목: {title}\n"
+                    f"이 문항에서만 사용할 경험 id: {assigned_ids}\n"
+                    f"위에 배정되지 않은 경험은 쓰지 마세요.\n"
+                    f"이 문항 본문만 출력하세요. 제목/번호 없이 순수 문장만.\n"
+                    f"권장 상한 약 1600자. 필수 하한 없음. 사실 부족 시 짧게 (허구 금지).\n"
+                    f"다른 문항과 내용이 중복되지 않게, 이 제목 의미에 맞게 쓰세요.\n"
+                    f"{slot_rule}\n"
+                    f"{rewrite_rules}"
+                    f"## 이미 작성한 문항 (참고·중복 금지)\n{prev}\n"
+                )
+                completion = await self.complete_for_operation(
+                    "GENERATE", section_system, section_user, temperature=0.4,
+                )
+                model_name = completion.model or model_name
+                para = self._clean_single_section(completion.content or "", title)
+
+                violations = self._style_violations(para) + self._section_topic_violations(title, para)
+                if violations:
+                    logger.warning(
+                        "Section %s/%s (%s) style violations: %s",
+                        i + 1,
+                        len(titles),
+                        title,
+                        violations[:8],
+                    )
+                    fixed = await self.complete_for_operation(
+                        "GENERATE",
+                        section_system
+                        + "\n[Style Fix] 사실·수치·시점·역할은 유지하고 문체·문항 초점만 고치세요. "
+                        "분량을 늘리기 위해 새 사실을 넣지 마세요. "
+                        "문항 초점에 맞지 않는 소재(예: 지원동기의 AI 코딩 도구 제품명)는 삭제하세요.",
+                        (
+                            f"아래 본문에서 다음을 고치세요: {violations}\n"
+                            f"문항 제목: {title}\n"
+                            f"{slot_rule}"
+                            f"쉼표는 문장당 1개 이하, 문두 부사 뒤 쉼표 금지.\n"
+                            f"사실을 지어내지 마세요. 분량보다 사실 우선. 본문만 출력.\n\n{para}"
+                        ),
+                        temperature=0.3,
+                    )
+                    cleaned = self._clean_single_section(fixed.content or "", title)
+                    cleaned_violations = (
+                        self._style_violations(cleaned) + self._section_topic_violations(title, cleaned)
+                    )
+                    if (
+                        len(cleaned) >= len(para) * 0.85
+                        and len(cleaned_violations) < len(violations)
+                    ):
+                        para = cleaned
+                        model_name = fixed.model or model_name
+
+                if not para.strip():
+                    raise RuntimeError("Empty section content")
+
+                paragraphs[i] = para
+                sections.append({
+                    "index": i,
+                    "title": title,
+                    "content": para,
+                    "status": "ok",
+                    "error": None,
+                })
+                logger.info(
+                    "Section generated %s/%s (%s): %s chars (style_violations=%s)",
                     i + 1,
                     len(titles),
                     title,
-                    violations[:8],
+                    len(para),
+                    len(self._style_violations(para) + self._section_topic_violations(title, para)),
                 )
-                fixed = await self.complete_for_operation(
-                    "GENERATE",
-                    section_system
-                    + "\n[Style Fix] 사실·수치·시점·역할은 유지하고 문체·문항 초점만 고치세요. "
-                    "분량을 늘리기 위해 새 사실을 넣지 마세요. "
-                    "문항 초점에 맞지 않는 소재(예: 지원동기의 AI 코딩 도구 제품명)는 삭제하세요.",
-                    (
-                        f"아래 본문에서 다음을 고치세요: {violations}\n"
-                        f"문항 제목: {title}\n"
-                        f"{slot_rule}"
-                        f"쉼표는 문장당 1개 이하, 문두 부사 뒤 쉼표 금지.\n"
-                        f"사실을 지어내지 마세요. 분량보다 사실 우선. 본문만 출력.\n\n{para}"
-                    ),
-                    temperature=0.3,
-                )
-                cleaned = self._clean_single_section(fixed.content or "", title)
-                cleaned_violations = (
-                    self._style_violations(cleaned) + self._section_topic_violations(title, cleaned)
-                )
-                if (
-                    len(cleaned) >= len(para) * 0.85
-                    and len(cleaned_violations) < len(violations)
-                ):
-                    para = cleaned
-                    model_name = fixed.model or model_name
+            except Exception as exc:
+                logger.exception("Section %s/%s (%s) failed: %s", i + 1, len(titles), title, exc)
+                # 부분 재생성 실패 시 기존 본문 유지
+                kept = (existing[i] if i < len(existing) else "").strip()
+                paragraphs[i] = kept
+                sections.append({
+                    "index": i,
+                    "title": title,
+                    "content": kept,
+                    "status": "error",
+                    "error": str(exc) or "Section generation failed",
+                })
 
-            paragraphs.append(para)
-            logger.info(
-                "Section generated %s/%s (%s): %s chars (style_violations=%s)",
-                i + 1,
-                len(titles),
-                title,
-                len(para),
-                len(self._style_violations(para) + self._section_topic_violations(title, para)),
-            )
-
-        return "\n\n".join(paragraphs), model_name
+        return "\n\n".join(paragraphs), model_name, sections
 
     @staticmethod
     def _section_slot_rules(title: str) -> str:
@@ -909,6 +981,9 @@ class LlmService:
         }
         if route.base_url:
             kwargs["base_url"] = route.base_url
+        # DeepSeek V4는 thinking 기본 ON → JSON 생성·토큰 비용에 불리. 자소서 파이프라인은 비활성.
+        if route.provider_slug == "deepseek":
+            kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
         max_tokens = OPERATION_MAX_TOKENS.get(operation, default_max_tokens)
         if max_tokens:
             # OpenAI 호환 모델(gpt-4o-mini 등)은 completion 상한 16384
@@ -940,7 +1015,13 @@ class LlmService:
     def _is_retryable(self, exc: Exception) -> bool:
         if isinstance(exc, RateLimitError):
             return True
-        if isinstance(exc, APIStatusError) and exc.status_code in {401, 403, 429, 500, 502, 503, 504}:
+        # 404: OpenRouter :free 모델 퇴역 등 — 다음 provider로 넘어간다
+        if isinstance(exc, APIStatusError) and exc.status_code in {
+            401, 403, 404, 408, 429, 500, 502, 503, 504,
+        }:
+            return True
+        msg = str(exc).lower()
+        if "unavailable for free" in msg or "credit_balance_exhausted" in msg:
             return True
         return False
 

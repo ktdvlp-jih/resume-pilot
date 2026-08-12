@@ -1,11 +1,22 @@
 import json
+import logging
 import re
 from typing import Any
+from urllib.parse import urlparse
 
 import asyncpg
 from openai import OpenAI
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
+
+
+def _db_target(url: str) -> str:
+    parsed = urlparse(url)
+    host = parsed.hostname or "?"
+    port = parsed.port or 5432
+    return f"{host}:{port}"
 
 
 class PromptRepository:
@@ -14,7 +25,19 @@ class PromptRepository:
 
     async def connect(self) -> None:
         if self._pool is None:
-            self._pool = await asyncpg.create_pool(settings.database_url, min_size=1, max_size=5)
+            target = _db_target(settings.database_url)
+            try:
+                self._pool = await asyncpg.create_pool(
+                    settings.database_url, min_size=1, max_size=5, timeout=10
+                )
+            except Exception:
+                logger.exception(
+                    "DB connect failed (%s). Use SSH tunnel + .env.local localhost:55532, "
+                    "or source ../scripts/load-env-local.sh from repo root.",
+                    target,
+                )
+                raise
+            logger.info("DB pool ready (%s)", target)
 
     async def close(self) -> None:
         if self._pool:

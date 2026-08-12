@@ -14,7 +14,10 @@ import com.resumepilot.presentation.dto.ai.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -32,6 +35,7 @@ public class AiOrchestrationService {
     private final ForbiddenExpressionRepository forbiddenRepository;
     private final ExperienceRepository experienceRepository;
     private final WritingStyleService writingStyleService;
+    private final PlatformTransactionManager transactionManager;
 
     @Transactional
     public Map<String, Object> generate(UUID userId, AiGenerateRequest request) {
@@ -51,42 +55,72 @@ public class AiOrchestrationService {
         payload.put("section_titles", request.sectionTitles());
         payload.put("experience_ids", selectedExperienceIds);
         payload.put("forbidden_expressions", getForbiddenList());
-
-        Map<String, Object> result = aiGatewayClient.generateResume(payload);
-        logUsage(userId, "generate", start, result != null, str(result != null ? result.get("model") : null));
-
-        if (result != null) {
-            validateExperienceIds(userId, result);
-            AiGeneration gen = AiGeneration.builder()
-                    .userId(userId)
-                    .jobPostingId(request.jobPostingId())
-                    .rewriteLevel(request.rewriteLevel())
-                    .inputContext(Map.of(
-                            "keywords", request.keywords(),
-                            "job_analysis", request.jobAnalysis() != null ? request.jobAnalysis() : Map.of(),
-                            "experience_ids", selectedExperienceIds,
-                            "section_titles", request.sectionTitles() != null ? request.sectionTitles() : List.of()))
-                    .outputContent(String.valueOf(result.get("content")))
-                    .qualityScores(castMap(result.get("quality_scores")))
-                    .experienceIds(toStringList(result.get("experience_ids")))
-                    .build();
-            generationRepository.save(gen);
-            result.put("generation_id", gen.getId().toString());
-            try {
-                persistArtifacts(gen.getId(), result);
-            } catch (Exception e) {
-                log.warn("AI artifact persist skipped (generationId={}): {}", gen.getId(), e.getMessage());
-            }
+        if (request.sectionIndex() != null) {
+            payload.put("section_index", request.sectionIndex());
         }
-        return result;
+        if (request.existingParagraphs() != null && !request.existingParagraphs().isEmpty()) {
+            payload.put("existing_paragraphs", request.existingParagraphs());
+        }
+        if (Boolean.TRUE.equals(request.skipPostprocess())) {
+            payload.put("skip_postprocess", true);
+        }
+
+        try {
+            Map<String, Object> result = aiGatewayClient.generateResume(payload);
+            logUsage(userId, "generate", start, true, str(result != null ? result.get("model") : null), null);
+
+            if (result != null) {
+                validateExperienceIds(userId, result);
+                // 부분 재생성(skip_postprocess)은 기존 점수를 유지하므로 품질 점수가 비어 있을 수 있음
+                Map<String, Object> qualityScores = castMap(result.get("quality_scores"));
+                AiGeneration gen = AiGeneration.builder()
+                        .userId(userId)
+                        .jobPostingId(request.jobPostingId())
+                        .rewriteLevel(request.rewriteLevel())
+                        .inputContext(Map.of(
+                                "keywords", request.keywords(),
+                                "job_analysis", request.jobAnalysis() != null ? request.jobAnalysis() : Map.of(),
+                                "experience_ids", selectedExperienceIds,
+                                "section_titles", request.sectionTitles() != null ? request.sectionTitles() : List.of(),
+                                "section_index", request.sectionIndex() != null ? request.sectionIndex() : -1))
+                        .outputContent(String.valueOf(result.get("content")))
+                        .qualityScores(qualityScores != null ? qualityScores : Map.of())
+                        .experienceIds(toStringList(result.get("experience_ids")))
+                        .build();
+                generationRepository.save(gen);
+                result.put("generation_id", gen.getId().toString());
+                try {
+                    if (!Boolean.TRUE.equals(request.skipPostprocess())) {
+                        persistArtifacts(gen.getId(), result);
+                    }
+                } catch (Exception e) {
+                    log.warn("AI artifact persist skipped (generationId={}): {}", gen.getId(), e.getMessage());
+                }
+            }
+            return result;
+        } catch (BusinessException e) {
+            logUsage(userId, "generate", start, false, null, e.getMessage());
+            throw e;
+        } catch (RuntimeException e) {
+            logUsage(userId, "generate", start, false, null, e.getMessage());
+            throw e;
+        }
     }
 
     public Map<String, Object> detect(UUID userId, String content) {
         long start = System.currentTimeMillis();
         Map<String, Object> payload = Map.of("content", content, "forbidden_expressions", getAllForbiddenList());
-        Map<String, Object> result = aiGatewayClient.detectAiTraces(payload);
-        logUsage(userId, "detect", start, true, str(result != null ? result.get("model") : null));
-        return result;
+        try {
+            Map<String, Object> result = aiGatewayClient.detectAiTraces(payload);
+            logUsage(userId, "detect", start, true, str(result != null ? result.get("model") : null), null);
+            return result;
+        } catch (BusinessException e) {
+            logUsage(userId, "detect", start, false, null, e.getMessage());
+            throw e;
+        } catch (RuntimeException e) {
+            logUsage(userId, "detect", start, false, null, e.getMessage());
+            throw e;
+        }
     }
 
     public Map<String, Object> review(UUID userId, AiReviewRequest request) {
@@ -94,26 +128,50 @@ public class AiOrchestrationService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("content", request.content());
         if (request.jobAnalysis() != null) payload.put("job_analysis", request.jobAnalysis());
-        Map<String, Object> result = aiGatewayClient.reviewFeedback(payload);
-        logUsage(userId, "review", start, true, str(result != null ? result.get("model") : null));
-        return result;
+        try {
+            Map<String, Object> result = aiGatewayClient.reviewFeedback(payload);
+            logUsage(userId, "review", start, true, str(result != null ? result.get("model") : null), null);
+            return result;
+        } catch (BusinessException e) {
+            logUsage(userId, "review", start, false, null, e.getMessage());
+            throw e;
+        } catch (RuntimeException e) {
+            logUsage(userId, "review", start, false, null, e.getMessage());
+            throw e;
+        }
     }
 
     public Map<String, Object> interviewQuestions(UUID userId, String content) {
         long start = System.currentTimeMillis();
-        Map<String, Object> result = aiGatewayClient.interviewQuestions(Map.of("content", content));
-        logUsage(userId, "interview", start, true, str(result != null ? result.get("model") : null));
-        return result;
+        try {
+            Map<String, Object> result = aiGatewayClient.interviewQuestions(Map.of("content", content));
+            logUsage(userId, "interview", start, true, str(result != null ? result.get("model") : null), null);
+            return result;
+        } catch (BusinessException e) {
+            logUsage(userId, "interview", start, false, null, e.getMessage());
+            throw e;
+        } catch (RuntimeException e) {
+            logUsage(userId, "interview", start, false, null, e.getMessage());
+            throw e;
+        }
     }
 
     public Map<String, Object> compareKeywords(UUID userId, AiKeywordCompareRequest request) {
         long start = System.currentTimeMillis();
-        Map<String, Object> result = aiGatewayClient.compareKeywords(Map.of(
-                "job_keywords", request.jobKeywords(),
-                "resume_content", request.resumeContent()
-        ));
-        logUsage(userId, "compare_keywords", start, true, str(result != null ? result.get("model") : null));
-        return result;
+        try {
+            Map<String, Object> result = aiGatewayClient.compareKeywords(Map.of(
+                    "job_keywords", request.jobKeywords(),
+                    "resume_content", request.resumeContent()
+            ));
+            logUsage(userId, "compare_keywords", start, true, str(result != null ? result.get("model") : null), null);
+            return result;
+        } catch (BusinessException e) {
+            logUsage(userId, "compare_keywords", start, false, null, e.getMessage());
+            throw e;
+        } catch (RuntimeException e) {
+            logUsage(userId, "compare_keywords", start, false, null, e.getMessage());
+            throw e;
+        }
     }
 
     @Transactional(readOnly = true)
@@ -271,15 +329,24 @@ public class AiOrchestrationService {
                 .map(f -> f.getExpression()).toList();
     }
 
-    private void logUsage(UUID userId, String operation, long startMs, boolean success, String model) {
-        usageLogRepository.save(AiUsageLog.builder()
+    private void logUsage(UUID userId, String operation, long startMs, boolean success, String model, String errorMessage) {
+        String err = errorMessage;
+        if (err != null && err.length() > 500) {
+            err = err.substring(0, 500);
+        }
+        final String errFinal = err;
+        // 실패 로그가 상위 @Transactional 롤백에 말리지 않도록 독립 커밋
+        TransactionTemplate tx = new TransactionTemplate(transactionManager);
+        tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        tx.executeWithoutResult(status -> usageLogRepository.save(AiUsageLog.builder()
                 .userId(userId)
                 .service("resume-ai")
                 .operation(operation)
                 .model(model)
                 .durationMs((int) (System.currentTimeMillis() - startMs))
                 .status(success ? "SUCCESS" : "FAILED")
-                .build());
+                .errorMessage(success ? null : errFinal)
+                .build()));
     }
 
     @SuppressWarnings("unchecked")

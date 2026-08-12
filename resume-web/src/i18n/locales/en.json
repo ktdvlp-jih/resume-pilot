@@ -273,7 +273,7 @@
   },
   "workspace": {
     "title": "Workspace",
-    "guide": "① Pick or enter a job posting → ② Adjust the Rewrite Level → ③ Click generate to write your cover letter. Recommendations refresh when the posting changes; use Refresh when needed.",
+    "guide": "① Pick or enter a job posting → ② Set rewrite level & sections → ③ Generate all, or rewrite one section. Run interview, keyword compare, and diagnosis only when needed.",
     "step1": "1. Job posting",
     "step1Hint": "Select a saved posting or type the job description directly — only one is required.",
     "newOrManual": "New / manual input",
@@ -360,7 +360,30 @@
     "saveToDashboard": "Save to My Cover Letters",
     "saveToDashboardSuccess": "Saved to your cover letter list.",
     "saveToDashboardFailed": "Save failed",
-    "saveToDashboardAlready": "Saved"
+    "saveToDashboardAlready": "Saved",
+    "regenSection": "Rewrite this section",
+    "sectionEmpty": "No content for this section yet.",
+    "sectionRegenFailed": "Section rewrite failed",
+    "runInterview": "Generate interview questions",
+    "runKeywords": "Run keyword compare",
+    "runDiagnosis": "Run review & diagnosis",
+    "interviewFailed": "Interview questions failed",
+    "keywordsFailed": "Keyword compare failed",
+    "diagnosisFailed": "Review & diagnosis failed",
+    "panelIdleHint": "Runs automatically after generate. Use the button to retry on failure or regenerate.",
+    "sectionStatus": {
+      "idle": "Idle",
+      "loading": "Writing",
+      "ok": "AI written",
+      "error": "Failed",
+      "skipped": "Kept"
+    },
+    "panelStatus": {
+      "idle": "Not run",
+      "loading": "Running",
+      "ok": "Done",
+      "error": "Failed"
+    }
   },
   "settings": {
     "title": "Account settings",

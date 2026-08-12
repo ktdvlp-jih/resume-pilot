@@ -3,15 +3,15 @@
 #   .\scripts\resume-pilot.ps1 help
 #   .\scripts\resume-pilot.ps1 setup          # 1회: .env/.env.local, npm, pip, compile
 #   .\scripts\resume-pilot.ps1 github-ssh     # 1회: GitHub push SSH 키
-#   .\scripts\resume-pilot.ps1 tunnel         # 매일: Tailscale DB 터널 (창 유지)
-#   .\scripts\resume-pilot.ps1 tunnel -TailscaleIp 100.x.x.x
+#   .\scripts\resume-pilot.ps1 tunnel         # 매일: DB SSH 터널 (창 유지)
+#   .\scripts\resume-pilot.ps1 tunnel -RemoteHost your-server-host
 
 param(
     [Parameter(Position = 0)]
     [ValidateSet('help', 'setup', 'github-ssh', 'tunnel', 'db')]
     [string]$Command = 'help',
 
-    [string]$TailscaleIp = '100.x.x.x',
+    [string]$RemoteHost = 'your-server-host',
     [string]$SshUser = 'jeon',
     [string]$PostgresPassword = $env:POSTGRES_ADMIN_PASSWORD
 )
@@ -30,7 +30,7 @@ ResumePilot scripts (Windows)
   .\scripts\resume-pilot.ps1 tunnel       매일 — DB SSH 터널 localhost:55532 (창 유지)
 
 옵션 (tunnel):
-  -TailscaleIp 100.x.x.x   Ubuntu Tailscale IP
+  -RemoteHost your-server-host   서버 호스트/공인 IP (로컬 .env만, Git 금지)
   -SshUser jeon
 
 DB 스키마: Flyway resume-api/src/main/resources/db/migration/ (prod Docker)
@@ -177,11 +177,11 @@ function Invoke-Db {
 }
 
 function Invoke-Tunnel {
-    Write-Host '=== ResumePilot DB tunnel (Tailscale) ===' -ForegroundColor Cyan
-    Write-Host "Ubuntu: ${SshUser}@${TailscaleIp}"
+    Write-Host '=== ResumePilot DB SSH tunnel ===' -ForegroundColor Cyan
+    Write-Host "Ubuntu: ${SshUser}@${RemoteHost}"
     Write-Host 'Forward: localhost:55532 -> remote localhost:55532'
     Write-Host 'Keep this window open.' -ForegroundColor Yellow
-    ssh -L 55532:localhost:55532 "${SshUser}@${TailscaleIp}"
+    ssh -L 55532:localhost:55532 "${SshUser}@${RemoteHost}"
 }
 
 switch ($Command) {

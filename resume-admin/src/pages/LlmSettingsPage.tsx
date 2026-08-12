@@ -39,11 +39,12 @@ type LlmRoute = {
 const OPERATION_ORDER = ['GENERATE', 'JOB_ANALYSIS', 'AI_DETECTION', 'AI_REVIEW', 'INTERVIEW_QUESTIONS', 'KEYWORD_COMPARE', 'EMBEDDING'];
 
 const FREE_CHAT_MODELS_BY_PROVIDER: Record<string, string[]> = {
-  gemini: ['gemini-2.5-flash', 'gemini-2.0-flash-lite'],
+  gemini: ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash-lite'],
   openai: ['gpt-4o-mini'],
   github: ['openai/gpt-4o-mini', 'openai/gpt-4.1-mini', 'meta/llama-3.3-70b-instruct'],
   groq: ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile'],
-  openrouter: ['google/gemini-2.5-flash', 'meta-llama/llama-3.1-8b-instruct:free', 'deepseek/deepseek-r1:free'],
+  openrouter: ['openrouter/free', 'openai/gpt-oss-20b:free', 'google/gemma-4-31b-it:free'],
+  deepseek: ['deepseek-v4-flash', 'deepseek-v4-pro'],
 };
 
 const FREE_EMBEDDING_MODELS_BY_PROVIDER: Record<string, string[]> = {
@@ -52,13 +53,17 @@ const FREE_EMBEDDING_MODELS_BY_PROVIDER: Record<string, string[]> = {
   github: [],
   groq: [],
   openrouter: [],
+  deepseek: [],
 };
 
 export default function LlmSettingsPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
-  const [routeEdits, setRouteEdits] = useState<Record<string, { modelName: string; priority: string; enabled: boolean }>>({});
+  const [routeEdits, setRouteEdits] = useState<
+    Record<string, { providerId: string; modelName: string; priority: string; enabled: boolean }>
+  >({});
+  const [routeValidationError, setRouteValidationError] = useState<string | null>(null);
 
   const providersQuery = useQuery({
     queryKey: ['admin-llm-providers'],
@@ -87,7 +92,13 @@ export default function LlmSettingsPage() {
 
   const routeMutation = useMutation({
     mutationFn: api.updateLlmRoute,
-    onSuccess: () => {
+    onSuccess: (_, vars) => {
+      setRouteEdits((prev) => {
+        const next = { ...prev };
+        delete next[vars.id];
+        return next;
+      });
+      setRouteValidationError(null);
       queryClient.invalidateQueries({ queryKey: ['admin-llm-routes'] });
     },
   });
@@ -117,20 +128,28 @@ export default function LlmSettingsPage() {
 
   const getRouteEdit = (route: LlmRoute) =>
     routeEdits[route.id] ?? {
+      providerId: route.providerId,
       modelName: route.modelName,
       priority: String(route.priority),
       enabled: route.enabled,
     };
 
-  const getRouteModelOptions = (route: LlmRoute, currentModel: string) => {
-    const byProvider = route.operation === 'EMBEDDING'
+  const providerSlugById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const p of providers) map.set(p.id, p.slug);
+    return map;
+  }, [providers]);
+
+  const getRouteModelOptions = (operation: string, providerId: string, currentModel: string) => {
+    const slug = providerSlugById.get(providerId) ?? '';
+    const byProvider = operation === 'EMBEDDING'
       ? FREE_EMBEDDING_MODELS_BY_PROVIDER
       : FREE_CHAT_MODELS_BY_PROVIDER;
-    const preset = byProvider[route.providerSlug] ?? [];
+    const preset = byProvider[slug] ?? [];
     if (currentModel && !preset.includes(currentModel)) {
       return [currentModel, ...preset];
     }
-    return preset;
+    return preset.length > 0 ? preset : currentModel ? [currentModel] : [];
   };
 
   const saveProvider = (provider: LlmProvider, enabled?: boolean) => {
@@ -147,10 +166,38 @@ export default function LlmSettingsPage() {
 
   const saveRoute = (route: LlmRoute) => {
     const edit = getRouteEdit(route);
+    const priority = Number(edit.priority);
+    const modelName = edit.modelName.trim();
+    if (!Number.isInteger(priority) || priority < 1) {
+      setRouteValidationError(t('llmSettings.validationPriority'));
+      return;
+    }
+    const siblings = routes.filter((r) => r.operation === route.operation && r.id !== route.id);
+    const priorityClash = siblings.some((other) => {
+      const otherEdit = getRouteEdit(other);
+      return Number(otherEdit.priority) === priority;
+    });
+    if (priorityClash) {
+      setRouteValidationError(t('llmSettings.validationPriorityDup', { priority }));
+      return;
+    }
+    const modelClash = siblings.some((other) => {
+      const otherEdit = getRouteEdit(other);
+      return (
+        otherEdit.providerId === edit.providerId &&
+        otherEdit.modelName.trim().toLowerCase() === modelName.toLowerCase()
+      );
+    });
+    if (modelClash) {
+      setRouteValidationError(t('llmSettings.validationModelDup'));
+      return;
+    }
+    setRouteValidationError(null);
     routeMutation.mutate({
       id: route.id,
-      modelName: edit.modelName.trim(),
-      priority: Number(edit.priority),
+      providerId: edit.providerId,
+      modelName,
+      priority,
       enabled: edit.enabled,
     });
   };
@@ -167,12 +214,13 @@ export default function LlmSettingsPage() {
         </Alert>
       )}
 
-      {(providerMutation.isError || routeMutation.isError) && (
+      {(routeValidationError || providerMutation.isError || routeMutation.isError) && (
         <Alert variant="destructive">
           <AlertDescription>
-            {(providerMutation.error ?? routeMutation.error) instanceof Error
-              ? (providerMutation.error ?? routeMutation.error)?.message
-              : t('llmSettings.saveError')}
+            {routeValidationError
+              ?? ((providerMutation.error ?? routeMutation.error) instanceof Error
+                ? (providerMutation.error ?? routeMutation.error)?.message
+                : t('llmSettings.saveError'))}
           </AlertDescription>
         </Alert>
       )}
@@ -283,9 +331,33 @@ export default function LlmSettingsPage() {
                               }
                             />
                           </TableCell>
-                          <TableCell>
-                            <div className="text-sm">{route.providerName}</div>
-                            <div className="text-xs text-muted-foreground">{route.providerSlug}</div>
+                              <TableCell className="min-w-44">
+                            <Select
+                              value={edit.providerId}
+                              disabled={isRagEmbedding}
+                              onValueChange={(providerId) => {
+                                const models = getRouteModelOptions(route.operation, providerId, '');
+                                setRouteEdits((prev) => ({
+                                  ...prev,
+                                  [route.id]: {
+                                    ...edit,
+                                    providerId,
+                                    modelName: models[0] ?? edit.modelName,
+                                  },
+                                }));
+                              }}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder={t('llmSettings.provider')} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {providers.map((p) => (
+                                  <SelectItem key={p.id} value={p.id}>
+                                    {p.displayName} ({p.slug})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </TableCell>
                           <TableCell>
                             <Select
@@ -302,7 +374,7 @@ export default function LlmSettingsPage() {
                                 <SelectValue placeholder={t('llmSettings.model')} />
                               </SelectTrigger>
                               <SelectContent>
-                                {getRouteModelOptions(route, edit.modelName).map((model) => (
+                                {getRouteModelOptions(route.operation, edit.providerId, edit.modelName).map((model) => (
                                   <SelectItem key={model} value={model}>
                                     {formatModelDisplay(model)}
                                   </SelectItem>

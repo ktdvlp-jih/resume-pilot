@@ -60,10 +60,35 @@ public class LlmAdminService {
     public LlmModelRouteResponse updateRoute(LlmModelRouteUpdateRequest req) {
         LlmModelRoute route = routeRepository.findById(req.id())
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
-        route.setModelName(req.modelName().trim());
-        route.setPriority(req.priority());
+        LlmProvider provider = getProvider(req.providerId());
+        String modelName = req.modelName().trim();
+        int priority = req.priority();
+        if (priority < 1) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "priority must be >= 1");
+        }
+
+        // 동일 작업 내 우선순위 중복 금지
+        boolean priorityClash = routeRepository.findByOperationOrderByPriorityAsc(route.getOperation()).stream()
+                .anyMatch(other -> !other.getId().equals(route.getId()) && other.getPriority() == priority);
+        if (priorityClash) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT,
+                    "이미 사용 중인 우선순위입니다: " + priority);
+        }
+
+        // 동일 provider + 동일 model 만 금지 — 같은 회사(다른 모델)는 허용
+        boolean modelClash = routeRepository.findByOperationOrderByPriorityAsc(route.getOperation()).stream()
+                .anyMatch(other -> !other.getId().equals(route.getId())
+                        && other.getProviderId().equals(provider.getId())
+                        && other.getModelName().equalsIgnoreCase(modelName));
+        if (modelClash) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT,
+                    "같은 작업에 동일 Provider·모델이 이미 있습니다: " + provider.getSlug() + " / " + modelName);
+        }
+
+        route.setProviderId(provider.getId());
+        route.setModelName(modelName);
+        route.setPriority(priority);
         route.setEnabled(req.enabled());
-        LlmProvider provider = getProvider(route.getProviderId());
         return toRouteResponse(routeRepository.save(route), provider);
     }
 

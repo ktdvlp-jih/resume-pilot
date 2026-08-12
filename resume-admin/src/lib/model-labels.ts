@@ -1,5 +1,6 @@
 const MODEL_LABELS: Record<string, string> = {
   'gemini-2.5-flash': 'Gemini 2.5 Flash',
+  'gemini-2.5-flash-lite': 'Gemini 2.5 Flash Lite',
   'gemini-2.0-flash-lite': 'Gemini 2.0 Flash Lite',
   'gemini-embedding-001': 'Gemini Embedding 001',
   'gpt-4o-mini': 'GPT-4o mini',
@@ -10,6 +11,9 @@ const MODEL_LABELS: Record<string, string> = {
   'llama-3.1-8b-instant': 'Llama 3.1 8B Instant',
   'llama-3.3-70b-versatile': 'Llama 3.3 70B Versatile',
   'google/gemini-2.5-flash': 'Gemini 2.5 Flash (OpenRouter)',
+  'openrouter/free': 'OpenRouter Free',
+  'deepseek-v4-flash': 'DeepSeek V4 Flash',
+  'deepseek-v4-pro': 'DeepSeek V4 Pro',
   'meta-llama/llama-3.1-8b-instruct:free': 'Llama 3.1 8B Instruct (Free)',
   'deepseek/deepseek-r1:free': 'DeepSeek R1 (Free)',
 };

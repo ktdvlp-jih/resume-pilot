@@ -218,7 +218,13 @@ export const api = {
       priority: number;
       enabled: boolean;
     }>>('/api/v1/admin/llm/routes'),
-  updateLlmRoute: (data: { id: string; modelName: string; priority: number; enabled: boolean }) =>
+  updateLlmRoute: (data: {
+    id: string;
+    providerId: string;
+    modelName: string;
+    priority: number;
+    enabled: boolean;
+  }) =>
     request<{
       id: string;
       operation: string;

@@ -234,7 +234,7 @@
   },
   "workspace": {
     "title": "ワークスペース",
-    "guide": "①求人を選択・入力 →②リライトレベルを調整 →③生成ボタンで志望動機を作成。関連経験の推薦はいつでも押せます。",
+    "guide": "①求人を選択・入力 →②リライト・設問設定 →③全体生成、または設問ごとに再生成。面接質問・キーワード比較・診断は必要なときだけ実行します。",
     "step1": "1. 求人票",
     "step1Hint": "保存済みの求人を選択するか、求人内容を直接入力してください。どちらか一方でOKです。",
     "newOrManual": "新規 / 直接入力",
@@ -321,7 +321,30 @@
     "saveToDashboard": "自己紹介書に保存",
     "saveToDashboardSuccess": "自己紹介書リストに保存されました。",
     "saveToDashboardFailed": "保存に失敗しました",
-    "saveToDashboardAlready": "保存済み"
+    "saveToDashboardAlready": "保存済み",
+    "regenSection": "この設問だけ再生成",
+    "sectionEmpty": "まだ内容がありません。",
+    "sectionRegenFailed": "設問の再生成に失敗しました",
+    "runInterview": "面接質問を生成",
+    "runKeywords": "キーワード比較を実行",
+    "runDiagnosis": "添削・診断を実行",
+    "interviewFailed": "面接質問の生成に失敗",
+    "keywordsFailed": "キーワード比較に失敗",
+    "diagnosisFailed": "添削・診断に失敗",
+    "panelIdleHint": "生成後に自動実行されます。失敗時や再生成はボタンで実行してください。",
+    "sectionStatus": {
+      "idle": "待機",
+      "loading": "作成中",
+      "ok": "AI作成済み",
+      "error": "失敗",
+      "skipped": "維持"
+    },
+    "panelStatus": {
+      "idle": "未実行",
+      "loading": "実行中",
+      "ok": "完了",
+      "error": "失敗"
+    }
   },
   "settings": {
     "title": "アカウント設定",

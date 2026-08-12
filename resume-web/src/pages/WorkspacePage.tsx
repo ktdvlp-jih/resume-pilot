@@ -29,7 +29,12 @@ import {
 } from '@/lib/recommend-keywords';
 import { experienceReadiness } from '@/lib/experience-limits';
 import { useWorkspaceDraft } from '@/hooks/use-workspace-draft';
-import { useWorkspaceResult } from '@/hooks/use-workspace-result';
+import {
+  useWorkspaceResult,
+  type PanelAiStatus,
+  type SectionAiStatus,
+  type SectionResultMeta,
+} from '@/hooks/use-workspace-result';
 import { useTypewriter } from '@/hooks/use-typewriter';
 import { HighlightedContent } from '@/components/HighlightedContent';
 import { AutosaveIndicator } from '@/components/common/autosave-indicator';
@@ -101,6 +106,55 @@ function alignParagraphsToTitles(paragraphs: string[], titles: string[]): string
   return paragraphs;
 }
 
+function sectionsFromResponse(
+  res: Record<string, unknown>,
+  titles: string[],
+): SectionResultMeta[] {
+  const raw = res.sections;
+  if (Array.isArray(raw) && raw.length > 0) {
+    return raw.map((s, i) => {
+      const row = (s ?? {}) as Record<string, unknown>;
+      const status = String(row.status ?? 'ok') as SectionAiStatus;
+      return {
+        index: typeof row.index === 'number' ? row.index : i,
+        title: String(row.title ?? titles[i] ?? ''),
+        content: String(row.content ?? ''),
+        status: ['idle', 'loading', 'ok', 'error', 'skipped'].includes(status) ? status : 'ok',
+        error: row.error != null ? String(row.error) : null,
+      };
+    });
+  }
+  const paras = splitParagraphs(String(res.content ?? ''));
+  if (titles.length === 0) {
+    return paras.map((content, i) => ({
+      index: i,
+      title: '',
+      content,
+      status: content.trim() ? 'ok' : 'error',
+      error: content.trim() ? null : 'empty',
+    }));
+  }
+  const aligned = alignParagraphsToTitles(paras, titles);
+  return titles.map((title, i) => {
+    const content = aligned[i] ?? '';
+    return {
+      index: i,
+      title,
+      content,
+      status: content.trim() ? 'ok' : 'error',
+      error: content.trim() ? null : 'empty',
+    };
+  });
+}
+
+function panelChipVariant(status: PanelAiStatus | SectionAiStatus): 'default' | 'success' | 'warning' | 'destructive' | 'primary' {
+  if (status === 'ok') return 'success';
+  if (status === 'error') return 'destructive';
+  if (status === 'loading') return 'primary';
+  if (status === 'skipped') return 'warning';
+  return 'default';
+}
+
 const SCORE_KEY_MAP: Record<string, string> = {
   naturalness: 'workspace.scoreNaturalness',
   company_fit: 'workspace.scoreCompanyFit',
@@ -133,9 +187,13 @@ export default function WorkspacePage() {
   const {
     result,
     sectionTitles: savedSectionTitles,
+    sectionStatuses,
     recommended,
     interview,
     keywords,
+    interviewStatus,
+    keywordsStatus,
+    diagnosisStatus,
     setBundle,
     clearResult,
     clearVisibleResult,
@@ -143,6 +201,10 @@ export default function WorkspacePage() {
     wasResultRestored,
   } = useWorkspaceResult(selectedPostingId);
   const [loading, setLoading] = useState(false);
+  const [sectionLoadingIndex, setSectionLoadingIndex] = useState<number | null>(null);
+  const [panelLoading, setPanelLoading] = useState<
+    Partial<Record<'interview' | 'keywords' | 'diagnosis', boolean>>
+  >({});
   const [recommendLoading, setRecommendLoading] = useState(false);
   const [error, setError] = useState('');
   const [recommendError, setRecommendError] = useState('');
@@ -374,40 +436,183 @@ export default function WorkspacePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 공고/공고텍스트 변경 시에만 자동 추천
   }, [selectedPostingId, jobText]);
 
-  const handleGenerate = async () => {
-    setLoading(true);
+  const handleRegenerateSection = async (index: number) => {
     setError('');
+    if (generateBlocked) {
+      setError(
+        selectedReadiness.total === 0
+          ? t('workspace.preflightNeedSelect')
+          : t('workspace.preflightNeedReady'),
+      );
+      return;
+    }
+    const titles =
+      (savedSectionTitles.length > 0 ? savedSectionTitles : sectionTitles).slice(0, MAX_SECTIONS);
+    if (index < 0 || index >= titles.length) return;
+
+    setSectionLoadingIndex(index);
+    setBundle((prev) => ({
+      ...prev,
+      sectionStatuses: prev.sectionStatuses.map((s) =>
+        s.index === index ? { ...s, status: 'loading' as const } : s,
+      ),
+    }));
+
     try {
       const { jobAnalysis, keywords: kw, jobPostingId } = await getJobContext();
+      const existing =
+        sectionStatuses.length === titles.length
+          ? titles.map((_, i) => sectionStatuses.find((s) => s.index === i)?.content ?? '')
+          : alignParagraphsToTitles(splitParagraphs(String(result?.content ?? '')), titles);
+
       const res = await api.generateAi({
         keywords: kw,
         rewriteLevel,
         jobAnalysis,
         jobPostingId,
-        sectionTitles: sectionTitles.slice(0, MAX_SECTIONS),
+        sectionTitles: titles,
+        experienceIds: Array.from(selectedExperienceIds).slice(0, MAX_EXPERIENCES),
+        sectionIndex: index,
+        existingParagraphs: existing,
+        skipPostprocess: true,
+      });
+      const nextStatuses = sectionsFromResponse(res, titles);
+      setBundle((prev) => ({
+        ...prev,
+        result: {
+          ...(prev.result ?? {}),
+          ...res,
+          quality_scores: res.quality_scores ?? prev.result?.quality_scores,
+          detections: prev.result?.detections ?? [],
+          reviews: prev.result?.reviews ?? [],
+        },
+        sectionTitles: titles,
+        sectionStatuses: nextStatuses,
+      }));
+      setJustGenerated(false);
+    } catch (err) {
+      setBundle((prev) => ({
+        ...prev,
+        sectionStatuses: prev.sectionStatuses.map((s) =>
+          s.index === index
+            ? {
+                ...s,
+                status: 'error' as const,
+                error: err instanceof Error ? err.message : t('workspace.sectionRegenFailed'),
+              }
+            : s,
+        ),
+      }));
+      setError(err instanceof Error ? err.message : t('workspace.sectionRegenFailed'));
+    } finally {
+      setSectionLoadingIndex(null);
+    }
+  };
+
+  const handleRefreshInterview = async (contentOverride?: string) => {
+    const content = (contentOverride ?? String(result?.content ?? '')).trim();
+    if (!content) return;
+    setPanelLoading((prev) => ({ ...prev, interview: true }));
+    setBundle({ interviewStatus: 'loading' });
+    try {
+      const iq = await api.interviewQuestions(content);
+      setBundle({
+        interview: (iq.questions as typeof interview) || [],
+        interviewStatus: 'ok',
+      });
+    } catch (err) {
+      setBundle({ interviewStatus: 'error' });
+      toast.error(err instanceof Error ? err.message : t('workspace.interviewFailed'));
+    } finally {
+      setPanelLoading((prev) => ({ ...prev, interview: false }));
+    }
+  };
+
+  const handleRefreshKeywords = async (contentOverride?: string) => {
+    const content = (contentOverride ?? String(result?.content ?? '')).trim();
+    if (!content) return;
+    setPanelLoading((prev) => ({ ...prev, keywords: true }));
+    setBundle({ keywordsStatus: 'loading' });
+    try {
+      const { keywords: kw } = await getJobContext();
+      const nextKeywords = await api.compareKeywords(kw, content);
+      setBundle({ keywords: nextKeywords, keywordsStatus: 'ok' });
+    } catch (err) {
+      setBundle({ keywordsStatus: 'error' });
+      toast.error(err instanceof Error ? err.message : t('workspace.keywordsFailed'));
+    } finally {
+      setPanelLoading((prev) => ({ ...prev, keywords: false }));
+    }
+  };
+
+  const handleRefreshDiagnosis = async () => {
+    const content = String(result?.content ?? '');
+    if (!content.trim()) return;
+    setPanelLoading((prev) => ({ ...prev, diagnosis: true }));
+    setBundle({ diagnosisStatus: 'loading' });
+    try {
+      const { jobAnalysis } = await getJobContext();
+      const [detectRes, reviewRes] = await Promise.all([
+        api.detectAi(content),
+        api.reviewAi(content, jobAnalysis),
+      ]);
+      setBundle((prev) => ({
+        ...prev,
+        result: {
+          ...(prev.result ?? {}),
+          detections: detectRes.detections ?? [],
+          reviews: reviewRes.reviews ?? [],
+          quality_scores: {
+            ...((prev.result?.quality_scores as Record<string, unknown>) ?? {}),
+            ...((reviewRes.scores as Record<string, unknown>) ?? {}),
+            ai_trace_percent: detectRes.ai_trace_percent,
+            naturalness: Math.max(0, 100 - Number(detectRes.ai_trace_percent ?? 0)),
+            scored_by: 'llm',
+          },
+        },
+        diagnosisStatus: 'ok',
+      }));
+    } catch (err) {
+      setBundle({ diagnosisStatus: 'error' });
+      toast.error(err instanceof Error ? err.message : t('workspace.diagnosisFailed'));
+    } finally {
+      setPanelLoading((prev) => ({ ...prev, diagnosis: false }));
+    }
+  };
+
+  const handleGenerate = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const { jobAnalysis, keywords: kw, jobPostingId } = await getJobContext();
+      const titles = sectionTitles.slice(0, MAX_SECTIONS);
+      const res = await api.generateAi({
+        keywords: kw,
+        rewriteLevel,
+        jobAnalysis,
+        jobPostingId,
+        sectionTitles: titles,
         experienceIds: Array.from(selectedExperienceIds).slice(0, MAX_EXPERIENCES),
       });
+      const nextStatuses = sectionsFromResponse(res, titles);
+      const content = String(res.content ?? '');
       setBundle({
         result: res,
-        sectionTitles: sectionTitles.slice(0, MAX_SECTIONS),
+        sectionTitles: titles,
+        sectionStatuses: nextStatuses,
         interview: [],
         keywords: null,
+        interviewStatus: content.trim() ? 'loading' : 'idle',
+        keywordsStatus: content.trim() ? 'loading' : 'idle',
+        diagnosisStatus: Array.isArray(res.detections) && (res.detections as unknown[]).length > 0 ? 'ok' : 'idle',
       });
       setJustGenerated(true);
-      if (res.content) {
-        try {
-          const iq = await api.interviewQuestions(String(res.content));
-          const nextInterview = (iq.questions as typeof interview) || [];
-          const nextKeywords = await api.compareKeywords(kw, String(res.content));
-          setBundle({
-            result: res,
-            sectionTitles: sectionTitles.slice(0, MAX_SECTIONS),
-            interview: nextInterview,
-            keywords: nextKeywords,
-          });
-        } catch (followUpErr) {
-          console.warn('Post-generate panels failed', followUpErr);
-        }
+      // 생성 후 키워드·면접 자동 실행. 실패/재생성은 각 버튼으로.
+      if (content.trim()) {
+        void Promise.all([
+          handleRefreshKeywords(content),
+          handleRefreshInterview(content),
+        ]);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : t('workspace.generateFailed'));
@@ -785,22 +990,70 @@ export default function WorkspacePage() {
               </div>
 
               {(() => {
-                const rawParagraphs = splitParagraphs(displayedResult);
                 const displayTitles =
                   savedSectionTitles.length > 0 ? savedSectionTitles : sectionTitles;
-                if (displayTitles.length > 0 && rawParagraphs.length > 0) {
-                  const paragraphs = alignParagraphsToTitles(rawParagraphs, displayTitles);
+                const statusByIndex = new Map(sectionStatuses.map((s) => [s.index, s]));
+
+                if (displayTitles.length > 0 && (sectionStatuses.length > 0 || displayedResult)) {
+                  const rawParagraphs = splitParagraphs(displayedResult);
+                  const paragraphs =
+                    sectionStatuses.length === displayTitles.length && !isTyping
+                      ? displayTitles.map((_, i) => statusByIndex.get(i)?.content ?? '')
+                      : alignParagraphsToTitles(rawParagraphs, displayTitles);
+
                   return (
                     <div className="space-y-5">
-                      {paragraphs.map((p, i) => (
-                        <div key={i}>
-                          {displayTitles[i] && (
-                            <h4 className="mb-1.5 text-sm font-semibold text-primary">{displayTitles[i]}</h4>
-                          )}
-                          <HighlightedContent content={p} detections={detections.filter((d) => p.includes(d.sentence))} />
-                        </div>
-                      ))}
-                      {paragraphs.length < displayTitles.length && !isTyping && (
+                      {displayTitles.map((title, i) => {
+                        const meta = statusByIndex.get(i);
+                        const status = (sectionLoadingIndex === i
+                          ? 'loading'
+                          : meta?.status) ?? (paragraphs[i]?.trim() ? 'ok' : 'idle');
+                        const body = paragraphs[i] ?? '';
+                        return (
+                          <div key={i} className="space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              {title && (
+                                <h4 className="text-sm font-semibold text-primary">{title}</h4>
+                              )}
+                              <StatusChip
+                                label={t(`workspace.sectionStatus.${status}`)}
+                                variant={panelChipVariant(status)}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="ml-auto h-7 gap-1 text-xs"
+                                disabled={loading || sectionLoadingIndex !== null || generateBlocked}
+                                onClick={() => void handleRegenerateSection(i)}
+                              >
+                                {sectionLoadingIndex === i ? (
+                                  <Loader2 className="size-3 animate-spin" />
+                                ) : (
+                                  <Wand2 className="size-3" />
+                                )}
+                                {t('workspace.regenSection')}
+                              </Button>
+                            </div>
+                            {status === 'error' && meta?.error && (
+                              <p className="text-xs text-destructive">{meta.error}</p>
+                            )}
+                            {body.trim() ? (
+                              <HighlightedContent
+                                content={body}
+                                detections={detections.filter((d) => body.includes(d.sentence))}
+                              />
+                            ) : (
+                              !isTyping && (
+                                <p className="text-xs text-muted-foreground">
+                                  {t('workspace.sectionEmpty')}
+                                </p>
+                              )
+                            )}
+                          </div>
+                        );
+                      })}
+                      {paragraphs.filter((p) => p.trim()).length < displayTitles.length && !isTyping && (
                         <p className="text-xs text-muted-foreground">{t('workspace.sectionTitleCountMismatch')}</p>
                       )}
                     </div>
@@ -844,44 +1097,109 @@ export default function WorkspacePage() {
                     </section>
                   )}
 
-                  {keywords && (
-                    <section className="space-y-1 text-sm">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-medium">{t('workspace.keywordCompare')}</h3>
-                      </div>
-                      <p><span className="text-muted-foreground">{t('workspace.matched')}:</span> {((keywords.matched as string[]) || []).join(', ') || t('common.none')}</p>
-                      <p className="text-destructive"><span className="text-muted-foreground">{t('workspace.missing')}:</span> {((keywords.missing as string[]) || []).join(', ') || t('common.none')}</p>
-                    </section>
-                  )}
+                  <section className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-sm font-medium">{t('workspace.keywordCompare')}</h3>
+                      <StatusChip
+                        label={t(`workspace.panelStatus.${keywordsStatus}`)}
+                        variant={panelChipVariant(keywordsStatus)}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="ml-auto h-7 gap-1 text-xs"
+                        disabled={!result?.content || !!panelLoading.keywords}
+                        onClick={() => void handleRefreshKeywords()}
+                      >
+                        {panelLoading.keywords ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : (
+                          <Sparkles className="size-3" />
+                        )}
+                        {t('workspace.runKeywords')}
+                      </Button>
+                    </div>
+                    {keywords ? (
+                      <>
+                        <p className="text-sm"><span className="text-muted-foreground">{t('workspace.matched')}:</span> {((keywords.matched as string[]) || []).join(', ') || t('common.none')}</p>
+                        <p className="text-sm text-destructive"><span className="text-muted-foreground">{t('workspace.missing')}:</span> {((keywords.missing as string[]) || []).join(', ') || t('common.none')}</p>
+                      </>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">{t('workspace.panelIdleHint')}</p>
+                    )}
+                  </section>
 
-                  {reviews.length > 0 && (
-                    <section className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-medium">{t('workspace.review')}</h3>
-                      </div>
-                      {reviews.map((r) => (
+                  <section className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-sm font-medium">{t('workspace.review')}</h3>
+                      <StatusChip
+                        label={t(`workspace.panelStatus.${diagnosisStatus}`)}
+                        variant={panelChipVariant(diagnosisStatus)}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="ml-auto h-7 gap-1 text-xs"
+                        disabled={!result?.content || !!panelLoading.diagnosis}
+                        onClick={() => void handleRefreshDiagnosis()}
+                      >
+                        {panelLoading.diagnosis ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : (
+                          <ClipboardCheck className="size-3" />
+                        )}
+                        {t('workspace.runDiagnosis')}
+                      </Button>
+                    </div>
+                    {reviews.length > 0 ? (
+                      reviews.map((r) => (
                         <div key={r.paragraph_index} className="space-y-1 rounded-md border p-3 text-sm">
                           <p><strong>{t('workspace.strengths')}:</strong> {(r.strengths ?? []).join(', ') || t('common.none')}</p>
                           <p><strong>{t('workspace.weaknesses')}:</strong> {(r.weaknesses ?? []).join(', ') || t('common.none')}</p>
                           <p className="text-primary">{r.improvement}</p>
                         </div>
-                      ))}
-                    </section>
-                  )}
+                      ))
+                    ) : (
+                      <p className="text-xs text-muted-foreground">{t('workspace.panelIdleHint')}</p>
+                    )}
+                  </section>
 
-                  {interview.length > 0 && (
-                    <section className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-medium">{t('workspace.interview')}</h3>
-                      </div>
-                      {interview.map((q, i) => (
+                  <section className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-sm font-medium">{t('workspace.interview')}</h3>
+                      <StatusChip
+                        label={t(`workspace.panelStatus.${interviewStatus}`)}
+                        variant={panelChipVariant(interviewStatus)}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="ml-auto h-7 gap-1 text-xs"
+                        disabled={!result?.content || !!panelLoading.interview}
+                        onClick={() => void handleRefreshInterview()}
+                      >
+                        {panelLoading.interview ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : (
+                          <Sparkles className="size-3" />
+                        )}
+                        {t('workspace.runInterview')}
+                      </Button>
+                    </div>
+                    {interview.length > 0 ? (
+                      interview.map((q, i) => (
                         <div key={i} className="rounded-md bg-muted/50 p-3">
                           <Badge variant="outline" className="mb-1">{q.category}</Badge>
                           <p className="text-sm">{q.question}</p>
                         </div>
-                      ))}
-                    </section>
-                  )}
+                      ))
+                    ) : (
+                      <p className="text-xs text-muted-foreground">{t('workspace.panelIdleHint')}</p>
+                    )}
+                  </section>
                 </div>
               )}
             </div>
@@ -893,6 +1211,27 @@ export default function WorkspacePage() {
         </TabsContent>
 
         <TabsContent value="diagnosis" className="mt-0 flex-1 overflow-y-auto border-t p-4 md:p-6">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <StatusChip
+              label={t(`workspace.panelStatus.${diagnosisStatus}`)}
+              variant={panelChipVariant(diagnosisStatus)}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="ml-auto h-7 gap-1 text-xs"
+              disabled={!result?.content || !!panelLoading.diagnosis}
+              onClick={() => void handleRefreshDiagnosis()}
+            >
+              {panelLoading.diagnosis ? (
+                <Loader2 className="size-3 animate-spin" />
+              ) : (
+                <ClipboardCheck className="size-3" />
+              )}
+              {t('workspace.runDiagnosis')}
+            </Button>
+          </div>
           {detections.length > 0 ? (
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground">{t('workspace.diagnosisDesc')}</p>

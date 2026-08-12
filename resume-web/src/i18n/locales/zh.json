@@ -234,7 +234,7 @@
   },
   "workspace": {
     "title": "工作区",
-    "guide": "①选择或输入招聘公告 →②调整改写程度 →③点击生成按钮撰写求职信。随时可以点击推荐相关经历。",
+    "guide": "①选择或输入招聘公告 →②设置改写程度与题目 →③可整篇生成，或按题目单独重写。面试题、关键词对比、诊断仅在需要时分别执行。",
     "step1": "1. 招聘公告",
     "step1Hint": "选择已保存的公告，或直接输入公告内容，两者选其一即可。",
     "newOrManual": "新建 / 手动输入",
@@ -321,7 +321,30 @@
     "saveToDashboard": "保存到我的自我介绍",
     "saveToDashboardSuccess": "已保存到我的自我介绍列表。",
     "saveToDashboardFailed": "保存失败",
-    "saveToDashboardAlready": "已保存"
+    "saveToDashboardAlready": "已保存",
+    "regenSection": "仅重写此题",
+    "sectionEmpty": "该题尚无内容。",
+    "sectionRegenFailed": "题目重写失败",
+    "runInterview": "生成面试题",
+    "runKeywords": "运行关键词对比",
+    "runDiagnosis": "运行批改与诊断",
+    "interviewFailed": "面试题生成失败",
+    "keywordsFailed": "关键词对比失败",
+    "diagnosisFailed": "批改与诊断失败",
+    "panelIdleHint": "生成后自动执行。失败或需重做时用按钮再跑。",
+    "sectionStatus": {
+      "idle": "待命",
+      "loading": "撰写中",
+      "ok": "AI已写",
+      "error": "失败",
+      "skipped": "保留"
+    },
+    "panelStatus": {
+      "idle": "未执行",
+      "loading": "执行中",
+      "ok": "完成",
+      "error": "失败"
+    }
   },
   "settings": {
     "title": "账户设置",

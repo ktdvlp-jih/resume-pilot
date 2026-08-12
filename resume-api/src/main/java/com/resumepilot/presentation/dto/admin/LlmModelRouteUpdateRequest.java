@@ -7,6 +7,7 @@ import java.util.UUID;
 
 public record LlmModelRouteUpdateRequest(
         @NotNull UUID id,
+        @NotNull UUID providerId,
         @NotBlank String modelName,
         @NotNull Integer priority,
         @NotNull Boolean enabled
