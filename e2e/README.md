@@ -13,7 +13,7 @@ npm run install:browsers
 ## Run
 
 ```bash
-# Default: production Quick Tunnel
+# Default: https://resume.ggury.com
 npm test
 
 # Local dev (API + Vite proxy required)

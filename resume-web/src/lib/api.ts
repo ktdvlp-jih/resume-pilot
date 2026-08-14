@@ -156,11 +156,11 @@ async function parseApiJson<T>(response: Response): Promise<ApiResponse<T>> {
   if (trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<html') || trimmed.startsWith('<HTML')) {
     if (response.status === 502 || response.status === 504 || response.status === 524) {
       throw new Error(
-        '서버 응답이 지연되어 연결이 끊겼습니다. 잠시 후 다시 생성해 주세요. (프록시/터널 타임아웃)',
+        '서버 응답이 지연되어 연결이 끊겼습니다. 잠시 후 다시 생성해 주세요. (프록시 타임아웃)',
       );
     }
     throw new Error(
-      `API가 JSON 대신 HTML을 반환했습니다 (HTTP ${response.status}). 서버·터널 상태를 확인하세요.`,
+      `API가 JSON 대신 HTML을 반환했습니다 (HTTP ${response.status}). 서버·nginx 상태를 확인하세요.`,
     );
   }
   try {

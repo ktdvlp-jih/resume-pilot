@@ -30,7 +30,7 @@ Spring Boot 3.5 · React 19 · FastAPI × 3 · PostgreSQL 17 + pgvector · Docke
 | postgres | 55532 (선택) | pgvector |
 | AI 3개 | (내부) | Docker network only |
 
-Named Tunnel origin: `http://127.0.0.1:APP_PORT` 하나.
+공개 HTTPS: `https://resume.ggury.com` (호스트 nginx → `http://127.0.0.1:9180`)
 
 ## 빠른 시작
 

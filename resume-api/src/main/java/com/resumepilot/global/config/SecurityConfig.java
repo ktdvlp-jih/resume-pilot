@@ -112,9 +112,8 @@ public class SecurityConfig {
                 .filter(s -> !s.isEmpty())
                 .toList();
 
-        // allowedOrigins + allowedOriginPatterns 동시 사용 시 Quick Tunnel 등에서 CORS 403 가능 → patterns만 사용
+        // allowedOrigins + allowedOriginPatterns 동시 사용 시 CORS 403 가능 → patterns만 사용
         var patterns = new ArrayList<String>();
-        patterns.add("https://*.trycloudflare.com");
         patterns.add("http://localhost:*");
         patterns.add("http://127.0.0.1:*");
         patterns.add("http://192.168.*:*");

@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const baseURL =
-  process.env.PLAYWRIGHT_BASE_URL ?? 'https://suite-pic-heaven-sacrifice.trycloudflare.com';
+  process.env.PLAYWRIGHT_BASE_URL ?? 'https://resume.ggury.com';
 
 export default defineConfig({
   testDir: './tests',

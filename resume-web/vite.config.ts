@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-/** SPA-in-JAR(same-origin) — crossorigin 태그는 Quick Tunnel 등에서 CORS 403 유발 */
+/** SPA-in-JAR(same-origin) — crossorigin 태그는 프록시/별도 오리진에서 CORS 403 유발 */
 function stripCrossorigin(): Plugin {
   return {
     name: 'strip-crossorigin',

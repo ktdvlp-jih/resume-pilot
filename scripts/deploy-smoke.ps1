@@ -1,6 +1,6 @@
 ﻿# Post-deploy smoke (PowerShell) — TC-02 HTTP + TC-04 API
 param(
-  [string]$Base = "https://suite-pic-heaven-sacrifice.trycloudflare.com"
+  [string]$Base = "https://resume.ggury.com"
 )
 
 $stamp = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
