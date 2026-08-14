@@ -159,6 +159,7 @@
     "subtitle": "API 키·모델·failover 순서를 관리합니다. 429 등 오류 시 다음 우선순위로 자동 전환됩니다.",
     "loadError": "LLM 설정을 불러오지 못했습니다.",
     "saveError": "저장에 실패했습니다.",
+    "saveSuccess": "저장했습니다.",
     "providersTitle": "Provider & API 키",
     "providersDesc": "키를 입력한 뒤 저장하고, 활성화하면 해당 Provider가 라우트에 사용됩니다.",
     "routesTitle": "작업별 Failover 라우트",

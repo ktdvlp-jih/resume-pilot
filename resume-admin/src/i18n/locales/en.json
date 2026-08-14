@@ -159,6 +159,7 @@
     "subtitle": "Manage API keys, models, and failover order. On 429/errors, the next priority route is used automatically.",
     "loadError": "Could not load LLM settings.",
     "saveError": "Failed to save.",
+    "saveSuccess": "Saved.",
     "providersTitle": "Providers & API keys",
     "providersDesc": "Save a key, then enable the provider to use it in routes.",
     "routesTitle": "Failover routes by operation",

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/lib/theme';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { Toaster } from '@/components/ui/sonner';
 import { ErrorBoundary } from '@/components/common/error-boundary';
 import { LoadingSpinner } from '@/components/common/loading-state';
 import { AdminLayout } from './components/AdminLayout';
@@ -30,6 +31,7 @@ export default function App() {
       <ThemeProvider>
         <TooltipProvider>
           <QueryClientProvider client={queryClient}>
+          <Toaster richColors closeButton position="top-right" />
           <BrowserRouter basename={adminBase}>
             <Suspense fallback={<PageFallback />}>
               <Routes>

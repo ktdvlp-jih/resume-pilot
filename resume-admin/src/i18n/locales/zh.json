@@ -159,6 +159,7 @@
     "subtitle": "管理 API 密钥、模型与故障转移顺序。429 等错误时自动切换到下一优先级。",
     "loadError": "无法加载 LLM 设置。",
     "saveError": "保存失败。",
+    "saveSuccess": "已保存。",
     "providersTitle": "Provider 与 API 密钥",
     "providersDesc": "保存密钥后启用 Provider，即可在路由中使用。",
     "routesTitle": "按操作的故障转移路由",

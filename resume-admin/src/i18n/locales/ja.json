@@ -159,6 +159,7 @@
     "subtitle": "APIキー・モデル・フェイルオーバー順序を管理します。429等のエラー時は次の優先度へ自動切替します。",
     "loadError": "LLM設定を読み込めませんでした。",
     "saveError": "保存に失敗しました。",
+    "saveSuccess": "保存しました。",
     "providersTitle": "ProviderとAPIキー",
     "providersDesc": "キーを保存してから有効化すると、ルートで使用されます。",
     "routesTitle": "操作別フェイルオーバールート",

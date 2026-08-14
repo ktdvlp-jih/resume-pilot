@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { PageHeader } from '@/components/PageHeader';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -63,7 +64,10 @@ export default function LlmSettingsPage() {
   const [routeEdits, setRouteEdits] = useState<
     Record<string, { providerId: string; modelName: string; priority: string; enabled: boolean }>
   >({});
-  const [routeValidationError, setRouteValidationError] = useState<string | null>(null);
+  const [routeValidationError, setRouteValidationError] = useState<{
+    operation: string;
+    message: string;
+  } | null>(null);
 
   const [savingOperation, setSavingOperation] = useState<string | null>(null);
 
@@ -88,7 +92,11 @@ export default function LlmSettingsPage() {
         delete next[vars.id];
         return next;
       });
+      toast.success(t('llmSettings.saveSuccess'));
       queryClient.invalidateQueries({ queryKey: ['admin-llm-providers'] });
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : t('llmSettings.saveError'));
     },
   });
 
@@ -104,7 +112,13 @@ export default function LlmSettingsPage() {
         return next;
       });
       setRouteValidationError(null);
+      toast.success(t('llmSettings.saveSuccess'));
       queryClient.invalidateQueries({ queryKey: ['admin-llm-routes'] });
+    },
+    onError: (err, vars) => {
+      const message = err instanceof Error ? err.message : t('llmSettings.saveError');
+      setRouteValidationError({ operation: vars.operation, message });
+      toast.error(message);
     },
     onSettled: () => setSavingOperation(null),
   });
@@ -188,17 +202,23 @@ export default function LlmSettingsPage() {
       const priority = Number(edit.priority);
       const modelName = edit.modelName.trim();
       if (!Number.isInteger(priority) || priority < 1) {
-        setRouteValidationError(t('llmSettings.validationPriority'));
+        const message = t('llmSettings.validationPriority');
+        setRouteValidationError({ operation, message });
+        toast.error(message);
         return;
       }
       if (seenPriority.has(priority)) {
-        setRouteValidationError(t('llmSettings.validationPriorityDup', { priority }));
+        const message = t('llmSettings.validationPriorityDup', { priority });
+        setRouteValidationError({ operation, message });
+        toast.error(message);
         return;
       }
       seenPriority.add(priority);
       const modelKey = `${edit.providerId}:${modelName.toLowerCase()}`;
       if (seenModel.has(modelKey)) {
-        setRouteValidationError(t('llmSettings.validationModelDup'));
+        const message = t('llmSettings.validationModelDup');
+        setRouteValidationError({ operation, message });
+        toast.error(message);
         return;
       }
       seenModel.add(modelKey);
@@ -223,17 +243,6 @@ export default function LlmSettingsPage() {
         <Alert variant="destructive">
           <AlertDescription>
             {error instanceof Error ? error.message : t('llmSettings.loadError')}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {(routeValidationError || providerMutation.isError || routeMutation.isError) && (
-        <Alert variant="destructive">
-          <AlertDescription>
-            {routeValidationError
-              ?? ((providerMutation.error ?? routeMutation.error) instanceof Error
-                ? (providerMutation.error ?? routeMutation.error)?.message
-                : t('llmSettings.saveError'))}
           </AlertDescription>
         </Alert>
       )}
@@ -330,6 +339,11 @@ export default function LlmSettingsPage() {
                     </Button>
                   )}
                 </div>
+                {routeValidationError?.operation === operation && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{routeValidationError.message}</AlertDescription>
+                  </Alert>
+                )}
                 <Table>
                   <TableHeader>
                     <TableRow>
