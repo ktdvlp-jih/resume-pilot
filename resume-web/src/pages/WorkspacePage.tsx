@@ -71,7 +71,7 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
+import { cn, joinList } from '@/lib/utils';
 import type { DraftSaveStatus } from '@/hooks/use-workspace-draft';
 
 const LEVEL_VARIANT: Record<string, 'success' | 'warning' | 'destructive'> = {
@@ -658,7 +658,7 @@ export default function WorkspacePage() {
   };
 
   const detections = (result?.detections as Array<{ sentence: string; level: string; reason: string }>) || [];
-  const reviews = (result?.reviews as Array<{ paragraph_index: number; strengths: string[]; weaknesses: string[]; improvement: string }>) || [];
+  const reviews = (result?.reviews as Array<{ paragraph_index: number; strengths: unknown; weaknesses: unknown; improvement: string }>) || [];
   const scores = result?.quality_scores as Record<string, number> | undefined;
   const { displayed: displayedResult, isTyping, skip: skipTyping } = useTypewriter(
     String(result?.content ?? ''),
@@ -1153,8 +1153,8 @@ export default function WorkspacePage() {
                     </div>
                     {keywords ? (
                       <>
-                        <p className="text-sm"><span className="text-muted-foreground">{t('workspace.matched')}:</span> {((keywords.matched as string[]) || []).join(', ') || t('common.none')}</p>
-                        <p className="text-sm text-destructive"><span className="text-muted-foreground">{t('workspace.missing')}:</span> {((keywords.missing as string[]) || []).join(', ') || t('common.none')}</p>
+                        <p className="text-sm"><span className="text-muted-foreground">{t('workspace.matched')}:</span> {joinList(keywords.matched) || t('common.none')}</p>
+                        <p className="text-sm text-destructive"><span className="text-muted-foreground">{t('workspace.missing')}:</span> {joinList(keywords.missing) || t('common.none')}</p>
                       </>
                     ) : (
                       <p className="text-xs text-muted-foreground">{t('workspace.panelIdleHint')}</p>
@@ -1187,8 +1187,8 @@ export default function WorkspacePage() {
                     {reviews.length > 0 ? (
                       reviews.map((r) => (
                         <div key={r.paragraph_index} className="space-y-1 rounded-md border p-3 text-sm">
-                          <p><strong>{t('workspace.strengths')}:</strong> {(r.strengths ?? []).join(', ') || t('common.none')}</p>
-                          <p><strong>{t('workspace.weaknesses')}:</strong> {(r.weaknesses ?? []).join(', ') || t('common.none')}</p>
+                          <p><strong>{t('workspace.strengths')}:</strong> {joinList(r.strengths) || t('common.none')}</p>
+                          <p><strong>{t('workspace.weaknesses')}:</strong> {joinList(r.weaknesses) || t('common.none')}</p>
                           <p className="text-primary">{r.improvement}</p>
                         </div>
                       ))
