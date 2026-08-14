@@ -1,6 +1,7 @@
 package com.resumepilot.presentation.controller;
 
 import com.resumepilot.application.admin.LlmAdminService;
+import com.resumepilot.domain.llm.LlmOperation;
 import com.resumepilot.global.response.ApiResponse;
 import com.resumepilot.presentation.dto.admin.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,5 +45,13 @@ public class AdminLlmController {
     @Operation(summary = "LLM 라우트 수정 (모델명·우선순위)")
     public ApiResponse<LlmModelRouteResponse> updateRoute(@Valid @RequestBody LlmModelRouteUpdateRequest req) {
         return ApiResponse.ok(llmAdminService.updateRoute(req));
+    }
+
+    @PutMapping("/routes/{operation}")
+    @Operation(summary = "작업별 LLM 라우트 일괄 수정")
+    public ApiResponse<List<LlmModelRouteResponse>> updateRoutes(
+            @PathVariable LlmOperation operation,
+            @Valid @RequestBody LlmModelRoutesBulkUpdateRequest req) {
+        return ApiResponse.ok(llmAdminService.updateRoutes(operation, req.routes()));
     }
 }

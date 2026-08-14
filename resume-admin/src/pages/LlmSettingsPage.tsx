@@ -65,6 +65,8 @@ export default function LlmSettingsPage() {
   >({});
   const [routeValidationError, setRouteValidationError] = useState<string | null>(null);
 
+  const [savingOperation, setSavingOperation] = useState<string | null>(null);
+
   const providersQuery = useQuery({
     queryKey: ['admin-llm-providers'],
     queryFn: api.listLlmProviders,
@@ -91,16 +93,20 @@ export default function LlmSettingsPage() {
   });
 
   const routeMutation = useMutation({
-    mutationFn: api.updateLlmRoute,
+    mutationFn: ({ operation, routes }: { operation: string; routes: Parameters<typeof api.updateLlmRoutes>[1] }) =>
+      api.updateLlmRoutes(operation, routes),
     onSuccess: (_, vars) => {
       setRouteEdits((prev) => {
         const next = { ...prev };
-        delete next[vars.id];
+        for (const route of vars.routes) {
+          delete next[route.id];
+        }
         return next;
       });
       setRouteValidationError(null);
       queryClient.invalidateQueries({ queryKey: ['admin-llm-routes'] });
     },
+    onSettled: () => setSavingOperation(null),
   });
 
   const providers = (providersQuery.data ?? []) as LlmProvider[];
@@ -164,42 +170,49 @@ export default function LlmSettingsPage() {
     });
   };
 
-  const saveRoute = (route: LlmRoute) => {
-    const edit = getRouteEdit(route);
-    const priority = Number(edit.priority);
-    const modelName = edit.modelName.trim();
-    if (!Number.isInteger(priority) || priority < 1) {
-      setRouteValidationError(t('llmSettings.validationPriority'));
+  const saveOperationRoutes = (operation: string, opRoutes: LlmRoute[]) => {
+    if (operation === 'EMBEDDING') {
       return;
     }
-    const siblings = routes.filter((r) => r.operation === route.operation && r.id !== route.id);
-    const priorityClash = siblings.some((other) => {
-      const otherEdit = getRouteEdit(other);
-      return Number(otherEdit.priority) === priority;
-    });
-    if (priorityClash) {
-      setRouteValidationError(t('llmSettings.validationPriorityDup', { priority }));
-      return;
-    }
-    const modelClash = siblings.some((other) => {
-      const otherEdit = getRouteEdit(other);
-      return (
-        otherEdit.providerId === edit.providerId &&
-        otherEdit.modelName.trim().toLowerCase() === modelName.toLowerCase()
-      );
-    });
-    if (modelClash) {
-      setRouteValidationError(t('llmSettings.validationModelDup'));
-      return;
+    const payloads: Array<{
+      id: string;
+      providerId: string;
+      modelName: string;
+      priority: number;
+      enabled: boolean;
+    }> = [];
+    const seenPriority = new Set<number>();
+    const seenModel = new Set<string>();
+    for (const route of opRoutes) {
+      const edit = getRouteEdit(route);
+      const priority = Number(edit.priority);
+      const modelName = edit.modelName.trim();
+      if (!Number.isInteger(priority) || priority < 1) {
+        setRouteValidationError(t('llmSettings.validationPriority'));
+        return;
+      }
+      if (seenPriority.has(priority)) {
+        setRouteValidationError(t('llmSettings.validationPriorityDup', { priority }));
+        return;
+      }
+      seenPriority.add(priority);
+      const modelKey = `${edit.providerId}:${modelName.toLowerCase()}`;
+      if (seenModel.has(modelKey)) {
+        setRouteValidationError(t('llmSettings.validationModelDup'));
+        return;
+      }
+      seenModel.add(modelKey);
+      payloads.push({
+        id: route.id,
+        providerId: edit.providerId,
+        modelName,
+        priority,
+        enabled: edit.enabled,
+      });
     }
     setRouteValidationError(null);
-    routeMutation.mutate({
-      id: route.id,
-      providerId: edit.providerId,
-      modelName,
-      priority,
-      enabled: edit.enabled,
-    });
+    setSavingOperation(operation);
+    routeMutation.mutate({ operation, routes: payloads });
   };
 
   return (
@@ -298,9 +311,25 @@ export default function LlmSettingsPage() {
           {isLoading ? (
             <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
           ) : (
-            routesByOperation.map(({ operation, routes: opRoutes }) => (
+            routesByOperation.map(({ operation, routes: opRoutes }) => {
+              const isRagEmbedding = operation === 'EMBEDDING';
+              return (
               <div key={operation} className="space-y-2">
-                <h3 className="text-sm font-medium">{t(`llmSettings.operations.${operation}`, { defaultValue: operation })}</h3>
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-sm font-medium">{t(`llmSettings.operations.${operation}`, { defaultValue: operation })}</h3>
+                  {isRagEmbedding ? (
+                    <span className="text-xs text-muted-foreground">{t('llmSettings.ragLocked')}</span>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={routeMutation.isPending}
+                      onClick={() => saveOperationRoutes(operation, opRoutes)}
+                    >
+                      {savingOperation === operation ? t('common.loading') : t('llmSettings.saveRoutes')}
+                    </Button>
+                  )}
+                </div>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -308,13 +337,11 @@ export default function LlmSettingsPage() {
                       <TableHead>{t('llmSettings.provider')}</TableHead>
                       <TableHead>{t('llmSettings.model')}</TableHead>
                       <TableHead>{t('llmSettings.enabled')}</TableHead>
-                      <TableHead className="text-right">{t('common.save')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {opRoutes.map((route) => {
                       const edit = getRouteEdit(route);
-                      const isRagEmbedding = route.operation === 'EMBEDDING';
                       return (
                         <TableRow key={route.id}>
                           <TableCell className="w-24">
@@ -394,25 +421,14 @@ export default function LlmSettingsPage() {
                               }
                             />
                           </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={routeMutation.isPending || isRagEmbedding}
-                              onClick={() => saveRoute(route)}
-                            >
-                              {isRagEmbedding
-                                ? t('llmSettings.ragLocked', { defaultValue: 'RAG 고정' })
-                                : t('common.save')}
-                            </Button>
-                          </TableCell>
                         </TableRow>
                       );
                     })}
                   </TableBody>
                 </Table>
               </div>
-            ))
+              );
+            })
           )}
         </CardContent>
       </Card>

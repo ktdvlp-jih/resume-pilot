@@ -171,6 +171,8 @@
     "provider": "Provider",
     "model": "モデル",
     "enabled": "使用",
+    "saveRoutes": "この操作を保存",
+    "ragLocked": "RAG固定",
     "validationPriority": "優先度は1以上の整数である必要があります。",
     "validationPriorityDup": "既に使用中の優先度です: {{priority}}",
     "validationModelDup": "同じ操作に同一Provider・モデルが既にあります。異なるモデルのみ許可されます。",

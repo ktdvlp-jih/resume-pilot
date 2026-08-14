@@ -171,6 +171,8 @@
     "provider": "Provider",
     "model": "模型",
     "enabled": "启用",
+    "saveRoutes": "保存此任务",
+    "ragLocked": "RAG 固定",
     "validationPriority": "优先级必须是大于等于 1 的整数。",
     "validationPriorityDup": "优先级已被占用：{{priority}}",
     "validationModelDup": "该操作已存在相同 Provider 与模型。仅允许不同模型。",

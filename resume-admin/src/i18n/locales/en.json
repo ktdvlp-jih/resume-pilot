@@ -171,6 +171,8 @@
     "provider": "Provider",
     "model": "Model",
     "enabled": "Enabled",
+    "saveRoutes": "Save this operation",
+    "ragLocked": "Locked to RAG",
     "validationPriority": "Priority must be an integer >= 1.",
     "validationPriorityDup": "Priority already in use: {{priority}}",
     "validationModelDup": "This operation already has the same provider and model. Only different models are allowed.",

@@ -7,6 +7,7 @@ import com.resumepilot.infrastructure.security.LlmSecretsCipher;
 import com.resumepilot.presentation.dto.admin.*;
 import com.resumepilot.presentation.dto.internal.LlmRuntimeConfigResponse;
 import lombok.RequiredArgsConstructor;
+import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ public class LlmAdminService {
     private final LlmProviderRepository providerRepository;
     private final LlmModelRouteRepository routeRepository;
     private final LlmSecretsCipher secretsCipher;
+    private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
     public List<LlmProviderResponse> listProviders() {
@@ -90,6 +92,61 @@ public class LlmAdminService {
         route.setPriority(priority);
         route.setEnabled(req.enabled());
         return toRouteResponse(routeRepository.save(route), provider);
+    }
+
+    @Transactional
+    public List<LlmModelRouteResponse> updateRoutes(LlmOperation operation, List<LlmModelRouteUpdateRequest> items) {
+        if (operation == LlmOperation.EMBEDDING) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "임베딩 라우트는 RAG 고정입니다.");
+        }
+        List<LlmModelRoute> existing = routeRepository.findByOperationOrderByPriorityAsc(operation);
+        Set<UUID> existingIds = existing.stream().map(LlmModelRoute::getId).collect(Collectors.toSet());
+        if (items.size() != existing.size()
+                || items.stream().map(LlmModelRouteUpdateRequest::id).anyMatch(id -> !existingIds.contains(id))) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "해당 작업의 라우트 목록이 일치하지 않습니다.");
+        }
+
+        Set<Integer> priorities = new HashSet<>();
+        Set<String> providerModels = new HashSet<>();
+        for (LlmModelRouteUpdateRequest item : items) {
+            int priority = item.priority();
+            if (priority < 1) {
+                throw new BusinessException(ErrorCode.INVALID_INPUT, "priority must be >= 1");
+            }
+            if (!priorities.add(priority)) {
+                throw new BusinessException(ErrorCode.INVALID_INPUT, "이미 사용 중인 우선순위입니다: " + priority);
+            }
+            getProvider(item.providerId());
+            String key = item.providerId() + ":" + item.modelName().trim().toLowerCase();
+            if (!providerModels.add(key)) {
+                throw new BusinessException(ErrorCode.INVALID_INPUT,
+                        "같은 작업에 동일 Provider·모델이 이미 있습니다");
+            }
+        }
+
+        int offset = 1000;
+        for (LlmModelRoute route : existing) {
+            route.setPriority(offset++);
+        }
+        routeRepository.saveAll(existing);
+        entityManager.flush();
+
+        Map<UUID, LlmModelRoute> byId = existing.stream()
+                .collect(Collectors.toMap(LlmModelRoute::getId, r -> r));
+        Map<UUID, LlmProvider> providers = new HashMap<>();
+        for (LlmModelRouteUpdateRequest item : items) {
+            LlmModelRoute route = byId.get(item.id());
+            LlmProvider provider = providers.computeIfAbsent(item.providerId(), this::getProvider);
+            route.setProviderId(provider.getId());
+            route.setModelName(item.modelName().trim());
+            route.setPriority(item.priority());
+            route.setEnabled(item.enabled());
+        }
+        routeRepository.saveAll(existing);
+        return existing.stream()
+                .sorted(Comparator.comparingInt(LlmModelRoute::getPriority))
+                .map(route -> toRouteResponse(route, providers.get(route.getProviderId())))
+                .toList();
     }
 
     @Transactional(readOnly = true)

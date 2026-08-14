@@ -218,14 +218,14 @@ export const api = {
       priority: number;
       enabled: boolean;
     }>>('/api/v1/admin/llm/routes'),
-  updateLlmRoute: (data: {
+  updateLlmRoutes: (operation: string, routes: Array<{
     id: string;
     providerId: string;
     modelName: string;
     priority: number;
     enabled: boolean;
-  }) =>
-    request<{
+  }>) =>
+    request<Array<{
       id: string;
       operation: string;
       providerId: string;
@@ -234,8 +234,8 @@ export const api = {
       modelName: string;
       priority: number;
       enabled: boolean;
-    }>('/api/v1/admin/llm/routes', {
-      method: 'PATCH',
-      body: JSON.stringify(data),
+    }>>(`/api/v1/admin/llm/routes/${operation}`, {
+      method: 'PUT',
+      body: JSON.stringify({ routes }),
     }),
 };

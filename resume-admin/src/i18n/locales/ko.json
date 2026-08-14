@@ -171,6 +171,8 @@
     "provider": "Provider",
     "model": "모델",
     "enabled": "사용",
+    "saveRoutes": "이 작업 저장",
+    "ragLocked": "RAG 고정",
     "validationPriority": "우선순위는 1 이상의 정수여야 합니다.",
     "validationPriorityDup": "이미 사용 중인 우선순위입니다: {{priority}}",
     "validationModelDup": "같은 작업에 동일 Provider·모델이 이미 있습니다. 다른 모델만 허용됩니다.",
