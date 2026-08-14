@@ -22,8 +22,20 @@ jobs:
       - name: Sync repo to master
         working-directory: /home/jeon/apps/resume-pilot
         run: |
-          git fetch origin master
-          # 배포 서버 로컬 수정(수동 편집 등) 무시 — origin/master 와 강제 일치
+          ok=0
+          for i in 1 2 3 4; do
+            if git fetch origin master; then
+              ok=1
+              break
+            fi
+            echo "[warn] git fetch failed (attempt ${i}/4), retry in $((i * 5))s"
+            sleep $((i * 5))
+          done
+          if [[ "$ok" != "1" ]]; then
+            echo "[fail] git fetch origin master failed after retries"
+            exit 1
+          fi
+          # 배포 서버 로컬 수정(chmod·수동 편집 등) 무시 — origin/master 와 강제 일치
           git checkout -f -B master origin/master
           chmod +x scripts/resume-pilot.sh
           chmod +x scripts/deploy-smoke.sh
@@ -31,7 +43,9 @@ jobs:
           chmod +x scripts/deploy-smoke-e2e-ai.sh
           chmod +x scripts/ci-setting-read.sh
 
-      - name: Deploy (git pull + docker compose)
+      - name: Deploy (docker compose)
+        env:
+          DEPLOY_SKIP_GIT: "1"
         run: bash /home/jeon/apps/resume-pilot/scripts/resume-pilot.sh deploy
 
       - name: HTTP + API smoke

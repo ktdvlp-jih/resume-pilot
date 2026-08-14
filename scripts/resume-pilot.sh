@@ -82,16 +82,36 @@ cmd_deploy() {
     return 1
   }
 
+  git_fetch_retry() {
+    local branch="$1"
+    local attempt=1
+    local max=4
+    local delay=5
+    while true; do
+      if git fetch origin "${branch}"; then
+        return 0
+      fi
+      if (( attempt >= max )); then
+        echo "[fail] git fetch origin ${branch} failed after ${max} attempts" >&2
+        return 1
+      fi
+      echo "[warn] git fetch failed (attempt ${attempt}/${max}), retry in ${delay}s"
+      sleep "${delay}"
+      attempt=$((attempt + 1))
+      delay=$((delay * 2))
+    done
+  }
+
   git_sync() {
     local branch="${DEPLOY_BRANCH:-master}"
-    echo "[1/3] git sync origin ${branch}"
-    git fetch origin "${branch}"
-    if git show-ref --verify --quiet "refs/heads/${branch}"; then
-      git checkout "${branch}"
-    else
-      git checkout -b "${branch}" "origin/${branch}"
+    if [[ "${DEPLOY_SKIP_GIT:-0}" == "1" ]]; then
+      echo "[1/3] git sync skipped (already synced)"
+      return 0
     fi
-    git pull origin "${branch}"
+    echo "[1/3] git sync origin ${branch}"
+    # fetch 1회 + reset. pull은 SSH를 한 번 더 열어 GitHub에서 끊기는 경우가 있음
+    git_fetch_retry "${branch}"
+    git checkout -f -B "${branch}" "origin/${branch}"
   }
 
   write_status running 0 "deploy started"
