@@ -238,6 +238,8 @@
     "step1": "1. 招聘公告",
     "step1Hint": "选择已保存的公告，或直接输入公告内容，两者选其一即可。",
     "newOrManual": "新建 / 手动输入",
+    "writtenBadge": "已写",
+    "writtenHint": "「已写」表示已为该公告生成或保存过自我介绍。",
     "jobPlaceholder": "公告内容...",
     "jobTextDisabledPlaceholder": "选择已保存公告后，此输入框将不会被使用",
     "jobTextDisabledHint": "选择已保存公告时，将自动使用其分析数据，此输入框内容会被忽略。",

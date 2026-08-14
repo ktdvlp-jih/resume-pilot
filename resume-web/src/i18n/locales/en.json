@@ -277,6 +277,8 @@
     "step1": "1. Job posting",
     "step1Hint": "Select a saved posting or type the job description directly — only one is required.",
     "newOrManual": "New / manual input",
+    "writtenBadge": "Written",
+    "writtenHint": "“Written” means a cover letter was generated or saved for this posting.",
     "jobPlaceholder": "Job description...",
     "jobTextDisabledPlaceholder": "This field is unused while a saved posting is selected",
     "jobTextDisabledHint": "With a saved posting selected, its analyzed data is used automatically and this field is ignored.",

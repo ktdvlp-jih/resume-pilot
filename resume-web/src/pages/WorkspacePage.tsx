@@ -30,6 +30,7 @@ import {
 import { experienceReadiness } from '@/lib/experience-limits';
 import { useWorkspaceDraft } from '@/hooks/use-workspace-draft';
 import {
+  postingIdsWithSavedLetter,
   useWorkspaceResult,
   type PanelAiStatus,
   type SectionAiStatus,
@@ -287,6 +288,20 @@ export default function WorkspacePage() {
   };
 
   const { data: postings = [] } = useQuery({ queryKey: ['job-postings'], queryFn: api.listJobPostings });
+  const { data: allResumes = [] } = useQuery({ queryKey: ['resumes'], queryFn: () => api.listResumes() });
+  const writtenPostingIds = useMemo(() => {
+    const ids = postingIdsWithSavedLetter();
+    const currentContent = result?.content;
+    if (selectedPostingId && typeof currentContent === 'string' && currentContent.trim()) {
+      ids.add(selectedPostingId);
+    }
+    for (const resume of allResumes) {
+      if (resume.jobPostingId && resume.latestContent?.trim()) {
+        ids.add(resume.jobPostingId);
+      }
+    }
+    return ids;
+  }, [allResumes, result, selectedPostingId, resultSaveStatus]);
   const { data: experiences = [] } = useQuery({ queryKey: ['experiences'], queryFn: () => api.listExperiences() });
   const selectedPosting = postings.find((p) => p.id === selectedPostingId);
 
@@ -675,13 +690,24 @@ export default function WorkspacePage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">{t('workspace.newOrManual')}</SelectItem>
-                  {postings.map((p: JobPostingResponse) => (
+                  {postings.map((p: JobPostingResponse) => {
+                    const written = writtenPostingIds.has(p.id);
+                    return (
                     <SelectItem key={p.id} value={p.id}>
-                      {p.title || p.companyName}
+                      <span className="flex min-w-0 items-center gap-2">
+                        <span className="truncate">{p.title || p.companyName}</span>
+                        {written && (
+                          <Badge variant="secondary" className="shrink-0 px-1.5 py-0 text-[10px] font-normal">
+                            {t('workspace.writtenBadge')}
+                          </Badge>
+                        )}
+                      </span>
                     </SelectItem>
-                  ))}
+                    );
+                  })}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">{t('workspace.writtenHint')}</p>
             </div>
           )}
           {selectedPostingId ? (

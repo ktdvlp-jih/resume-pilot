@@ -47,6 +47,21 @@ function loadAllResults(): ResultsByPosting {
   }
 }
 
+function hasSavedLetter(state: WorkspaceResultState | undefined): boolean {
+  const content = state?.result?.content;
+  return typeof content === 'string' && content.trim().length > 0;
+}
+
+/** 워크스페이스에 자기소개서 본문이 저장된 공고 ID (직접 입력 `__manual__` 제외) */
+export function postingIdsWithSavedLetter(): Set<string> {
+  const ids = new Set<string>();
+  for (const [key, state] of Object.entries(loadAllResults())) {
+    if (key === MANUAL_KEY) continue;
+    if (hasSavedLetter(state)) ids.add(key);
+  }
+  return ids;
+}
+
 function normalizeState(raw: Partial<WorkspaceResultState> | null | undefined): WorkspaceResultState {
   const result = raw?.result ?? null;
   const detections = (result?.detections as unknown[]) || [];

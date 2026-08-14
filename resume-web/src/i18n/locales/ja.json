@@ -238,6 +238,8 @@
     "step1": "1. 求人票",
     "step1Hint": "保存済みの求人を選択するか、求人内容を直接入力してください。どちらか一方でOKです。",
     "newOrManual": "新規 / 直接入力",
+    "writtenBadge": "作成済",
+    "writtenHint": "「作成済」はこの求人で志望書を生成または保存したことがある項目です。",
     "jobPlaceholder": "求人内容...",
     "jobTextDisabledPlaceholder": "保存済みの求人を選択中はこの入力欄は使用されません",
     "jobTextDisabledHint": "保存済みの求人を選択すると、分析済みデータが自動的に使用され、この入力欄の内容は無視されます。",

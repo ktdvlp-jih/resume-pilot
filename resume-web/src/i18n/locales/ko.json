@@ -277,6 +277,8 @@
     "step1": "1. 기업 공고",
     "step1Hint": "저장된 공고를 선택하거나, 공고 내용을 직접 입력하세요. 둘 중 하나만 있으면 됩니다.",
     "newOrManual": "새 공고 / 직접 입력",
+    "writtenBadge": "작성됨",
+    "writtenHint": "「작성됨」은 이 공고로 자기소개서를 만들거나 저장한 적 있는 항목입니다.",
     "jobPlaceholder": "공고 내용...",
     "jobTextDisabledPlaceholder": "저장된 공고를 선택하면 이 입력란은 사용되지 않습니다",
     "jobTextDisabledHint": "저장된 공고 선택 시 분석된 공고 데이터가 자동으로 사용되며, 이 입력란 내용은 무시됩니다.",
