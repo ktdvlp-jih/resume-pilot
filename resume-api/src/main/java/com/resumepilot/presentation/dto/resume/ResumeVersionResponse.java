@@ -11,5 +11,6 @@ public record ResumeVersionResponse(
         String content,
         Map<String, Object> metadata,
         UUID parentVersionId,
-        Instant createdAt
+        Instant createdAt,
+        String name
 ) {}

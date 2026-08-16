@@ -112,6 +112,47 @@ async def test_image_vision_fallback_when_ocr_empty():
 
 
 @pytest.mark.asyncio
+async def test_image_vision_error_falls_back_to_ocr():
+    b64 = _make_job_posting_png()
+    llm_payload = {
+        "company_name": "테스트소프트",
+        "position": "백엔드 개발자",
+        "qualifications": [],
+        "required_skills": ["Java", "Spring"],
+        "preferred_skills": [],
+        "tech_keywords": ["java", "spring"],
+        "job_responsibilities": ["서버 개발"],
+        "talent_profile": [],
+        "core_competencies": [],
+        "org_culture": None,
+        "job_description": "Java Spring 채용",
+    }
+
+    with patch("app.services.job_analysis_service.settings") as mock_settings:
+        mock_settings.openai_api_key = "test-key"
+        mock_settings.internal_api_token = "test-token"
+        with patch("app.services.job_analysis_service.llm_service") as mock_llm:
+            mock_llm.has_routes = AsyncMock(return_value=True)
+            mock_llm.complete_with_image_json_for_operation = AsyncMock(
+                side_effect=RuntimeError("unknown variant `image_url`, expected `text`"),
+            )
+            mock_llm.complete_json_for_operation = AsyncMock(
+                return_value=(llm_payload, "gemini-2.5-flash"),
+            )
+            with patch.object(
+                job_analysis_service,
+                "_extract_image_text",
+                return_value="[테스트소프트] Java Spring 채용",
+            ):
+                result = await job_analysis_service.analyze(
+                    "IMAGE", "", file_base64=b64, mime_type="image/png"
+                )
+
+    assert result["company_name"] == "테스트소프트"
+    assert result.get("extraction_method") == "ocr+llm"
+
+
+@pytest.mark.asyncio
 async def test_sparse_ocr_enriched_by_llm():
     sparse_text = """
     This is corrupted OCR header text that is too long to be a company name

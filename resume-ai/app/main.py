@@ -11,6 +11,7 @@ from app.services.generation_service import (
     generation_service,
     interview_service,
     keyword_service,
+    portfolio_review_service,
     review_service,
 )
 from app.services.job_analysis_service import job_analysis_service
@@ -38,9 +39,13 @@ class GenerateRequest(BaseModel):
     job_analysis: dict[str, Any] | None = None
     section_titles: list[str] = []
     experience_ids: list[str] = []
+    # 문항별 깊게 쓸 경험 id (section_titles와 동일 순서)
+    section_experience_ids: list[list[str]] = []
     # 0-based: set to regenerate only this section
     section_index: int | None = Field(default=None, ge=0, le=4)
     existing_paragraphs: list[str] = []
+    section_target_chars: list[int] = []
+    user_instruction: str = ""
     skip_postprocess: bool = False
 
 
@@ -57,6 +62,13 @@ class ReviewRequest(BaseModel):
 class KeywordCompareRequest(BaseModel):
     job_keywords: list[str]
     resume_content: str
+
+
+class PortfolioReviewRequest(BaseModel):
+    section_type: str
+    section_purpose: str
+    content: str = ""
+    experiences: str
 
 
 class JobAnalyzeRequest(BaseModel):
@@ -115,3 +127,13 @@ async def generate_interview_questions(request: ContentRequest):
 @app.post("/compare/keywords")
 async def compare_keywords(request: KeywordCompareRequest):
     return ApiResponse(data=await keyword_service.compare(request.job_keywords, request.resume_content))
+
+
+@app.post("/review/portfolio")
+async def review_portfolio(request: PortfolioReviewRequest):
+    return ApiResponse(data=await portfolio_review_service.review(
+        request.section_type,
+        request.section_purpose,
+        request.content,
+        request.experiences,
+    ))

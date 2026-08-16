@@ -43,6 +43,10 @@ public class JobPostingService {
 
     @Transactional
     public JobPostingResponse upload(UUID userId, JobPostingUploadRequest request) {
+        if (request.sourceType() == JobSourceType.TEXT
+                && (request.title() == null || request.title().isBlank())) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "텍스트/이미지 공고는 제목을 입력해 주세요.");
+        }
         long startedAt = System.currentTimeMillis();
         String content = resolveContent(request);
 
@@ -83,6 +87,9 @@ public class JobPostingService {
 
     @Transactional
     public JobPostingResponse uploadFile(UUID userId, MultipartFile file, String title) {
+        if (title == null || title.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "텍스트/이미지 공고는 제목을 입력해 주세요.");
+        }
         long startedAt = System.currentTimeMillis();
         DocumentExtractor.ExtractedDocument doc = documentExtractor.extract(file);
         JobSourceType sourceType = JobSourceType.valueOf(doc.sourceType());
@@ -129,6 +136,96 @@ public class JobPostingService {
         JobAnalysis analysis = jobAnalysisRepository.findTopByJobPostingIdOrderByCreatedAtDesc(jobPostingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Analysis not found"));
         return toAnalysisResponse(analysis);
+    }
+
+    @Transactional
+    public JobAnalysisResponse updateAnalysis(UUID userId, UUID jobPostingId, JobAnalysisUpdateRequest request) {
+        JobPosting posting = getOwned(userId, jobPostingId);
+        JobAnalysis analysis = jobAnalysisRepository.findTopByJobPostingIdOrderByCreatedAtDesc(jobPostingId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Analysis not found"));
+
+        if (request.companyName() != null) {
+            analysis.setCompanyName(blankToNull(request.companyName()));
+        }
+        if (request.position() != null) {
+            analysis.setPosition(blankToNull(request.position()));
+        }
+        if (request.jobDescription() != null) {
+            analysis.setJobDescription(blankToNull(request.jobDescription()));
+        }
+        if (request.requiredSkills() != null) {
+            analysis.setRequiredSkills(cleanList(request.requiredSkills()));
+        }
+        if (request.preferredSkills() != null) {
+            analysis.setPreferredSkills(cleanList(request.preferredSkills()));
+        }
+        if (request.qualifications() != null) {
+            analysis.setQualifications(cleanList(request.qualifications()));
+        }
+        if (request.jobResponsibilities() != null) {
+            analysis.setJobResponsibilities(cleanList(request.jobResponsibilities()));
+        }
+        if (request.talentProfile() != null) {
+            analysis.setTalentProfile(cleanList(request.talentProfile()));
+        }
+        if (request.coreCompetencies() != null) {
+            analysis.setCoreCompetencies(cleanList(request.coreCompetencies()));
+        }
+        if (request.techKeywords() != null) {
+            analysis.setTechKeywords(cleanList(request.techKeywords()));
+        }
+        if (request.orgCulture() != null) {
+            analysis.setOrgCulture(joinList(cleanList(request.orgCulture())));
+        }
+
+        Map<String, Object> json = new LinkedHashMap<>();
+        if (analysis.getAnalysisJson() != null) {
+            json.putAll(analysis.getAnalysisJson());
+        }
+        json.put("company_name", analysis.getCompanyName());
+        json.put("position", analysis.getPosition());
+        json.put("job_description", analysis.getJobDescription());
+        json.put("required_skills", analysis.getRequiredSkills());
+        json.put("preferred_skills", analysis.getPreferredSkills());
+        json.put("qualifications", analysis.getQualifications());
+        json.put("job_responsibilities", analysis.getJobResponsibilities());
+        json.put("talent_profile", analysis.getTalentProfile());
+        json.put("core_competencies", analysis.getCoreCompetencies());
+        json.put("tech_keywords", analysis.getTechKeywords());
+        if (request.solutionKeywords() != null) {
+            json.put("solution_keywords", cleanList(request.solutionKeywords()));
+        }
+        if (request.workConditions() != null) {
+            json.put("work_conditions", cleanList(request.workConditions()));
+        }
+        if (request.benefits() != null) {
+            json.put("benefits", cleanList(request.benefits()));
+        }
+        if (request.hiringProcess() != null) {
+            json.put("hiring_process", cleanList(request.hiringProcess()));
+        }
+        if (request.notes() != null) {
+            json.put("notes", cleanList(request.notes()));
+        }
+        if (request.orgCulture() != null) {
+            json.put("org_culture", cleanList(request.orgCulture()));
+        }
+        if (request.recruitmentSections() != null) {
+            json.put("recruitment_sections", request.recruitmentSections().stream()
+                    .map(this::sectionToMap)
+                    .toList());
+        }
+        analysis.setAnalysisJson(json);
+        posting.setParsedJson(json);
+        if (request.title() != null && !request.title().isBlank()) {
+            posting.setTitle(request.title().trim());
+        }
+
+        Company company = companyService.upsertFromAnalysis(json);
+        if (company != null) {
+            posting.setCompanyId(company.getId());
+        }
+        return toAnalysisResponse(jobAnalysisRepository.save(analysis));
     }
 
     @Transactional
@@ -283,6 +380,35 @@ public class JobPostingService {
             ));
         }
         return out;
+    }
+
+    private Map<String, Object> sectionToMap(RecruitmentSectionResponse section) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("title", section.title());
+        map.put("job_responsibilities", cleanList(section.jobResponsibilities()));
+        map.put("required_skills", cleanList(section.requiredSkills()));
+        map.put("preferred_skills", cleanList(section.preferredSkills()));
+        map.put("qualifications", cleanList(section.qualifications()));
+        map.put("headcount", blankToNull(section.headcount()));
+        return map;
+    }
+
+    private List<String> cleanList(List<String> items) {
+        if (items == null) {
+            return List.of();
+        }
+        return items.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .toList();
+    }
+
+    private String blankToNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 
     private String str(Object o) {

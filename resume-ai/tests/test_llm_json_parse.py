@@ -245,3 +245,27 @@ def test_assign_with_job_prefers_relevant_only(parser: LlmService) -> None:
     assert "hr1" not in flat_ids
     assert "mkt" not in flat_ids
     assert flat_ids <= {"nurse1", "nurse2"}
+
+
+def test_assignments_from_ids_respects_user_picks(parser: LlmService) -> None:
+    experiences = [
+        {"entity_id": "a", "content": "경험A " * 10},
+        {"entity_id": "b", "content": "경험B " * 10},
+        {"entity_id": "c", "content": "경험C " * 10},
+    ]
+    titles = ["지원동기", "직무역량", "입사 후 포부"]
+    assigned = parser._assignments_from_ids(
+        titles,
+        experiences,
+        [["b"], ["a", "c"], []],
+    )
+    assert assigned is not None
+    assert [e["entity_id"] for e in assigned[0]] == ["b"]
+    assert [e["entity_id"] for e in assigned[1]] == ["a", "c"]
+    assert assigned[2] == []
+
+
+def test_assignments_from_ids_empty_falls_back(parser: LlmService) -> None:
+    experiences = [{"entity_id": "a", "content": "경험A"}]
+    assert parser._assignments_from_ids(["지원동기"], experiences, [[], []]) is None
+    assert parser._assignments_from_ids(["지원동기"], experiences, None) is None

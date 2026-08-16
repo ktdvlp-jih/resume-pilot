@@ -188,6 +188,7 @@
       "AI_REVIEW": "Review feedback",
       "INTERVIEW_QUESTIONS": "Interview questions",
       "KEYWORD_COMPARE": "Keyword compare",
+      "PORTFOLIO_REVIEW": "Portfolio experience check",
       "EMBEDDING": "Embedding (RAG)"
     }
   }

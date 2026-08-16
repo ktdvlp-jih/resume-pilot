@@ -149,17 +149,20 @@ class JobAnalysisService:
         vision_model: str | None = None
 
         if await self._can_use_llm():
-            vision_raw, vision_model = await self._vision_extract(file_base64, mime_type)
-            if vision_raw:
-                vision_result = self._finalize_fields(
-                    vision_raw,
-                    source_text=vision_raw.get("job_description", ""),
-                    extraction_method="vision",
-                    source_type=source_type,
-                    model=vision_model,
-                )
-                if is_quality_result(vision_result):
-                    return vision_result
+            try:
+                vision_raw, vision_model = await self._vision_extract(file_base64, mime_type)
+                if vision_raw:
+                    vision_result = self._finalize_fields(
+                        vision_raw,
+                        source_text=vision_raw.get("job_description", ""),
+                        extraction_method="vision",
+                        source_type=source_type,
+                        model=vision_model,
+                    )
+                    if is_quality_result(vision_result):
+                        return vision_result
+            except Exception as exc:
+                logger.warning("Vision extract failed, falling back to OCR: %s", exc)
 
         # 여기 도달 = Vision 부재 또는 품질 미달. OCR 경로는 보조 수단으로만 사용하고,
         # Vision 결과가 있으면 빈 필드를 채우는 병합만 한다 (전체 덮어쓰기 금지).

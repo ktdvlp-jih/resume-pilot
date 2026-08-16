@@ -53,6 +53,10 @@ public class AiGatewayClient {
         return post("/compare/keywords", request);
     }
 
+    public Map<String, Object> reviewPortfolio(Map<String, Object> request) {
+        return post("/review/portfolio", request);
+    }
+
     private Map<String, Object> post(String path, Map<String, Object> request) {
         try {
             return client().post()

@@ -46,6 +46,8 @@ public class AiOrchestrationService {
         }
         long start = System.currentTimeMillis();
         List<String> selectedExperienceIds = filterOwnedExperienceIds(userId, request.experienceIds());
+        List<List<String>> sectionExperienceIds = filterOwnedSectionExperienceIds(
+                selectedExperienceIds, request.sectionExperienceIds(), request.sectionTitles());
         assertExperiencesUsable(userId, selectedExperienceIds);
         Map<String, Object> payload = new HashMap<>();
         payload.put("user_id", userId.toString());
@@ -54,12 +56,19 @@ public class AiOrchestrationService {
         payload.put("job_analysis", request.jobAnalysis());
         payload.put("section_titles", request.sectionTitles());
         payload.put("experience_ids", selectedExperienceIds);
+        payload.put("section_experience_ids", sectionExperienceIds);
         payload.put("forbidden_expressions", getForbiddenList());
         if (request.sectionIndex() != null) {
             payload.put("section_index", request.sectionIndex());
         }
         if (request.existingParagraphs() != null && !request.existingParagraphs().isEmpty()) {
             payload.put("existing_paragraphs", request.existingParagraphs());
+        }
+        if (request.sectionTargetChars() != null && !request.sectionTargetChars().isEmpty()) {
+            payload.put("section_target_chars", request.sectionTargetChars());
+        }
+        if (request.userInstruction() != null && !request.userInstruction().isBlank()) {
+            payload.put("user_instruction", request.userInstruction());
         }
         if (Boolean.TRUE.equals(request.skipPostprocess())) {
             payload.put("skip_postprocess", true);
@@ -81,6 +90,7 @@ public class AiOrchestrationService {
                                 "keywords", request.keywords(),
                                 "job_analysis", request.jobAnalysis() != null ? request.jobAnalysis() : Map.of(),
                                 "experience_ids", selectedExperienceIds,
+                                "section_experience_ids", sectionExperienceIds,
                                 "section_titles", request.sectionTitles() != null ? request.sectionTitles() : List.of(),
                                 "section_index", request.sectionIndex() != null ? request.sectionIndex() : -1))
                         .outputContent(String.valueOf(result.get("content")))
@@ -174,6 +184,77 @@ public class AiOrchestrationService {
         }
     }
 
+    /**
+     * 설정 초고(경력기술서·5-1~5-5)를 경험 라이브러리와 대조.
+     * 경험 0건이면 LLM 호출 없이 차단. 초고 빈 값은 허용.
+     */
+    public Map<String, Object> portfolioReview(UUID userId, AiPortfolioReviewRequest request) {
+        long start = System.currentTimeMillis();
+        List<Experience> experiences = experienceRepository.findByUserIdOrderByUpdatedAtDesc(userId);
+        if (experiences.isEmpty()) {
+            throw new BusinessException(
+                    ErrorCode.EXPERIENCE_INSUFFICIENT,
+                    "경험 라이브러리에 등록된 경험이 없습니다. 경험을 먼저 추가한 뒤 점검해 주세요."
+            );
+        }
+        String draft = request.content() == null ? "" : request.content();
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("section_type", request.sectionType().name());
+        payload.put("section_purpose", request.sectionType().purpose());
+        payload.put("content", draft);
+        payload.put("experiences", formatExperiencesForPortfolioReview(experiences));
+        try {
+            Map<String, Object> result = aiGatewayClient.reviewPortfolio(payload);
+            logUsage(userId, "portfolio_review", start, true, str(result != null ? result.get("model") : null), null);
+            return result;
+        } catch (BusinessException e) {
+            logUsage(userId, "portfolio_review", start, false, null, e.getMessage());
+            throw e;
+        } catch (RuntimeException e) {
+            logUsage(userId, "portfolio_review", start, false, null, e.getMessage());
+            throw e;
+        }
+    }
+
+    /** RAG 우회 — 유저 경험 전부를 텍스트로 직렬화해 프롬프트에 넣는다. */
+    static String formatExperiencesForPortfolioReview(List<Experience> experiences) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < experiences.size(); i++) {
+            Experience e = experiences.get(i);
+            if (i > 0) sb.append("\n\n---\n\n");
+            sb.append("id: ").append(e.getId()).append('\n');
+            sb.append("title: ").append(nullToEmpty(e.getTitle())).append('\n');
+            if (e.getType() != null) {
+                sb.append("type: ").append(e.getType().name()).append('\n');
+            }
+            appendIfPresent(sb, "role", e.getRole());
+            appendIfPresent(sb, "description", e.getDescription());
+            appendIfPresent(sb, "contribution", e.getContribution());
+            appendIfPresent(sb, "result", e.getResult());
+            appendIfPresent(sb, "numeric_result", e.getNumericResult());
+            appendIfPresent(sb, "situation", e.getStarSituation());
+            appendIfPresent(sb, "task", e.getStarTask());
+            appendIfPresent(sb, "action", e.getStarAction());
+            appendIfPresent(sb, "outcome", e.getStarResult());
+            if (e.getSkills() != null && !e.getSkills().isEmpty()) {
+                sb.append("skills: ").append(String.join(", ", e.getSkills())).append('\n');
+            }
+            if (e.getStartDate() != null || e.getEndDate() != null) {
+                sb.append("period: ")
+                        .append(e.getStartDate() != null ? e.getStartDate() : "")
+                        .append(" ~ ")
+                        .append(e.getEndDate() != null ? e.getEndDate() : "")
+                        .append('\n');
+            }
+        }
+        return sb.toString();
+    }
+
+    private static void appendIfPresent(StringBuilder sb, String label, String value) {
+        if (value == null || value.isBlank()) return;
+        sb.append(label).append(": ").append(value.trim()).append('\n');
+    }
+
     @Transactional(readOnly = true)
     public List<AiGenerationResponse> myGenerations(UUID userId) {
         return generationRepository.findTop20ByUserIdOrderByCreatedAtDesc(userId).stream()
@@ -188,6 +269,28 @@ public class AiOrchestrationService {
         experienceRepository.findByUserIdOrderByUpdatedAtDesc(userId)
                 .forEach(e -> owned.add(e.getId().toString()));
         return experienceIds.stream().map(UUID::toString).filter(owned::contains).toList();
+    }
+
+    private List<List<String>> filterOwnedSectionExperienceIds(
+            List<String> ownedExperienceIds,
+            List<List<UUID>> sectionExperienceIds,
+            List<String> sectionTitles
+    ) {
+        int n = sectionTitles != null ? sectionTitles.size() : 0;
+        if (n == 0) return List.of();
+        Set<String> owned = new HashSet<>(ownedExperienceIds);
+        List<List<String>> rows = new ArrayList<>();
+        List<List<UUID>> src = sectionExperienceIds != null ? sectionExperienceIds : List.of();
+        for (int i = 0; i < n; i++) {
+            List<UUID> row = i < src.size() && src.get(i) != null ? src.get(i) : List.of();
+            rows.add(row.stream()
+                    .map(UUID::toString)
+                    .filter(owned::contains)
+                    .distinct()
+                    .limit(3)
+                    .toList());
+        }
+        return rows;
     }
 
     /**

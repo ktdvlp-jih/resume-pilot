@@ -48,6 +48,8 @@ export interface ResumeVersionResponse {
   versionNumber: number;
   content: string;
   createdAt: string;
+  name?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ExperienceResponse {
@@ -254,6 +256,11 @@ export const api = {
       `/api/v1/resumes/${id}/versions/compare?versionA=${a}&versionB=${b}`),
   createResume: (data: { title: string; companyName?: string; description?: string; content?: string; jobPostingId?: string }) =>
     request<ResumeResponse>('/api/v1/resumes', { method: 'POST', body: JSON.stringify(data) }),
+  createResumeVersion: (id: string, content: string, name?: string) =>
+    request<ResumeVersionResponse>(`/api/v1/resumes/${id}/versions`, {
+      method: 'POST',
+      body: JSON.stringify({ content, name }),
+    }),
   deleteResume: (id: string) => request<void>(`/api/v1/resumes/${id}`, { method: 'DELETE' }),
   listExperiences: (type?: string) =>
     request<ExperienceResponse[]>(`/api/v1/experiences${type ? `?type=${type}` : ''}`),
@@ -278,6 +285,11 @@ export const api = {
     return json.data;
   },
   getJobAnalysis: (id: string) => request<JobAnalysisResponse>(`/api/v1/job-postings/${id}/analysis`),
+  updateJobAnalysis: (id: string, data: Record<string, unknown>) =>
+    request<JobAnalysisResponse>(`/api/v1/job-postings/${id}/analysis`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
   deleteJobPosting: (id: string) => request<void>(`/api/v1/job-postings/${id}`, { method: 'DELETE' }),
   getSkillCatalog: () => request<Array<{ name: string; category: string }>>('/api/v1/skill-catalog'),
   lookupCertification: (q: string) =>
@@ -318,8 +330,11 @@ export const api = {
     jobPostingId?: string;
     sectionTitles?: string[];
     experienceIds?: string[];
+    sectionExperienceIds?: string[][];
     sectionIndex?: number;
     existingParagraphs?: string[];
+    sectionTargetChars?: number[];
+    userInstruction?: string;
     skipPostprocess?: boolean;
   }) =>
     request<Record<string, unknown>>('/api/v1/ai/generate', {
@@ -331,8 +346,11 @@ export const api = {
         jobPostingId: data.jobPostingId,
         sectionTitles: data.sectionTitles,
         experienceIds: data.experienceIds,
+        sectionExperienceIds: data.sectionExperienceIds,
         sectionIndex: data.sectionIndex,
         existingParagraphs: data.existingParagraphs,
+        sectionTargetChars: data.sectionTargetChars,
+        userInstruction: data.userInstruction,
         skipPostprocess: data.skipPostprocess,
       }),
     }),
@@ -341,6 +359,17 @@ export const api = {
   reviewAi: (content: string, jobAnalysis?: Record<string, unknown>) =>
     request<Record<string, unknown>>('/api/v1/ai/review', {
       method: 'POST', body: JSON.stringify({ content, jobAnalysis }),
+    }),
+  reviewPortfolio: (sectionType: string, content: string) =>
+    request<{
+      relevant_experiences?: Array<{ id?: string; title?: string; why_fits?: string }>;
+      unused_experiences?: Array<{ id?: string; title?: string; reason?: string }>;
+      unsupported_claims?: Array<{ claim?: string; reason?: string }>;
+      revision_directions?: string[];
+      model?: string;
+    }>('/api/v1/ai/portfolio-review', {
+      method: 'POST',
+      body: JSON.stringify({ sectionType, content }),
     }),
   interviewQuestions: (content: string) =>
     request<Record<string, unknown>>('/api/v1/ai/interview-questions', {

@@ -67,6 +67,7 @@ OPERATION_MAX_TOKENS: dict[str, int] = {
     "AI_REVIEW": 8192,
     "INTERVIEW_QUESTIONS": 4096,
     "KEYWORD_COMPARE": 8192,
+    "PORTFOLIO_REVIEW": 8192,
 }
 
 _JSON_FENCE_RE = re.compile(r"```(?:json)?\s*([\s\S]*?)```", re.IGNORECASE)
@@ -190,6 +191,15 @@ class LlmService:
                     model=route.model_name,
                 )
             except Exception as exc:
+                if self._is_vision_unsupported(exc):
+                    logger.warning(
+                        "LLM vision unsupported (%s / %s), trying next route: %s",
+                        route.provider_slug,
+                        route.model_name,
+                        exc,
+                    )
+                    last_error = exc
+                    continue
                 if not self._is_retryable(exc):
                     raise
                 logger.warning(
@@ -320,6 +330,9 @@ class LlmService:
         section_titles: list[str] | None = None,
         section_index: int | None = None,
         existing_paragraphs: list[str] | None = None,
+        section_target_chars: list[int] | None = None,
+        user_instruction: str = "",
+        section_experience_ids: list[list[str]] | None = None,
     ) -> dict[str, Any]:
         if not experiences:
             return {
@@ -345,6 +358,8 @@ class LlmService:
 
         titles = [t for t in (section_titles or []) if t][:5]
         section_count = len(titles)
+        target_chars = self._normalize_target_chars(section_target_chars, section_count)
+        instruction = (user_instruction or "").strip()
 
         def _fill_user_prompt(selected: list[dict]) -> str:
             selected_text = "\n".join(
@@ -365,6 +380,15 @@ class LlmService:
                 "{{section_titles}}",
                 "\n".join(f"{i + 1}. {t}" for i, t in enumerate(titles)) if titles else "(기본 구성)",
             )
+            msg = msg.replace(
+                "{{section_target_chars}}",
+                "\n".join(
+                    f"{i + 1}. {titles[i]} → 목표 상한 {target_chars[i]}자 (초과 금지)"
+                    for i in range(len(titles))
+                ) if titles else "(기본)",
+            )
+            msg = msg.replace("{{user_instruction}}", instruction or "(없음)")
+            msg = msg.replace("{{profile}}", "")
             return msg
 
         # 비문항 모드도 공고와 약한 경험은 컨텍스트에서 제외
@@ -389,6 +413,9 @@ class LlmService:
                     job_analysis=job_analysis,
                     section_index=section_index,
                     existing_paragraphs=existing_paragraphs or [],
+                    section_target_chars=target_chars,
+                    user_instruction=instruction,
+                    section_experience_ids=section_experience_ids or [],
                 )
                 content = self._normalize_section_paragraphs(content, section_count)
                 ok_count = sum(1 for s in sections if s.get("status") == "ok" and (s.get("content") or "").strip())
@@ -444,6 +471,69 @@ class LlmService:
             "model": model_name,
             "sections": [],
         }
+
+    @staticmethod
+    def _normalize_target_chars(raw: list[int] | None, count: int) -> list[int]:
+        if count <= 0:
+            return []
+        chars: list[int] = []
+        src = list(raw or [])
+        for i in range(count):
+            try:
+                n = int(src[i]) if i < len(src) else 1200
+            except (TypeError, ValueError):
+                n = 1200
+            chars.append(max(200, min(4000, n)))
+        return chars
+
+    @staticmethod
+    def _length_plan_rules(chars: int) -> str:
+        """처음부터 목표 길이에 맞게 쓰게 한다. 긴 글을 잘라 맞추지 않는다."""
+        if chars <= 500:
+            budget = (
+                "- 짧은 문항입니다. 경험 장면은 1개만 고르세요.\n"
+                "- 문장 2~4개로 끝내세요. 제약 1 · 판단(왜) 1 · 결과 1이 한 글로 끝나야 합니다.\n"
+                "- 배경 설명·경험 나열·같은 말 반복 금지.\n"
+            )
+        elif chars <= 1200:
+            budget = (
+                "- 경험 장면은 1~2개. 각 장면은 제약→판단→결과가 끝나야 합니다.\n"
+                "- 분량을 채우려고 같은 말을 반복하지 마세요.\n"
+            )
+        else:
+            budget = (
+                "- 깊게 쓰되 같은 장면 반복 금지. 문단이 목표를 넘기면 안 됩니다.\n"
+            )
+        return (
+            f"[분량 계획 · {chars}자 상한]\n"
+            f"{budget}"
+            "- 긴 글을 쓴 뒤 자르지 마세요. 처음부터 이 길이에 맞게 완성된 글로 쓰세요.\n"
+            "- 목표를 맞추려고 문장 중간을 끊거나 결과만 빼지 마세요.\n"
+            "- 사실 부족 시 더 짧게. 없는 내용으로 채우지 마세요.\n"
+        )
+
+    @staticmethod
+    def _looks_complete_korean(text: str) -> bool:
+        stripped = (text or "").rstrip()
+        if len(stripped) < 20:
+            return False
+        return bool(re.search(r"(습니다\.|니다\.|다\.|요\.|[.!?])$", stripped))
+
+    @classmethod
+    def _accept_compressed_section(cls, original: str, compressed: str, target: int) -> bool:
+        """압축본이 더 짧고, 글이 완결될 때만 채택한다. 잘린 글은 거절한다."""
+        original = (original or "").strip()
+        compressed = (compressed or "").strip()
+        if not compressed or not original:
+            return False
+        if len(compressed) >= len(original):
+            return False
+        if not cls._looks_complete_korean(compressed):
+            return False
+        floor = max(80, int(min(target, len(original)) * 0.55))
+        if len(compressed) < floor:
+            return False
+        return True
 
     @staticmethod
     def _rewrite_level_rules(rewrite_level: int) -> str:
@@ -622,6 +712,44 @@ class LlmService:
 
         return assignments
 
+    @classmethod
+    def _assignments_from_ids(
+        cls,
+        titles: list[str],
+        experiences: list[dict],
+        section_ids: list[list[str]] | None,
+    ) -> list[list[dict]] | None:
+        """사용자가 고른 문항별 경험이 하나라도 있으면 그걸 쓰고, 아니면 None(자동 배정)."""
+        if not titles or not section_ids or not any(section_ids):
+            return None
+        by_id = {
+            str(exp.get("entity_id")): exp
+            for exp in experiences
+            if exp.get("entity_id") and exp.get("content")
+        }
+        rows: list[list[dict]] = []
+        for i, _title in enumerate(titles):
+            ids = section_ids[i] if i < len(section_ids) else []
+            row: list[dict] = []
+            seen: set[str] = set()
+            for raw in ids[:3]:
+                eid = str(raw or "")
+                if not eid or eid in seen:
+                    continue
+                exp = by_id.get(eid)
+                if exp:
+                    seen.add(eid)
+                    row.append(exp)
+            rows.append(row)
+        return rows
+
+    @staticmethod
+    def _experience_label(exp: dict) -> str:
+        eid = str(exp.get("entity_id") or "")
+        content = (exp.get("content") or "").strip().replace("\n", " ")
+        snippet = content[:80] + ("…" if len(content) > 80 else "")
+        return f"- [{eid}] {snippet}"
+
     async def _generate_by_sections(
         self,
         system_prompt: str,
@@ -632,8 +760,11 @@ class LlmService:
         job_analysis: dict | None = None,
         section_index: int | None = None,
         existing_paragraphs: list[str] | None = None,
+        section_target_chars: list[int] | None = None,
+        user_instruction: str = "",
+        section_experience_ids: list[list[str]] | None = None,
     ) -> tuple[str, str, list[dict[str, Any]]]:
-        """문항별로 본문을 생성한다. 권장 상한 ~1600자, 사실 부족 시 짧게 (자동 확장 없음).
+        """문항별로 본문을 생성한다. 목표 글자 수는 문항별 지정, 사실 부족 시 짧게 (자동 확장·날조 없음).
 
         section_index가 있으면 해당 문항만 LLM을 호출하고 나머지는 existing_paragraphs를 유지한다.
         문항별 실패는 전체 중단 없이 status=error로 기록한다.
@@ -647,22 +778,33 @@ class LlmService:
         sections: list[dict[str, Any]] = []
         model_name = ""
         rewrite_rules = self._rewrite_level_rules(rewrite_level)
-        assignments = self._assign_section_experiences(titles, experiences, job_analysis)
+        user_assignments = self._assignments_from_ids(titles, experiences, section_experience_ids)
+        using_user_assignments = user_assignments is not None
+        assignments = user_assignments if using_user_assignments else self._assign_section_experiences(
+            titles, experiences, job_analysis,
+        )
+        target_chars = self._normalize_target_chars(section_target_chars, len(titles))
+        instruction = (user_instruction or "").strip()
         section_system = (
             system_prompt
             + "\n\n[Section Mode]\n"
             "- 지금은 한 문항의 본문만 작성합니다.\n"
             "- 문항 제목·번호·마크다운을 본문에 넣지 마세요.\n"
-            "- 권장 상한 약 1600자. 필수 하한 없음. RAG 사실만으로 가능한 길이로 쓰세요.\n"
-            "- 지어내서 분량을 채우면 실패입니다. 분량보다 사실 우선. 짧은 사실 문단은 성공입니다.\n"
+            "- 목표 글자 수는 상한입니다. 긴 글을 쓴 뒤 자르지 말고, 처음부터 그 길이에 맞게 완성된 글로 쓰세요.\n"
+            "- 짧은 목표(500자 이하)는 장면 1개, 제약→판단→결과가 한 글로 끝나야 합니다.\n"
+            "- 이상적 길이는 목표의 85~100%입니다. RAG 사실이 부족하면 더 짧게 두세요.\n"
+            "- 지어내서 분량을 채우면 실패입니다. 결론이 잘린 글도 실패입니다.\n"
             "- STAR를 구체화하되 수치는 RAG에 있는 것만.\n"
-            "- 이 문항에 배정된 경험만 사용하세요. 경험 카탈로그 나열 금지.\n"
+            "- 이 문항에 배정된 경험만 깊게 쓰세요. 경험 카탈로그 나열 금지.\n"
+            "- 한 사람의 자기소개서입니다. 말투·역할 표현·수치·시점을 이미 작성한 문항과 모순되지 않게 맞추세요.\n"
+            "- 다른 문항에서 이미 쓴 경험의 같은 장면(제약-판단-결과)을 다시 쓰지 마세요.\n"
+            "- 배정되지 않은 경험은 지원동기·포부에서 한 줄 연결만 가능합니다. 깊은 서술은 배정된 문항에서만.\n"
             "- 역할·직군 표현은 경험에 적힌 것만. 입력에 없는 라벨을 붙이지 마세요.\n"
             "- 시점은 기간·본문에 있을 때만. 학창↔실무 이동·즉시성 단정 금지.\n"
             "- 성장과정: 학창 근거 없으면 일반론 1~2문장 + 배정된 실무만.\n"
             "- 빈 줄로 문단을 쪼개지 마세요. 연속 본문만 출력하세요.\n"
             "- 번역투·공허한 마무리·상투구 금지. 쉼표 문장당 1개, 문두 부사 뒤 쉼표 금지.\n"
-            "- 이미 작성한 문항과 같은 문장·경험 국면을 반복하지 마세요.\n"
+            "- 사용자 추가 지시가 있으면 반영하되, RAG에 없는 사실·수치·프로젝트는 지시에도 넣지 마세요.\n"
             + rewrite_rules
         )
 
@@ -687,30 +829,49 @@ class LlmService:
             try:
                 kind = self._section_kind(title)
                 section_exps = assignments[i] if i < len(assignments) else []
-                if not section_exps and kind != "aspiration":
+                if not section_exps and kind != "aspiration" and not using_user_assignments:
                     section_exps = experiences[:1] if experiences else []
                 base_user_msg = fill_user_prompt(section_exps)
                 assigned_ids = ", ".join(
                     str(e.get("entity_id")) for e in section_exps if e.get("entity_id")
                 ) or "(없음 — 과거 프로젝트 서술 없이 문항 초점에 맞게만 작성)"
+                assigned_id_set = {
+                    str(e.get("entity_id")) for e in section_exps if e.get("entity_id")
+                }
+                background = "\n".join(
+                    self._experience_label(e)
+                    for e in experiences
+                    if e.get("entity_id") and str(e.get("entity_id")) not in assigned_id_set
+                ) or "(없음)"
                 prev = "\n".join(
                     f"- {titles[j]}: {(paragraphs[j] or '')[:250]}…"
                     for j in range(len(titles))
                     if j != i and (paragraphs[j] or "").strip()
                 ) or "(없음)"
                 slot_rule = self._section_slot_rules(title)
+                chars = target_chars[i] if i < len(target_chars) else 1200
+                instruction_block = (
+                    f"## 사용자 추가 지시 (이 문항만 · RAG 밖 사실 금지)\n{instruction}\n"
+                    if instruction
+                    else ""
+                )
                 section_user = (
                     f"{base_user_msg}\n\n"
                     f"## 이번에 작성할 문항 ({i + 1}/{len(titles)})\n"
                     f"제목: {title}\n"
-                    f"이 문항에서만 사용할 경험 id: {assigned_ids}\n"
-                    f"위에 배정되지 않은 경험은 쓰지 마세요.\n"
+                    f"이 문항에서만 깊게 쓸 경험 id: {assigned_ids}\n"
+                    f"위에 배정되지 않은 경험은 깊게 쓰지 마세요. 지원동기·포부에서만 한 줄 연결 가능.\n"
                     f"이 문항 본문만 출력하세요. 제목/번호 없이 순수 문장만.\n"
-                    f"권장 상한 약 1600자. 필수 하한 없음. 사실 부족 시 짧게 (허구 금지).\n"
-                    f"다른 문항과 내용이 중복되지 않게, 이 제목 의미에 맞게 쓰세요.\n"
+                    f"{self._length_plan_rules(chars)}"
+                    f"목표 글자 수: {chars}자 (공백 포함 상한).\n"
+                    f"이상적 길이는 {max(80, int(chars * 0.85))}~{chars}자입니다.\n"
+                    f"한 사람의 자소서로 앞 문항과 말투·사실·수치가 모순되지 않게 쓰세요.\n"
+                    f"다른 문항과 같은 경험 장면을 반복하지 마세요.\n"
                     f"{slot_rule}\n"
                     f"{rewrite_rules}"
+                    f"{instruction_block}"
                     f"## 이미 작성한 문항 (참고·중복 금지)\n{prev}\n"
+                    f"## 다른 문항·공통 경험 (참고만 · 이 문항 본문에 끌어오지 말 것)\n{background}\n"
                 )
                 completion = await self.complete_for_operation(
                     "GENERATE", section_system, section_user, temperature=0.4,
@@ -752,6 +913,34 @@ class LlmService:
                     ):
                         para = cleaned
                         model_name = fixed.model or model_name
+
+                if len(para) > int(chars * 1.05):
+                    shortened = await self.complete_for_operation(
+                        "GENERATE",
+                        section_system
+                        + "\n[Length Fit] 같은 사실로 더 밀도 있게 다시 쓰세요. "
+                        "문장 중간을 자르거나 결과만 빼지 마세요. "
+                        "제약→판단→결과가 한 글로 끝나야 합니다. 새 사실 금지.",
+                        (
+                            f"문항 제목: {title}\n"
+                            f"현재 {len(para)}자입니다. 목표 상한은 {chars}자(공백 포함)입니다.\n"
+                            f"완성된 글로 {chars}자 이하에 맞게 다시 쓰세요. "
+                            f"잘린 문장·미완 결론은 실패입니다.\n\n{para}"
+                        ),
+                        temperature=0.2,
+                    )
+                    cut = self._clean_single_section(shortened.content or "", title)
+                    if self._accept_compressed_section(para, cut, chars):
+                        para = cut
+                        model_name = shortened.model or model_name
+                    else:
+                        logger.info(
+                            "Section %s/%s length-fit rejected (keep original %s chars, target %s)",
+                            i + 1,
+                            len(titles),
+                            len(para),
+                            chars,
+                        )
 
                 if not para.strip():
                     raise RuntimeError("Empty section content")
@@ -1011,6 +1200,12 @@ class LlmService:
             HumanMessage(content=user),
         ])
         return self._message_text(response)
+
+    def _is_vision_unsupported(self, exc: Exception) -> bool:
+        msg = str(exc).lower()
+        return "image_url" in msg and (
+            "unknown variant" in msg or "expected `text`" in msg or "expected 'text'" in msg
+        )
 
     def _is_retryable(self, exc: Exception) -> bool:
         if isinstance(exc, RateLimitError):

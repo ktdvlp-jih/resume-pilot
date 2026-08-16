@@ -55,6 +55,14 @@ public class JobPostingController {
         return ApiResponse.ok(jobPostingService.getAnalysis(SecurityUtils.getCurrentUserId(), id));
     }
 
+    @PatchMapping("/{id}/analysis")
+    @Operation(summary = "공고 분석 결과 수정")
+    public ApiResponse<JobAnalysisResponse> updateAnalysis(
+            @PathVariable UUID id,
+            @Valid @RequestBody JobAnalysisUpdateRequest request) {
+        return ApiResponse.ok(jobPostingService.updateAnalysis(SecurityUtils.getCurrentUserId(), id, request));
+    }
+
     @PostMapping("/{id}/reanalyze")
     @Operation(summary = "공고 재분석")
     public ApiResponse<JobAnalysisResponse> reanalyze(@PathVariable UUID id) {

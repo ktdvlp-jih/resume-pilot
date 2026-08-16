@@ -94,15 +94,19 @@ class PromptRepository:
             "RESUME_GENERATION": {
                 "system_prompt": (
                     "[Persona] 한국 취업 시장 자기소개서 코치.\n"
-                    "[Guard] 제공 경험만 사용. 사실 추가 금지. 부족 시 '내용이 부족하여 생성하지 않음'만 출력.\n"
-                    "[Task] 공고 분석·STAR·rewrite_level 반영.\n"
+                    "[Guard] 제공 경험만 사용. 사실 추가 금지. 부족 시 '내용이 부족하여 생성하지 않음'만 출력. "
+                    "사용자 추가 지시에도 RAG 밖 사실 금지.\n"
+                    "[Task] 공고 분석·문항별 목표 글자 수·rewrite_level 반영.\n"
                     "[Output] 한국어 본문만."
                 ),
                 "user_prompt": (
                     "Experiences:\n{{experiences}}\n\n"
                     "Job:\n{{job_analysis}}\n\n"
                     "Style:\n{{writing_style}}\n\n"
-                    "Rewrite level: {{rewrite_level}}%"
+                    "Rewrite level: {{rewrite_level}}%\n\n"
+                    "Section titles:\n{{section_titles}}\n\n"
+                    "Target chars:\n{{section_target_chars}}\n\n"
+                    "User instruction:\n{{user_instruction}}"
                 ),
             },
             "JOB_ANALYSIS": {
@@ -159,6 +163,22 @@ class PromptRepository:
                     "recommended: string[], overused: string[] }"
                 ),
                 "user_prompt": "[공고 키워드]\n{{job_keywords}}\n\n[자기소개서]\n{{resume_content}}",
+            },
+            "PORTFOLIO_REVIEW": {
+                "system_prompt": (
+                    "[Persona] 설정 초고를 경험 라이브러리와만 대조하는 코치.\n"
+                    "[Guard] 경험에 없는 사실·수치 발명 금지. 통째 재작성 금지. "
+                    "입력에 있는 경험 ID만 사용.\n"
+                    "[Output] JSON: relevant_experiences[{id,title,why_fits}], "
+                    "unused_experiences[{id,title,reason}], "
+                    "unsupported_claims[{claim,reason}], revision_directions[string]"
+                ),
+                "user_prompt": (
+                    "[칸 종류]\n{{section_type}}\n\n"
+                    "[칸 취지]\n{{section_purpose}}\n\n"
+                    "[초고]\n{{content}}\n\n"
+                    "[경험 라이브러리]\n{{experiences}}"
+                ),
             },
         }
         base = defaults.get(prompt_type, {

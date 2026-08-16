@@ -51,6 +51,12 @@ public class AiController {
         return ApiResponse.ok(aiService.compareKeywords(SecurityUtils.getCurrentUserId(), request));
     }
 
+    @PostMapping("/portfolio-review")
+    @Operation(summary = "설정 초고 경험 대조 점검")
+    public ApiResponse<Map<String, Object>> portfolioReview(@Valid @RequestBody AiPortfolioReviewRequest request) {
+        return ApiResponse.ok(aiService.portfolioReview(SecurityUtils.getCurrentUserId(), request));
+    }
+
     @GetMapping("/generations")
     @Operation(summary = "내 AI 생성 이력")
     public ApiResponse<List<AiGenerationResponse>> myGenerations() {

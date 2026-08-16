@@ -59,12 +59,28 @@ class GenerationService:
             "\n".join(f"{i + 1}. {title}" for i, title in enumerate(section_titles))
             if section_titles else ""
         )
+        target_chars = list(request.get("section_target_chars") or [])
+        while len(target_chars) < len(section_titles):
+            target_chars.append(1200)
+        target_chars = target_chars[: len(section_titles)] if section_titles else target_chars[:5]
+        section_target_chars_text = (
+            "\n".join(
+                f"{i + 1}. {title} → 목표 상한 {int(target_chars[i])}자 (초과 금지)"
+                for i, title in enumerate(section_titles)
+            )
+            if section_titles
+            else "(기본 · 문항 없음)"
+        )
+        user_instruction = (request.get("user_instruction") or "").strip() or "(없음)"
         prompt = await prompt_client.render("RESUME_GENERATION", {
             "experiences": "{{experiences}}",
             "job_analysis": str(job_analysis),
             "writing_style": style_text,
             "rewrite_level": rewrite_level,
             "section_titles": section_titles_text,
+            "section_target_chars": section_target_chars_text,
+            "user_instruction": user_instruction,
+            "profile": "",
         })
         return {**state, "prompt": prompt}
 
@@ -81,6 +97,9 @@ class GenerationService:
             section_titles=request.get("section_titles") or [],
             section_index=request.get("section_index"),
             existing_paragraphs=request.get("existing_paragraphs") or [],
+            section_target_chars=request.get("section_target_chars") or [],
+            user_instruction=request.get("user_instruction") or "",
+            section_experience_ids=request.get("section_experience_ids") or [],
         )
         return {**state, "result": result}
 
@@ -154,13 +173,14 @@ class GenerationService:
         naturalness = max(0, 100 - ai_trace_percent)
         if not review_scores:
             raise RuntimeError("AI_REVIEW returned no usable scores")
+        scaled = normalize_review_scores(review_scores)
         return {
             "naturalness": naturalness,
-            "company_fit": review_scores.get("company_fit", 0),
-            "style_retention": review_scores.get("style_retention", 0),
+            "company_fit": scaled["company_fit"],
+            "style_retention": scaled["style_retention"],
             "ai_trace_percent": ai_trace_percent,
-            "star_application": review_scores.get("star_application", 0),
-            "experience_utilization": review_scores.get("experience_utilization", 0),
+            "star_application": scaled["star_application"],
+            "experience_utilization": scaled["experience_utilization"],
             "scored_by": "llm",
         }
 
@@ -205,11 +225,42 @@ class DetectionService:
         }
 
 
+_REVIEW_SCORE_KEYS = (
+    "company_fit",
+    "style_retention",
+    "star_application",
+    "experience_utilization",
+)
+
+
+def normalize_review_scores(scores: dict[str, Any]) -> dict[str, float]:
+    """첨삭 점수를 0~100으로 맞춘다. LLM이 1~5(또는 1~10)를 주면 환산한다."""
+    vals: list[float] = []
+    for key in _REVIEW_SCORE_KEYS:
+        try:
+            vals.append(float(scores.get(key, 0) or 0))
+        except (TypeError, ValueError):
+            vals.append(0.0)
+    max_v = max(vals) if vals else 0.0
+    if 0 < max_v <= 5:
+        scale = 20.0
+    elif max_v <= 10:
+        scale = 10.0
+    else:
+        scale = 1.0
+    return {
+        key: max(0.0, min(100.0, round(value * scale)))
+        for key, value in zip(_REVIEW_SCORE_KEYS, vals)
+    }
+
+
 class ReviewService:
     _SCORES_RETRY_HINT = (
         "\n\n[Retry] Previous reply omitted usable scores. "
         "Return ONE JSON object with BOTH non-empty \"reviews\" array AND \"scores\" object "
-        "containing integer fields: company_fit, style_retention, star_application, experience_utilization."
+        "containing integer fields 0-100 (never 1-5): "
+        "company_fit, style_retention, star_application, experience_utilization. "
+        "Example: a solid answer is 80, not 4."
     )
 
     async def review(self, content: str, job_analysis: dict | None = None) -> dict[str, Any]:
@@ -243,7 +294,7 @@ class ReviewService:
         parsed, completion = await llm_service.complete_json_value_for_operation(
             "AI_REVIEW",
             system + self._SCORES_RETRY_HINT,
-            user + "\n\nInclude scores object with 0-100 integers.",
+            user + "\n\nInclude scores object with 0-100 integers. Never use a 1-5 scale.",
             temperature=0.2,
         )
         reviews, scores = self._extract_reviews_and_scores(parsed)
@@ -279,9 +330,11 @@ class ReviewService:
         # require at least one numeric-like quality key
         usable = any(
             k in scores and scores[k] is not None
-            for k in ("company_fit", "style_retention", "star_application", "experience_utilization")
+            for k in _REVIEW_SCORE_KEYS
         )
-        return reviews, scores if usable else None
+        if not usable:
+            return reviews, None
+        return reviews, {**scores, **normalize_review_scores(scores)}
 
 
 class InterviewService:
@@ -345,8 +398,86 @@ class KeywordService:
         }
 
 
+class PortfolioReviewService:
+    """설정 초고(경력기술서·5-1~5-5) ↔ 경험 라이브러리 대조. 재작성 없음."""
+
+    async def review(
+        self,
+        section_type: str,
+        section_purpose: str,
+        content: str,
+        experiences: str,
+    ) -> dict[str, Any]:
+        if not await llm_service.has_routes("PORTFOLIO_REVIEW"):
+            raise RuntimeError("LLM routes unavailable for PORTFOLIO_REVIEW")
+        prompt = await prompt_client.render("PORTFOLIO_REVIEW", {
+            "section_type": section_type,
+            "section_purpose": section_purpose,
+            "content": content or "(비어 있음)",
+            "experiences": experiences,
+        })
+        parsed, completion = await llm_service.complete_json_value_for_operation(
+            "PORTFOLIO_REVIEW",
+            prompt["system_prompt"],
+            prompt["user_prompt"],
+            temperature=0.3,
+        )
+        result = self._normalize(parsed)
+        if result is None:
+            raise RuntimeError(
+                f"PORTFOLIO_REVIEW returned unparseable response: {(completion.content or '')[:240]}"
+            )
+        result["model"] = completion.model
+        return result
+
+    @staticmethod
+    def _normalize(parsed: dict[str, Any] | list[Any] | None) -> dict[str, Any] | None:
+        if not isinstance(parsed, dict):
+            return None
+        relevant = PortfolioReviewService._exp_list(
+            parsed.get("relevant_experiences"), ("id", "title", "why_fits")
+        )
+        unused = PortfolioReviewService._exp_list(
+            parsed.get("unused_experiences"), ("id", "title", "reason")
+        )
+        claims_raw = parsed.get("unsupported_claims")
+        claims: list[dict[str, str]] = []
+        if isinstance(claims_raw, list):
+            for item in claims_raw:
+                if not isinstance(item, dict):
+                    continue
+                claim = str(item.get("claim") or "").strip()
+                reason = str(item.get("reason") or "").strip()
+                if claim:
+                    claims.append({"claim": claim, "reason": reason})
+        dirs_raw = parsed.get("revision_directions")
+        directions: list[str] = []
+        if isinstance(dirs_raw, list):
+            directions = [str(d).strip() for d in dirs_raw if str(d).strip()]
+        return {
+            "relevant_experiences": relevant,
+            "unused_experiences": unused,
+            "unsupported_claims": claims,
+            "revision_directions": directions,
+        }
+
+    @staticmethod
+    def _exp_list(raw: Any, keys: tuple[str, ...]) -> list[dict[str, str]]:
+        if not isinstance(raw, list):
+            return []
+        out: list[dict[str, str]] = []
+        for item in raw:
+            if not isinstance(item, dict):
+                continue
+            row = {k: str(item.get(k) or "").strip() for k in keys}
+            if row.get("id") or row.get("title"):
+                out.append(row)
+        return out
+
+
 generation_service = GenerationService()
 detection_service = DetectionService()
 review_service = ReviewService()
 interview_service = InterviewService()
 keyword_service = KeywordService()
+portfolio_review_service = PortfolioReviewService()

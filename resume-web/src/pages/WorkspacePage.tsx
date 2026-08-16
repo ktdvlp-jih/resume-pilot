@@ -9,9 +9,11 @@ import {
   Briefcase,
   ClipboardCheck,
   HelpCircle,
+  History,
   Info,
   Loader2,
   ListPlus,
+  Pencil,
   Plus,
   RotateCcw,
   Save,
@@ -28,7 +30,21 @@ import {
   RECOMMEND_PAGE_SIZE,
 } from '@/lib/recommend-keywords';
 import { experienceReadiness } from '@/lib/experience-limits';
-import { useWorkspaceDraft } from '@/hooks/use-workspace-draft';
+import {
+  alignSectionTargetChars,
+  clampSectionTargetChars,
+  DEFAULT_SECTION_TARGET_CHARS,
+  useWorkspaceDraft,
+} from '@/hooks/use-workspace-draft';
+import { SectionExperiencePicker } from '@/components/workspace/section-experience-picker';
+import {
+  alignSectionExperienceIds,
+  autoAssignSectionExperiences,
+  firstSectionWithRoom,
+  MAX_EXPERIENCE_POOL,
+  MAX_EXPERIENCES_PER_SECTION,
+  pruneSectionExperienceIds,
+} from '@/lib/section-experiences';
 import {
   postingIdsWithSavedLetter,
   useWorkspaceResult,
@@ -58,6 +74,14 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -87,9 +111,8 @@ const LEVEL_LABEL_KEY: Record<string, string> = {
 };
 
 const SECTION_TITLE_PRESETS = ['지원동기', '성장과정', '직무역량', '입사 후 포부'];
-/** 문항 제목·경험 추천/선택 공통 상한 */
+/** 문항 제목 공통 상한 */
 const MAX_SECTIONS = 5;
-const MAX_EXPERIENCES = 5;
 
 function splitParagraphs(content: string): string[] {
   return content.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
@@ -174,17 +197,145 @@ const SCORE_DESC_KEY_MAP: Record<string, string> = {
   experience_utilization: 'workspace.scoreExperienceUtilizationDesc',
 };
 
+const REVIEW_SCORE_KEYS = new Set([
+  'company_fit',
+  'style_retention',
+  'star_application',
+  'experience_utilization',
+]);
+
+function reviewScoreScale(scores: Record<string, unknown>): number {
+  const nums = [...REVIEW_SCORE_KEYS]
+    .map((key) => Number(scores[key]))
+    .filter((n) => Number.isFinite(n));
+  const maxV = nums.length ? Math.max(...nums) : 0;
+  if (maxV > 0 && maxV <= 5) return 20;
+  if (maxV > 0 && maxV <= 10) return 10;
+  return 1;
+}
+
+function formatQualityScore(key: string, raw: unknown, scale: number): string {
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return '—';
+  if (REVIEW_SCORE_KEYS.has(key)) {
+    return String(Math.max(0, Math.min(100, Math.round(n * scale))));
+  }
+  const clamped = Math.max(0, Math.min(100, n));
+  return Number.isInteger(clamped) ? String(clamped) : clamped.toFixed(1);
+}
+
+function formatHistoryDate(iso: string, locale: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleString(locale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function versionLabel(
+  v: { name?: string; metadata?: Record<string, unknown> },
+  date: string,
+): string {
+  const fromField = v.name?.trim();
+  if (fromField) return fromField;
+  const meta = v.metadata?.name;
+  if (typeof meta === 'string' && meta.trim()) return meta.trim();
+  return date;
+}
+
+function WrittenCharCount({
+  count,
+  target,
+  className,
+}: {
+  count: number;
+  target?: number;
+  className?: string;
+}) {
+  const { t } = useTranslation();
+  const hasTarget = typeof target === 'number' && target > 0;
+  const over = hasTarget && count > target;
+  return (
+    <span
+      className={cn(
+        'tabular-nums text-xs',
+        over ? 'text-amber-700 dark:text-amber-400' : 'text-muted-foreground',
+        className,
+      )}
+    >
+      {hasTarget
+        ? t('workspace.sectionWrittenCharsWithTarget', {
+            count: count.toLocaleString(),
+            target: (target ?? 0).toLocaleString(),
+          })
+        : t('workspace.sectionWrittenChars', { count: count.toLocaleString() })}
+    </span>
+  );
+}
+
 function mergeSaveStatus(a: DraftSaveStatus, b: DraftSaveStatus): DraftSaveStatus {
   if (a === 'saving' || b === 'saving') return 'saving';
   if (a === 'saved' || b === 'saved') return 'saved';
   return 'idle';
 }
 
-export default function WorkspacePage() {
+function SectionTargetCharsField({
+  value,
+  onCommit,
+}: {
+  value: number;
+  onCommit: (n: number) => void;
+}) {
   const { t } = useTranslation();
+  const [draft, setDraft] = useState(String(value));
+  const focusedRef = useRef(false);
+
+  useEffect(() => {
+    if (!focusedRef.current) setDraft(String(value));
+  }, [value]);
+
+  const commit = () => {
+    focusedRef.current = false;
+    const digits = draft.replace(/\D/g, '');
+    if (!digits) {
+      setDraft(String(value));
+      return;
+    }
+    const next = clampSectionTargetChars(Number(digits));
+    setDraft(String(next));
+    if (next !== value) onCommit(next);
+  };
+
+  return (
+    <div className="flex items-center gap-2 pl-6 text-xs text-muted-foreground">
+      <span className="shrink-0">{t('workspace.sectionTargetCharsLabel')}</span>
+      <Input
+        inputMode="numeric"
+        autoComplete="off"
+        value={draft}
+        onFocus={() => {
+          focusedRef.current = true;
+        }}
+        onChange={(e) => setDraft(e.target.value.replace(/\D/g, '').slice(0, 4))}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            (e.currentTarget as HTMLInputElement).blur();
+          }
+        }}
+        className="h-7 w-16 tabular-nums"
+        aria-label={t('workspace.sectionTargetCharsLabel')}
+      />
+      <span>{t('workspace.sectionTargetCharsUnit')}</span>
+      <span className="text-[11px]">{t('workspace.sectionTargetCharsHint')}</span>
+    </div>
+  );
+}
+
+export default function WorkspacePage() {
+  const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
   const { draft, setDraft, clearDraft, saveStatus: draftSaveStatus, wasRestored } = useWorkspaceDraft();
-  const { selectedPostingId, jobText, rewriteLevel, sectionTitles } = draft;
+  const { selectedPostingId, jobText, rewriteLevel, sectionTitles, sectionTargetChars, selectedExperienceIds, sectionExperienceIds } = draft;
   const {
     result,
     sectionTitles: savedSectionTitles,
@@ -203,6 +354,8 @@ export default function WorkspacePage() {
   } = useWorkspaceResult(selectedPostingId);
   const [loading, setLoading] = useState(false);
   const [sectionLoadingIndex, setSectionLoadingIndex] = useState<number | null>(null);
+  const [regenPromptOpenIndex, setRegenPromptOpenIndex] = useState<number | null>(null);
+  const [regenInstructions, setRegenInstructions] = useState<Record<number, string>>({});
   const [panelLoading, setPanelLoading] = useState<
     Partial<Record<'interview' | 'keywords' | 'diagnosis', boolean>>
   >({});
@@ -210,10 +363,14 @@ export default function WorkspacePage() {
   const [error, setError] = useState('');
   const [recommendError, setRecommendError] = useState('');
   const [customTitle, setCustomTitle] = useState('');
-  const [selectedExperienceIds, setSelectedExperienceIds] = useState<Set<string>>(new Set());
   const [justGenerated, setJustGenerated] = useState(false);
   const [thinConfirmOpen, setThinConfirmOpen] = useState(false);
   const [recommendPage, setRecommendPage] = useState(1);
+  const [loadedVersionId, setLoadedVersionId] = useState('');
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [saveName, setSaveName] = useState('');
+  const [editingSectionIndex, setEditingSectionIndex] = useState<number | 'all' | null>(null);
+  const [editDraft, setEditDraft] = useState('');
   /** 공고별로 복원 토스트를 한 번만 띄움 (생성 완료 후 justGenerated 해제 시 재노출 방지) */
   const resultRestoredToastKey = useRef<string | null>(null);
   const draftRestoredToastShown = useRef(false);
@@ -235,38 +392,105 @@ export default function WorkspacePage() {
     toast.message(t('workspace.draftRestored'), { duration: 3500 });
   }, [wasRestored, jobText, t]);
 
+  useEffect(() => {
+    setLoadedVersionId('');
+    setEditingSectionIndex(null);
+    setEditDraft('');
+  }, [selectedPostingId]);
+
+  const selectedExperienceSet = useMemo(() => new Set(selectedExperienceIds), [selectedExperienceIds]);
+  const alignedSectionExperienceIds = useMemo(
+    () => alignSectionExperienceIds(sectionTitles, sectionExperienceIds),
+    [sectionTitles, sectionExperienceIds],
+  );
+
   const toggleExperience = (id: string) => {
-    setSelectedExperienceIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else if (next.size >= MAX_EXPERIENCES) {
-        return prev;
-      } else {
-        next.add(id);
+    const nextPool = selectedExperienceIds.includes(id)
+      ? selectedExperienceIds.filter((x) => x !== id)
+      : selectedExperienceIds.length >= MAX_EXPERIENCE_POOL
+        ? selectedExperienceIds
+        : [...selectedExperienceIds, id];
+    if (nextPool === selectedExperienceIds) return;
+
+    let nextRows = alignedSectionExperienceIds;
+    if (!nextPool.includes(id)) {
+      nextRows = pruneSectionExperienceIds(nextRows, new Set(nextPool));
+    } else if (sectionTitles.length > 0 && !nextRows.some((row) => row.includes(id))) {
+      const target = firstSectionWithRoom(sectionTitles, nextRows);
+      if (target >= 0) {
+        nextRows = nextRows.map((row, i) => (i === target ? [...row, id] : row));
       }
-      return next;
+    }
+    setDraft({ selectedExperienceIds: nextPool, sectionExperienceIds: nextRows });
+    if (result?.content) clearVisibleResult();
+  };
+
+  const toggleSectionExperience = (sectionIndex: number, id: string) => {
+    if (!selectedExperienceSet.has(id)) return;
+    const nextRows = alignedSectionExperienceIds.map((row, i) => {
+      if (i !== sectionIndex) return row;
+      if (row.includes(id)) return row.filter((x) => x !== id);
+      if (row.length >= MAX_EXPERIENCES_PER_SECTION) return row;
+      return [...row, id];
+    });
+    setDraft({ sectionExperienceIds: nextRows });
+    if (result?.content) clearVisibleResult();
+  };
+
+  const distributeSectionExperiences = () => {
+    setDraft({
+      sectionExperienceIds: autoAssignSectionExperiences(sectionTitles, selectedExperienceIds),
     });
     if (result?.content) clearVisibleResult();
+  };
+
+  const resolveSectionExperienceIds = (titles: string[]) => {
+    const aligned = alignSectionExperienceIds(titles, alignedSectionExperienceIds);
+    if (titles.length === 0) return [];
+    if (aligned.some((row) => row.length > 0)) return aligned;
+    return autoAssignSectionExperiences(titles, selectedExperienceIds);
   };
 
   const addSectionTitle = (title: string) => {
     const trimmed = title.trim();
     if (!trimmed || sectionTitles.includes(trimmed) || sectionTitles.length >= MAX_SECTIONS) return;
-    setDraft({ sectionTitles: [...sectionTitles, trimmed] });
+    const nextTitles = [...sectionTitles, trimmed];
+    setDraft({
+      sectionTitles: nextTitles,
+      sectionTargetChars: [
+        ...alignSectionTargetChars(sectionTitles, sectionTargetChars),
+        DEFAULT_SECTION_TARGET_CHARS,
+      ],
+      sectionExperienceIds: [...alignedSectionExperienceIds, []],
+    });
     if (result?.content) clearVisibleResult();
   };
   const removeSectionTitle = (index: number) => {
-    setDraft({ sectionTitles: sectionTitles.filter((_, i) => i !== index) });
+    const nextTitles = sectionTitles.filter((_, i) => i !== index);
+    const aligned = alignSectionTargetChars(sectionTitles, sectionTargetChars);
+    setDraft({
+      sectionTitles: nextTitles,
+      sectionTargetChars: aligned.filter((_, i) => i !== index),
+      sectionExperienceIds: alignedSectionExperienceIds.filter((_, i) => i !== index),
+    });
     if (result?.content) clearVisibleResult();
   };
   const moveSectionTitle = (index: number, delta: number) => {
     const next = [...sectionTitles];
+    const chars = alignSectionTargetChars(sectionTitles, sectionTargetChars);
+    const rows = [...alignedSectionExperienceIds];
     const target = index + delta;
     if (target < 0 || target >= next.length) return;
     [next[index], next[target]] = [next[target], next[index]];
-    setDraft({ sectionTitles: next });
+    [chars[index], chars[target]] = [chars[target], chars[index]];
+    [rows[index], rows[target]] = [rows[target], rows[index]];
+    setDraft({ sectionTitles: next, sectionTargetChars: chars, sectionExperienceIds: rows });
     if (result?.content) clearVisibleResult();
+  };
+  const setSectionTargetChar = (index: number, value: number) => {
+    const chars = alignSectionTargetChars(sectionTitles, sectionTargetChars);
+    chars[index] = clampSectionTargetChars(value);
+    setDraft({ sectionTargetChars: chars });
   };
 
   const saveStatus = mergeSaveStatus(draftSaveStatus, resultSaveStatus);
@@ -283,7 +507,6 @@ export default function WorkspacePage() {
   const handleClearDraft = () => {
     clearDraft();
     clearResult();
-    setSelectedExperienceIds(new Set());
     setError('');
   };
 
@@ -310,6 +533,16 @@ export default function WorkspacePage() {
     return map;
   }, [experiences]);
 
+  const experiencePoolItems = useMemo(
+    () =>
+      selectedExperienceIds.map((id) => {
+        const rec = recommended.find((r) => r.id === id);
+        const exp = experienceById.get(id);
+        return { id, title: rec?.title || exp?.title || id };
+      }),
+    [selectedExperienceIds, recommended, experienceById],
+  );
+
   const selectedReadiness = useMemo(() => {
     let ready = 0;
     let thin = 0;
@@ -321,7 +554,7 @@ export default function WorkspacePage() {
       else if (r === 'thin') thin += 1;
       else empty += 1;
     }
-    return { ready, thin, empty, total: selectedExperienceIds.size };
+    return { ready, thin, empty, total: selectedExperienceIds.length };
   }, [selectedExperienceIds, experienceById]);
 
   const generateBlocked =
@@ -338,35 +571,105 @@ export default function WorkspacePage() {
     recommendPageSafe * RECOMMEND_PAGE_SIZE,
   );
 
-  const saveMutation = useMutation({
-    mutationFn: (content: string) =>
-      api.createResume({
-        title: selectedPosting?.title || selectedPosting?.companyName || t('workspace.title'),
-        companyName: selectedPosting?.companyName,
-        content,
-        jobPostingId: selectedPostingId || undefined,
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['resumes'] });
-      queryClient.invalidateQueries({ queryKey: ['resumes-by-posting', selectedPostingId] });
-      toast.success(t('workspace.saveToDashboardSuccess'));
-    },
-    onError: (err) => toast.error(err instanceof Error ? err.message : t('workspace.saveToDashboardFailed')),
-  });
-
   const { data: savedResumesForPosting = [] } = useQuery({
     queryKey: ['resumes-by-posting', selectedPostingId],
     queryFn: () => api.listResumes(selectedPostingId),
     enabled: !!selectedPostingId,
   });
+  const primarySavedResume = savedResumesForPosting[0];
+  const { data: resumeVersions = [] } = useQuery({
+    queryKey: ['resume-versions', primarySavedResume?.id],
+    queryFn: () => api.listResumeVersions(primarySavedResume!.id),
+    enabled: !!primarySavedResume?.id,
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: async ({ content, name }: { content: string; name: string }) => {
+      const existing = savedResumesForPosting[0];
+      if (existing?.id) {
+        const data = await api.createResumeVersion(existing.id, content, name);
+        return { kind: 'version' as const, data };
+      }
+      const data = await api.createResume({
+        title: name,
+        companyName: selectedPosting?.companyName,
+        content,
+        jobPostingId: selectedPostingId || undefined,
+      });
+      const versions = await api.listResumeVersions(data.id);
+      return { kind: 'resume' as const, data, versionId: versions[0]?.id };
+    },
+    onSuccess: (res, { name }) => {
+      queryClient.invalidateQueries({ queryKey: ['resumes'] });
+      queryClient.invalidateQueries({ queryKey: ['resumes-by-posting', selectedPostingId] });
+      if (res.kind === 'version') {
+        queryClient.invalidateQueries({ queryKey: ['resume-versions', res.data.resumeId] });
+        setLoadedVersionId(res.data.id);
+      } else if (res.versionId) {
+        queryClient.invalidateQueries({ queryKey: ['resume-versions', res.data.id] });
+        setLoadedVersionId(res.versionId);
+      }
+      setSaveDialogOpen(false);
+      toast.success(t('workspace.saveNamedSuccess', { name }));
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : t('workspace.saveToDashboardFailed')),
+  });
+
+  const loadSavedVersion = (content: string, versionId?: string) => {
+    const titles = (savedSectionTitles.length > 0 ? savedSectionTitles : sectionTitles).slice(0, MAX_SECTIONS);
+    setBundle({
+      result: { content },
+      sectionTitles: titles,
+      sectionStatuses: sectionsFromResponse({ content }, titles),
+    });
+    setJustGenerated(false);
+    setEditingSectionIndex(null);
+    setLoadedVersionId(versionId ?? '');
+    toast.message(t('workspace.historyLoaded'));
+  };
+
+  const applyEditedContent = (index: number | 'all', text: string) => {
+    if (index === 'all') {
+      const titles = (savedSectionTitles.length > 0 ? savedSectionTitles : sectionTitles).slice(0, MAX_SECTIONS);
+      setBundle({
+        result: { ...(result ?? {}), content: text },
+        sectionStatuses: sectionsFromResponse({ content: text }, titles),
+      });
+    } else {
+      const titles = (savedSectionTitles.length > 0 ? savedSectionTitles : sectionTitles).slice(0, MAX_SECTIONS);
+      const statusByIndex = new Map(sectionStatuses.map((s) => [s.index, s]));
+      const nextStatuses = titles.map((title, i) => {
+        const prev = statusByIndex.get(i);
+        return {
+          index: i,
+          title,
+          content: i === index ? text : (prev?.content ?? ''),
+          status: 'ok' as const,
+        };
+      });
+      setBundle({
+        result: { ...(result ?? {}), content: nextStatuses.map((s) => s.content).join('\n\n') },
+        sectionTitles: titles,
+        sectionStatuses: nextStatuses,
+      });
+    }
+    setEditingSectionIndex(null);
+    setLoadedVersionId('');
+  };
 
   useEffect(() => {
     if (!selectedPostingId || result?.content) return;
     const saved = savedResumesForPosting[0];
     if (saved?.latestContent) {
-      setBundle({ result: { content: saved.latestContent } });
+      const titles = sectionTitles.slice(0, MAX_SECTIONS);
+      const content = saved.latestContent;
+      setBundle({
+        result: { content },
+        sectionTitles: titles,
+        sectionStatuses: sectionsFromResponse({ content }, titles),
+      });
     }
-  }, [selectedPostingId, savedResumesForPosting, result?.content, setBundle]);
+  }, [selectedPostingId, savedResumesForPosting, result?.content, sectionTitles, setBundle]);
 
   const { data: jobAnalysisPreview } = useQuery({
     queryKey: ['job-analysis-preview', selectedPostingId],
@@ -411,7 +714,10 @@ export default function WorkspacePage() {
   const handleRecommend = async () => {
     if (!jobText && !selectedPostingId) {
       setBundle({ recommended: [] });
-      setSelectedExperienceIds(new Set());
+      setDraft({
+        selectedExperienceIds: [],
+        sectionExperienceIds: alignSectionExperienceIds(sectionTitles, []),
+      });
       return;
     }
     const seq = ++recommendSeq.current;
@@ -428,11 +734,13 @@ export default function WorkspacePage() {
       setBundle({
         recommended: rec.map((r) => ({ id: r.id, title: r.title, score: r.score })),
       });
-      setSelectedExperienceIds((prev) => {
-        const allowed = new Set(rec.map((r) => r.id));
-        const kept = [...prev].filter((id) => allowed.has(id)).slice(0, MAX_EXPERIENCES);
-        return new Set(kept);
-      });    } catch (err) {
+      const allowed = new Set(rec.map((r) => r.id));
+      const kept = selectedExperienceIds.filter((id) => allowed.has(id)).slice(0, MAX_EXPERIENCE_POOL);
+      setDraft({
+        selectedExperienceIds: kept,
+        sectionExperienceIds: pruneSectionExperienceIds(alignedSectionExperienceIds, new Set(kept)),
+      });
+    } catch (err) {
       if (seq !== recommendSeq.current) return;
       setRecommendError(err instanceof Error ? err.message : t('workspace.recommendFailed'));
     } finally {
@@ -444,7 +752,10 @@ export default function WorkspacePage() {
   useEffect(() => {
     if (!jobText && !selectedPostingId) {
       setBundle({ recommended: [] });
-      setSelectedExperienceIds(new Set());
+      setDraft({
+        selectedExperienceIds: [],
+        sectionExperienceIds: alignSectionExperienceIds(sectionTitles, []),
+      });
       return;
     }
     const delay = selectedPostingId ? 200 : 500;
@@ -470,6 +781,8 @@ export default function WorkspacePage() {
     if (index < 0 || index >= titles.length) return;
 
     setSectionLoadingIndex(index);
+    setEditingSectionIndex(null);
+    setRegenPromptOpenIndex(null);
     setBundle((prev) => ({
       ...prev,
       sectionStatuses: prev.sectionStatuses.map((s) =>
@@ -483,6 +796,12 @@ export default function WorkspacePage() {
         sectionStatuses.length === titles.length
           ? titles.map((_, i) => sectionStatuses.find((s) => s.index === i)?.content ?? '')
           : alignParagraphsToTitles(splitParagraphs(String(result?.content ?? '')), titles);
+      const targetChars = alignSectionTargetChars(
+        titles,
+        sectionTitles.length === titles.length
+          ? sectionTargetChars
+          : titles.map(() => DEFAULT_SECTION_TARGET_CHARS),
+      );
 
       const res = await api.generateAi({
         keywords: kw,
@@ -490,9 +809,12 @@ export default function WorkspacePage() {
         jobAnalysis,
         jobPostingId,
         sectionTitles: titles,
-        experienceIds: Array.from(selectedExperienceIds).slice(0, MAX_EXPERIENCES),
+        experienceIds: selectedExperienceIds.slice(0, MAX_EXPERIENCE_POOL),
+        sectionExperienceIds: resolveSectionExperienceIds(titles),
         sectionIndex: index,
         existingParagraphs: existing,
+        sectionTargetChars: targetChars,
+        userInstruction: (regenInstructions[index] ?? '').trim() || undefined,
         skipPostprocess: true,
       });
       const nextStatuses = sectionsFromResponse(res, titles);
@@ -509,6 +831,7 @@ export default function WorkspacePage() {
         sectionStatuses: nextStatuses,
       }));
       setJustGenerated(false);
+      setRegenPromptOpenIndex(null);
     } catch (err) {
       setBundle((prev) => ({
         ...prev,
@@ -611,10 +934,14 @@ export default function WorkspacePage() {
         jobAnalysis,
         jobPostingId,
         sectionTitles: titles,
-        experienceIds: Array.from(selectedExperienceIds).slice(0, MAX_EXPERIENCES),
+        experienceIds: selectedExperienceIds.slice(0, MAX_EXPERIENCE_POOL),
+        sectionExperienceIds: resolveSectionExperienceIds(titles),
+        sectionTargetChars: alignSectionTargetChars(titles, sectionTargetChars),
       });
       const nextStatuses = sectionsFromResponse(res, titles);
       const content = String(res.content ?? '');
+      setLoadedVersionId('');
+      setEditingSectionIndex(null);
       setBundle({
         result: res,
         sectionTitles: titles,
@@ -668,6 +995,29 @@ export default function WorkspacePage() {
   const previewChips = jobAnalysisPreview
     ? (jobAnalysisPreview.techKeywords.length ? jobAnalysisPreview.techKeywords : jobAnalysisPreview.requiredSkills).slice(0, 8)
     : [];
+  const defaultSaveName = () => {
+    const loaded = resumeVersions.find((v) => v.id === loadedVersionId);
+    if (loaded) {
+      const named = versionLabel(loaded, '');
+      if (named) return named;
+    }
+    return selectedPosting?.title || selectedPosting?.companyName || t('workspace.title');
+  };
+
+  const openSaveDialog = () => {
+    setSaveName(defaultSaveName());
+    setSaveDialogOpen(true);
+  };
+
+  const submitSave = () => {
+    const name = saveName.trim();
+    if (!name || !result?.content) return;
+    saveMutation.mutate({ content: String(result.content), name });
+  };
+
+  const historySelectValue = resumeVersions.some((v) => v.id === loadedVersionId)
+    ? loadedVersionId
+    : undefined;
 
   const leftPanel = (
     <div className="space-y-6">
@@ -710,6 +1060,37 @@ export default function WorkspacePage() {
               <p className="text-xs text-muted-foreground">{t('workspace.writtenHint')}</p>
             </div>
           )}
+          {selectedPostingId && resumeVersions.length > 0 && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5">
+                <History className="size-3.5" />
+                {t('workspace.historyLabel')}
+              </Label>
+              <Select
+                value={historySelectValue}
+                onValueChange={(id) => {
+                  const version = resumeVersions.find((v) => v.id === id);
+                  if (version?.content) loadSavedVersion(version.content, version.id);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t('workspace.historyPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {resumeVersions.map((v) => {
+                    const date = formatHistoryDate(v.createdAt, i18n.language);
+                    const name = versionLabel(v, date);
+                    return (
+                      <SelectItem key={v.id} value={v.id}>
+                        {name !== date ? `${name} · ${date}` : name}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">{t('workspace.historyHint')}</p>
+            </div>
+          )}
           {selectedPostingId ? (
             previewChips.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
@@ -745,22 +1126,56 @@ export default function WorkspacePage() {
           </p>
 
           {sectionTitles.length > 0 && (
-            <ol className="space-y-1.5">
-              {sectionTitles.map((title, i) => (
-                <li key={`${title}-${i}`} className="flex items-center gap-1.5 rounded-md border bg-muted/20 px-2 py-1.5 text-sm">
-                  <span className="w-5 shrink-0 text-center text-xs text-muted-foreground">{i + 1}</span>
-                  <span className="flex-1 truncate">{title}</span>
-                  <button type="button" onClick={() => moveSectionTitle(i, -1)} disabled={i === 0} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
-                    <ArrowUp className="size-3.5" />
-                  </button>
-                  <button type="button" onClick={() => moveSectionTitle(i, 1)} disabled={i === sectionTitles.length - 1} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
-                    <ArrowDown className="size-3.5" />
-                  </button>
-                  <button type="button" onClick={() => removeSectionTitle(i)} className="text-muted-foreground hover:text-destructive">
-                    <X className="size-3.5" />
-                  </button>
-                </li>
-              ))}
+            <div className="space-y-1.5">
+              <p className="text-xs text-pretty text-muted-foreground">{t('workspace.sectionExperienceHint')}</p>
+              <p className="text-xs text-pretty text-muted-foreground">{t('workspace.consistencyHint')}</p>
+              {selectedExperienceIds.length > 0 && (
+                <Button type="button" variant="outline" size="sm" onClick={distributeSectionExperiences}>
+                  {t('workspace.sectionExperienceAuto')}
+                </Button>
+              )}
+            </div>
+          )}
+
+          {sectionTitles.length > 0 && (
+            <ol className="space-y-2">
+              {sectionTitles.map((title, i) => {
+                const chars = alignSectionTargetChars(sectionTitles, sectionTargetChars);
+                return (
+                  <li key={`${title}-${i}`} className="space-y-1.5 rounded-md border bg-muted/20 px-2 py-2 text-sm">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-5 shrink-0 text-center text-xs text-muted-foreground">{i + 1}</span>
+                      <span className="flex-1 break-words">{title}</span>
+                      <button type="button" onClick={() => moveSectionTitle(i, -1)} disabled={i === 0} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
+                        <ArrowUp className="size-3.5" />
+                      </button>
+                      <button type="button" onClick={() => moveSectionTitle(i, 1)} disabled={i === sectionTitles.length - 1} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
+                        <ArrowDown className="size-3.5" />
+                      </button>
+                      <button type="button" onClick={() => removeSectionTitle(i)} className="text-muted-foreground hover:text-destructive">
+                        <X className="size-3.5" />
+                      </button>
+                    </div>
+                    <SectionTargetCharsField
+                      value={chars[i]}
+                      onCommit={(n) => setSectionTargetChar(i, n)}
+                    />
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">{t('workspace.sectionExperienceLabel')}</p>
+                      <SectionExperiencePicker
+                        pool={experiencePoolItems}
+                        assignedIds={alignedSectionExperienceIds[i] ?? []}
+                        emptyLabel={t('workspace.sectionExperienceEmpty')}
+                        countLabel={t('workspace.sectionExperienceCount', {
+                          count: alignedSectionExperienceIds[i]?.length ?? 0,
+                          max: MAX_EXPERIENCES_PER_SECTION,
+                        })}
+                        onToggle={(id) => toggleSectionExperience(i, id)}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
             </ol>
           )}
 
@@ -840,15 +1255,15 @@ export default function WorkspacePage() {
                 <p className="text-xs text-muted-foreground">{t('workspace.recommendedHint')}</p>
                 <p className="text-xs text-muted-foreground">
                   {t('workspace.experiencesLimit', {
-                    max: MAX_EXPERIENCES,
-                    count: selectedExperienceIds.size,
+                    max: MAX_EXPERIENCE_POOL,
+                    count: selectedExperienceIds.length,
                   })}
                 </p>
                 <p className="text-xs text-muted-foreground">{t('workspace.recommendPageKeep')}</p>
                 <div className="space-y-1.5">
                   {pagedRecommended.map((r) => {
-                    const selected = selectedExperienceIds.has(r.id);
-                    const atLimit = !selected && selectedExperienceIds.size >= MAX_EXPERIENCES;
+                    const selected = selectedExperienceSet.has(r.id);
+                    const atLimit = !selected && selectedExperienceIds.length >= MAX_EXPERIENCE_POOL;
                     return (
                       <button
                         key={r.id}
@@ -913,7 +1328,7 @@ export default function WorkspacePage() {
                 thin: selectedReadiness.thin,
                 empty: selectedReadiness.empty,
                 total: selectedReadiness.total,
-                max: MAX_EXPERIENCES,
+                max: MAX_EXPERIENCE_POOL,
               })}
             </p>
             {generateBlocked ? (
@@ -1001,7 +1416,7 @@ export default function WorkspacePage() {
         <TabsContent value="result" className="mt-0 flex-1 overflow-y-auto border-t p-4 md:p-6">
           {result?.content ? (
             <div className="space-y-6" data-testid="workspace-result-content">
-              <div className="flex items-center justify-end gap-3">
+              <div className="flex flex-wrap items-center justify-end gap-3">
                 {isTyping && (
                   <button type="button" onClick={skipTyping} className="text-xs text-muted-foreground underline hover:text-foreground">
                     {t('workspace.skipTyping')}
@@ -1013,10 +1428,10 @@ export default function WorkspacePage() {
                   className="gap-1.5"
                   data-testid="workspace-save-btn"
                   disabled={saveMutation.isPending}
-                  onClick={() => saveMutation.mutate(String(result.content))}
+                  onClick={openSaveDialog}
                 >
                   <Save className="size-3.5" />
-                  {saveMutation.isPending ? t('common.generating') : t('workspace.saveToDashboard')}
+                  {t('workspace.saveToDashboard')}
                 </Button>
               </div>
 
@@ -1032,6 +1447,8 @@ export default function WorkspacePage() {
                       ? displayTitles.map((_, i) => statusByIndex.get(i)?.content ?? '')
                       : alignParagraphsToTitles(rawParagraphs, displayTitles);
 
+                  const targets = alignSectionTargetChars(displayTitles, sectionTargetChars);
+
                   return (
                     <div className="space-y-5">
                       {displayTitles.map((title, i) => {
@@ -1040,6 +1457,9 @@ export default function WorkspacePage() {
                           ? 'loading'
                           : meta?.status) ?? (paragraphs[i]?.trim() ? 'ok' : 'idle');
                         const body = paragraphs[i] ?? '';
+                        const editing = editingSectionIndex === i;
+                        const writtenCount = editing ? editDraft.length : body.length;
+                        const targetChars = targets[i];
                         return (
                           <div key={i} className="space-y-2">
                             <div className="flex flex-wrap items-center gap-2">
@@ -1050,26 +1470,114 @@ export default function WorkspacePage() {
                                 label={t(`workspace.sectionStatus.${status}`)}
                                 variant={panelChipVariant(status)}
                               />
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="ml-auto h-7 gap-1 text-xs"
-                                disabled={loading || sectionLoadingIndex !== null || generateBlocked}
-                                onClick={() => void handleRegenerateSection(i)}
-                              >
-                                {sectionLoadingIndex === i ? (
-                                  <Loader2 className="size-3 animate-spin" />
-                                ) : (
+                              <WrittenCharCount count={writtenCount} target={targetChars} />
+                              <div className="ml-auto flex items-center gap-1">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 gap-1 text-xs"
+                                  disabled={loading || sectionLoadingIndex !== null || isTyping}
+                                  onClick={() => {
+                                    setRegenPromptOpenIndex(null);
+                                    setEditingSectionIndex(i);
+                                    setEditDraft(body);
+                                  }}
+                                >
+                                  <Pencil className="size-3" />
+                                  {t('workspace.editSection')}
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 gap-1 text-xs"
+                                  disabled={loading || sectionLoadingIndex !== null || generateBlocked}
+                                  onClick={() =>
+                                    setRegenPromptOpenIndex((prev) => (prev === i ? null : i))
+                                  }
+                                >
                                   <Wand2 className="size-3" />
-                                )}
-                                {t('workspace.regenSection')}
-                              </Button>
+                                  {t('workspace.regenSection')}
+                                </Button>
+                              </div>
                             </div>
+                            {regenPromptOpenIndex === i && (
+                              <div className="space-y-2 rounded-md border bg-muted/20 p-3">
+                                <p className="text-xs text-muted-foreground">
+                                  {t('workspace.regenInstructionHint')}
+                                </p>
+                                <Textarea
+                                  rows={3}
+                                  value={regenInstructions[i] ?? ''}
+                                  onChange={(e) =>
+                                    setRegenInstructions((prev) => ({
+                                      ...prev,
+                                      [i]: e.target.value,
+                                    }))
+                                  }
+                                  placeholder={t('workspace.regenInstructionPlaceholder')}
+                                  className="text-sm"
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    className="gap-1"
+                                    disabled={loading || sectionLoadingIndex !== null || generateBlocked}
+                                    onClick={() => void handleRegenerateSection(i)}
+                                  >
+                                    {sectionLoadingIndex === i ? (
+                                      <Loader2 className="size-3 animate-spin" />
+                                    ) : (
+                                      <Wand2 className="size-3" />
+                                    )}
+                                    {t('workspace.regenSectionRun')}
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    disabled={sectionLoadingIndex === i}
+                                    onClick={() => setRegenPromptOpenIndex(null)}
+                                  >
+                                    {t('common.cancel')}
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
                             {status === 'error' && meta?.error && (
                               <p className="text-xs text-destructive">{meta.error}</p>
                             )}
-                            {body.trim() ? (
+                            {editingSectionIndex === i ? (
+                              <div className="space-y-2">
+                                <Textarea
+                                  value={editDraft}
+                                  onChange={(e) => setEditDraft(e.target.value)}
+                                  className="min-h-32 text-base leading-loose"
+                                />
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <WrittenCharCount count={editDraft.length} target={targetChars} />
+                                  <div className="flex flex-wrap gap-2">
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      onClick={() => applyEditedContent(i, editDraft)}
+                                    >
+                                      {t('workspace.editSectionSave')}
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setEditingSectionIndex(null)}
+                                    >
+                                      {t('common.cancel')}
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : body.trim() ? (
                               <HighlightedContent
                                 content={body}
                                 detections={detections.filter((d) => body.includes(d.sentence))}
@@ -1090,7 +1598,61 @@ export default function WorkspacePage() {
                     </div>
                   );
                 }
-                return <HighlightedContent content={displayedResult} detections={detections} />;
+                  return (
+                    <div className="space-y-2">
+                      {!isTyping && editingSectionIndex !== 'all' && (
+                        <div className="flex justify-end">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-7 gap-1 text-xs"
+                            onClick={() => {
+                              setEditingSectionIndex('all');
+                              setEditDraft(displayedResult);
+                            }}
+                          >
+                            <Pencil className="size-3" />
+                            {t('workspace.editWhole')}
+                          </Button>
+                        </div>
+                      )}
+                      {editingSectionIndex === 'all' ? (
+                        <div className="space-y-2">
+                          <Textarea
+                            value={editDraft}
+                            onChange={(e) => setEditDraft(e.target.value)}
+                            className="min-h-48 text-base leading-loose"
+                          />
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <WrittenCharCount count={editDraft.length} />
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => applyEditedContent('all', editDraft)}
+                              >
+                                {t('workspace.editSectionSave')}
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingSectionIndex(null)}
+                              >
+                                {t('common.cancel')}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <WrittenCharCount count={displayedResult.length} />
+                          <HighlightedContent content={displayedResult} detections={detections} />
+                        </div>
+                      )}
+                    </div>
+                  );
               })()}
 
               {!isTyping && (
@@ -1120,7 +1682,9 @@ export default function WorkspacePage() {
                                 </Popover>
                               )}
                             </div>
-                            <p className="text-lg font-semibold">{v}</p>
+                            <p className="text-lg font-semibold tabular-nums">
+                              {formatQualityScore(k, v, reviewScoreScale(scores))}
+                            </p>
                           </CardContent>
                         </Card>
                       ))}
@@ -1315,6 +1879,42 @@ export default function WorkspacePage() {
       </Alert>
 
       <WorkspaceLayout left={leftPanel} right={rightPanel} />
+
+      <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+        <DialogContent>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              submitSave();
+            }}
+          >
+            <DialogHeader>
+              <DialogTitle>{t('workspace.saveDialogTitle')}</DialogTitle>
+              <DialogDescription>{t('workspace.saveDialogDesc')}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 py-2">
+              <Label htmlFor="workspace-save-name">{t('workspace.saveDialogName')}</Label>
+              <Input
+                id="workspace-save-name"
+                value={saveName}
+                maxLength={80}
+                autoComplete="off"
+                placeholder={t('workspace.saveDialogPlaceholder')}
+                onChange={(e) => setSaveName(e.target.value)}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setSaveDialogOpen(false)}>
+                {t('common.cancel')}
+              </Button>
+              <Button type="submit" className="gap-1.5" disabled={!saveName.trim() || saveMutation.isPending}>
+                {saveMutation.isPending && <Loader2 className="size-3.5 animate-spin" />}
+                {t('workspace.saveDialogAction')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

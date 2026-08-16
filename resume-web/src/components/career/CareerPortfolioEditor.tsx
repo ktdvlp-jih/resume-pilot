@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import type { CareerPortfolio, CareerItem, EducationItem, CertificationItem } from '@/lib/career-portfolio';
 import { emptyCareerItem, emptyEducationItem, emptyCertificationItem, SKILL_LEVELS, certificationDisplayText } from '@/lib/career-portfolio';
@@ -19,6 +20,16 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowDown, ArrowUp, Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
+
+type PortfolioSectionType =
+  | 'CAREER_STATEMENT'
+  | 'JOB_EXPERIENCE'
+  | 'COLLABORATION'
+  | 'GROWTH_VALUES'
+  | 'PERSONALITY'
+  | 'MOTIVATION';
+
+type PortfolioReviewResult = Awaited<ReturnType<typeof api.reviewPortfolio>>;
 
 interface Props {
   value: CareerPortfolio;
@@ -109,21 +120,46 @@ export function CareerPortfolioEditor({ value, onChange }: Props) {
       </Section>
 
       <Section title={t('portfolio.careerStatement')} subtitle={t('portfolio.careerStatementHint')}>
-        <Textarea
-          rows={8}
+        <ReviewableDraft
+          sectionType="CAREER_STATEMENT"
           value={value.careerStatement}
-          onChange={(e) => patch({ careerStatement: e.target.value })}
+          onChange={(v) => patch({ careerStatement: v })}
           placeholder={t('portfolio.careerStatementPlaceholder')}
         />
       </Section>
 
       <Section title={t('portfolio.coverLetter')} subtitle={t('portfolio.coverLetterHint')}>
         <div className="space-y-4">
-          <CoverField label={`5-1. ${t('portfolio.section51')}`} value={value.coverLetter.jobExperience} onChange={(v) => patch({ coverLetter: { ...value.coverLetter, jobExperience: v } })} />
-          <CoverField label={`5-2. ${t('portfolio.section52')}`} value={value.coverLetter.collaboration} onChange={(v) => patch({ coverLetter: { ...value.coverLetter, collaboration: v } })} />
-          <CoverField label={`5-3. ${t('portfolio.section53')}`} value={value.coverLetter.growthValues} onChange={(v) => patch({ coverLetter: { ...value.coverLetter, growthValues: v } })} />
-          <CoverField label={`5-4. ${t('portfolio.section54')}`} value={value.coverLetter.personality} onChange={(v) => patch({ coverLetter: { ...value.coverLetter, personality: v } })} />
-          <CoverField label={`5-5. ${t('portfolio.section55')}`} value={value.coverLetter.motivation} onChange={(v) => patch({ coverLetter: { ...value.coverLetter, motivation: v } })} />
+          <CoverField
+            label={`5-1. ${t('portfolio.section51')}`}
+            sectionType="JOB_EXPERIENCE"
+            value={value.coverLetter.jobExperience}
+            onChange={(v) => patch({ coverLetter: { ...value.coverLetter, jobExperience: v } })}
+          />
+          <CoverField
+            label={`5-2. ${t('portfolio.section52')}`}
+            sectionType="COLLABORATION"
+            value={value.coverLetter.collaboration}
+            onChange={(v) => patch({ coverLetter: { ...value.coverLetter, collaboration: v } })}
+          />
+          <CoverField
+            label={`5-3. ${t('portfolio.section53')}`}
+            sectionType="GROWTH_VALUES"
+            value={value.coverLetter.growthValues}
+            onChange={(v) => patch({ coverLetter: { ...value.coverLetter, growthValues: v } })}
+          />
+          <CoverField
+            label={`5-4. ${t('portfolio.section54')}`}
+            sectionType="PERSONALITY"
+            value={value.coverLetter.personality}
+            onChange={(v) => patch({ coverLetter: { ...value.coverLetter, personality: v } })}
+          />
+          <CoverField
+            label={`5-5. ${t('portfolio.section55')}`}
+            sectionType="MOTIVATION"
+            value={value.coverLetter.motivation}
+            onChange={(v) => patch({ coverLetter: { ...value.coverLetter, motivation: v } })}
+          />
         </div>
       </Section>
     </div>
@@ -700,15 +736,232 @@ function SkillPicker({ existing, onAdd }: { existing: string[]; onAdd: (items: P
   );
 }
 
-function CoverField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function CoverField({
+  label,
+  sectionType,
+  value,
+  onChange,
+}: {
+  label: string;
+  sectionType: PortfolioSectionType;
+  value: string;
+  onChange: (v: string) => void;
+}) {
   return (
     <Card size="sm">
       <CardHeader>
         <CardTitle className="text-sm text-primary">{label}</CardTitle>
       </CardHeader>
       <CardContent>
-        <Textarea rows={4} value={value} onChange={(e) => onChange(e.target.value)} />
+        <ReviewableDraft sectionType={sectionType} value={value} onChange={onChange} />
       </CardContent>
     </Card>
+  );
+}
+
+const DRAFT_ROWS_STORAGE_KEY = 'resume-pilot.portfolio-draft-rows';
+const DRAFT_ROWS_MIN = 6;
+const DRAFT_ROWS_MAX = 60;
+
+const DEFAULT_DRAFT_ROWS: Record<PortfolioSectionType, number> = {
+  CAREER_STATEMENT: 20,
+  JOB_EXPERIENCE: 14,
+  COLLABORATION: 14,
+  GROWTH_VALUES: 14,
+  PERSONALITY: 12,
+  MOTIVATION: 12,
+};
+
+function clampDraftRows(n: number): number {
+  if (!Number.isFinite(n)) return DRAFT_ROWS_MIN;
+  return Math.min(DRAFT_ROWS_MAX, Math.max(DRAFT_ROWS_MIN, Math.round(n)));
+}
+
+function readStoredDraftRows(sectionType: PortfolioSectionType): number | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_ROWS_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const value = parsed[sectionType];
+    return typeof value === 'number' ? clampDraftRows(value) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredDraftRows(sectionType: PortfolioSectionType, rows: number) {
+  try {
+    const raw = localStorage.getItem(DRAFT_ROWS_STORAGE_KEY);
+    const parsed = raw ? (JSON.parse(raw) as Record<string, number>) : {};
+    parsed[sectionType] = rows;
+    localStorage.setItem(DRAFT_ROWS_STORAGE_KEY, JSON.stringify(parsed));
+  } catch {
+    // ignore quota / private mode
+  }
+}
+
+function countDraftLines(text: string): number {
+  if (!text) return 0;
+  return text.split(/\r\n|\r|\n/).length;
+}
+
+function ReviewableDraft({
+  sectionType,
+  value,
+  onChange,
+  placeholder,
+}: {
+  sectionType: PortfolioSectionType;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  const { t } = useTranslation();
+  const [rows, setRows] = useState(
+    () => readStoredDraftRows(sectionType) ?? DEFAULT_DRAFT_ROWS[sectionType],
+  );
+  const [result, setResult] = useState<PortfolioReviewResult | null>(null);
+  const mutation = useMutation({
+    mutationFn: () => api.reviewPortfolio(sectionType, value),
+    onSuccess: (data) => setResult(data),
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : t('portfolio.reviewFailed'));
+    },
+  });
+
+  const lineCount = countDraftLines(value);
+  const charCount = value.length;
+
+  const updateRows = (next: number) => {
+    const clamped = clampDraftRows(next);
+    setRows(clamped);
+    writeStoredDraftRows(sectionType, clamped);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>{t('portfolio.draftRowsLabel')}</span>
+          <Input
+            type="number"
+            min={DRAFT_ROWS_MIN}
+            max={DRAFT_ROWS_MAX}
+            value={rows}
+            onChange={(e) => updateRows(Number(e.target.value))}
+            className="h-8 w-20"
+            aria-label={t('portfolio.draftRowsLabel')}
+          />
+        </label>
+        <p className="text-xs text-muted-foreground">
+          {t('portfolio.draftLengthStats', { lines: lineCount, chars: charCount })}
+        </p>
+      </div>
+      <Textarea
+        rows={rows}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="min-h-40 text-sm leading-relaxed"
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={mutation.isPending}
+          onClick={() => mutation.mutate()}
+        >
+          {mutation.isPending ? (
+            <>
+              <Loader2 className="size-3.5 animate-spin" />
+              {t('portfolio.reviewRunning')}
+            </>
+          ) : (
+            t('portfolio.reviewAgainstExperiences')
+          )}
+        </Button>
+        <p className="text-xs text-muted-foreground">{t('portfolio.reviewHint')}</p>
+      </div>
+      {result && <PortfolioReviewPanel result={result} />}
+    </div>
+  );
+}
+
+function PortfolioReviewPanel({ result }: { result: PortfolioReviewResult }) {
+  const { t } = useTranslation();
+  const relevant = result.relevant_experiences ?? [];
+  const unused = result.unused_experiences ?? [];
+  const unsupported = result.unsupported_claims ?? [];
+  const directions = result.revision_directions ?? [];
+  const empty =
+    relevant.length === 0 &&
+    unused.length === 0 &&
+    unsupported.length === 0 &&
+    directions.length === 0;
+
+  return (
+    <div className="space-y-3 rounded-md border bg-muted/30 p-3 text-sm">
+      {empty ? (
+        <p className="text-muted-foreground">{t('portfolio.reviewEmpty')}</p>
+      ) : (
+        <>
+          {relevant.length > 0 && (
+            <ReviewBlock title={t('portfolio.reviewRelevant')}>
+              <ul className="list-disc space-y-1 pl-4">
+                {relevant.map((item, i) => (
+                  <li key={item.id || i}>
+                    <span className="font-medium">{item.title || item.id}</span>
+                    {item.why_fits ? ` — ${item.why_fits}` : ''}
+                  </li>
+                ))}
+              </ul>
+            </ReviewBlock>
+          )}
+          {unused.length > 0 && (
+            <ReviewBlock title={t('portfolio.reviewUnused')}>
+              <ul className="list-disc space-y-1 pl-4">
+                {unused.map((item, i) => (
+                  <li key={item.id || i}>
+                    <span className="font-medium">{item.title || item.id}</span>
+                    {item.reason ? ` — ${item.reason}` : ''}
+                  </li>
+                ))}
+              </ul>
+            </ReviewBlock>
+          )}
+          {unsupported.length > 0 && (
+            <ReviewBlock title={t('portfolio.reviewUnsupported')}>
+              <ul className="list-disc space-y-1 pl-4">
+                {unsupported.map((item, i) => (
+                  <li key={i}>
+                    <span className="font-medium">{item.claim}</span>
+                    {item.reason ? ` — ${item.reason}` : ''}
+                  </li>
+                ))}
+              </ul>
+            </ReviewBlock>
+          )}
+          {directions.length > 0 && (
+            <ReviewBlock title={t('portfolio.reviewDirections')}>
+              <ul className="list-disc space-y-1 pl-4">
+                {directions.map((d, i) => (
+                  <li key={i}>{d}</li>
+                ))}
+              </ul>
+            </ReviewBlock>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function ReviewBlock({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="mb-1 font-medium text-foreground">{title}</p>
+      {children}
+    </div>
   );
 }

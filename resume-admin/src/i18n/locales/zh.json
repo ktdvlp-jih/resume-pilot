@@ -188,6 +188,7 @@
       "AI_REVIEW": "批改反馈",
       "INTERVIEW_QUESTIONS": "预期面试问题",
       "KEYWORD_COMPARE": "关键词对比",
+      "PORTFOLIO_REVIEW": "作品集经验对照",
       "EMBEDDING": "嵌入 (RAG)"
     }
   }

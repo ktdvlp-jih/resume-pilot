@@ -10,11 +10,26 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+function formatHistoryDate(iso: string, locale: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleString(locale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
 
 export default function WritingStylePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
   const [content, setContent] = useState('');
+  const [selectedResumeId, setSelectedResumeId] = useState<string>('');
+  const [selectedVersionId, setSelectedVersionId] = useState<string>('');
   const [showSaved, setShowSaved] = useState(false);
 
   const { data: style, isLoading } = useQuery({
@@ -26,6 +41,12 @@ export default function WritingStylePage() {
   const { data: resumes = [] } = useQuery({
     queryKey: ['resumes'],
     queryFn: () => api.listResumes(),
+  });
+
+  const { data: versions = [] } = useQuery({
+    queryKey: ['resume-versions', selectedResumeId],
+    queryFn: () => api.listResumeVersions(selectedResumeId),
+    enabled: !!selectedResumeId,
   });
 
   const analyzeMutation = useMutation({
@@ -45,12 +66,53 @@ export default function WritingStylePage() {
 
       {resumesWithContent.length > 0 && (
         <Section title={t('writingStyle.loadSection')} description={t('writingStyle.loadSectionDesc')}>
-          <div className="flex flex-wrap gap-2">
-            {resumesWithContent.map((r) => (
-              <Button key={r.id} variant="outline" size="sm" onClick={() => setContent(r.latestContent!)}>
-                {r.title} {t('writingStyle.loadFrom')}
-              </Button>
-            ))}
+          <div className="flex max-w-xl flex-col gap-2">
+            <Select
+              value={selectedResumeId || undefined}
+              onValueChange={(id) => {
+                const resume = resumesWithContent.find((r) => r.id === id);
+                setSelectedResumeId(id);
+                setSelectedVersionId('');
+                if (resume?.latestContent) setContent(resume.latestContent);
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={t('writingStyle.loadPlaceholder')} />
+              </SelectTrigger>
+              <SelectContent>
+                {resumesWithContent.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {[r.companyName, r.title].filter(Boolean).join(' · ')}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedResumeId && versions.length > 1 && (
+              <Select
+                value={selectedVersionId || versions[0]?.id}
+                onValueChange={(id) => {
+                  const version = versions.find((v) => v.id === id);
+                  setSelectedVersionId(id);
+                  if (version?.content) setContent(version.content);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t('writingStyle.loadVersionPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {versions.map((v) => {
+                    const date = formatHistoryDate(v.createdAt, i18n.language);
+                    const named = v.name?.trim()
+                      || (typeof v.metadata?.name === 'string' ? v.metadata.name.trim() : '');
+                    return (
+                      <SelectItem key={v.id} value={v.id}>
+                        {named || t('writingStyle.historyVersion', { n: v.versionNumber, date })}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </Section>
       )}

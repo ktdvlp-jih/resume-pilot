@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Columns2, Rows3, Trash2 } from 'lucide-react';
+import { Columns2, Pencil, Rows3, Trash2 } from 'lucide-react';
 import { api, type JobAnalysisResponse, type JobPostingResponse } from '@/lib/api';
 import { PageHeader } from '@/components/common/page-header';
 import { PageShell } from '@/components/common/page-shell';
@@ -54,21 +54,237 @@ function BulletList({ items }: { items: string[] }) {
   );
 }
 
+type AnalysisDraft = {
+  companyName: string;
+  position: string;
+  jobDescription: string;
+  jobResponsibilities: string;
+  qualifications: string;
+  requiredSkills: string;
+  preferredSkills: string;
+  workConditions: string;
+  benefits: string;
+  hiringProcess: string;
+  notes: string;
+  techKeywords: string;
+  solutionKeywords: string;
+  talentProfile: string;
+  coreCompetencies: string;
+  orgCulture: string;
+  recruitmentSections: Array<{
+    title: string;
+    headcount: string;
+    jobResponsibilities: string;
+    qualifications: string;
+    requiredSkills: string;
+    preferredSkills: string;
+  }>;
+};
+
+function listToLines(items?: string[] | null) {
+  return (items ?? []).join('\n');
+}
+
+function linesToList(text: string) {
+  return text.split('\n').map((line) => line.trim()).filter(Boolean);
+}
+
+function analysisToDraft(analysis: JobAnalysisResponse): AnalysisDraft {
+  return {
+    companyName: analysis.companyName ?? '',
+    position: analysis.position ?? '',
+    jobDescription: analysis.jobDescription ?? '',
+    jobResponsibilities: listToLines(analysis.jobResponsibilities),
+    qualifications: listToLines(analysis.qualifications),
+    requiredSkills: listToLines(analysis.requiredSkills),
+    preferredSkills: listToLines(analysis.preferredSkills),
+    workConditions: listToLines(analysis.workConditions),
+    benefits: listToLines(analysis.benefits),
+    hiringProcess: listToLines(analysis.hiringProcess),
+    notes: listToLines(analysis.notes),
+    techKeywords: listToLines(analysis.techKeywords),
+    solutionKeywords: listToLines(analysis.solutionKeywords),
+    talentProfile: listToLines(analysis.talentProfile),
+    coreCompetencies: listToLines(analysis.coreCompetencies),
+    orgCulture: listToLines(analysis.orgCulture),
+    recruitmentSections: (analysis.recruitmentSections ?? []).map((section) => ({
+      title: section.title ?? '',
+      headcount: section.headcount ?? '',
+      jobResponsibilities: listToLines(section.jobResponsibilities),
+      qualifications: listToLines(section.qualifications),
+      requiredSkills: listToLines(section.requiredSkills),
+      preferredSkills: listToLines(section.preferredSkills),
+    })),
+  };
+}
+
+function draftToUpdate(draft: AnalysisDraft) {
+  return {
+    companyName: draft.companyName.trim(),
+    position: draft.position.trim(),
+    jobDescription: draft.jobDescription.trim(),
+    jobResponsibilities: linesToList(draft.jobResponsibilities),
+    qualifications: linesToList(draft.qualifications),
+    requiredSkills: linesToList(draft.requiredSkills),
+    preferredSkills: linesToList(draft.preferredSkills),
+    workConditions: linesToList(draft.workConditions),
+    benefits: linesToList(draft.benefits),
+    hiringProcess: linesToList(draft.hiringProcess),
+    notes: linesToList(draft.notes),
+    techKeywords: linesToList(draft.techKeywords),
+    solutionKeywords: linesToList(draft.solutionKeywords),
+    talentProfile: linesToList(draft.talentProfile),
+    coreCompetencies: linesToList(draft.coreCompetencies),
+    orgCulture: linesToList(draft.orgCulture),
+    recruitmentSections: draft.recruitmentSections.map((section) => ({
+      title: section.title.trim(),
+      headcount: section.headcount.trim() || null,
+      jobResponsibilities: linesToList(section.jobResponsibilities),
+      qualifications: linesToList(section.qualifications),
+      requiredSkills: linesToList(section.requiredSkills),
+      preferredSkills: linesToList(section.preferredSkills),
+    })),
+  };
+}
+
 function AnalysisPanel({
   analysis,
   emptyTitle,
   sectionsClassName,
   className,
+  editing,
+  draft,
+  onDraftChange,
 }: {
   analysis: JobAnalysisResponse | null;
   emptyTitle: string;
   sectionsClassName?: string;
   className?: string;
+  editing?: boolean;
+  draft?: AnalysisDraft | null;
+  onDraftChange?: (next: AnalysisDraft) => void;
 }) {
   const { t } = useTranslation();
 
   if (!analysis) {
     return <EmptyState title={emptyTitle} className={cn('min-h-56', className)} />;
+  }
+
+  const updateDraft = (patch: Partial<AnalysisDraft>) => {
+    if (!draft || !onDraftChange) return;
+    onDraftChange({ ...draft, ...patch });
+  };
+
+  if (editing && draft) {
+    const listFields: Array<{ key: keyof AnalysisDraft; label: string }> = [
+      { key: 'jobResponsibilities', label: t('jobPostings.jobResponsibilities') },
+      { key: 'qualifications', label: t('jobPostings.qualifications') },
+      { key: 'requiredSkills', label: t('jobPostings.requiredSkills') },
+      { key: 'preferredSkills', label: t('jobPostings.preferredSkills') },
+      { key: 'workConditions', label: t('jobPostings.workConditions') },
+      { key: 'benefits', label: t('jobPostings.benefits') },
+      { key: 'hiringProcess', label: t('jobPostings.hiringProcess') },
+      { key: 'notes', label: t('jobPostings.notes') },
+      { key: 'techKeywords', label: t('jobPostings.techKeywords') },
+      { key: 'solutionKeywords', label: t('jobPostings.solutionKeywords') },
+      { key: 'talentProfile', label: t('jobPostings.talentProfile') },
+      { key: 'coreCompetencies', label: t('jobPostings.coreCompetencies') },
+      { key: 'orgCulture', label: t('jobPostings.orgCulture') },
+    ];
+    return (
+      <Card className={cn('flex min-h-0 flex-col overflow-hidden', className)}>
+        <CardContent className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain pt-6">
+          <p className="text-xs text-muted-foreground">{t('jobPostings.listHint')}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>{t('jobPostings.company')}</Label>
+              <Input value={draft.companyName} onChange={(e) => updateDraft({ companyName: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('jobPostings.position')}</Label>
+              <Input value={draft.position} onChange={(e) => updateDraft({ position: e.target.value })} />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>{t('jobPostings.summary')}</Label>
+            <Textarea
+              value={draft.jobDescription}
+              onChange={(e) => updateDraft({ jobDescription: e.target.value })}
+              className="min-h-24"
+            />
+          </div>
+          {draft.recruitmentSections.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">{t('jobPostings.recruitmentSections')}</p>
+              {draft.recruitmentSections.map((section, index) => (
+                <div key={`${section.title}-${index}`} className="space-y-3 rounded-lg border border-border/70 p-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>{t('jobPostings.columns.title')}</Label>
+                      <Input
+                        value={section.title}
+                        onChange={(e) => {
+                          const recruitmentSections = draft.recruitmentSections.map((item, i) =>
+                            i === index ? { ...item, title: e.target.value } : item,
+                          );
+                          updateDraft({ recruitmentSections });
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{t('jobPostings.headcount')}</Label>
+                      <Input
+                        value={section.headcount}
+                        onChange={(e) => {
+                          const recruitmentSections = draft.recruitmentSections.map((item, i) =>
+                            i === index ? { ...item, headcount: e.target.value } : item,
+                          );
+                          updateDraft({ recruitmentSections });
+                        }}
+                      />
+                    </div>
+                  </div>
+                  {(
+                    [
+                      ['jobResponsibilities', t('jobPostings.jobResponsibilities')],
+                      ['qualifications', t('jobPostings.qualifications')],
+                      ['requiredSkills', t('jobPostings.requiredSkills')],
+                      ['preferredSkills', t('jobPostings.preferredSkills')],
+                    ] as const
+                  ).map(([field, label]) => (
+                    <div key={field} className="space-y-2">
+                      <Label>{label}</Label>
+                      <Textarea
+                        value={section[field]}
+                        onChange={(e) => {
+                          const recruitmentSections = draft.recruitmentSections.map((item, i) =>
+                            i === index ? { ...item, [field]: e.target.value } : item,
+                          );
+                          updateDraft({ recruitmentSections });
+                        }}
+                        className="min-h-20"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+          {listFields
+            .filter((field) => draft.recruitmentSections.length === 0 || !['jobResponsibilities', 'qualifications', 'requiredSkills', 'preferredSkills'].includes(field.key))
+            .map((field) => (
+              <div key={field.key} className="space-y-2">
+                <Label>{field.label}</Label>
+                <Textarea
+                  value={String(draft[field.key] ?? '')}
+                  onChange={(e) => updateDraft({ [field.key]: e.target.value })}
+                  className="min-h-20"
+                />
+              </div>
+            ))}
+        </CardContent>
+      </Card>
+    );
   }
 
   const sharedSections = [
@@ -165,8 +381,11 @@ export default function JobPostingsPage() {
   const [content, setContent] = useState('');
   const [sourceUrl, setSourceUrl] = useState('');
   const [title, setTitle] = useState('');
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<JobAnalysisResponse | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<AnalysisDraft | null>(null);
   const [search, setSearch] = useState('');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(() =>
     typeof window === 'undefined' ? 'split' : readLayoutMode(),
@@ -179,6 +398,12 @@ export default function JobPostingsPage() {
       /* ignore */
     }
   }, [layoutMode]);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    };
+  }, [imagePreviewUrl]);
 
   const { data: postings = [], isLoading } = useQuery({
     queryKey: ['job-postings'],
@@ -200,6 +425,23 @@ export default function JobPostingsPage() {
     onError: () => toast.error(t('common.error')),
   });
 
+  const updateAnalysisMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) => api.updateJobAnalysis(id, data),
+    onSuccess: (next) => {
+      queryClient.invalidateQueries({ queryKey: ['job-postings'] });
+      setAnalysis(next);
+      setDraft(analysisToDraft(next));
+      setEditing(false);
+      toast.success(t('jobPostings.analysisUpdated'));
+    },
+    onError: () => toast.error(t('common.error')),
+  });
+
+  const startEdit = (target: JobAnalysisResponse) => {
+    setDraft(analysisToDraft(target));
+    setEditing(true);
+  };
+
   const deleteMutation = useMutation({
     mutationFn: api.deleteJobPosting,
     onSuccess: () => {
@@ -207,6 +449,8 @@ export default function JobPostingsPage() {
       if (selectedId) {
         setSelectedId(null);
         setAnalysis(null);
+        setEditing(false);
+        setDraft(null);
       }
       toast.success(t('common.deleted'));
     },
@@ -221,27 +465,87 @@ export default function JobPostingsPage() {
       setSelectedId(posting.id);
       const result = await api.getJobAnalysis(posting.id);
       setAnalysis(result);
+      setContent('');
+      setTitle('');
+      setImagePreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
       toast.success(t('jobPostings.analyzed'));
     },
     onError: () => toast.error(t('common.error')),
   });
 
+  const requireTitle = () => {
+    if (title.trim()) return true;
+    toast.error(t('jobPostings.titleRequiredHint'));
+    return false;
+  };
+
+  const uploadImageFile = (file: File) => {
+    if (!requireTitle()) return;
+    setImagePreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
+    fileUploadMutation.mutate({ file, title: title.trim() });
+  };
+
+  const imageFileFromClipboard = (data: DataTransfer | null): File | null => {
+    if (!data) return null;
+    const fromFiles = Array.from(data.files).find((f) => f.type.startsWith('image/'));
+    if (fromFiles) return fromFiles;
+    for (const item of Array.from(data.items)) {
+      if (item.kind === 'file' && item.type.startsWith('image/')) {
+        const blob = item.getAsFile();
+        if (!blob) continue;
+        const ext = blob.type === 'image/jpeg' ? 'jpg' : blob.type.split('/')[1] || 'png';
+        return new File([blob], `capture.${ext}`, { type: blob.type });
+      }
+    }
+    return null;
+  };
+
+  const handleImagePaste = (e: React.ClipboardEvent) => {
+    const file = imageFileFromClipboard(e.clipboardData);
+    if (!file) return;
+    e.preventDefault();
+    e.stopPropagation();
+    uploadImageFile(file);
+  };
+
   const handleUpload = (e: React.FormEvent) => {
     e.preventDefault();
+    if (sourceType === 'TEXT' && !requireTitle()) return;
     uploadMutation.mutate({
       sourceType,
       content: sourceType === 'TEXT' ? content : undefined,
       sourceUrl: sourceType === 'URL' ? sourceUrl : undefined,
-      title: title || undefined,
+      title: title.trim() || undefined,
     });
   };
 
   const handleSelect = async (posting: JobPostingResponse) => {
     setSelectedId(posting.id);
+    setEditing(false);
+    setDraft(null);
     try {
       setAnalysis(await api.getJobAnalysis(posting.id));
     } catch {
       setAnalysis(null);
+    }
+  };
+
+  const handleStartEdit = async (posting: JobPostingResponse) => {
+    setSelectedId(posting.id);
+    try {
+      const result = await api.getJobAnalysis(posting.id);
+      setAnalysis(result);
+      startEdit(result);
+    } catch {
+      setAnalysis(null);
+      setEditing(false);
+      toast.error(t('common.error'));
     }
   };
 
@@ -250,7 +554,12 @@ export default function JobPostingsPage() {
     const file = e.dataTransfer.files[0];
     if (!file) return;
     if (file.type.includes('pdf') || file.type.startsWith('image/')) {
-      fileUploadMutation.mutate({ file, title: file.name });
+      if (!requireTitle()) return;
+      if (file.type.startsWith('image/')) {
+        uploadImageFile(file);
+      } else {
+        fileUploadMutation.mutate({ file, title: title.trim() });
+      }
     } else {
       file.text().then((text) => {
         setSourceType('TEXT');
@@ -331,6 +640,20 @@ export default function JobPostingsPage() {
             </TabsList>
           </Tabs>
 
+          {sourceType === 'TEXT' && (
+            <div className="space-y-2">
+              <Label>{t('jobPostings.titleRequired')}</Label>
+              <Input
+                data-testid="job-posting-title-input"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                placeholder={t('jobPostings.titleRequiredPlaceholder')}
+              />
+              <p className="text-xs text-muted-foreground">{t('jobPostings.titleRequiredHint')}</p>
+            </div>
+          )}
+
           {sourceType === 'URL' ? (
             <div className="space-y-2">
               <Label>{t('jobPostings.urlLabel')}</Label>
@@ -348,22 +671,43 @@ export default function JobPostingsPage() {
             <div
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleFileDrop}
+              onPaste={handleImagePaste}
               className="rounded-lg border border-dashed p-4"
             >
               <Textarea
                 data-testid="job-posting-content-input"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                onPaste={handleImagePaste}
                 placeholder={t('jobPostings.contentPlaceholder')}
                 className="min-h-40"
-                required
+                required={!imagePreviewUrl}
               />
+              <p className="mt-2 text-xs text-muted-foreground">{t('jobPostings.pasteHint')}</p>
+              {imagePreviewUrl && (
+                <img
+                  src={imagePreviewUrl}
+                  alt={t('jobPostings.pastePreviewAlt')}
+                  className="mt-2 max-h-40 rounded-md border object-contain"
+                />
+              )}
               <Input
                 type="file"
                 accept=".pdf,.png,.jpg,.jpeg,.webp,.txt"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) fileUploadMutation.mutate({ file, title: file.name });
+                  if (!file) return;
+                  if (file.type.startsWith('image/')) {
+                    uploadImageFile(file);
+                  } else if (file.type.includes('pdf')) {
+                    if (!requireTitle()) return;
+                    fileUploadMutation.mutate({ file, title: title.trim() });
+                  } else {
+                    file.text().then((text) => {
+                      setContent(text);
+                      setTitle(file.name);
+                    });
+                  }
                 }}
                 className="mt-2"
               />
@@ -373,18 +717,26 @@ export default function JobPostingsPage() {
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label>{t('jobPostings.titleOptional')}</Label>
-            <Input
-              data-testid="job-posting-title-input"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
+          {sourceType === 'URL' && (
+            <div className="space-y-2">
+              <Label>{t('jobPostings.titleOptional')}</Label>
+              <Input
+                data-testid="job-posting-title-input"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </div>
+          )}
         </CardContent>
         <CardContent className="pt-0">
-          <Button type="submit" data-testid="job-posting-upload-btn" disabled={uploadMutation.isPending}>
-            {uploadMutation.isPending ? t('common.analyzing') : t('jobPostings.uploadAnalyze')}
+          <Button
+            type="submit"
+            data-testid="job-posting-upload-btn"
+            disabled={uploadMutation.isPending || fileUploadMutation.isPending}
+          >
+            {uploadMutation.isPending || fileUploadMutation.isPending
+              ? t('common.analyzing')
+              : t('jobPostings.uploadAnalyze')}
           </Button>
         </CardContent>
       </form>
@@ -392,6 +744,41 @@ export default function JobPostingsPage() {
   );
 
   const splitPanel = layoutMode === 'split';
+
+  const analysisActions = analysis ? (
+    editing ? (
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          size="sm"
+          disabled={updateAnalysisMutation.isPending || !draft}
+          onClick={() => {
+            if (!selectedId || !draft) return;
+            updateAnalysisMutation.mutate({ id: selectedId, data: draftToUpdate(draft) });
+          }}
+        >
+          {t('common.save')}
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={updateAnalysisMutation.isPending}
+          onClick={() => {
+            setEditing(false);
+            setDraft(null);
+          }}
+        >
+          {t('common.cancel')}
+        </Button>
+      </div>
+    ) : (
+      <Button type="button" size="sm" variant="outline" onClick={() => startEdit(analysis)}>
+        <Pencil className="size-3.5" />
+        {t('jobPostings.editAnalysis')}
+      </Button>
+    )
+  ) : null;
 
   const savedList = (
     <Section
@@ -470,7 +857,15 @@ export default function JobPostingsPage() {
                         <span>{new Date(p.createdAt).toLocaleDateString(dateLocale)}</span>
                       </div>
                     </div>
-                    <div onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={t('common.edit')}
+                        onClick={() => handleStartEdit(p)}
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
                       <ConfirmDialog
                         trigger={
                           <Button variant="ghost" size="icon-sm" aria-label={t('common.delete')}>
@@ -545,6 +940,10 @@ export default function JobPostingsPage() {
                         {new Date(p.createdAt).toLocaleDateString(dateLocale)}
                       </TableCell>
                       <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => handleStartEdit(p)}>
+                          {t('common.edit')}
+                        </Button>
                         <ConfirmDialog
                           trigger={
                             <Button variant="ghost" size="sm">
@@ -558,6 +957,7 @@ export default function JobPostingsPage() {
                           destructive
                           onConfirm={() => deleteMutation.mutate(p.id)}
                         />
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -583,6 +983,7 @@ export default function JobPostingsPage() {
           </div>
           <Section
             title={t('jobPostings.analysis')}
+            action={analysisActions}
             className="min-h-0 xl:sticky xl:top-4 xl:h-[calc(100svh-5.5rem)] xl:min-h-96 xl:overflow-hidden"
           >
             <AnalysisPanel
@@ -590,17 +991,23 @@ export default function JobPostingsPage() {
               emptyTitle={t('jobPostings.selectOrUpload')}
               sectionsClassName="grid-cols-1"
               className="min-h-0 flex-1"
+              editing={editing}
+              draft={draft}
+              onDraftChange={setDraft}
             />
           </Section>
         </div>
       ) : (
         <div className="space-y-6">
           {savedList}
-          <Section title={t('jobPostings.analysis')}>
+          <Section title={t('jobPostings.analysis')} action={analysisActions}>
             <AnalysisPanel
               analysis={analysis}
               emptyTitle={t('jobPostings.selectOrUpload')}
               sectionsClassName="md:grid-cols-2"
+              editing={editing}
+              draft={draft}
+              onDraftChange={setDraft}
             />
           </Section>
         </div>
