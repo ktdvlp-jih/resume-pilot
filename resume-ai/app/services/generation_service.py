@@ -475,9 +475,115 @@ class PortfolioReviewService:
         return out
 
 
+class SectionAnalysisService:
+    """문항 제목만 구조화. 경험 ID는 고르지 않는다."""
+
+    INTENTS = {
+        "motivation", "growth", "competency", "aspiration",
+        "collaboration", "conflict", "leadership", "problem", "achievement", "other",
+    }
+    LOOK_FOR = {
+        "PROJECT", "ACHIEVEMENT", "COLLABORATION", "CONFLICT_RESOLUTION",
+        "PROBLEM_SOLVING", "LEADERSHIP", "TECHNOLOGY", "OTHER",
+    }
+
+    async def analyze(self, section_titles: list[str]) -> dict[str, Any]:
+        titles = [str(t).strip() for t in (section_titles or []) if str(t).strip()][:5]
+        if not titles:
+            return {"sections": [], "model": None}
+        if not await llm_service.has_routes("SECTION_ANALYSIS"):
+            raise RuntimeError("LLM routes unavailable for SECTION_ANALYSIS")
+        titles_text = "\n".join(f"{i + 1}. {title}" for i, title in enumerate(titles))
+        prompt = await prompt_client.render("SECTION_ANALYSIS", {"section_titles": titles_text})
+        parsed, completion = await llm_service.complete_json_value_for_operation(
+            "SECTION_ANALYSIS",
+            prompt["system_prompt"],
+            prompt["user_prompt"],
+            temperature=0.1,
+        )
+        if not isinstance(parsed, dict):
+            raise RuntimeError(
+                f"SECTION_ANALYSIS returned unparseable response: {(completion.content or '')[:200]}"
+            )
+        return {
+            "sections": self.normalize(titles, parsed),
+            "model": completion.model,
+        }
+
+    @classmethod
+    def normalize(cls, titles: list[str], parsed: dict[str, Any]) -> list[dict[str, Any]]:
+        raw = parsed.get("sections")
+        by_index: dict[int, dict[str, Any]] = {}
+        if isinstance(raw, list):
+            for item in raw:
+                if not isinstance(item, dict):
+                    continue
+                try:
+                    idx = int(item.get("index"))
+                except (TypeError, ValueError):
+                    continue
+                by_index[idx] = item
+        out: list[dict[str, Any]] = []
+        for i, title in enumerate(titles):
+            item = by_index.get(i) or {}
+            intent = str(item.get("intent") or "other").strip().lower()
+            if intent not in cls.INTENTS:
+                intent = "other"
+            look_raw = item.get("look_for")
+            look_for: list[str] = []
+            if isinstance(look_raw, list):
+                for v in look_raw:
+                    key = str(v or "").strip().upper()
+                    if key in cls.LOOK_FOR and key not in look_for:
+                        look_for.append(key)
+            if not look_for:
+                look_for = cls._default_look_for(intent)
+            needs = item.get("needs_unique_story")
+            if needs is None:
+                needs = intent != "aspiration"
+            max_n = item.get("max_experiences")
+            try:
+                max_experiences = int(max_n)
+            except (TypeError, ValueError):
+                max_experiences = 2 if intent == "competency" else 1
+            if max_experiences < 1:
+                max_experiences = 1
+            if max_experiences > 2:
+                max_experiences = 2
+            if intent == "aspiration":
+                needs = False
+                max_experiences = 1
+            asks = str(item.get("asks") or "").strip()
+            out.append({
+                "index": i,
+                "title": title,
+                "intent": intent,
+                "needs_unique_story": bool(needs),
+                "max_experiences": max_experiences,
+                "look_for": look_for,
+                "asks": asks,
+            })
+        return out
+
+    @staticmethod
+    def _default_look_for(intent: str) -> list[str]:
+        return {
+            "motivation": ["ACHIEVEMENT", "PROJECT"],
+            "growth": ["PROBLEM_SOLVING", "CONFLICT_RESOLUTION", "OTHER"],
+            "competency": ["PROJECT", "TECHNOLOGY", "ACHIEVEMENT"],
+            "aspiration": ["OTHER"],
+            "collaboration": ["COLLABORATION"],
+            "conflict": ["CONFLICT_RESOLUTION"],
+            "leadership": ["LEADERSHIP"],
+            "problem": ["PROBLEM_SOLVING"],
+            "achievement": ["ACHIEVEMENT"],
+        }.get(intent, ["PROJECT", "OTHER"])
+
+
 generation_service = GenerationService()
 detection_service = DetectionService()
 review_service = ReviewService()
 interview_service = InterviewService()
 keyword_service = KeywordService()
 portfolio_review_service = PortfolioReviewService()
+section_analysis_service = SectionAnalysisService()

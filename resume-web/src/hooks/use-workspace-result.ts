@@ -4,7 +4,7 @@ const RESULT_KEY = 'resume-pilot-workspace-result';
 const DEBOUNCE_MS = 400;
 const MANUAL_KEY = '__manual__';
 
-export type RecommendedItem = { id: string; title: string; score: number };
+export type RecommendedItem = { id: string; title: string; score: number; type?: string; description?: string };
 export type InterviewItem = { category: string; question: string };
 export type SectionAiStatus = 'idle' | 'loading' | 'ok' | 'error' | 'skipped';
 export type PanelAiStatus = 'idle' | 'loading' | 'ok' | 'error';

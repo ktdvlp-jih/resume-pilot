@@ -57,6 +57,10 @@ public class AiGatewayClient {
         return post("/review/portfolio", request);
     }
 
+    public Map<String, Object> analyzeSections(Map<String, Object> request) {
+        return post("/analyze/sections", request);
+    }
+
     private Map<String, Object> post(String path, Map<String, Object> request) {
         try {
             return client().post()

@@ -9,6 +9,7 @@ export function SectionExperiencePicker({
   disabled,
   emptyLabel,
   countLabel,
+  max = MAX_EXPERIENCES_PER_SECTION,
   onToggle,
 }: {
   pool: PoolItem[];
@@ -16,9 +17,11 @@ export function SectionExperiencePicker({
   disabled?: boolean;
   emptyLabel: string;
   countLabel: string;
+  max?: number;
   onToggle: (id: string) => void;
 }) {
   const assigned = new Set(assignedIds);
+  const cap = Math.min(MAX_EXPERIENCES_PER_SECTION, Math.max(1, max));
 
   if (pool.length === 0) {
     return <p className="text-xs text-muted-foreground">{emptyLabel}</p>;
@@ -30,7 +33,7 @@ export function SectionExperiencePicker({
       <div className="flex flex-wrap gap-1.5">
         {pool.map((item) => {
           const on = assigned.has(item.id);
-          const atLimit = !on && assignedIds.length >= MAX_EXPERIENCES_PER_SECTION;
+          const atLimit = !on && assignedIds.length >= cap;
           return (
             <button
               key={item.id}

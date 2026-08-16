@@ -189,6 +189,7 @@
       "INTERVIEW_QUESTIONS": "예상 면접 질문",
       "KEYWORD_COMPARE": "키워드 비교",
       "PORTFOLIO_REVIEW": "포트폴리오 경험 대조",
+      "SECTION_ANALYSIS": "자소서 문항 분석",
       "EMBEDDING": "임베딩 (RAG)"
     }
   }

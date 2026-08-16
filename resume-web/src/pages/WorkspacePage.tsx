@@ -40,10 +40,12 @@ import { SectionExperiencePicker } from '@/components/workspace/section-experien
 import {
   alignSectionExperienceIds,
   autoAssignSectionExperiences,
-  firstSectionWithRoom,
-  MAX_EXPERIENCE_POOL,
-  MAX_EXPERIENCES_PER_SECTION,
-  pruneSectionExperienceIds,
+  parseSectionIntents,
+  qualityExperiencePoolLimit,
+  sectionExperienceCap,
+  sectionExperienceNeeds,
+  sectionExperienceShortfalls,
+  type ExperienceAssignMeta,
 } from '@/lib/section-experiences';
 import {
   postingIdsWithSavedLetter,
@@ -335,7 +337,7 @@ export default function WorkspacePage() {
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
   const { draft, setDraft, clearDraft, saveStatus: draftSaveStatus, wasRestored } = useWorkspaceDraft();
-  const { selectedPostingId, jobText, rewriteLevel, sectionTitles, sectionTargetChars, selectedExperienceIds, sectionExperienceIds } = draft;
+  const { selectedPostingId, jobText, rewriteLevel, sectionTitles, sectionTargetChars, selectedExperienceIds, experiencePoolLimit, sectionExperienceIds, sectionIntents, sectionIntentsKey } = draft;
   const {
     result,
     sectionTitles: savedSectionTitles,
@@ -404,33 +406,154 @@ export default function WorkspacePage() {
     [sectionTitles, sectionExperienceIds],
   );
 
+  const alignedTargetChars = useMemo(
+    () => alignSectionTargetChars(sectionTitles, sectionTargetChars),
+    [sectionTitles, sectionTargetChars],
+  );
+  const sectionNeeds = useMemo(
+    () => sectionExperienceNeeds(sectionTitles, sectionIntents, alignedTargetChars),
+    [sectionTitles, sectionIntents, alignedTargetChars],
+  );
+  const poolLimit = qualityExperiencePoolLimit(sectionTitles, sectionIntents, alignedTargetChars);
+  const assignmentShortfalls = useMemo(
+    () => sectionExperienceShortfalls(
+      sectionTitles,
+      alignedSectionExperienceIds,
+      sectionIntents,
+      alignedTargetChars,
+    ),
+    [sectionTitles, alignedSectionExperienceIds, sectionIntents, alignedTargetChars],
+  );
+
+  const { data: experiences = [] } = useQuery({ queryKey: ['experiences'], queryFn: () => api.listExperiences() });
+  const experienceById = useMemo(() => {
+    const map = new Map(experiences.map((e) => [e.id, e]));
+    return map;
+  }, [experiences]);
+
+  const assignSources = useMemo((): ExperienceAssignMeta[] => {
+    const map = new Map<string, ExperienceAssignMeta>();
+    for (const e of experiences) {
+      map.set(e.id, {
+        id: e.id,
+        type: e.type,
+        title: e.title,
+        description: e.description,
+        skills: e.skills,
+      });
+    }
+    for (const r of recommended) {
+      const prev = map.get(r.id);
+      map.set(r.id, {
+        id: r.id,
+        type: r.type || prev?.type,
+        title: r.title || prev?.title,
+        score: r.score,
+        description: r.description || prev?.description,
+        skills: prev?.skills,
+      });
+    }
+    return [...map.values()];
+  }, [experiences, recommended]);
+
+  const charsForTitles = (titles: string[], chars?: number[]) =>
+    alignSectionTargetChars(titles, chars ?? (titles.length === sectionTitles.length ? alignedTargetChars : undefined));
+
+  const assignToSections = (
+    titles: string[],
+    ids: string[],
+    extra?: ExperienceAssignMeta[],
+    intents = sectionIntents,
+    chars?: number[],
+  ) => autoAssignSectionExperiences(
+    titles,
+    ids,
+    extra ?? assignSources,
+    intents,
+    charsForTitles(titles, chars),
+  );
+
+  const analyzeSeq = useRef(0);
+  const titlesKey = sectionTitles.map((t) => t.trim()).join('\n');
+
+  useEffect(() => {
+    if (!titlesKey) {
+      setDraft((prev) => {
+        if (!prev.sectionIntents.length && !prev.sectionIntentsKey) return prev;
+        return { ...prev, sectionIntents: [], sectionIntentsKey: '' };
+      });
+      return;
+    }
+    if (sectionIntentsKey === titlesKey && sectionIntents.length === sectionTitles.length) return;
+    const seq = ++analyzeSeq.current;
+    const timer = window.setTimeout(async () => {
+      try {
+        const data = await api.analyzeSections(sectionTitles);
+        if (seq !== analyzeSeq.current) return;
+        if (!Array.isArray(data.sections) || data.sections.length === 0) return;
+        const intents = parseSectionIntents(data.sections, sectionTitles);
+        setDraft((prev) => {
+          const key = prev.sectionTitles.map((t) => t.trim()).join('\n');
+          if (key !== titlesKey) return prev;
+          const chars = alignSectionTargetChars(prev.sectionTitles, prev.sectionTargetChars);
+          const nextLimit = qualityExperiencePoolLimit(prev.sectionTitles, intents, chars);
+          const nextPool = prev.selectedExperienceIds.slice(0, nextLimit);
+          return {
+            ...prev,
+            sectionIntents: intents,
+            sectionIntentsKey: titlesKey,
+            experiencePoolLimit: nextLimit,
+            selectedExperienceIds: nextPool,
+            sectionExperienceIds: autoAssignSectionExperiences(
+              prev.sectionTitles,
+              nextPool,
+              assignSources,
+              intents,
+              chars,
+            ),
+          };
+        });
+      } catch {
+        // 분석 실패 시 제목 키워드 배정 유지
+      }
+    }, 450);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 문항 제목이 바뀔 때만 분석
+  }, [titlesKey]);
+
   const toggleExperience = (id: string) => {
     const nextPool = selectedExperienceIds.includes(id)
       ? selectedExperienceIds.filter((x) => x !== id)
-      : selectedExperienceIds.length >= MAX_EXPERIENCE_POOL
+      : selectedExperienceIds.length >= poolLimit
         ? selectedExperienceIds
         : [...selectedExperienceIds, id];
     if (nextPool === selectedExperienceIds) return;
 
-    let nextRows = alignedSectionExperienceIds;
-    if (!nextPool.includes(id)) {
-      nextRows = pruneSectionExperienceIds(nextRows, new Set(nextPool));
-    } else if (sectionTitles.length > 0 && !nextRows.some((row) => row.includes(id))) {
-      const target = firstSectionWithRoom(sectionTitles, nextRows);
-      if (target >= 0) {
-        nextRows = nextRows.map((row, i) => (i === target ? [...row, id] : row));
-      }
-    }
-    setDraft({ selectedExperienceIds: nextPool, sectionExperienceIds: nextRows });
+    setDraft({
+      selectedExperienceIds: nextPool,
+      sectionExperienceIds: assignToSections(sectionTitles, nextPool),
+    });
     if (result?.content) clearVisibleResult();
   };
+
+  useEffect(() => {
+    const nextPool = selectedExperienceIds.slice(0, poolLimit);
+    if (nextPool.length === selectedExperienceIds.length && experiencePoolLimit === poolLimit) return;
+    setDraft({
+      experiencePoolLimit: poolLimit,
+      selectedExperienceIds: nextPool,
+      sectionExperienceIds: assignToSections(sectionTitles, nextPool),
+    });
+    // 문항 구성·목표 글자 수에 맞춰 품질 기준 개수와 배정을 맞춘다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- poolLimit
+  }, [poolLimit]);
 
   const toggleSectionExperience = (sectionIndex: number, id: string) => {
     if (!selectedExperienceSet.has(id)) return;
     const nextRows = alignedSectionExperienceIds.map((row, i) => {
       if (i !== sectionIndex) return row;
       if (row.includes(id)) return row.filter((x) => x !== id);
-      if (row.length >= MAX_EXPERIENCES_PER_SECTION) return row;
+      if (row.length >= sectionExperienceCap(sectionNeeds[sectionIndex] ?? 0)) return row;
       return [...row, id];
     });
     setDraft({ sectionExperienceIds: nextRows });
@@ -439,7 +562,7 @@ export default function WorkspacePage() {
 
   const distributeSectionExperiences = () => {
     setDraft({
-      sectionExperienceIds: autoAssignSectionExperiences(sectionTitles, selectedExperienceIds),
+      sectionExperienceIds: assignToSections(sectionTitles, selectedExperienceIds),
     });
     if (result?.content) clearVisibleResult();
   };
@@ -448,30 +571,43 @@ export default function WorkspacePage() {
     const aligned = alignSectionExperienceIds(titles, alignedSectionExperienceIds);
     if (titles.length === 0) return [];
     if (aligned.some((row) => row.length > 0)) return aligned;
-    return autoAssignSectionExperiences(titles, selectedExperienceIds);
+    return assignToSections(titles, selectedExperienceIds);
   };
 
   const addSectionTitle = (title: string) => {
     const trimmed = title.trim();
     if (!trimmed || sectionTitles.includes(trimmed) || sectionTitles.length >= MAX_SECTIONS) return;
     const nextTitles = [...sectionTitles, trimmed];
+    const nextChars = [
+      ...alignSectionTargetChars(sectionTitles, sectionTargetChars),
+      DEFAULT_SECTION_TARGET_CHARS,
+    ];
+    const nextLimit = qualityExperiencePoolLimit(nextTitles, [], nextChars);
+    const nextPool = selectedExperienceIds.slice(0, nextLimit);
     setDraft({
       sectionTitles: nextTitles,
-      sectionTargetChars: [
-        ...alignSectionTargetChars(sectionTitles, sectionTargetChars),
-        DEFAULT_SECTION_TARGET_CHARS,
-      ],
-      sectionExperienceIds: [...alignedSectionExperienceIds, []],
+      sectionTargetChars: nextChars,
+      experiencePoolLimit: nextLimit,
+      selectedExperienceIds: nextPool,
+      sectionExperienceIds: assignToSections(nextTitles, nextPool, undefined, [], nextChars),
+      sectionIntents: [],
+      sectionIntentsKey: '',
     });
     if (result?.content) clearVisibleResult();
   };
   const removeSectionTitle = (index: number) => {
     const nextTitles = sectionTitles.filter((_, i) => i !== index);
-    const aligned = alignSectionTargetChars(sectionTitles, sectionTargetChars);
+    const nextChars = alignSectionTargetChars(sectionTitles, sectionTargetChars).filter((_, i) => i !== index);
+    const nextLimit = qualityExperiencePoolLimit(nextTitles, [], nextChars);
+    const nextPool = selectedExperienceIds.slice(0, nextLimit);
     setDraft({
       sectionTitles: nextTitles,
-      sectionTargetChars: aligned.filter((_, i) => i !== index),
-      sectionExperienceIds: alignedSectionExperienceIds.filter((_, i) => i !== index),
+      sectionTargetChars: nextChars,
+      experiencePoolLimit: nextLimit,
+      selectedExperienceIds: nextPool,
+      sectionExperienceIds: assignToSections(nextTitles, nextPool, undefined, [], nextChars),
+      sectionIntents: [],
+      sectionIntentsKey: '',
     });
     if (result?.content) clearVisibleResult();
   };
@@ -490,7 +626,15 @@ export default function WorkspacePage() {
   const setSectionTargetChar = (index: number, value: number) => {
     const chars = alignSectionTargetChars(sectionTitles, sectionTargetChars);
     chars[index] = clampSectionTargetChars(value);
-    setDraft({ sectionTargetChars: chars });
+    const nextLimit = qualityExperiencePoolLimit(sectionTitles, sectionIntents, chars);
+    const nextPool = selectedExperienceIds.slice(0, nextLimit);
+    setDraft({
+      sectionTargetChars: chars,
+      experiencePoolLimit: nextLimit,
+      selectedExperienceIds: nextPool,
+      sectionExperienceIds: assignToSections(sectionTitles, nextPool, undefined, sectionIntents, chars),
+    });
+    if (result?.content) clearVisibleResult();
   };
 
   const saveStatus = mergeSaveStatus(draftSaveStatus, resultSaveStatus);
@@ -525,13 +669,7 @@ export default function WorkspacePage() {
     }
     return ids;
   }, [allResumes, result, selectedPostingId, resultSaveStatus]);
-  const { data: experiences = [] } = useQuery({ queryKey: ['experiences'], queryFn: () => api.listExperiences() });
   const selectedPosting = postings.find((p) => p.id === selectedPostingId);
-
-  const experienceById = useMemo(() => {
-    const map = new Map(experiences.map((e) => [e.id, e]));
-    return map;
-  }, [experiences]);
 
   const experiencePoolItems = useMemo(
     () =>
@@ -731,14 +869,31 @@ export default function WorkspacePage() {
       const rec = await api.recommendExperiences(kw, RECOMMEND_FETCH_LIMIT, RECOMMEND_MIN_SCORE);
       if (seq !== recommendSeq.current) return;
       setRecommendPage(1);
+      const recMetas: ExperienceAssignMeta[] = rec.map((r) => {
+        const exp = experienceById.get(r.id);
+        return {
+          id: r.id,
+          type: r.type || exp?.type,
+          title: r.title || exp?.title,
+          score: r.score,
+          description: r.description || exp?.description,
+          skills: exp?.skills,
+        };
+      });
       setBundle({
-        recommended: rec.map((r) => ({ id: r.id, title: r.title, score: r.score })),
+        recommended: rec.map((r) => ({
+          id: r.id,
+          title: r.title,
+          type: r.type,
+          score: r.score,
+          description: r.description,
+        })),
       });
       const allowed = new Set(rec.map((r) => r.id));
-      const kept = selectedExperienceIds.filter((id) => allowed.has(id)).slice(0, MAX_EXPERIENCE_POOL);
+      const kept = selectedExperienceIds.filter((id) => allowed.has(id)).slice(0, poolLimit);
       setDraft({
         selectedExperienceIds: kept,
-        sectionExperienceIds: pruneSectionExperienceIds(alignedSectionExperienceIds, new Set(kept)),
+        sectionExperienceIds: assignToSections(sectionTitles, kept, recMetas),
       });
     } catch (err) {
       if (seq !== recommendSeq.current) return;
@@ -809,7 +964,7 @@ export default function WorkspacePage() {
         jobAnalysis,
         jobPostingId,
         sectionTitles: titles,
-        experienceIds: selectedExperienceIds.slice(0, MAX_EXPERIENCE_POOL),
+        experienceIds: selectedExperienceIds.slice(0, poolLimit),
         sectionExperienceIds: resolveSectionExperienceIds(titles),
         sectionIndex: index,
         existingParagraphs: existing,
@@ -934,7 +1089,7 @@ export default function WorkspacePage() {
         jobAnalysis,
         jobPostingId,
         sectionTitles: titles,
-        experienceIds: selectedExperienceIds.slice(0, MAX_EXPERIENCE_POOL),
+        experienceIds: selectedExperienceIds.slice(0, poolLimit),
         sectionExperienceIds: resolveSectionExperienceIds(titles),
         sectionTargetChars: alignSectionTargetChars(titles, sectionTargetChars),
       });
@@ -1129,6 +1284,7 @@ export default function WorkspacePage() {
             <div className="space-y-1.5">
               <p className="text-xs text-pretty text-muted-foreground">{t('workspace.sectionExperienceHint')}</p>
               <p className="text-xs text-pretty text-muted-foreground">{t('workspace.consistencyHint')}</p>
+              <p className="text-xs text-pretty text-muted-foreground">{t('workspace.sectionExperienceAutoHint')}</p>
               {selectedExperienceIds.length > 0 && (
                 <Button type="button" variant="outline" size="sm" onClick={distributeSectionExperiences}>
                   {t('workspace.sectionExperienceAuto')}
@@ -1140,7 +1296,8 @@ export default function WorkspacePage() {
           {sectionTitles.length > 0 && (
             <ol className="space-y-2">
               {sectionTitles.map((title, i) => {
-                const chars = alignSectionTargetChars(sectionTitles, sectionTargetChars);
+                const chars = alignedTargetChars;
+                const cap = sectionExperienceCap(sectionNeeds[i] ?? 0);
                 return (
                   <li key={`${title}-${i}`} className="space-y-1.5 rounded-md border bg-muted/20 px-2 py-2 text-sm">
                     <div className="flex items-center gap-1.5">
@@ -1166,9 +1323,10 @@ export default function WorkspacePage() {
                         pool={experiencePoolItems}
                         assignedIds={alignedSectionExperienceIds[i] ?? []}
                         emptyLabel={t('workspace.sectionExperienceEmpty')}
+                        max={cap}
                         countLabel={t('workspace.sectionExperienceCount', {
                           count: alignedSectionExperienceIds[i]?.length ?? 0,
-                          max: MAX_EXPERIENCES_PER_SECTION,
+                          max: cap,
                         })}
                         onToggle={(id) => toggleSectionExperience(i, id)}
                       />
@@ -1253,9 +1411,10 @@ export default function WorkspacePage() {
             {recommended.length > 0 ? (
               <div className="mt-2 space-y-1.5 rounded-md border bg-background p-2">
                 <p className="text-xs text-muted-foreground">{t('workspace.recommendedHint')}</p>
+                <p className="text-[11px] text-muted-foreground">{t('workspace.experiencesPoolLimitHint')}</p>
                 <p className="text-xs text-muted-foreground">
                   {t('workspace.experiencesLimit', {
-                    max: MAX_EXPERIENCE_POOL,
+                    max: poolLimit,
                     count: selectedExperienceIds.length,
                   })}
                 </p>
@@ -1263,7 +1422,7 @@ export default function WorkspacePage() {
                 <div className="space-y-1.5">
                   {pagedRecommended.map((r) => {
                     const selected = selectedExperienceSet.has(r.id);
-                    const atLimit = !selected && selectedExperienceIds.length >= MAX_EXPERIENCE_POOL;
+                    const atLimit = !selected && selectedExperienceIds.length >= poolLimit;
                     return (
                       <button
                         key={r.id}
@@ -1328,7 +1487,7 @@ export default function WorkspacePage() {
                 thin: selectedReadiness.thin,
                 empty: selectedReadiness.empty,
                 total: selectedReadiness.total,
-                max: MAX_EXPERIENCE_POOL,
+                max: poolLimit,
               })}
             </p>
             {generateBlocked ? (
@@ -1342,6 +1501,19 @@ export default function WorkspacePage() {
               </p>
             ) : needsThinConfirm ? (
               <p className="text-xs text-amber-700 dark:text-amber-400">{t('workspace.preflightThinWarn')}</p>
+            ) : assignmentShortfalls.length > 0 ? (
+              <div className="space-y-1">
+                {assignmentShortfalls.map((row) => (
+                  <p key={row.index} className="text-xs text-amber-700 dark:text-amber-400">
+                    {t('workspace.preflightSectionShort', {
+                      title: row.title,
+                      target: row.target,
+                      need: row.need,
+                      count: row.count,
+                    })}
+                  </p>
+                ))}
+              </div>
             ) : (
               <p className="text-xs text-muted-foreground">{t('workspace.preflightOk')}</p>
             )}

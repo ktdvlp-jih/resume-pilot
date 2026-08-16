@@ -189,6 +189,7 @@
       "INTERVIEW_QUESTIONS": "想定面接質問",
       "KEYWORD_COMPARE": "キーワード比較",
       "PORTFOLIO_REVIEW": "ポートフォリオ経験照合",
+      "SECTION_ANALYSIS": "志望書設問分析",
       "EMBEDDING": "埋め込み (RAG)"
     }
   }

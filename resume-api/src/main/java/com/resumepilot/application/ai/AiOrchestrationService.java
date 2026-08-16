@@ -216,6 +216,30 @@ public class AiOrchestrationService {
         }
     }
 
+    /** 문항 제목만 구조화. 경험 배정은 프론트의 규칙이 한다. */
+    public Map<String, Object> analyzeSections(UUID userId, AiSectionAnalysisRequest request) {
+        long start = System.currentTimeMillis();
+        List<String> titles = request.sectionTitles().stream()
+                .map(t -> t == null ? "" : t.trim())
+                .filter(t -> !t.isBlank())
+                .limit(5)
+                .toList();
+        if (titles.isEmpty()) {
+            return Map.of("sections", List.of());
+        }
+        try {
+            Map<String, Object> result = aiGatewayClient.analyzeSections(Map.of("section_titles", titles));
+            logUsage(userId, "section_analysis", start, true, str(result != null ? result.get("model") : null), null);
+            return result;
+        } catch (BusinessException e) {
+            logUsage(userId, "section_analysis", start, false, null, e.getMessage());
+            throw e;
+        } catch (RuntimeException e) {
+            logUsage(userId, "section_analysis", start, false, null, e.getMessage());
+            throw e;
+        }
+    }
+
     /** RAG 우회 — 유저 경험 전부를 텍스트로 직렬화해 프롬프트에 넣는다. */
     static String formatExperiencesForPortfolioReview(List<Experience> experiences) {
         StringBuilder sb = new StringBuilder();

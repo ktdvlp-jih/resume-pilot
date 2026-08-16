@@ -371,6 +371,22 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ sectionType, content }),
     }),
+  analyzeSections: (sectionTitles: string[]) =>
+    request<{
+      sections?: Array<{
+        index?: number;
+        title?: string;
+        intent?: string;
+        needs_unique_story?: boolean;
+        max_experiences?: number;
+        look_for?: string[];
+        asks?: string;
+      }>;
+      model?: string;
+    }>('/api/v1/ai/analyze-sections', {
+      method: 'POST',
+      body: JSON.stringify({ sectionTitles }),
+    }),
   interviewQuestions: (content: string) =>
     request<Record<string, unknown>>('/api/v1/ai/interview-questions', {
       method: 'POST', body: JSON.stringify({ content }),

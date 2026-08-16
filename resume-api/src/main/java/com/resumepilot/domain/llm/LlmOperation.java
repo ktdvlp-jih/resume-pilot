@@ -8,5 +8,6 @@ public enum LlmOperation {
     INTERVIEW_QUESTIONS,
     KEYWORD_COMPARE,
     PORTFOLIO_REVIEW,
+    SECTION_ANALYSIS,
     EMBEDDING
 }

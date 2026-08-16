@@ -269,3 +269,17 @@ def test_assignments_from_ids_empty_falls_back(parser: LlmService) -> None:
     experiences = [{"entity_id": "a", "content": "경험A"}]
     assert parser._assignments_from_ids(["지원동기"], experiences, [[], []]) is None
     assert parser._assignments_from_ids(["지원동기"], experiences, None) is None
+
+
+def test_assign_long_section_gets_more_experiences(parser: LlmService) -> None:
+    experiences = [{"entity_id": eid, "content": f"경험{eid} " * 20} for eid in "abcdef"]
+    titles = ["당사 지원 동기", "보유기술 및 경험직무", "경력기술서", "성취 사례"]
+    assigned = parser._assign_section_experiences(
+        titles,
+        experiences,
+        None,
+        [300, 4000, 300, 300],
+    )
+    assert [len(row) for row in assigned] == [1, 3, 1, 1]
+    used = [e["entity_id"] for row in assigned for e in row]
+    assert len(used) == len(set(used))

@@ -26,7 +26,7 @@ public record AiGenerateRequest(
         Boolean skipPostprocess
 ) {
     private static final int MAX_SECTIONS = 5;
-    private static final int MAX_EXPERIENCE_POOL = 8;
+    private static final int MAX_EXPERIENCE_POOL = 12;
     private static final int MAX_PER_SECTION = 3;
     private static final int MIN_TARGET_CHARS = 200;
     private static final int MAX_TARGET_CHARS = 4000;

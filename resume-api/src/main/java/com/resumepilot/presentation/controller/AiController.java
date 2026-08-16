@@ -57,6 +57,12 @@ public class AiController {
         return ApiResponse.ok(aiService.portfolioReview(SecurityUtils.getCurrentUserId(), request));
     }
 
+    @PostMapping("/analyze-sections")
+    @Operation(summary = "자소서 문항 제목 분석")
+    public ApiResponse<Map<String, Object>> analyzeSections(@Valid @RequestBody AiSectionAnalysisRequest request) {
+        return ApiResponse.ok(aiService.analyzeSections(SecurityUtils.getCurrentUserId(), request));
+    }
+
     @GetMapping("/generations")
     @Operation(summary = "내 AI 생성 이력")
     public ApiResponse<List<AiGenerationResponse>> myGenerations() {

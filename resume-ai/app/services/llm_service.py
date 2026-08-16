@@ -68,6 +68,7 @@ OPERATION_MAX_TOKENS: dict[str, int] = {
     "INTERVIEW_QUESTIONS": 4096,
     "KEYWORD_COMPARE": 8192,
     "PORTFOLIO_REVIEW": 8192,
+    "SECTION_ANALYSIS": 2048,
 }
 
 _JSON_FENCE_RE = re.compile(r"```(?:json)?\s*([\s\S]*?)```", re.IGNORECASE)
@@ -502,7 +503,8 @@ class LlmService:
             )
         else:
             budget = (
-                "- 깊게 쓰되 같은 장면 반복 금지. 문단이 목표를 넘기면 안 됩니다.\n"
+                "- 목표 글자가 깁니다. 이 문항에 배정된 경험을 2~3개까지 깊게 연결하세요.\n"
+                "- 같은 장면 반복·경험 카탈로그 나열 금지. 문단이 목표를 넘기면 안 됩니다.\n"
             )
         return (
             f"[분량 계획 · {chars}자 상한]\n"
@@ -555,7 +557,7 @@ class LlmService:
             return "motivation"
         if "성장" in t:
             return "growth"
-        if "직무역량" in t or ("직무" in t and "역량" in t):
+        if "직무역량" in t or "보유기술" in t or "경험직무" in t or "경력기술" in t or ("직무" in t and "역량" in t):
             return "competency"
         if "포부" in t:
             return "aspiration"
@@ -638,17 +640,27 @@ class LlmService:
         kept = [e for s, e in scored if s >= min_score]
         return kept or [scored[0][1]]
 
+    @staticmethod
+    def _experiences_for_target_chars(chars: int) -> int:
+        n = chars if isinstance(chars, int) else 1200
+        if n <= 1200:
+            return 1
+        if n <= 2000:
+            return 2
+        return 3
+
     @classmethod
     def _assign_section_experiences(
         cls,
         titles: list[str],
         experiences: list[dict],
         job_analysis: dict | None = None,
+        target_chars: list[int] | None = None,
     ) -> list[list[dict]]:
         """문항별로 primary 경험을 나눈다. 공고 적합도 높은 경험만 풀로 사용.
 
         1차: 문항당 미사용 경험 1개 (포부는 남는 경험만, 없으면 빈 목록)
-        2차: 직무역량에만 미사용 경험 1개 추가
+        2차: 목표 글자 수가 긴 문항에 미사용 경험을 더 채운다 (최대 3)
         """
         relevant = cls._filter_job_relevant_experiences(experiences, job_analysis)
         tokens = cls._extract_job_tokens(job_analysis)
@@ -674,28 +686,37 @@ class LlmService:
                 return exp
             return None
 
-        kinds = [cls._section_kind(t) for t in titles]
+        chars = cls._normalize_target_chars(target_chars, len(titles))
+        needs: list[int] = []
+        for i, title in enumerate(titles):
+            kind = cls._section_kind(title)
+            if kind == "aspiration":
+                needs.append(0)
+            else:
+                ch = chars[i] if i < len(chars) else 1200
+                needs.append(min(3, cls._experiences_for_target_chars(ch)))
+
         assignments: list[list[dict]] = [[] for _ in titles]
 
         # 1차: 포부 제외하고 하나씩 (적합도 높은 순의 pool)
-        for i, kind in enumerate(kinds):
-            if kind == "aspiration":
+        for i, need in enumerate(needs):
+            if need < 1:
                 continue
             picked = next_unused()
             if picked is not None:
                 assignments[i].append(picked)
 
-        # 2차: 직무역량에 추가 1개
-        for i, kind in enumerate(kinds):
-            if kind != "competency":
-                continue
-            picked = next_unused()
-            if picked is not None:
+        # 2차: 긴 문항은 목표 글자 수만큼 더 채운다
+        for i, need in enumerate(needs):
+            while len(assignments[i]) < need:
+                picked = next_unused()
+                if picked is None:
+                    break
                 assignments[i].append(picked)
 
         # 포부: 남은 미사용만 (없으면 빈 목록 → 계획만)
-        for i, kind in enumerate(kinds):
-            if kind != "aspiration":
+        for i, need in enumerate(needs):
+            if need != 0:
                 continue
             picked = next_unused()
             if picked is not None:
@@ -704,8 +725,8 @@ class LlmService:
         # 아무 것도 못 받은 비-포부 문항: 적합 풀 안에서만 재사용
         if pool:
             cursor = 0
-            for i, kind in enumerate(kinds):
-                if assignments[i] or kind == "aspiration":
+            for i, need in enumerate(needs):
+                if assignments[i] or need == 0:
                     continue
                 assignments[i].append(pool[cursor % len(pool)])
                 cursor += 1
@@ -780,10 +801,10 @@ class LlmService:
         rewrite_rules = self._rewrite_level_rules(rewrite_level)
         user_assignments = self._assignments_from_ids(titles, experiences, section_experience_ids)
         using_user_assignments = user_assignments is not None
-        assignments = user_assignments if using_user_assignments else self._assign_section_experiences(
-            titles, experiences, job_analysis,
-        )
         target_chars = self._normalize_target_chars(section_target_chars, len(titles))
+        assignments = user_assignments if using_user_assignments else self._assign_section_experiences(
+            titles, experiences, job_analysis, target_chars,
+        )
         instruction = (user_instruction or "").strip()
         section_system = (
             system_prompt

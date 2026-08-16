@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   alignSectionExperienceIds,
-  MAX_EXPERIENCE_POOL,
+  DEFAULT_EXPERIENCE_POOL_LIMIT,
+  parseSectionIntents,
+  qualityExperiencePoolLimit,
+  type SectionIntent,
 } from '@/lib/section-experiences';
 
 const STORAGE_KEY = 'resume-pilot-workspace-draft';
@@ -16,8 +19,13 @@ export type WorkspaceDraft = {
   sectionTargetChars: number[];
   /** 이번 공고에 쓸 경험 풀 */
   selectedExperienceIds: string[];
+  /** 공고 재료로 고를 수 있는 최대 개수 */
+  experiencePoolLimit: number;
   /** 문항별 깊게 쓸 경험 (sectionTitles와 동일 길이) */
   sectionExperienceIds: string[][];
+  /** AI 문항 분석. 제목이 바뀌면 다시 받는다. */
+  sectionIntents: SectionIntent[];
+  sectionIntentsKey: string;
 };
 
 export const DEFAULT_SECTION_TARGET_CHARS = 1200;
@@ -63,7 +71,10 @@ const DEFAULTS: WorkspaceDraft = {
   sectionTitles: [],
   sectionTargetChars: [],
   selectedExperienceIds: [],
+  experiencePoolLimit: DEFAULT_EXPERIENCE_POOL_LIMIT,
   sectionExperienceIds: [],
+  sectionIntents: [],
+  sectionIntentsKey: '',
 };
 
 export function loadWorkspaceDraft(): WorkspaceDraft | null {
@@ -79,14 +90,29 @@ export function loadWorkspaceDraft(): WorkspaceDraft | null {
       draft.sectionTitles,
       migrateStoredTargetChars(parsed),
     );
-    const pool = Array.isArray(parsed.selectedExperienceIds)
-      ? parsed.selectedExperienceIds.filter((id): id is string => typeof id === 'string')
-      : [];
-    draft.selectedExperienceIds = pool.slice(0, MAX_EXPERIENCE_POOL);
     const rawRows = Array.isArray(parsed.sectionExperienceIds)
       ? parsed.sectionExperienceIds.filter((row): row is string[] => Array.isArray(row))
       : [];
     draft.sectionExperienceIds = alignSectionExperienceIds(draft.sectionTitles, rawRows);
+    const titlesKey = draft.sectionTitles.map((t) => t.trim()).join('\n');
+    const storedKey = typeof parsed.sectionIntentsKey === 'string' ? parsed.sectionIntentsKey : '';
+    if (storedKey === titlesKey && Array.isArray(parsed.sectionIntents)) {
+      draft.sectionIntents = parseSectionIntents(parsed.sectionIntents, draft.sectionTitles);
+      draft.sectionIntentsKey = titlesKey;
+    } else {
+      draft.sectionIntents = [];
+      draft.sectionIntentsKey = '';
+    }
+    const limit = qualityExperiencePoolLimit(
+      draft.sectionTitles,
+      draft.sectionIntents,
+      draft.sectionTargetChars,
+    );
+    draft.experiencePoolLimit = limit;
+    const pool = Array.isArray(parsed.selectedExperienceIds)
+      ? parsed.selectedExperienceIds.filter((id): id is string => typeof id === 'string')
+      : [];
+    draft.selectedExperienceIds = pool.slice(0, limit);
     return draft;
   } catch {
     return null;

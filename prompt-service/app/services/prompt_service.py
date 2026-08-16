@@ -180,6 +180,14 @@ class PromptRepository:
                     "[경험 라이브러리]\n{{experiences}}"
                 ),
             },
+            "SECTION_ANALYSIS": {
+                "system_prompt": (
+                    "[Persona] 한국 채용 자기소개서 문항 분류 분석가. 경험은 고르지 않음.\n"
+                    "[Guard] 문항 제목에 없는 요구 발명 금지. 경험 ID 금지.\n"
+                    "[Output] JSON: sections[{index,title,intent,needs_unique_story,max_experiences,look_for,asks}]"
+                ),
+                "user_prompt": "[문항 제목]\n{{section_titles}}",
+            },
         }
         base = defaults.get(prompt_type, {
             "system_prompt": f"Default system prompt for {prompt_type}",

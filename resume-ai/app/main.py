@@ -13,6 +13,7 @@ from app.services.generation_service import (
     keyword_service,
     portfolio_review_service,
     review_service,
+    section_analysis_service,
 )
 from app.services.job_analysis_service import job_analysis_service
 from app.services.writing_style_service import writing_style_service
@@ -69,6 +70,10 @@ class PortfolioReviewRequest(BaseModel):
     section_purpose: str
     content: str = ""
     experiences: str
+
+
+class SectionAnalysisRequest(BaseModel):
+    section_titles: list[str] = []
 
 
 class JobAnalyzeRequest(BaseModel):
@@ -137,3 +142,8 @@ async def review_portfolio(request: PortfolioReviewRequest):
         request.content,
         request.experiences,
     ))
+
+
+@app.post("/analyze/sections")
+async def analyze_sections(request: SectionAnalysisRequest):
+    return ApiResponse(data=await section_analysis_service.analyze(request.section_titles))
