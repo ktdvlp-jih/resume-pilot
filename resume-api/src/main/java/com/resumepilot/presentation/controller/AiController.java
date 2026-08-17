@@ -33,6 +33,12 @@ public class AiController {
         return ApiResponse.ok(aiService.detect(SecurityUtils.getCurrentUserId(), request.content()));
     }
 
+    @PostMapping("/humanize")
+    @Operation(summary = "AI 흔적 문장 윤문")
+    public ApiResponse<Map<String, Object>> humanize(@Valid @RequestBody AiHumanizeRequest request) {
+        return ApiResponse.ok(aiService.humanize(SecurityUtils.getCurrentUserId(), request));
+    }
+
     @PostMapping("/review")
     @Operation(summary = "AI 첨삭")
     public ApiResponse<Map<String, Object>> review(@Valid @RequestBody AiReviewRequest request) {

@@ -7,6 +7,8 @@ public record PromptTestRequest(
         String systemPrompt,
         String personaPrompt,
         String guardPrompt,
+        String skillPrompt,
+        String rubricPrompt,
         String taskPrompt,
         String outputPrompt,
         String userPrompt,

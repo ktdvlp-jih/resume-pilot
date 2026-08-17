@@ -178,6 +178,14 @@ def test_section_slot_rules_motivation_mentions_ai_ban(parser: LlmService) -> No
     assert "SI" not in rules
 
 
+def test_section_kind_and_slot_career_statement(parser: LlmService) -> None:
+    assert parser._section_kind("경력기술서") == "career"
+    assert parser._section_kind("보유기술 및 경험직무") == "competency"
+    rules = parser._section_slot_rules("경력기술서")
+    assert "STAR" in rules
+    assert "압축" in rules
+
+
 def test_assign_section_experiences_spreads_primary(parser: LlmService) -> None:
     experiences = [
         {"entity_id": "a", "content": "경험A " * 20},
@@ -272,7 +280,7 @@ def test_assignments_from_ids_empty_falls_back(parser: LlmService) -> None:
 
 
 def test_assign_long_section_gets_more_experiences(parser: LlmService) -> None:
-    experiences = [{"entity_id": eid, "content": f"경험{eid} " * 20} for eid in "abcdef"]
+    experiences = [{"entity_id": eid, "content": f"경험{eid} " * 20} for eid in "abcdefgh"]
     titles = ["당사 지원 동기", "보유기술 및 경험직무", "경력기술서", "성취 사례"]
     assigned = parser._assign_section_experiences(
         titles,
@@ -280,6 +288,6 @@ def test_assign_long_section_gets_more_experiences(parser: LlmService) -> None:
         None,
         [300, 4000, 300, 300],
     )
-    assert [len(row) for row in assigned] == [1, 3, 1, 1]
+    assert [len(row) for row in assigned] == [1, 3, 2, 1]
     used = [e["entity_id"] for row in assigned for e in row]
     assert len(used) == len(set(used))

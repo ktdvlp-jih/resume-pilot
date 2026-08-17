@@ -9,6 +9,7 @@ from app.services.company_analysis_service import company_analysis_service
 from app.services.generation_service import (
     detection_service,
     generation_service,
+    humanize_service,
     interview_service,
     keyword_service,
     portfolio_review_service,
@@ -53,6 +54,11 @@ class GenerateRequest(BaseModel):
 class ContentRequest(BaseModel):
     content: str
     forbidden_expressions: list[str] = []
+
+
+class HumanizeRequest(BaseModel):
+    content: str
+    sentences: list[str] = []
 
 
 class ReviewRequest(BaseModel):
@@ -117,6 +123,11 @@ async def generate_resume(request: GenerateRequest):
 @app.post("/detect/ai-traces")
 async def detect_ai_traces(request: ContentRequest):
     return ApiResponse(data=await detection_service.detect(request.content, request.forbidden_expressions))
+
+
+@app.post("/humanize/ai-traces")
+async def humanize_ai_traces(request: HumanizeRequest):
+    return ApiResponse(data=await humanize_service.humanize(request.content, request.sentences))
 
 
 @app.post("/review/feedback")

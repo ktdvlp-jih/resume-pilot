@@ -41,6 +41,10 @@ public class AiGatewayClient {
         return post("/detect/ai-traces", request);
     }
 
+    public Map<String, Object> humanizeAiTraces(Map<String, Object> request) {
+        return post("/humanize/ai-traces", request);
+    }
+
     public Map<String, Object> reviewFeedback(Map<String, Object> request) {
         return post("/review/feedback", request);
     }

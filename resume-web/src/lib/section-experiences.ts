@@ -22,6 +22,16 @@ export function experiencesForTargetChars(chars: number): number {
   return 3;
 }
 
+function isAspirationSection(title: string, intent?: SectionIntent | null): boolean {
+  if (intent?.intent === 'aspiration') return true;
+  return sectionKind(title) === 'aspiration';
+}
+
+function isCareerSection(title: string, intent?: SectionIntent | null): boolean {
+  if (intent?.intent === 'career') return true;
+  return sectionKind(title) === 'career';
+}
+
 export function sectionExperienceNeeds(
   titles: string[],
   intents?: SectionIntent[],
@@ -29,11 +39,13 @@ export function sectionExperienceNeeds(
 ): number[] {
   const aligned = alignSectionIntents(titles, intents);
   return titles.map((title, i) => {
-    const intent = aligned[i];
-    const unique = intent ? intent.needsUniqueStory : sectionKind(title) !== 'aspiration';
-    if (!unique) return 0;
+    if (isAspirationSection(title, aligned[i])) return 0;
     const chars = typeof targetChars?.[i] === 'number' ? targetChars[i]! : 1200;
-    return Math.min(MAX_EXPERIENCES_PER_SECTION, experiencesForTargetChars(chars));
+    const n = experiencesForTargetChars(chars);
+    if (isCareerSection(title, aligned[i])) {
+      return Math.min(MAX_EXPERIENCES_PER_SECTION, Math.max(2, n));
+    }
+    return Math.min(MAX_EXPERIENCES_PER_SECTION, n);
   });
 }
 
@@ -68,7 +80,7 @@ export function sectionExperienceShortfalls(
   });
 }
 
-/** 깊게 쓸 장면 수 = 문항별 목표 글자 수의 합. 포부형은 0. */
+/** 공고 재료 상한. 최소는 문항 수, 긴 문항은 글자 수만큼 더한다. */
 export function qualityExperiencePoolLimit(
   titles: string[],
   intents?: SectionIntent[],
@@ -76,10 +88,31 @@ export function qualityExperiencePoolLimit(
 ): number {
   if (!titles.length) return DEFAULT_EXPERIENCE_POOL_LIMIT;
   const total = sectionExperienceNeeds(titles, intents, targetChars).reduce((a, b) => a + b, 0);
-  return clampExperiencePoolLimit(total || DEFAULT_EXPERIENCE_POOL_LIMIT);
+  return clampExperiencePoolLimit(Math.max(titles.length, total));
 }
 
-export type SectionKind = 'motivation' | 'growth' | 'competency' | 'aspiration' | 'other';
+/** 이미 고른 재료를 유지하고, 추천 상위부터 상한까지 채운다. */
+export function fillExperiencePool(current: string[], rankedIds: string[], limit: number): string[] {
+  const cap = Math.max(0, limit);
+  if (cap === 0) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const id of current) {
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+    if (out.length >= cap) return out;
+  }
+  for (const id of rankedIds) {
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+    if (out.length >= cap) break;
+  }
+  return out;
+}
+
+export type SectionKind = 'motivation' | 'growth' | 'competency' | 'career' | 'aspiration' | 'other';
 
 export type SectionIntent = {
   title: string;
@@ -137,8 +170,9 @@ export function sectionKind(title: string): SectionKind {
   if (hasAny(t, ['입사후포부', '포부', '커리어계획'])) return 'aspiration';
   if (hasAny(t, ['지원동기', '지원이유', '왜지원', '지원하게된'])) return 'motivation';
   if (hasAny(t, ['성장과정', '성장', '실패', '좌절', '극복', '배움'])) return 'growth';
+  if (hasAny(t, ['경력기술서', '경력기술'])) return 'career';
   if (
-    hasAny(t, ['직무역량', '전문성', '기술스택', '직무경험', '프로젝트경험', '보유기술', '경험직무', '경력기술'])
+    hasAny(t, ['직무역량', '전문성', '기술스택', '직무경험', '프로젝트경험', '보유기술', '경험직무'])
     || (t.includes('직무') && t.includes('역량'))
   ) {
     return 'competency';
@@ -208,6 +242,7 @@ type QuestionCue = { needles: string[]; types: string[]; weight: number };
 
 const QUESTION_CUES: QuestionCue[] = [
   { needles: ['지원동기', '지원이유', '왜지원', '지원하게된', 'why'], types: ['ACHIEVEMENT', 'PROJECT'], weight: 5 },
+  { needles: ['경력기술서', '경력기술'], types: ['PROJECT', 'ACHIEVEMENT', 'TECHNOLOGY'], weight: 8 },
   { needles: ['성장과정', '성장', '실패', '좌절', '극복', '배움'], types: ['PROBLEM_SOLVING', 'CONFLICT_RESOLUTION', 'OTHER'], weight: 8 },
   { needles: ['직무역량', '직무', '역량', '전문성', '기술스택', '프로젝트', '개발'], types: ['PROJECT', 'TECHNOLOGY', 'ACHIEVEMENT'], weight: 8 },
   { needles: ['포부', '입사후', '커리어계획'], types: [], weight: -10 },
@@ -243,7 +278,7 @@ export function questionExperienceScore(
     else if (look.length) n += 1;
     n += tokenHits(intent.asks || question, expText) * 2;
     n += tokenHits(question, expText) * 2;
-    const jdW = intent.intent === 'competency' ? 4
+    const jdW = intent.intent === 'competency' || intent.intent === 'career' ? 4
       : intent.intent === 'motivation' ? 3
         : intent.needsUniqueStory ? 2 : 0.4;
     n += ragScore(meta) * jdW;
@@ -259,7 +294,7 @@ export function questionExperienceScore(
     else n += cue.types.includes(type) ? cue.weight : 1;
   }
   n += tokenHits(question, expText) * 2;
-  const jdW = kind === 'competency' ? 4 : kind === 'motivation' ? 3 : kind === 'aspiration' ? 0.4 : 2;
+  const jdW = kind === 'competency' || kind === 'career' ? 4 : kind === 'motivation' ? 3 : kind === 'aspiration' ? 0.4 : 2;
   n += ragScore(meta) * jdW;
   if (kind === 'aspiration') n -= 8;
   return n;

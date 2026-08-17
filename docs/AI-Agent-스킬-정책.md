@@ -133,7 +133,17 @@ Docker + Quick Tunnel만 쓸 때는 불필요. Named Tunnel·Access 등 Zero Tru
 npx -y skills add cloudflare/skills -a cursor -a claude-code --skill cloudflare-one -y
 ```
 
-### B-7) 설치 후 재확인
+### B-7) 한국어 AI 윤문 — humanizer (표준)
+
+워크스페이스 「AI 흔적 다듬기」와 같은 계열(KatFishNet). 에이전트가 초안을 고칠 때도 이 스킬을 읽습니다.
+
+제품은 스킬 파일(`SKILL.md`)을 실행하지 않습니다. 런타임은 prompt-service `AI_HUMANIZE` v3가 스킬의 페르소나·가드·40패턴·의미 보존을 로드하고, 출력만 제품 계약(JSON `replacements`)으로 받습니다.
+
+```powershell
+npx -y skills add https://github.com/DaleSeo/korean-skills --skill humanizer -a cursor -a claude-code -y
+```
+
+### B-8) 설치 후 재확인
 
 ```powershell
 npx skills ls -a claude-code
@@ -164,7 +174,7 @@ ResumePilot은 **Docker 5컨테이너 배포**(Vercel 아님)·웹 전용이므�
 ## PC 전환 체크리스트
 
 1. `git pull` → 커스텀 2개는 즉시 인식 (Cursor·Claude Code 재시작)
-2. 섹션 **B-1 ~ B-4** 실행 → 표준 외부 스킬 설치 (Vercel·ibelick·find-skills·shadcn)
+2. 섹션 **B-1 ~ B-4, B-7** 실행 → 표준 외부 스킬 설치 (Vercel·ibelick·find-skills·shadcn·humanizer)
 3. `npx skills ls -a claude-code`로 확인
 4. 스모크가 필요하면 채팅에 **A-2** 문장 붙여넣기
 

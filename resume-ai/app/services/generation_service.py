@@ -4,6 +4,7 @@ from typing import Any
 from langchain_core.runnables import RunnableLambda
 
 from app.clients.service_clients import prompt_client, rag_client
+from app.services.ai_trace_score import score_detections
 from app.services.llm_service import llm_service
 
 logger = logging.getLogger(__name__)
@@ -150,13 +151,16 @@ class GenerationService:
         review_result = await review_service.review(result["content"], job_analysis)
         detections = detection_result["detections"]
         ai_trace_percent = detection_result["ai_trace_percent"]
+        naturalness = detection_result.get("naturalness")
         reviews = review_result["reviews"]
         review_scores = review_result.get("scores")
 
         response = {
             **result,
             "rewrite_level": rewrite_level,
-            "quality_scores": self._score(result["content"], ai_trace_percent, review_scores),
+            "quality_scores": self._score(
+                result["content"], ai_trace_percent, review_scores, naturalness,
+            ),
             "detections": detections,
             "reviews": reviews,
             "sections": sections,
@@ -169,8 +173,15 @@ class GenerationService:
                 content = content.replace(str(expr), "")
         return content
 
-    def _score(self, content: str, ai_trace_percent: float, review_scores: dict[str, Any] | None) -> dict[str, float]:
-        naturalness = max(0, 100 - ai_trace_percent)
+    def _score(
+        self,
+        content: str,
+        ai_trace_percent: float,
+        review_scores: dict[str, Any] | None,
+        naturalness: float | None = None,
+    ) -> dict[str, float]:
+        if naturalness is None:
+            naturalness = max(0, 100 - ai_trace_percent)
         if not review_scores:
             raise RuntimeError("AI_REVIEW returned no usable scores")
         scaled = normalize_review_scores(review_scores)
@@ -216,11 +227,11 @@ class DetectionService:
             d for d in detections
             if isinstance(d, dict) and str(d.get("level", "")).upper() in {"GREEN", "YELLOW", "RED"}
         ]
-        red = sum(1 for d in detections if str(d.get("level", "")).upper() == "RED")
-        total = max(len(detections), 1)
+        scored = score_detections(detections, content)
         return {
             "detections": detections,
-            "ai_trace_percent": round(red / total * 100, 1) if detections else 0.0,
+            "ai_trace_percent": scored["ai_trace_percent"],
+            "naturalness": scored["naturalness"],
             "model": completion.model,
         }
 
@@ -479,7 +490,7 @@ class SectionAnalysisService:
     """문항 제목만 구조화. 경험 ID는 고르지 않는다."""
 
     INTENTS = {
-        "motivation", "growth", "competency", "aspiration",
+        "motivation", "growth", "competency", "career", "aspiration",
         "collaboration", "conflict", "leadership", "problem", "achievement", "other",
     }
     LOOK_FOR = {
@@ -545,10 +556,13 @@ class SectionAnalysisService:
             try:
                 max_experiences = int(max_n)
             except (TypeError, ValueError):
-                max_experiences = 2 if intent == "competency" else 1
+                max_experiences = 2 if intent in {"competency", "career"} else 1
             if max_experiences < 1:
                 max_experiences = 1
-            if max_experiences > 2:
+            if intent == "career":
+                needs = True
+                max_experiences = min(3, max(2, max_experiences))
+            elif max_experiences > 2:
                 max_experiences = 2
             if intent == "aspiration":
                 needs = False
@@ -571,6 +585,7 @@ class SectionAnalysisService:
             "motivation": ["ACHIEVEMENT", "PROJECT"],
             "growth": ["PROBLEM_SOLVING", "CONFLICT_RESOLUTION", "OTHER"],
             "competency": ["PROJECT", "TECHNOLOGY", "ACHIEVEMENT"],
+            "career": ["PROJECT", "ACHIEVEMENT", "TECHNOLOGY"],
             "aspiration": ["OTHER"],
             "collaboration": ["COLLABORATION"],
             "conflict": ["CONFLICT_RESOLUTION"],
@@ -580,8 +595,178 @@ class SectionAnalysisService:
         }.get(intent, ["PROJECT", "OTHER"])
 
 
+class HumanizeService:
+    """제품 안의 AI 흔적 윤문. prompt-service AI_HUMANIZE(Skill 40패턴 + Rubric)."""
+
+    MAX_SENTENCES = 40
+    EMPTY_ANALYSIS = {
+        "grade": "",
+        "grade_reason": "",
+        "s1": 0,
+        "s2": 0,
+        "s3": 0,
+        "findings": [],
+    }
+
+    async def humanize(self, content: str, sentences: list[str] | None = None) -> dict[str, Any]:
+        text = (content or "").strip()
+        if not text:
+            return {
+                "content": "",
+                "replacements": [],
+                "changed_count": 0,
+                "analysis": dict(self.EMPTY_ANALYSIS),
+                "model": None,
+            }
+        if not await llm_service.has_routes("AI_HUMANIZE"):
+            raise RuntimeError("LLM routes unavailable for AI_HUMANIZE")
+        targets = self._normalize_targets(sentences)
+        sentences_text = (
+            "\n".join(f"- {s}" for s in targets)
+            if targets
+            else "(없음 — 본문 전체에서 AI 작문 티가 있는 문장)"
+        )
+        prompt = await prompt_client.render("AI_HUMANIZE", {
+            "content": text,
+            "sentences": sentences_text,
+        })
+        parsed, completion = await llm_service.complete_json_value_for_operation(
+            "AI_HUMANIZE",
+            prompt["system_prompt"],
+            prompt["user_prompt"],
+            temperature=0.45,
+        )
+        raw = parsed.get("replacements") if isinstance(parsed, dict) else (
+            parsed if isinstance(parsed, list) else None
+        )
+        if not isinstance(raw, list):
+            raise RuntimeError(
+                f"AI_HUMANIZE returned unparseable response: {(completion.content or '')[:200]}"
+            )
+        next_content, applied = self.apply_replacements(text, raw, targets or None)
+        analysis = self.parse_analysis(parsed if isinstance(parsed, dict) else {})
+        return {
+            "content": next_content,
+            "replacements": applied,
+            "changed_count": len(applied),
+            "analysis": analysis,
+            "model": completion.model,
+        }
+
+    @classmethod
+    def parse_analysis(cls, parsed: dict[str, Any]) -> dict[str, Any]:
+        raw = parsed.get("analysis") if isinstance(parsed, dict) else None
+        if not isinstance(raw, dict):
+            return dict(cls.EMPTY_ANALYSIS)
+        findings: list[dict[str, Any]] = []
+        for item in raw.get("findings") or []:
+            if not isinstance(item, dict):
+                continue
+            severity = str(item.get("severity") or "").strip().upper()
+            if severity not in {"S1", "S2", "S3"}:
+                continue
+            title = str(item.get("title") or "").strip()
+            example = str(item.get("example") or "").strip()
+            why = str(item.get("why") or "").strip()
+            if not title and not example:
+                continue
+            pattern_raw = item.get("pattern")
+            try:
+                pattern = int(pattern_raw) if pattern_raw is not None and str(pattern_raw).strip() != "" else None
+            except (TypeError, ValueError):
+                pattern = None
+            findings.append({
+                "pattern": pattern,
+                "severity": severity,
+                "title": title,
+                "example": example,
+                "why": why,
+            })
+        order = {"S1": 0, "S2": 1, "S3": 2}
+        findings.sort(key=lambda f: (order.get(str(f["severity"]), 9), f.get("pattern") or 99))
+        s1 = sum(1 for f in findings if f["severity"] == "S1")
+        s2 = sum(1 for f in findings if f["severity"] == "S2")
+        s3 = sum(1 for f in findings if f["severity"] == "S3")
+        grade = str(raw.get("grade") or "").strip().upper()
+        if grade not in {"A", "B", "C", "D"}:
+            if s1 == 0 and s2 <= 2:
+                grade = "A"
+            elif s1 <= 2 and s2 <= 5:
+                grade = "B"
+            elif s1 >= 5 and s2 >= 8:
+                grade = "D"
+            else:
+                grade = "C"
+        return {
+            "grade": grade,
+            "grade_reason": str(raw.get("grade_reason") or "").strip(),
+            "s1": s1,
+            "s2": s2,
+            "s3": s3,
+            "findings": findings,
+        }
+
+    @classmethod
+    def _normalize_targets(cls, sentences: list[str] | None) -> list[str]:
+        out: list[str] = []
+        for item in sentences or []:
+            s = str(item or "").strip()
+            if s and s not in out:
+                out.append(s)
+            if len(out) >= cls.MAX_SENTENCES:
+                break
+        return out
+
+    @staticmethod
+    def _locate(content: str, original: str) -> str | None:
+        text = (original or "").strip()
+        if not text:
+            return None
+        if text in content:
+            return text
+        collapsed = " ".join(text.split())
+        if collapsed != text and collapsed in content:
+            return collapsed
+        return None
+
+    @staticmethod
+    def apply_replacements(
+        content: str,
+        replacements: list[Any],
+        targets: list[str] | None = None,
+    ) -> tuple[str, list[dict[str, str]]]:
+        allowed = {s.strip() for s in (targets or []) if str(s).strip()}
+        next_content = content
+        applied: list[dict[str, str]] = []
+        seen: set[str] = set()
+        for item in replacements:
+            if not isinstance(item, dict):
+                continue
+            original = str(item.get("original") or "").strip()
+            revised = str(item.get("revised") or "").strip()
+            reason = str(item.get("reason") or "").strip()
+            if not original or not revised or original == revised:
+                continue
+            match = HumanizeService._locate(next_content, original)
+            if match is None:
+                continue
+            if allowed and original not in allowed and match not in allowed:
+                continue
+            if match in seen:
+                continue
+            next_content = next_content.replace(match, revised, 1)
+            seen.add(match)
+            applied.append({
+                "original": match,
+                "revised": revised,
+                "reason": reason,
+            })
+        return next_content, applied
+
+
 generation_service = GenerationService()
 detection_service = DetectionService()
+humanize_service = HumanizeService()
 review_service = ReviewService()
 interview_service = InterviewService()
 keyword_service = KeywordService()

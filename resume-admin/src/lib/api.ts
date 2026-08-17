@@ -103,6 +103,8 @@ export const api = {
       versionNumber: number;
       personaPrompt: string;
       guardPrompt: string;
+      skillPrompt: string;
+      rubricPrompt: string;
       taskPrompt: string;
       outputPrompt: string;
       systemPrompt: string;
@@ -114,6 +116,8 @@ export const api = {
     data: {
       personaPrompt: string;
       guardPrompt: string;
+      skillPrompt: string;
+      rubricPrompt: string;
       taskPrompt: string;
       outputPrompt: string;
       userPrompt: string;
@@ -129,6 +133,8 @@ export const api = {
     promptType?: string;
     personaPrompt?: string;
     guardPrompt?: string;
+    skillPrompt?: string;
+    rubricPrompt?: string;
     taskPrompt?: string;
     outputPrompt?: string;
     userPrompt?: string;

@@ -5,6 +5,7 @@ import com.resumepilot.domain.admin.AiUsageLog;
 import com.resumepilot.domain.admin.AiUsageLogRepository;
 import com.resumepilot.domain.admin.ForbiddenExpressionRepository;
 import com.resumepilot.domain.experience.Experience;
+import com.resumepilot.domain.experience.ExperiencePeriod;
 import com.resumepilot.domain.experience.ExperienceRepository;
 import com.resumepilot.global.exception.BusinessException;
 import com.resumepilot.global.exception.ErrorCode;
@@ -129,6 +130,31 @@ public class AiOrchestrationService {
             throw e;
         } catch (RuntimeException e) {
             logUsage(userId, "detect", start, false, null, e.getMessage());
+            throw e;
+        }
+    }
+
+    /** 생성 후 별도 윤문. 사실·수치는 유지하고 탐지된 문장의 AI 티만 고친다. */
+    public Map<String, Object> humanize(UUID userId, AiHumanizeRequest request) {
+        long start = System.currentTimeMillis();
+        List<String> sentences = request.sentences() == null ? List.of() : request.sentences().stream()
+                .map(s -> s == null ? "" : s.trim())
+                .filter(s -> !s.isBlank())
+                .distinct()
+                .limit(40)
+                .toList();
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("content", request.content());
+        payload.put("sentences", sentences);
+        try {
+            Map<String, Object> result = aiGatewayClient.humanizeAiTraces(payload);
+            logUsage(userId, "humanize", start, true, str(result != null ? result.get("model") : null), null);
+            return result;
+        } catch (BusinessException e) {
+            logUsage(userId, "humanize", start, false, null, e.getMessage());
+            throw e;
+        } catch (RuntimeException e) {
+            logUsage(userId, "humanize", start, false, null, e.getMessage());
             throw e;
         }
     }
@@ -263,12 +289,9 @@ public class AiOrchestrationService {
             if (e.getSkills() != null && !e.getSkills().isEmpty()) {
                 sb.append("skills: ").append(String.join(", ", e.getSkills())).append('\n');
             }
-            if (e.getStartDate() != null || e.getEndDate() != null) {
-                sb.append("period: ")
-                        .append(e.getStartDate() != null ? e.getStartDate() : "")
-                        .append(" ~ ")
-                        .append(e.getEndDate() != null ? e.getEndDate() : "")
-                        .append('\n');
+            String period = ExperiencePeriod.promptLine(e.getStartDate(), e.getEndDate());
+            if (period != null) {
+                sb.append(period).append('\n');
             }
         }
         return sb.toString();

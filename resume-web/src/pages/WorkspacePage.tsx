@@ -20,6 +20,7 @@ import {
   Sparkles,
   Wand2,
   X,
+  Columns2,
 } from 'lucide-react';
 import { api, type JobPostingResponse } from '@/lib/api';
 import {
@@ -40,6 +41,8 @@ import { SectionExperiencePicker } from '@/components/workspace/section-experien
 import {
   alignSectionExperienceIds,
   autoAssignSectionExperiences,
+  experiencesForTargetChars,
+  fillExperiencePool,
   parseSectionIntents,
   qualityExperiencePoolLimit,
   sectionExperienceCap,
@@ -56,7 +59,11 @@ import {
 } from '@/hooks/use-workspace-result';
 import { useTypewriter } from '@/hooks/use-typewriter';
 import { HighlightedContent } from '@/components/HighlightedContent';
+import { HumanizeReport, type HumanizeAnalysis, type HumanizeReplacement } from '@/components/workspace/humanize-report';
+import { ProseDiffView } from '@/components/common/prose-diff-view';
+import { LoadingSpinner } from '@/components/common/loading-state';
 import { AutosaveIndicator } from '@/components/common/autosave-indicator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmDialog } from '@/components/common/confirm-dialog';
 import { PageHeader } from '@/components/common/page-header';
 import { PaginationControls } from '@/components/common/pagination-controls';
@@ -118,6 +125,19 @@ const MAX_SECTIONS = 5;
 
 function splitParagraphs(content: string): string[] {
   return content.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+}
+
+function detectScorePatch(
+  detectRes: Record<string, unknown>,
+  prevScores?: Record<string, unknown>,
+): Record<string, unknown> {
+  const ai = Number(detectRes.ai_trace_percent ?? 0);
+  const natural = Number(detectRes.naturalness ?? Math.max(0, 100 - ai));
+  return {
+    ...prevScores,
+    ai_trace_percent: detectRes.ai_trace_percent,
+    naturalness: natural,
+  };
 }
 
 /** 문항 수에 맞게 문단을 맞춘다. 문단이 더 많으면 뒤에 합치고, 적으면 있는 만큼만 쓴다. */
@@ -281,9 +301,11 @@ function mergeSaveStatus(a: DraftSaveStatus, b: DraftSaveStatus): DraftSaveStatu
 
 function SectionTargetCharsField({
   value,
+  ragCount,
   onCommit,
 }: {
   value: number;
+  ragCount?: number;
   onCommit: (n: number) => void;
 }) {
   const { t } = useTranslation();
@@ -328,7 +350,11 @@ function SectionTargetCharsField({
         aria-label={t('workspace.sectionTargetCharsLabel')}
       />
       <span>{t('workspace.sectionTargetCharsUnit')}</span>
-      <span className="text-[11px]">{t('workspace.sectionTargetCharsHint')}</span>
+      <span className="text-[11px] text-foreground/80">
+        {t('workspace.sectionRagByChars', {
+          count: ragCount ?? experiencesForTargetChars(value),
+        })}
+      </span>
     </div>
   );
 }
@@ -359,7 +385,7 @@ export default function WorkspacePage() {
   const [regenPromptOpenIndex, setRegenPromptOpenIndex] = useState<number | null>(null);
   const [regenInstructions, setRegenInstructions] = useState<Record<number, string>>({});
   const [panelLoading, setPanelLoading] = useState<
-    Partial<Record<'interview' | 'keywords' | 'diagnosis', boolean>>
+    Partial<Record<'interview' | 'keywords' | 'diagnosis' | 'humanize', boolean>>
   >({});
   const [recommendLoading, setRecommendLoading] = useState(false);
   const [error, setError] = useState('');
@@ -369,6 +395,8 @@ export default function WorkspacePage() {
   const [thinConfirmOpen, setThinConfirmOpen] = useState(false);
   const [recommendPage, setRecommendPage] = useState(1);
   const [loadedVersionId, setLoadedVersionId] = useState('');
+  const [rightTab, setRightTab] = useState('result');
+  const [resultView, setResultView] = useState<'letter' | 'diff'>('letter');
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [saveName, setSaveName] = useState('');
   const [editingSectionIndex, setEditingSectionIndex] = useState<number | 'all' | null>(null);
@@ -537,8 +565,19 @@ export default function WorkspacePage() {
   };
 
   useEffect(() => {
-    const nextPool = selectedExperienceIds.slice(0, poolLimit);
-    if (nextPool.length === selectedExperienceIds.length && experiencePoolLimit === poolLimit) return;
+    const trimmed = selectedExperienceIds.slice(0, poolLimit);
+    const nextPool =
+      trimmed.length < poolLimit && recommended.length > 0
+        ? fillExperiencePool(
+            trimmed,
+            recommended.map((r) => r.id),
+            poolLimit,
+          )
+        : trimmed;
+    const samePool =
+      nextPool.length === selectedExperienceIds.length
+      && nextPool.every((id, i) => id === selectedExperienceIds[i]);
+    if (samePool && experiencePoolLimit === poolLimit) return;
     setDraft({
       experiencePoolLimit: poolLimit,
       selectedExperienceIds: nextPool,
@@ -890,7 +929,12 @@ export default function WorkspacePage() {
         })),
       });
       const allowed = new Set(rec.map((r) => r.id));
-      const kept = selectedExperienceIds.filter((id) => allowed.has(id)).slice(0, poolLimit);
+      const ranked = rec.map((r) => r.id);
+      const kept = fillExperiencePool(
+        selectedExperienceIds.filter((id) => allowed.has(id)),
+        ranked,
+        poolLimit,
+      );
       setDraft({
         selectedExperienceIds: kept,
         sectionExperienceIds: assignToSections(sectionTitles, kept, recMetas),
@@ -937,7 +981,6 @@ export default function WorkspacePage() {
 
     setSectionLoadingIndex(index);
     setEditingSectionIndex(null);
-    setRegenPromptOpenIndex(null);
     setBundle((prev) => ({
       ...prev,
       sectionStatuses: prev.sectionStatuses.map((s) =>
@@ -1060,10 +1103,10 @@ export default function WorkspacePage() {
           detections: detectRes.detections ?? [],
           reviews: reviewRes.reviews ?? [],
           quality_scores: {
-            ...((prev.result?.quality_scores as Record<string, unknown>) ?? {}),
-            ...((reviewRes.scores as Record<string, unknown>) ?? {}),
-            ai_trace_percent: detectRes.ai_trace_percent,
-            naturalness: Math.max(0, 100 - Number(detectRes.ai_trace_percent ?? 0)),
+            ...detectScorePatch(detectRes, {
+              ...((prev.result?.quality_scores as Record<string, unknown>) ?? {}),
+              ...((reviewRes.scores as Record<string, unknown>) ?? {}),
+            }),
             scored_by: 'llm',
           },
         },
@@ -1074,6 +1117,83 @@ export default function WorkspacePage() {
       toast.error(err instanceof Error ? err.message : t('workspace.diagnosisFailed'));
     } finally {
       setPanelLoading((prev) => ({ ...prev, diagnosis: false }));
+    }
+  };
+
+  const handleHumanizeAiTraces = async (sentences?: string[]) => {
+    const content = String(result?.content ?? '');
+    if (!content.trim() || loading || sectionLoadingIndex !== null) return;
+    setPanelLoading((prev) => ({ ...prev, humanize: true }));
+    try {
+      const wholeDocument = sentences === undefined;
+      const targets = wholeDocument
+        ? []
+        : sentences.map((s) => s.trim()).filter(Boolean);
+      if (!wholeDocument && targets.length === 0) {
+        toast.message(t('workspace.humanizeNone'));
+        return;
+      }
+      const res = await api.humanizeAi(content, targets);
+      const nextContent = String(res.content ?? content);
+      const changed = Number(res.changed_count ?? 0);
+      const analysis = res.analysis;
+      const findings = Array.isArray(analysis?.findings) ? analysis.findings : [];
+      const replacements = Array.isArray(res.replacements) ? res.replacements : [];
+      if ((changed === 0 || nextContent === content) && findings.length === 0) {
+        toast.message(t('workspace.humanizeNone'));
+        return;
+      }
+      const titles = (savedSectionTitles.length > 0 ? savedSectionTitles : sectionTitles).slice(0, MAX_SECTIONS);
+      setLoadedVersionId('');
+      setJustGenerated(false);
+      const patchedContent = changed > 0 && nextContent !== content ? nextContent : content;
+      const stayOnDiagnosis = rightTab === 'diagnosis';
+      const contentChanged = patchedContent !== content;
+      setBundle((prev) => ({
+        ...prev,
+        result: {
+          ...(prev.result ?? {}),
+          content: patchedContent,
+          humanize_analysis: analysis ?? null,
+          humanize_replacements: replacements,
+          humanize_before: contentChanged ? content : prev.result?.humanize_before,
+        },
+        sectionStatuses: sectionsFromResponse({ content: patchedContent }, titles),
+        diagnosisStatus: 'ok',
+      }));
+      if (stayOnDiagnosis) setRightTab('diagnosis');
+      else if (contentChanged) {
+        setRightTab('result');
+        setResultView('diff');
+      }
+      if (contentChanged || changed > 0) {
+        const detectRes = await api.detectAi(patchedContent);
+        setBundle((prev) => ({
+          ...prev,
+          result: {
+            ...(prev.result ?? {}),
+            content: patchedContent,
+            humanize_analysis: analysis ?? prev.result?.humanize_analysis,
+            humanize_replacements: replacements,
+            humanize_before: contentChanged ? content : prev.result?.humanize_before,
+            detections: detectRes.detections ?? [],
+            quality_scores: detectScorePatch(
+              detectRes,
+              (prev.result?.quality_scores as Record<string, unknown>) ?? {},
+            ),
+          },
+          diagnosisStatus: 'ok',
+        }));
+      }
+      if (changed > 0 && patchedContent !== content) {
+        toast.success(t('workspace.humanizeSuccess', { count: changed }));
+      } else {
+        toast.message(t('workspace.humanizeReportOnly'));
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('workspace.humanizeFailed'));
+    } finally {
+      setPanelLoading((prev) => ({ ...prev, humanize: false }));
     }
   };
 
@@ -1097,6 +1217,7 @@ export default function WorkspacePage() {
       const content = String(res.content ?? '');
       setLoadedVersionId('');
       setEditingSectionIndex(null);
+      setResultView('letter');
       setBundle({
         result: res,
         sectionTitles: titles,
@@ -1140,6 +1261,12 @@ export default function WorkspacePage() {
   };
 
   const detections = (result?.detections as Array<{ sentence: string; level: string; reason: string }>) || [];
+  const humanizeAnalysis = result?.humanize_analysis as HumanizeAnalysis | undefined;
+  const humanizeFindings = humanizeAnalysis?.findings ?? [];
+  const humanizeReplacements = (result?.humanize_replacements as HumanizeReplacement[] | undefined) ?? [];
+  const humanizeBefore = String(result?.humanize_before ?? '');
+  const currentLetter = String(result?.content ?? '');
+  const canCompareHumanize = humanizeBefore.length > 0 && humanizeBefore !== currentLetter;
   const reviews = (result?.reviews as Array<{ paragraph_index: number; strengths: unknown; weaknesses: unknown; improvement: string }>) || [];
   const scores = result?.quality_scores as Record<string, number> | undefined;
   const { displayed: displayedResult, isTyping, skip: skipTyping } = useTypewriter(
@@ -1283,6 +1410,7 @@ export default function WorkspacePage() {
           {sectionTitles.length > 0 && (
             <div className="space-y-1.5">
               <p className="text-xs text-pretty text-muted-foreground">{t('workspace.sectionExperienceHint')}</p>
+              <p className="text-xs text-pretty text-muted-foreground">{t('workspace.sectionRagRule')}</p>
               <p className="text-xs text-pretty text-muted-foreground">{t('workspace.consistencyHint')}</p>
               <p className="text-xs text-pretty text-muted-foreground">{t('workspace.sectionExperienceAutoHint')}</p>
               {selectedExperienceIds.length > 0 && (
@@ -1315,6 +1443,7 @@ export default function WorkspacePage() {
                     </div>
                     <SectionTargetCharsField
                       value={chars[i]}
+                      ragCount={cap}
                       onCommit={(n) => setSectionTargetChar(i, n)}
                     />
                     <div className="space-y-1">
@@ -1527,7 +1656,7 @@ export default function WorkspacePage() {
             size="lg"
             data-testid="workspace-generate-btn"
             onClick={requestGenerate}
-            disabled={loading || (!jobText && !selectedPostingId) || generateBlocked}
+            disabled={loading || (!jobText && !selectedPostingId) || generateBlocked || !!panelLoading.humanize}
           >
             {loading ? t('common.generating') : t('workspace.generate')}
           </Button>
@@ -1571,9 +1700,15 @@ export default function WorkspacePage() {
             {t('common.generating')}
           </div>
         )}
+        {panelLoading.humanize && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
+            {t('workspace.humanizeBusy')}
+          </div>
+        )}
       </div>
 
-      <Tabs defaultValue="result" className="flex flex-1 flex-col overflow-hidden">
+      <Tabs value={rightTab} onValueChange={setRightTab} className="flex flex-1 flex-col overflow-hidden">
         <TabsList className="mx-4 mt-2 w-fit md:mx-6">
           <TabsTrigger value="result" className="gap-1.5">
             <Sparkles className="size-3.5" />
@@ -1594,12 +1729,58 @@ export default function WorkspacePage() {
                     {t('workspace.skipTyping')}
                   </button>
                 )}
+                {canCompareHumanize && (
+                  <>
+                    <Button
+                      type="button"
+                      variant={resultView !== 'diff' ? 'secondary' : 'ghost'}
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => setResultView('letter')}
+                    >
+                      {t('workspace.humanizeViewAfter')}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={resultView === 'diff' ? 'secondary' : 'ghost'}
+                      size="sm"
+                      className="gap-1.5"
+                      data-testid="workspace-humanize-diff-btn"
+                      onClick={() => setResultView('diff')}
+                    >
+                      <Columns2 className="size-3.5" />
+                      {t('workspace.humanizeViewDiff')}
+                    </Button>
+                  </>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  data-testid="workspace-humanize-btn"
+                  disabled={
+                    loading
+                    || sectionLoadingIndex !== null
+                    || isTyping
+                    || !!panelLoading.humanize
+                    || saveMutation.isPending
+                  }
+                  onClick={() => void handleHumanizeAiTraces()}
+                >
+                  {panelLoading.humanize ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Wand2 className="size-3.5" />
+                  )}
+                  {t('workspace.humanizeAll')}
+                </Button>
                 <Button
                   type="button"
                   size="sm"
                   className="gap-1.5"
                   data-testid="workspace-save-btn"
-                  disabled={saveMutation.isPending}
+                  disabled={saveMutation.isPending || !!panelLoading.humanize}
                   onClick={openSaveDialog}
                 >
                   <Save className="size-3.5" />
@@ -1607,7 +1788,13 @@ export default function WorkspacePage() {
                 </Button>
               </div>
 
-              {(() => {
+              {resultView === 'diff' && canCompareHumanize ? (
+                <ProseDiffView
+                  before={humanizeBefore}
+                  after={currentLetter}
+                  replacements={humanizeReplacements}
+                />
+              ) : (() => {
                 const displayTitles =
                   savedSectionTitles.length > 0 ? savedSectionTitles : sectionTitles;
                 const statusByIndex = new Map(sectionStatuses.map((s) => [s.index, s]));
@@ -1633,7 +1820,11 @@ export default function WorkspacePage() {
                         const writtenCount = editing ? editDraft.length : body.length;
                         const targetChars = targets[i];
                         return (
-                          <div key={i} className="space-y-2">
+                          <div
+                            key={i}
+                            className="space-y-2"
+                            aria-busy={status === 'loading'}
+                          >
                             <div className="flex flex-wrap items-center gap-2">
                               {title && (
                                 <h4 className="text-sm font-semibold text-primary">{title}</h4>
@@ -1642,6 +1833,9 @@ export default function WorkspacePage() {
                                 label={t(`workspace.sectionStatus.${status}`)}
                                 variant={panelChipVariant(status)}
                               />
+                              {status === 'loading' && (
+                                <Loader2 className="size-3.5 animate-spin text-primary" aria-hidden />
+                              )}
                               <WrittenCharCount count={writtenCount} target={targetChars} />
                               <div className="ml-auto flex items-center gap-1">
                                 <Button
@@ -1649,7 +1843,7 @@ export default function WorkspacePage() {
                                   variant="outline"
                                   size="sm"
                                   className="h-7 gap-1 text-xs"
-                                  disabled={loading || sectionLoadingIndex !== null || isTyping}
+                                  disabled={loading || sectionLoadingIndex !== null || isTyping || !!panelLoading.humanize}
                                   onClick={() => {
                                     setRegenPromptOpenIndex(null);
                                     setEditingSectionIndex(i);
@@ -1664,13 +1858,20 @@ export default function WorkspacePage() {
                                   variant="outline"
                                   size="sm"
                                   className="h-7 gap-1 text-xs"
-                                  disabled={loading || sectionLoadingIndex !== null || generateBlocked}
+                                  disabled={loading || sectionLoadingIndex !== null || generateBlocked || !!panelLoading.humanize}
+                                  aria-busy={sectionLoadingIndex === i}
                                   onClick={() =>
                                     setRegenPromptOpenIndex((prev) => (prev === i ? null : i))
                                   }
                                 >
-                                  <Wand2 className="size-3" />
-                                  {t('workspace.regenSection')}
+                                  {sectionLoadingIndex === i ? (
+                                    <Loader2 className="size-3 animate-spin" />
+                                  ) : (
+                                    <Wand2 className="size-3" />
+                                  )}
+                                  {sectionLoadingIndex === i
+                                    ? t('workspace.sectionStatus.loading')
+                                    : t('workspace.regenSection')}
                                 </Button>
                               </div>
                             </div>
@@ -1690,13 +1891,14 @@ export default function WorkspacePage() {
                                   }
                                   placeholder={t('workspace.regenInstructionPlaceholder')}
                                   className="text-sm"
+                                  disabled={sectionLoadingIndex === i}
                                 />
                                 <div className="flex flex-wrap gap-2">
                                   <Button
                                     type="button"
                                     size="sm"
                                     className="gap-1"
-                                    disabled={loading || sectionLoadingIndex !== null || generateBlocked}
+                                    disabled={loading || sectionLoadingIndex !== null || generateBlocked || !!panelLoading.humanize}
                                     onClick={() => void handleRegenerateSection(i)}
                                   >
                                     {sectionLoadingIndex === i ? (
@@ -1704,7 +1906,9 @@ export default function WorkspacePage() {
                                     ) : (
                                       <Wand2 className="size-3" />
                                     )}
-                                    {t('workspace.regenSectionRun')}
+                                    {sectionLoadingIndex === i
+                                      ? t('workspace.sectionStatus.loading')
+                                      : t('workspace.regenSectionRun')}
                                   </Button>
                                   <Button
                                     type="button"
@@ -1721,7 +1925,21 @@ export default function WorkspacePage() {
                             {status === 'error' && meta?.error && (
                               <p className="text-xs text-destructive">{meta.error}</p>
                             )}
-                            {editingSectionIndex === i ? (
+                            {status === 'loading' ? (
+                              <div
+                                className="flex flex-col gap-3 rounded-md border bg-muted/30 p-4"
+                                aria-busy="true"
+                                aria-live="polite"
+                              >
+                                <LoadingSpinner
+                                  label={t('workspace.regenSectionBusy')}
+                                  className="py-6"
+                                />
+                                <Skeleton className="h-3 w-full" />
+                                <Skeleton className="h-3 w-5/6" />
+                                <Skeleton className="h-3 w-4/5" />
+                              </div>
+                            ) : editingSectionIndex === i ? (
                               <div className="space-y-2">
                                 <Textarea
                                   value={editDraft}
@@ -1826,6 +2044,16 @@ export default function WorkspacePage() {
                     </div>
                   );
               })()}
+
+              {(humanizeFindings.length > 0 || humanizeReplacements.length > 0) && (
+                <HumanizeReport
+                  variant="compare"
+                  analysis={humanizeAnalysis}
+                  findings={humanizeFindings}
+                  replacements={humanizeReplacements}
+                  onOpenDiagnosis={() => setRightTab('diagnosis')}
+                />
+              )}
 
               {!isTyping && (
                 <div className="animate-in fade-in space-y-6 duration-300">
@@ -1988,7 +2216,7 @@ export default function WorkspacePage() {
               variant="outline"
               size="sm"
               className="ml-auto h-7 gap-1 text-xs"
-              disabled={!result?.content || !!panelLoading.diagnosis}
+              disabled={!result?.content || !!panelLoading.diagnosis || !!panelLoading.humanize || loading || isTyping}
               onClick={() => void handleRefreshDiagnosis()}
             >
               {panelLoading.diagnosis ? (
@@ -1998,23 +2226,67 @@ export default function WorkspacePage() {
               )}
               {t('workspace.runDiagnosis')}
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 gap-1 text-xs"
+              data-testid="workspace-humanize-diagnosis-btn"
+              disabled={!result?.content || !!panelLoading.humanize || loading || isTyping || sectionLoadingIndex !== null}
+              onClick={() => void handleHumanizeAiTraces()}
+            >
+              {panelLoading.humanize ? (
+                <Loader2 className="size-3 animate-spin" />
+              ) : (
+                <Wand2 className="size-3" />
+              )}
+              {t('workspace.humanizeAll')}
+            </Button>
           </div>
+          {humanizeFindings.length > 0 && (
+            <HumanizeReport
+              className="mb-4"
+              analysis={humanizeAnalysis}
+              findings={humanizeFindings}
+              replacements={humanizeReplacements}
+            />
+          )}
           {detections.length > 0 ? (
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground">{t('workspace.diagnosisDesc')}</p>
+              <p className="text-xs text-muted-foreground">{t('workspace.humanizeHint')}</p>
               {detections.map((d, i) => (
                 <div key={i} className="rounded-md border p-3 text-sm">
-                  <StatusChip label={t(LEVEL_LABEL_KEY[d.level] ?? d.level)} variant={LEVEL_VARIANT[d.level] ?? 'default'} className="mb-1.5" />
+                  <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                    <StatusChip label={t(LEVEL_LABEL_KEY[d.level] ?? d.level)} variant={LEVEL_VARIANT[d.level] ?? 'default'} />
+                    {(d.level === 'YELLOW' || d.level === 'RED') && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="ml-auto h-7 gap-1 text-xs"
+                        disabled={!!panelLoading.humanize || loading || isTyping}
+                        onClick={() => void handleHumanizeAiTraces([d.sentence])}
+                      >
+                        {panelLoading.humanize ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : (
+                          <Wand2 className="size-3" />
+                        )}
+                        {t('workspace.humanizeSentence')}
+                      </Button>
+                    )}
+                  </div>
                   <p className="leading-relaxed">{d.sentence}</p>
                   <p className="mt-1.5 text-xs text-muted-foreground">{d.reason}</p>
                 </div>
               ))}
             </div>
-          ) : (
+          ) : humanizeFindings.length === 0 ? (
             <div className="flex h-full min-h-[240px] items-center justify-center rounded-lg border border-dashed bg-muted/20 p-8 text-center text-sm text-muted-foreground">
               {t('workspace.diagnosisEmpty')}
             </div>
-          )}
+          ) : null}
         </TabsContent>
       </Tabs>
     </div>

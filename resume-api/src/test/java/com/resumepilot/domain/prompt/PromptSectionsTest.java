@@ -18,10 +18,32 @@ class PromptSectionsTest {
 
         assertThat(parsed.persona()).isEqualTo(persona);
         assertThat(parsed.guard()).isEqualTo(guard);
+        assertThat(parsed.skill()).isEmpty();
+        assertThat(parsed.rubric()).isEmpty();
         assertThat(parsed.task()).isEqualTo(task);
         assertThat(parsed.output()).isEqualTo(output);
         assertThat(composed).contains("[Persona · 페르소나]");
         assertThat(composed).contains("[Guard · 가드레일]");
+        assertThat(composed).doesNotContain("[Skill · 스킬]");
+        assertThat(composed).doesNotContain("[Rubric · 자소서 문체]");
+    }
+
+    @Test
+    void composeIncludesSkillAndRubricWhenPresent() {
+        String composed = PromptSections.compose(
+                "역할",
+                "가드",
+                "패턴 30 가지고 있다",
+                "추상 시작 금지",
+                "윤문",
+                "JSON"
+        );
+        PromptSections.Parsed parsed = PromptSections.parse(composed);
+        assertThat(composed).contains("[Skill · 스킬]");
+        assertThat(composed).contains("[Rubric · 자소서 문체]");
+        assertThat(parsed.skill()).isEqualTo("패턴 30 가지고 있다");
+        assertThat(parsed.rubric()).isEqualTo("추상 시작 금지");
+        assertThat(parsed.task()).isEqualTo("윤문");
     }
 
     @Test
@@ -29,6 +51,8 @@ class PromptSectionsTest {
         PromptSections.Parsed parsed = PromptSections.parse("You rewrite cover letters using ONLY user experiences.");
         assertThat(parsed.persona()).isEmpty();
         assertThat(parsed.guard()).isEmpty();
+        assertThat(parsed.skill()).isEmpty();
+        assertThat(parsed.rubric()).isEmpty();
         assertThat(parsed.task()).isEqualTo("You rewrite cover letters using ONLY user experiences.");
         assertThat(parsed.output()).isEmpty();
     }

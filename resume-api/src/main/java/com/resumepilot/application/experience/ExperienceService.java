@@ -127,6 +127,10 @@ public class ExperienceService {
         if (req.starResult() != null) e.setStarResult(req.starResult());
         if (req.skills() != null) e.setSkills(req.skills());
         if (req.startDate() != null) e.setStartDate(req.startDate());
-        if (req.endDate() != null) e.setEndDate(req.endDate());
+        if (Boolean.TRUE.equals(req.ongoing())) {
+            e.setEndDate(null);
+        } else if (req.endDate() != null) {
+            e.setEndDate(req.endDate());
+        }
     }
 }

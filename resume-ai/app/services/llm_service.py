@@ -64,6 +64,7 @@ OPERATION_MAX_TOKENS: dict[str, int] = {
     # gpt-4o-mini 등 OpenAI 계열은 completion 상한이 16384라서 그 이상으로 두면 400이 난다.
     "GENERATE": 16384,
     "AI_DETECTION": 8192,
+    "AI_HUMANIZE": 8192,
     "AI_REVIEW": 8192,
     "INTERVIEW_QUESTIONS": 4096,
     "KEYWORD_COMPARE": 8192,
@@ -488,9 +489,15 @@ class LlmService:
         return chars
 
     @staticmethod
-    def _length_plan_rules(chars: int) -> str:
+    def _length_plan_rules(chars: int, kind: str = "") -> str:
         """처음부터 목표 길이에 맞게 쓰게 한다. 긴 글을 잘라 맞추지 않는다."""
-        if chars <= 500:
+        if kind == "career":
+            budget = (
+                "- 경력기술서입니다. 한 프로젝트 자소서(STAR 한 장면)로 쓰지 마세요.\n"
+                "- 배정된 경력을 회사·역할·기간·핵심 업무·결과 순으로 압축하세요.\n"
+                "- 짧은 목표면 항목당 1~2문장. 없는 회사·기간·수치는 쓰지 마세요.\n"
+            )
+        elif chars <= 500:
             budget = (
                 "- 짧은 문항입니다. 경험 장면은 1개만 고르세요.\n"
                 "- 문장 2~4개로 끝내세요. 제약 1 · 판단(왜) 1 · 결과 1이 한 글로 끝나야 합니다.\n"
@@ -557,7 +564,9 @@ class LlmService:
             return "motivation"
         if "성장" in t:
             return "growth"
-        if "직무역량" in t or "보유기술" in t or "경험직무" in t or "경력기술" in t or ("직무" in t and "역량" in t):
+        if "경력기술" in t:
+            return "career"
+        if "직무역량" in t or "보유기술" in t or "경험직무" in t or ("직무" in t and "역량" in t):
             return "competency"
         if "포부" in t:
             return "aspiration"
@@ -650,6 +659,15 @@ class LlmService:
         return 3
 
     @classmethod
+    def _experiences_needed(cls, kind: str, chars: int) -> int:
+        if kind == "aspiration":
+            return 0
+        n = min(3, cls._experiences_for_target_chars(chars))
+        if kind == "career":
+            return min(3, max(2, n))
+        return n
+
+    @classmethod
     def _assign_section_experiences(
         cls,
         titles: list[str],
@@ -690,11 +708,8 @@ class LlmService:
         needs: list[int] = []
         for i, title in enumerate(titles):
             kind = cls._section_kind(title)
-            if kind == "aspiration":
-                needs.append(0)
-            else:
-                ch = chars[i] if i < len(chars) else 1200
-                needs.append(min(3, cls._experiences_for_target_chars(ch)))
+            ch = chars[i] if i < len(chars) else 1200
+            needs.append(cls._experiences_needed(kind, ch))
 
         assignments: list[list[dict]] = [[] for _ in titles]
 
@@ -812,11 +827,11 @@ class LlmService:
             "- 지금은 한 문항의 본문만 작성합니다.\n"
             "- 문항 제목·번호·마크다운을 본문에 넣지 마세요.\n"
             "- 목표 글자 수는 상한입니다. 긴 글을 쓴 뒤 자르지 말고, 처음부터 그 길이에 맞게 완성된 글로 쓰세요.\n"
-            "- 짧은 목표(500자 이하)는 장면 1개, 제약→판단→결과가 한 글로 끝나야 합니다.\n"
+            "- 짧은 목표(500자 이하)는 장면 1개, 제약→판단→결과가 한 글로 끝나야 합니다. 경력기술서는 예외입니다.\n"
             "- 이상적 길이는 목표의 85~100%입니다. RAG 사실이 부족하면 더 짧게 두세요.\n"
             "- 지어내서 분량을 채우면 실패입니다. 결론이 잘린 글도 실패입니다.\n"
-            "- STAR를 구체화하되 수치는 RAG에 있는 것만.\n"
-            "- 이 문항에 배정된 경험만 깊게 쓰세요. 경험 카탈로그 나열 금지.\n"
+            "- STAR를 구체화하되 수치는 RAG에 있는 것만. 경력기술서는 STAR 한 장면이 아니라 경력 압축입니다.\n"
+            "- 이 문항에 배정된 경험만 쓰세요. 경력기술서가 아니면 경험 카탈로그 나열 금지.\n"
             "- 한 사람의 자기소개서입니다. 말투·역할 표현·수치·시점을 이미 작성한 문항과 모순되지 않게 맞추세요.\n"
             "- 다른 문항에서 이미 쓴 경험의 같은 장면(제약-판단-결과)을 다시 쓰지 마세요.\n"
             "- 배정되지 않은 경험은 지원동기·포부에서 한 줄 연결만 가능합니다. 깊은 서술은 배정된 문항에서만.\n"
@@ -883,7 +898,7 @@ class LlmService:
                     f"이 문항에서만 깊게 쓸 경험 id: {assigned_ids}\n"
                     f"위에 배정되지 않은 경험은 깊게 쓰지 마세요. 지원동기·포부에서만 한 줄 연결 가능.\n"
                     f"이 문항 본문만 출력하세요. 제목/번호 없이 순수 문장만.\n"
-                    f"{self._length_plan_rules(chars)}"
+                    f"{self._length_plan_rules(chars, kind)}"
                     f"목표 글자 수: {chars}자 (공백 포함 상한).\n"
                     f"이상적 길이는 {max(80, int(chars * 0.85))}~{chars}자입니다.\n"
                     f"한 사람의 자소서로 앞 문항과 말투·사실·수치가 모순되지 않게 쓰세요.\n"
@@ -1017,6 +1032,14 @@ class LlmService:
                 "- 금지: 실무 경험 포트폴리오 나열, 학창으로의 시점 이동, "
                 "기간 없는 즉시성 단정, 없는 수치·수상, AI 코딩 도구 제품명.\n"
                 "- 배정 경험은 '일하는 방식이 어떻게 바뀌었는지'만 짧게.\n"
+            )
+        if "경력기술" in t:
+            return (
+                "【문항 슬롯·경력기술서】\n"
+                "- 이것은 자소서 에세이가 아닙니다. 한 프로젝트의 제약→판단→결과(STAR)로 쓰지 마세요.\n"
+                "- 배정된 경험마다 회사(또는 프로젝트명)·역할·기간(있으면)·핵심 업무·결과만 압축하세요.\n"
+                "- 짧은 목표면 항목당 1~2문장으로 이어 쓰세요. 지원동기·포부 문장, 감정 서사 금지.\n"
+                "- RAG에 없는 회사·기간·직함·수치는 쓰지 마세요. 배정되지 않은 경험도 넣지 마세요.\n"
             )
         if "직무역량" in t or ("직무" in t and "역량" in t):
             return (

@@ -8,6 +8,8 @@ public record PromptVersionResponse(
         Integer versionNumber,
         String personaPrompt,
         String guardPrompt,
+        String skillPrompt,
+        String rubricPrompt,
         String taskPrompt,
         String outputPrompt,
         String systemPrompt,

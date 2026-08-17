@@ -37,3 +37,22 @@ def test_normalize_fills_missing_and_clamps():
     assert out[2]["needs_unique_story"] is False
     assert out[2]["max_experiences"] == 1
     assert out[2]["title"] == "입사 후 포부"
+
+
+def test_normalize_career_statement():
+    titles = ["경력기술서"]
+    parsed = {
+        "sections": [
+            {
+                "index": 0,
+                "intent": "career",
+                "needs_unique_story": True,
+                "max_experiences": 1,
+                "look_for": ["PROJECT"],
+            },
+        ]
+    }
+    out = SectionAnalysisService.normalize(titles, parsed)
+    assert out[0]["intent"] == "career"
+    assert out[0]["max_experiences"] == 2
+    assert out[0]["needs_unique_story"] is True

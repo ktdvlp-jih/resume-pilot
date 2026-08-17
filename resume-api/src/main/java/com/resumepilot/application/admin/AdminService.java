@@ -67,15 +67,19 @@ public class AdminService {
 
         String persona = req.personaPrompt();
         String guard = req.guardPrompt();
+        String skill = req.skillPrompt() != null ? req.skillPrompt() : "";
+        String rubric = req.rubricPrompt() != null ? req.rubricPrompt() : "";
         String task = req.taskPrompt();
         String output = req.outputPrompt();
-        String systemPrompt = PromptSections.compose(persona, guard, task, output);
+        String systemPrompt = PromptSections.compose(persona, guard, skill, rubric, task, output);
 
         PromptVersion version = promptVersionRepository.save(PromptVersion.builder()
                 .promptTemplateId(templateId)
                 .versionNumber(nextVersion)
                 .personaPrompt(persona)
                 .guardPrompt(guard)
+                .skillPrompt(skill)
+                .rubricPrompt(rubric)
                 .taskPrompt(task)
                 .outputPrompt(output)
                 .systemPrompt(systemPrompt)
@@ -137,10 +141,13 @@ public class AdminService {
             return req.systemPrompt();
         }
         if (req.personaPrompt() != null || req.guardPrompt() != null
+                || req.skillPrompt() != null || req.rubricPrompt() != null
                 || req.taskPrompt() != null || req.outputPrompt() != null) {
             return PromptSections.compose(
                     req.personaPrompt() != null ? req.personaPrompt() : "",
                     req.guardPrompt() != null ? req.guardPrompt() : "",
+                    req.skillPrompt() != null ? req.skillPrompt() : "",
+                    req.rubricPrompt() != null ? req.rubricPrompt() : "",
                     req.taskPrompt() != null ? req.taskPrompt() : "",
                     req.outputPrompt() != null ? req.outputPrompt() : "");
         }
@@ -331,6 +338,8 @@ public class AdminService {
                 v.getVersionNumber(),
                 v.getPersonaPrompt(),
                 v.getGuardPrompt(),
+                v.getSkillPrompt(),
+                v.getRubricPrompt(),
                 v.getTaskPrompt(),
                 v.getOutputPrompt(),
                 v.getSystemPrompt(),

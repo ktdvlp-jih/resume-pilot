@@ -20,5 +20,7 @@ public record ExperienceUpdateRequest(
         @Size(max = 800) String starResult,
         List<@Size(max = 50) String> skills,
         LocalDate startDate,
-        LocalDate endDate
+        LocalDate endDate,
+        /** true이면 endDate를 null로 저장(현재 진행 중). */
+        Boolean ongoing
 ) {}

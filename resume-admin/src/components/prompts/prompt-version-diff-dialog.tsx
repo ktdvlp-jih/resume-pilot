@@ -25,13 +25,15 @@ export type PromptVersionDetail = {
   active: boolean;
   personaPrompt: string;
   guardPrompt: string;
+  skillPrompt?: string;
+  rubricPrompt?: string;
   taskPrompt: string;
   outputPrompt: string;
   systemPrompt: string;
   userPrompt: string;
 };
 
-type SectionKey = 'persona' | 'guard' | 'task' | 'output' | 'user';
+type SectionKey = 'persona' | 'guard' | 'skill' | 'rubric' | 'task' | 'output' | 'user';
 
 type PromptVersionDiffDialogProps = {
   open: boolean;
@@ -48,6 +50,10 @@ function sectionValue(version: PromptVersionDetail | undefined, key: SectionKey)
       return version.personaPrompt;
     case 'guard':
       return version.guardPrompt;
+    case 'skill':
+      return version.skillPrompt ?? '';
+    case 'rubric':
+      return version.rubricPrompt ?? '';
     case 'task':
       return version.taskPrompt;
     case 'output':
@@ -91,6 +97,8 @@ export function PromptVersionDiffDialog({
   const sections: { key: SectionKey; label: string }[] = [
     { key: 'persona', label: t('prompts.persona') },
     { key: 'guard', label: t('prompts.guard') },
+    { key: 'skill', label: t('prompts.skill') },
+    { key: 'rubric', label: t('prompts.rubric') },
     { key: 'task', label: t('prompts.task') },
     { key: 'output', label: t('prompts.output') },
     { key: 'user', label: t('prompts.userPrompt') },

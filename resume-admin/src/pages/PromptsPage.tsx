@@ -33,6 +33,8 @@ export default function PromptsPage() {
   const selectedId = params.get('prompt') ?? '';
   const [personaPrompt, setPersonaPrompt] = useState('');
   const [guardPrompt, setGuardPrompt] = useState('');
+  const [skillPrompt, setSkillPrompt] = useState('');
+  const [rubricPrompt, setRubricPrompt] = useState('');
   const [taskPrompt, setTaskPrompt] = useState('');
   const [outputPrompt, setOutputPrompt] = useState('');
   const [userPrompt, setUserPrompt] = useState('');
@@ -70,12 +72,16 @@ export default function PromptsPage() {
     if (active) {
       setPersonaPrompt(active.personaPrompt);
       setGuardPrompt(active.guardPrompt);
+      setSkillPrompt(active.skillPrompt ?? '');
+      setRubricPrompt(active.rubricPrompt ?? '');
       setTaskPrompt(active.taskPrompt);
       setOutputPrompt(active.outputPrompt);
       setUserPrompt(active.userPrompt);
     } else {
       setPersonaPrompt('');
       setGuardPrompt('');
+      setSkillPrompt('');
+      setRubricPrompt('');
       setTaskPrompt('');
       setOutputPrompt('');
       setUserPrompt('');
@@ -123,6 +129,8 @@ export default function PromptsPage() {
     );
     setPersonaPrompt('');
     setGuardPrompt('');
+    setSkillPrompt('');
+    setRubricPrompt('');
     setTaskPrompt('');
     setOutputPrompt('');
     setUserPrompt('');
@@ -133,6 +141,8 @@ export default function PromptsPage() {
   const sectionPayload = {
     personaPrompt,
     guardPrompt,
+    skillPrompt,
+    rubricPrompt,
     taskPrompt,
     outputPrompt,
     userPrompt,
@@ -162,6 +172,8 @@ export default function PromptsPage() {
     if (!activeVersion) return;
     setPersonaPrompt(activeVersion.personaPrompt);
     setGuardPrompt(activeVersion.guardPrompt);
+    setSkillPrompt(activeVersion.skillPrompt ?? '');
+    setRubricPrompt(activeVersion.rubricPrompt ?? '');
     setTaskPrompt(activeVersion.taskPrompt);
     setOutputPrompt(activeVersion.outputPrompt);
     setUserPrompt(activeVersion.userPrompt);
@@ -179,6 +191,8 @@ export default function PromptsPage() {
   const sectionFields = [
     { key: 'persona', label: t('prompts.persona'), value: personaPrompt, onChange: setPersonaPrompt },
     { key: 'guard', label: t('prompts.guard'), value: guardPrompt, onChange: setGuardPrompt },
+    { key: 'skill', label: t('prompts.skill'), value: skillPrompt, onChange: setSkillPrompt },
+    { key: 'rubric', label: t('prompts.rubric'), value: rubricPrompt, onChange: setRubricPrompt },
     { key: 'task', label: t('prompts.task'), value: taskPrompt, onChange: setTaskPrompt },
     { key: 'output', label: t('prompts.output'), value: outputPrompt, onChange: setOutputPrompt },
   ] as const;

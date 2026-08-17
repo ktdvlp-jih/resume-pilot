@@ -8,6 +8,7 @@ import asyncpg
 
 from app.config import settings
 from app.services.embedding_service import embedding_service
+from app.services.experience_period import format_experience_period
 
 logger = logging.getLogger(__name__)
 
@@ -135,13 +136,7 @@ class VectorRepository:
                 eid,
             )
             if row:
-                period = None
-                start = row["start_date"]
-                end = row["end_date"]
-                if start or end:
-                    start_s = start.isoformat() if start else "?"
-                    end_s = end.isoformat() if end else "진행중"
-                    period = f"기간: {start_s} ~ {end_s}"
+                period = format_experience_period(row["start_date"], row["end_date"])
                 role = row["role"]
                 role_line = f"역할: {role}" if role else None
                 return "\n".join(

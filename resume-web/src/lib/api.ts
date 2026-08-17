@@ -356,6 +356,30 @@ export const api = {
     }),
   detectAi: (content: string) =>
     request<Record<string, unknown>>('/api/v1/ai/detect', { method: 'POST', body: JSON.stringify({ content }) }),
+  humanizeAi: (content: string, sentences: string[] = []) =>
+    request<{
+      content?: string;
+      replacements?: Array<{ original?: string; revised?: string; reason?: string }>;
+      changed_count?: number;
+      analysis?: {
+        grade?: string;
+        grade_reason?: string;
+        s1?: number;
+        s2?: number;
+        s3?: number;
+        findings?: Array<{
+          pattern?: number | null;
+          severity?: string;
+          title?: string;
+          example?: string;
+          why?: string;
+        }>;
+      };
+      model?: string;
+    }>('/api/v1/ai/humanize', {
+      method: 'POST',
+      body: JSON.stringify({ content, sentences }),
+    }),
   reviewAi: (content: string, jobAnalysis?: Record<string, unknown>) =>
     request<Record<string, unknown>>('/api/v1/ai/review', {
       method: 'POST', body: JSON.stringify({ content, jobAnalysis }),

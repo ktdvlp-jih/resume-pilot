@@ -38,7 +38,7 @@ async def test_generate_by_sections_only_target_index(monkeypatch: pytest.Monkey
     monkeypatch.setattr(
         svc,
         "_assign_section_experiences",
-        lambda titles, experiences, job_analysis=None: [[experiences[0]] for _ in titles],
+        lambda titles, experiences, job_analysis=None, target_chars=None: [[experiences[0]] for _ in titles],
     )
 
     experiences = [{"entity_id": "e1", "content": "프로젝트 A를 수행함"}]
@@ -90,7 +90,7 @@ async def test_generate_by_sections_records_error_without_abort(
     monkeypatch.setattr(
         svc,
         "_assign_section_experiences",
-        lambda titles, experiences, job_analysis=None: [[experiences[0]] for _ in titles],
+        lambda titles, experiences, job_analysis=None, target_chars=None: [[experiences[0]] for _ in titles],
     )
 
     content, _model, sections = await svc._generate_by_sections(
@@ -111,6 +111,13 @@ def test_length_plan_rules_short_target_one_scene() -> None:
     rules = LlmService._length_plan_rules(300)
     assert "장면은 1개" in rules
     assert "자르지" in rules
+
+
+def test_length_plan_rules_career_is_not_one_scene() -> None:
+    rules = LlmService._length_plan_rules(400, "career")
+    assert "경력기술서" in rules
+    assert "STAR" in rules
+    assert "장면은 1개" not in rules
 
 
 def test_accept_compressed_section_rejects_cut_off() -> None:
@@ -155,7 +162,7 @@ async def test_generate_by_sections_compresses_without_clipping(
     monkeypatch.setattr(
         svc,
         "_assign_section_experiences",
-        lambda titles, experiences, job_analysis=None: [[experiences[0]] for _ in titles],
+        lambda titles, experiences, job_analysis=None, target_chars=None: [[experiences[0]] for _ in titles],
     )
 
     _content, _model, sections = await svc._generate_by_sections(

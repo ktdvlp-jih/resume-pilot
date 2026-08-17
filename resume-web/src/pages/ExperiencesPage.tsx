@@ -52,6 +52,7 @@ type ExperienceForm = {
   starResult: string;
   startDate: string;
   endDate: string;
+  ongoing: boolean;
 };
 
 const emptyForm = (): ExperienceForm => ({
@@ -68,7 +69,14 @@ const emptyForm = (): ExperienceForm => ({
   starResult: '',
   startDate: '',
   endDate: '',
+  ongoing: false,
 });
+
+function formatLocalDate(iso: string): string {
+  const [y, m, d] = iso.split('-');
+  if (!y || !m || !d) return iso;
+  return `${y}. ${m}. ${d}.`;
+}
 
 function CharCount({ value, max }: { value: string; max: number }) {
   const len = value.length;
@@ -137,7 +145,8 @@ export default function ExperiencesPage() {
     starAction: form.starAction.trim() || undefined,
     starResult: form.starResult.trim() || undefined,
     startDate: form.startDate || undefined,
-    endDate: form.endDate || undefined,
+    endDate: form.ongoing ? undefined : form.endDate || undefined,
+    ongoing: form.ongoing,
   });
 
   const createMutation = useMutation({
@@ -215,6 +224,7 @@ export default function ExperiencesPage() {
       starResult: exp.starResult ?? '',
       startDate: exp.startDate ?? '',
       endDate: exp.endDate ?? '',
+      ongoing: !exp.endDate,
     });
     setShowStar(Boolean(exp.starSituation || exp.starTask || exp.starAction || exp.starResult));
     setEditingId(exp.id);
@@ -373,8 +383,24 @@ export default function ExperiencesPage() {
                     <Input
                       type="date"
                       value={form.endDate}
-                      onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+                      disabled={form.ongoing}
+                      onChange={(e) => setForm({ ...form, endDate: e.target.value, ongoing: false })}
                     />
+                    <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+                      <input
+                        type="checkbox"
+                        checked={form.ongoing}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            ongoing: e.target.checked,
+                            endDate: e.target.checked ? '' : form.endDate,
+                          })
+                        }
+                        className="size-4 rounded border-input accent-primary"
+                      />
+                      {t('experiences.ongoing')}
+                    </label>
                   </div>
                 </div>
               </div>
@@ -571,6 +597,13 @@ export default function ExperiencesPage() {
                       <TableCell>
                         <div className="max-w-xs">
                           <p className="font-medium truncate">{exp.title}</p>
+                          {(exp.startDate || exp.endDate) && (
+                            <p className="text-xs text-muted-foreground">
+                              {exp.startDate ? formatLocalDate(exp.startDate) : '—'}
+                              {' — '}
+                              {exp.endDate ? formatLocalDate(exp.endDate) : t('portfolio.present')}
+                            </p>
+                          )}
                           {exp.description && (
                             <p className="text-xs text-muted-foreground line-clamp-1">{exp.description}</p>
                           )}
