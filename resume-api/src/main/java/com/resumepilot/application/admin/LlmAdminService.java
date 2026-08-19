@@ -30,6 +30,20 @@ public class LlmAdminService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public LlmProviderApiKeyResponse revealProviderApiKey(UUID id) {
+        LlmProvider provider = getProvider(id);
+        if (!provider.hasApiKey()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "API key is not configured for this provider");
+        }
+        return new LlmProviderApiKeyResponse(
+                provider.getId(),
+                provider.getSlug(),
+                provider.getDisplayName(),
+                secretsCipher.decrypt(provider.getApiKeyCiphertext())
+        );
+    }
+
     @Transactional
     public LlmProviderResponse updateProvider(UUID id, LlmProviderUpdateRequest req) {
         LlmProvider provider = getProvider(id);

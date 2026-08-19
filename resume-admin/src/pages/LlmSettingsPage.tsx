@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Copy, Eye } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
@@ -8,6 +9,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -70,6 +78,13 @@ export default function LlmSettingsPage() {
   } | null>(null);
 
   const [savingOperation, setSavingOperation] = useState<string | null>(null);
+  const [revealedKey, setRevealedKey] = useState<{
+    id: string;
+    slug: string;
+    displayName: string;
+    apiKey: string;
+  } | null>(null);
+  const [revealingProviderId, setRevealingProviderId] = useState<string | null>(null);
 
   const providersQuery = useQuery({
     queryKey: ['admin-llm-providers'],
@@ -184,6 +199,28 @@ export default function LlmSettingsPage() {
     });
   };
 
+  const revealProviderKey = async (provider: LlmProvider) => {
+    setRevealingProviderId(provider.id);
+    try {
+      const result = await api.revealLlmProviderApiKey(provider.id);
+      setRevealedKey(result);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('llmSettings.revealKeyError'));
+    } finally {
+      setRevealingProviderId(null);
+    }
+  };
+
+  const copyRevealedKey = async () => {
+    if (!revealedKey?.apiKey) return;
+    try {
+      await navigator.clipboard.writeText(revealedKey.apiKey);
+      toast.success(t('llmSettings.copiedKey'));
+    } catch {
+      toast.error(t('llmSettings.revealKeyError'));
+    }
+  };
+
   const saveOperationRoutes = (operation: string, opRoutes: LlmRoute[]) => {
     if (operation === 'EMBEDDING') {
       return;
@@ -277,15 +314,31 @@ export default function LlmSettingsPage() {
                   )}
                   <div className="space-y-1">
                     <Label htmlFor={`key-${provider.id}`}>{t('llmSettings.apiKey')}</Label>
-                    <Input
-                      id={`key-${provider.id}`}
-                      type="password"
-                      placeholder={provider.hasApiKey ? provider.apiKeyMasked : t('llmSettings.apiKeyPlaceholder')}
-                      value={apiKeys[provider.id] ?? ''}
-                      onChange={(e) =>
-                        setApiKeys((prev) => ({ ...prev, [provider.id]: e.target.value }))
-                      }
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        id={`key-${provider.id}`}
+                        type="password"
+                        className="min-w-0 flex-1"
+                        placeholder={provider.hasApiKey ? provider.apiKeyMasked : t('llmSettings.apiKeyPlaceholder')}
+                        value={apiKeys[provider.id] ?? ''}
+                        onChange={(e) =>
+                          setApiKeys((prev) => ({ ...prev, [provider.id]: e.target.value }))
+                        }
+                      />
+                      {provider.hasApiKey && (
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="outline"
+                          title={t('llmSettings.revealKey')}
+                          aria-label={t('llmSettings.revealKey')}
+                          disabled={revealingProviderId === provider.id}
+                          onClick={() => revealProviderKey(provider)}
+                        >
+                          <Eye className="size-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <Label htmlFor={`enabled-${provider.id}`}>{t('llmSettings.enableProvider')}</Label>
@@ -310,6 +363,38 @@ export default function LlmSettingsPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={revealedKey !== null} onOpenChange={(open) => !open && setRevealedKey(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{t('llmSettings.revealKeyTitle')}</DialogTitle>
+            <DialogDescription>
+              {revealedKey
+                ? t('llmSettings.revealKeyDesc', { name: revealedKey.displayName, slug: revealedKey.slug })
+                : t('llmSettings.revealKeyDescGeneric')}
+            </DialogDescription>
+          </DialogHeader>
+          {revealedKey && (
+            <div className="space-y-3">
+              <Input
+                readOnly
+                value={revealedKey.apiKey}
+                className="font-mono text-xs"
+                onFocus={(e) => e.target.select()}
+              />
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => setRevealedKey(null)}>
+                  {t('common.cancel')}
+                </Button>
+                <Button type="button" onClick={copyRevealedKey}>
+                  <Copy className="mr-2 size-4" />
+                  {t('llmSettings.copyKey')}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader>

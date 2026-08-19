@@ -35,6 +35,12 @@ public class AdminLlmController {
         return ApiResponse.ok(llmAdminService.updateProvider(id, req));
     }
 
+    @GetMapping("/providers/{id}/api-key")
+    @Operation(summary = "저장된 LLM Provider API 키 조회 (관리자 전용, 평문)")
+    public ApiResponse<LlmProviderApiKeyResponse> revealProviderApiKey(@PathVariable UUID id) {
+        return ApiResponse.ok(llmAdminService.revealProviderApiKey(id));
+    }
+
     @GetMapping("/routes")
     @Operation(summary = "작업별 LLM 라우트 (failover 순서)")
     public ApiResponse<List<LlmModelRouteResponse>> listRoutes() {

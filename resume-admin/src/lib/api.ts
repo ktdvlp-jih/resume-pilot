@@ -213,6 +213,13 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
+  revealLlmProviderApiKey: (id: string) =>
+    request<{
+      id: string;
+      slug: string;
+      displayName: string;
+      apiKey: string;
+    }>(`/api/v1/admin/llm/providers/${id}/api-key`),
   listLlmRoutes: () =>
     request<Array<{
       id: string;
