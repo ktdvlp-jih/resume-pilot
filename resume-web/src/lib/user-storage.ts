@@ -72,11 +72,9 @@ export function readUserScopedItem(base: string): string | null {
   if (!scoped) return null;
   const existing = localStorage.getItem(scoped);
   if (existing != null) return existing;
-  const legacy = localStorage.getItem(base);
-  if (legacy == null) return null;
-  localStorage.setItem(scoped, legacy);
+  // 스코프 없는 예전 키는 작성자를 알 수 없어 복원하지 않는다.
   localStorage.removeItem(base);
-  return legacy;
+  return null;
 }
 
 export function writeUserScopedItem(base: string, value: string) {
