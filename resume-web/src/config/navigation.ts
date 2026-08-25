@@ -21,9 +21,11 @@ export type NavGroup = {
   items: NavItem[];
 };
 
-/** Public marketing header (anchors on landing) */
+/** Public marketing header */
 export const publicHeaderLinks = [
   { href: '/#intro', labelKey: 'nav.intro' },
+  { href: '/guides', labelKey: 'nav.guides' },
+  { href: '/calendar', labelKey: 'nav.calendar' },
   { href: '/#features', labelKey: 'nav.features' },
   { href: '/#pricing', labelKey: 'nav.pricing' },
 ] as const;

@@ -11,6 +11,15 @@ import { ProtectedLayout } from './components/Layout';
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const SignupPage = lazy(() => import('./pages/SignupPage'));
+const GuidesPage = lazy(() => import('./pages/public/GuidesPage'));
+const GuideArticlePage = lazy(() => import('./pages/public/GuideArticlePage'));
+const PublicRoleGuidePage = lazy(() => import('./pages/public/PublicRoleGuidePage'));
+const LegalPage = lazy(() => import('./pages/public/LegalPage'));
+const CharCountPage = lazy(() => import('./pages/public/CharCountPage'));
+const StarToolPage = lazy(() => import('./pages/public/StarToolPage'));
+const SpellCheckPage = lazy(() => import('./pages/public/SpellCheckPage'));
+const CalendarPage = lazy(() => import('./pages/public/CalendarPage'));
+const SharedResumePage = lazy(() => import('./pages/public/SharedResumePage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const ExperiencesPage = lazy(() => import('./pages/ExperiencesPage'));
 const WorkspacePage = lazy(() => import('./pages/WorkspacePage'));
@@ -38,6 +47,18 @@ export default function App() {
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/signup" element={<SignupPage />} />
+                  <Route path="/guides" element={<GuidesPage />} />
+                  <Route path="/guides/roles" element={<PublicRoleGuidePage />} />
+                  <Route path="/guides/:slug" element={<GuideArticlePage />} />
+                  <Route path="/tools/char-count" element={<CharCountPage />} />
+                  <Route path="/tools/star" element={<StarToolPage />} />
+                  <Route path="/tools/spell" element={<SpellCheckPage />} />
+                  <Route path="/calendar" element={<CalendarPage />} />
+                  <Route path="/about" element={<LegalPage />} />
+                  <Route path="/privacy" element={<LegalPage />} />
+                  <Route path="/terms" element={<LegalPage />} />
+                  <Route path="/contact" element={<LegalPage />} />
+                  <Route path="/r/:token" element={<SharedResumePage />} />
                   <Route element={<ProtectedLayout />}>
                     <Route path="/dashboard" element={<DashboardPage />} />
                     <Route path="/job-postings" element={<JobPostingsPage />} />

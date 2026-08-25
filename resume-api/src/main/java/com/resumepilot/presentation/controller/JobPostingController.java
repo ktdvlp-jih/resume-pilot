@@ -78,6 +78,15 @@ public class JobPostingController {
                 SecurityUtils.getCurrentUserId(), id, request.shared()));
     }
 
+    @PatchMapping("/{id}/closes-at")
+    @Operation(summary = "공고 마감일 설정 또는 해제")
+    public ApiResponse<JobPostingResponse> setClosesAt(
+            @PathVariable UUID id,
+            @RequestBody JobPostingClosesAtRequest request) {
+        return ApiResponse.ok(jobPostingService.setClosesAt(
+                SecurityUtils.getCurrentUserId(), id, request.closesAt()));
+    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "공고 삭제")
     public ApiResponse<Void> delete(@PathVariable UUID id) {

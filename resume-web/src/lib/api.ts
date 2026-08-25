@@ -85,6 +85,27 @@ export interface JobPostingResponse {
   createdAt: string;
   shared?: boolean;
   owned?: boolean;
+  closesAt?: string | null;
+}
+
+export interface PublicJobPostingResponse {
+  title?: string;
+  companyName?: string;
+  closesAt?: string | null;
+  createdAt: string;
+}
+
+export interface ResumeShareLinkResponse {
+  token: string;
+  path: string;
+  expiresAt: string;
+}
+
+export interface PublicSharedResumeResponse {
+  title: string;
+  companyName?: string;
+  content: string;
+  expiresAt: string;
 }
 
 export interface RecruitmentSection {
@@ -230,6 +251,15 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return json.data;
 }
 
+async function publicRequest<T>(path: string): Promise<T> {
+  const response = await fetch(`${API_URL}${path}`);
+  const json = await parseApiJson<T>(response);
+  if (!response.ok || !json.success) {
+    throw new Error(json.error?.message || 'Request failed');
+  }
+  return json.data;
+}
+
 export const api = {
   signup: (email: string, password: string, name?: string) =>
     request<TokenResponse>('/api/v1/auth/signup', {
@@ -302,6 +332,19 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ shared }),
     }),
+  setJobPostingClosesAt: (id: string, closesAt: string | null) =>
+    request<JobPostingResponse>(`/api/v1/job-postings/${id}/closes-at`, {
+      method: 'PATCH',
+      body: JSON.stringify({ closesAt }),
+    }),
+  listPublicSharedJobPostings: () =>
+    publicRequest<PublicJobPostingResponse[]>('/api/v1/public/shared-job-postings'),
+  getPublicSharedResume: (token: string) =>
+    publicRequest<PublicSharedResumeResponse>(`/api/v1/public/shared-resumes/${token}`),
+  createResumeShareLink: (id: string) =>
+    request<ResumeShareLinkResponse>(`/api/v1/resumes/${id}/share-link`, { method: 'POST' }),
+  revokeResumeShareLink: (id: string) =>
+    request<void>(`/api/v1/resumes/${id}/share-link`, { method: 'DELETE' }),
   getSkillCatalog: () => request<Array<{ name: string; category: string }>>('/api/v1/skill-catalog'),
   lookupCertification: (q: string) =>
     request<{

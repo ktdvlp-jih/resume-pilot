@@ -44,6 +44,9 @@
     "intro": "About",
     "features": "Features",
     "pricing": "Pricing",
+    "guides": "Guides",
+    "calendar": "Job calendar",
+    "tools": "Tools",
     "dashboard": "Dashboard",
     "jobPostings": "Job Postings",
     "experiences": "Experience Library",
@@ -91,7 +94,9 @@
     "pageNumber": "Page {{page}}",
     "previous": "Previous",
     "next": "Next",
-    "all": "All"
+    "all": "All",
+    "copy": "Copy",
+    "copied": "Copied."
   },
   "onboarding": {
     "title": "Getting started",
@@ -273,8 +278,11 @@
       "company": "Company",
       "source": "Source",
       "date": "Created",
+      "deadline": "Deadline",
       "actions": "Actions"
-    }
+    },
+    "deadline": "Deadline",
+    "closesAtSaved": "Deadline saved."
   },
   "writingStyle": {
     "title": "Writing Style",
@@ -589,5 +597,115 @@
     "legendRemoved": "Apricot strikethrough: wording before polish",
     "legendAdded": "Green: newly polished wording",
     "legendUnchanged": "No color: unchanged"
+  },
+  "export": {
+    "menu": "Export",
+    "txt": "Download TXT",
+    "printPdf": "Print / PDF",
+    "share": "Copy review link",
+    "shareCopied": "Share link copied. It expires in 7 days.",
+    "saveFirst": "Save the letter first to share it."
+  },
+  "guides": {
+    "title": "Writing guides",
+    "pageDesc": "Role guides, STAR blanks, and how to upload a job posting — no login. Full essay answers are not provided.",
+    "rolesTitle": "Role guides",
+    "rolesDesc": "Backend, Frontend, PM. Only roles with a document have a body.",
+    "starTitle": "STAR blanks",
+    "starDesc": "Situation, Task, Action, Result. Leave numbers blank if you do not have them.",
+    "jobTitle": "How to upload a posting",
+    "jobDesc": "URL, paste, or file — then analyze.",
+    "missing": "This guide is not available yet."
+  },
+  "tools": {
+    "saveInApp": "Save in the app",
+    "signupToSave": "Sign up to save this to your experience library.",
+    "char": {
+      "title": "Character count",
+      "desc": "Counts with/without spaces and UTF-8 bytes. Stays in the browser.",
+      "input": "Text",
+      "placeholder": "Paste a cover letter.",
+      "withSpaces": "With spaces",
+      "withoutSpaces": "Without spaces",
+      "bytes": "UTF-8 bytes"
+    },
+    "star": {
+      "title": "STAR template",
+      "desc": "Fill blanks only. Do not invent work you did not do. Saving requires an account."
+    },
+    "spell": {
+      "title": "Draft hints",
+      "desc": "Browser spellcheck plus a few local patterns.",
+      "disclaimer": "This is not a Korean grammar checker and does not call a spelling API. Red underlines come from the browser.",
+      "input": "Text",
+      "none": "No obvious patterns. Check browser underlines for spelling.",
+      "repeatSpaces": "Repeated spaces found.",
+      "repeatPunct": "Repeated punctuation found.",
+      "tooManyCommas": "Many commas. Consider splitting sentences.",
+      "calque": "Translation-like phrases such as overly stacked connectors."
+    }
+  },
+  "calendar": {
+    "title": "Shared job calendar",
+    "desc": "Only title, company, and deadline of shared postings. Job descriptions are not published.",
+    "empty": "No shared deadlines yet.",
+    "noDeadline": "TBD",
+    "cta": "Sign up to write against a posting",
+    "columns": {
+      "title": "Title",
+      "company": "Company",
+      "closesAt": "Deadline"
+    }
+  },
+  "share": {
+    "fallbackTitle": "Shared cover letter",
+    "metaDesc": "Visible to people with the link. Not listed for search engines.",
+    "missingTitle": "Link missing or expired",
+    "missingDesc": "The owner revoked it or seven days passed.",
+    "expires": "Valid until {{date}}"
+  },
+  "legal": {
+    "nav": "Legal",
+    "updated": "Last updated 2026-08-25. Personally operated. No business registration number.",
+    "personalNote": "Personally operated. No business registration number.",
+    "about": {
+      "title": "About",
+      "desc": "RAG-based company-tailored cover letters.",
+      "body": [
+        "ResumePilot stores an experience library, analyzes job postings, recommends with RAG, and generates or reviews letters.",
+        "The AI does not invent your experience. If evidence is missing it says so.",
+        "This is a personal project. There is no business registration or mail-order license number."
+      ]
+    },
+    "privacy": {
+      "title": "Privacy",
+      "desc": "How account and writing data are used.",
+      "body": [
+        "We store signup email and hashed password, profile fields, experiences, postings, letter text, session tokens, and AI usage logs.",
+        "Purpose: sign-in, tailored writing, operations. Ads may appear only on public guide/tool pages, never beside a private letter.",
+        "Deleting an account removes that user’s data. Review share links last 7 days or until revoked.",
+        "Generation may send needed text to the configured AI provider. An ad script loads on public pages only when a client id is configured.",
+        "Contact uses the contact page. If no operator email is published, we do not invent one."
+      ]
+    },
+    "terms": {
+      "title": "Terms",
+      "desc": "Conditions of use.",
+      "body": [
+        "The product is free. Paid plans are not offered yet.",
+        "You are responsible for checking facts before submitting. Do not claim work you did not do.",
+        "Do not publish someone else’s posting or letter, and do not index share links in search.",
+        "The service may change or pause. There is no warranty beyond a personal project."
+      ]
+    },
+    "contact": {
+      "title": "Contact",
+      "desc": "Operator contact.",
+      "noEmail": "No operator email is published in the app. We do not invent one.",
+      "body": [
+        "Personally operated. No business registration number.",
+        "Account issues use the email you signed up with."
+      ]
+    }
   }
 }

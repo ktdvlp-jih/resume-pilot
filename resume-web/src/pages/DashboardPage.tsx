@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
+import { ResumeExportMenu } from '@/components/resume/resume-export-menu';
 import { CareerPortfolioOverview } from '@/components/career/CareerPortfolioOverview';
 import { normalizeCareerPortfolio } from '@/lib/career-portfolio';
 import { PageHeader } from '@/components/common/page-header';
@@ -186,6 +187,7 @@ export default function DashboardPage() {
                         <Button variant="ghost" size="sm" asChild>
                           <Link to={`/resumes/${r.id}/versions`}>{t('dashboard.versions')}</Link>
                         </Button>
+                        <ResumeExportMenu title={r.title} content={r.latestContent} resumeId={r.id} compact />
                         <ConfirmDialog
                           trigger={<Button variant="ghost" size="sm" className="text-destructive">{t('common.delete')}</Button>}
                           title={t('common.confirmDelete')}

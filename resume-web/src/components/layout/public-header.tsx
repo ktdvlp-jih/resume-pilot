@@ -52,7 +52,7 @@ export function PublicHeader() {
         <nav className="hidden items-center gap-1 md:flex" aria-label={t('nav.main')}>
           {publicHeaderLinks.map(({ href, labelKey }) => (
             <Button key={href} variant="ghost" size="sm" asChild>
-              <a href={href}>{t(labelKey)}</a>
+              {href.startsWith('/#') ? <a href={href}>{t(labelKey)}</a> : <Link to={href}>{t(labelKey)}</Link>}
             </Button>
           ))}
         </nav>
@@ -79,7 +79,7 @@ export function PublicHeader() {
               <Separator className="my-2" />
               {publicHeaderLinks.map(({ href, labelKey }) => (
                 <Button key={href} variant="ghost" className="justify-start" asChild>
-                  <a href={href}>{t(labelKey)}</a>
+                  {href.startsWith('/#') ? <a href={href}>{t(labelKey)}</a> : <Link to={href}>{t(labelKey)}</Link>}
                 </Button>
               ))}
               {isLoggedIn && (
@@ -125,10 +125,13 @@ export function PublicHeader() {
 export function AppFooter({ className }: { className?: string }) {
   const { t } = useTranslation();
   const links = [
-    { href: '/#features', label: t('nav.features') },
-    { href: '/#pricing', label: t('nav.pricing') },
-    { href: '/login', label: t('auth.login') },
-    { href: '/signup', label: t('auth.signup') },
+    { href: '/guides', label: t('nav.guides') },
+    { href: '/calendar', label: t('nav.calendar') },
+    { href: '/tools/char-count', label: t('nav.tools') },
+    { href: '/about', label: t('legal.about.title') },
+    { href: '/privacy', label: t('legal.privacy.title') },
+    { href: '/terms', label: t('legal.terms.title') },
+    { href: '/contact', label: t('legal.contact.title') },
   ];
 
   return (
@@ -136,12 +139,13 @@ export function AppFooter({ className }: { className?: string }) {
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 md:px-6">
         <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground" aria-label={t('nav.main')}>
           {links.map(({ href, label }) => (
-            <a key={href} href={href} className="transition-colors hover:text-foreground">
+            <Link key={href} to={href} className="transition-colors hover:text-foreground">
               {label}
-            </a>
+            </Link>
           ))}
         </nav>
         <p className="text-center text-sm text-muted-foreground">{t('app.footer', { name: t('app.name') })}</p>
+        <p className="text-center text-xs text-muted-foreground">{t('legal.personalNote')}</p>
       </div>
     </footer>
   );

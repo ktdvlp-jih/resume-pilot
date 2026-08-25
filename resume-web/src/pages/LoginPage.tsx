@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api, setTokens } from '@/lib/api';
 import { AuthFormCard, AuthSplitLayout } from '@/components/layout/auth-split-layout';
+import { DocumentHead } from '@/components/seo/document-head';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +34,7 @@ export default function LoginPage() {
 
   return (
     <AuthSplitLayout title={t('auth.login')} subtitle={t('app.tagline')}>
+      <DocumentHead title={t('auth.login')} description={t('landing.authPitch')} path="/login" />
       <AuthFormCard>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (

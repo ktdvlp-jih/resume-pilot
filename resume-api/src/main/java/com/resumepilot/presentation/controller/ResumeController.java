@@ -1,6 +1,7 @@
 package com.resumepilot.presentation.controller;
 
 import com.resumepilot.application.resume.ResumeService;
+import com.resumepilot.application.resume.ResumeShareService;
 import com.resumepilot.global.config.SecurityUtils;
 import com.resumepilot.global.response.ApiResponse;
 import com.resumepilot.presentation.dto.resume.*;
@@ -20,6 +21,7 @@ import java.util.UUID;
 public class ResumeController {
 
     private final ResumeService resumeService;
+    private final ResumeShareService resumeShareService;
 
     @GetMapping
     @Operation(summary = "자기소개서 목록")
@@ -73,5 +75,24 @@ public class ResumeController {
             @RequestParam int versionA,
             @RequestParam int versionB) {
         return ApiResponse.ok(resumeService.compareVersions(SecurityUtils.getCurrentUserId(), id, versionA, versionB));
+    }
+
+    @PostMapping("/{id}/share-link")
+    @Operation(summary = "첨삭용 공유 링크 발급(기존 링크는 교체)")
+    public ApiResponse<ResumeShareLinkResponse> createShareLink(@PathVariable UUID id) {
+        return ApiResponse.ok(resumeShareService.create(SecurityUtils.getCurrentUserId(), id));
+    }
+
+    @GetMapping("/{id}/share-link")
+    @Operation(summary = "유효한 공유 링크 조회")
+    public ApiResponse<ResumeShareLinkResponse> getShareLink(@PathVariable UUID id) {
+        return ApiResponse.ok(resumeShareService.getOwned(SecurityUtils.getCurrentUserId(), id));
+    }
+
+    @DeleteMapping("/{id}/share-link")
+    @Operation(summary = "공유 링크 폐기")
+    public ApiResponse<Void> revokeShareLink(@PathVariable UUID id) {
+        resumeShareService.revoke(SecurityUtils.getCurrentUserId(), id);
+        return ApiResponse.ok(null);
     }
 }

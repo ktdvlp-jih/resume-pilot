@@ -4,6 +4,7 @@ import { ArrowRight, BookOpen, Briefcase, Check, PenLine, Sparkles } from 'lucid
 import { getAccessToken } from '@/lib/api';
 import { PublicLayout } from '@/components/layout/public-layout';
 import { ProductPreview } from '@/components/landing/product-preview';
+import { DocumentHead } from '@/components/seo/document-head';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +36,7 @@ export default function LandingPage() {
 
   return (
     <PublicLayout>
+      <DocumentHead title={t('app.name')} description={t('landing.heroSubtitle')} path="/" />
       <div className="mx-auto max-w-6xl px-4 md:px-6">
         <section id="intro" className="scroll-mt-20 py-16 md:py-20">
           <div className="mx-auto max-w-3xl text-center">
@@ -46,12 +48,17 @@ export default function LandingPage() {
             <p className="mt-4 text-lg text-pretty text-muted-foreground md:text-xl">{t('landing.heroSubtitle')}</p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               {isLoggedIn ? (
-                <Button size="lg" asChild>
-                  <Link to="/dashboard">
-                    {t('nav.dashboard')}
-                    <ArrowRight className="size-4" />
-                  </Link>
-                </Button>
+                <>
+                  <Button size="lg" asChild>
+                    <Link to="/dashboard">
+                      {t('nav.dashboard')}
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </Button>
+                  <Button size="lg" variant="outline" asChild>
+                    <Link to="/guides">{t('nav.guides')}</Link>
+                  </Button>
+                </>
               ) : (
                 <>
                   <Button size="lg" asChild>
@@ -62,6 +69,9 @@ export default function LandingPage() {
                   </Button>
                   <Button size="lg" variant="outline" asChild>
                     <Link to="/login">{t('auth.login')}</Link>
+                  </Button>
+                  <Button size="lg" variant="ghost" asChild>
+                    <Link to="/guides">{t('nav.guides')}</Link>
                   </Button>
                 </>
               )}

@@ -18,4 +18,6 @@ public interface JobPostingRepository extends JpaRepository<JobPosting, UUID> {
     List<JobPosting> findAccessibleByUserId(@Param("userId") UUID userId);
 
     List<JobPosting> findAllByOrderBySharedDescCreatedAtDesc();
+
+    List<JobPosting> findBySharedTrue();
 }

@@ -51,6 +51,9 @@ public class JobPosting {
     @Builder.Default
     private boolean shared = false;
 
+    @Column(name = "closes_at")
+    private Instant closesAt;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;

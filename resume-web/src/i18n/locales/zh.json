@@ -44,6 +44,9 @@
     "intro": "介绍",
     "features": "功能",
     "pricing": "价格",
+    "guides": "指南",
+    "calendar": "招聘日历",
+    "tools": "工具",
     "dashboard": "仪表盘",
     "jobPostings": "招聘公告",
     "experiences": "经历库",
@@ -91,7 +94,9 @@
     "pageNumber": "第 {{page}} 页",
     "previous": "上一页",
     "next": "下一页",
-    "all": "全部"
+    "all": "全部",
+    "copy": "复制",
+    "copied": "已复制。"
   },
   "onboarding": {
     "title": "入门指南",
@@ -236,8 +241,11 @@
       "company": "公司",
       "source": "来源",
       "date": "创建日期",
+      "deadline": "截止日期",
       "actions": "操作"
-    }
+    },
+    "deadline": "截止日期",
+    "closesAtSaved": "已保存截止日期。"
   },
   "writingStyle": {
     "title": "文风分析",
@@ -552,5 +560,115 @@
     "legendRemoved": "杏色删除线：润色前的表述",
     "legendAdded": "绿色：新润色的表述",
     "legendUnchanged": "无色：未改动的文字"
+  },
+  "export": {
+    "menu": "导出",
+    "txt": "下载 TXT",
+    "printPdf": "打印 / PDF",
+    "share": "复制审阅链接",
+    "shareCopied": "已复制分享链接，7 天后过期。",
+    "saveFirst": "请先保存求职信再分享。"
+  },
+  "guides": {
+    "title": "写作指南",
+    "pageDesc": "无需登录即可查看岗位用法、STAR 空白与招聘上传说明。不提供完整答题范文。",
+    "rolesTitle": "岗位用法",
+    "rolesDesc": "Backend、Frontend、PM。仅已有文档的岗位显示正文。",
+    "starTitle": "STAR 空白",
+    "starDesc": "情境、任务、行动、结果。没有的数字请留空。",
+    "jobTitle": "如何上传招聘",
+    "jobDesc": "链接、粘贴或文件后分析。",
+    "missing": "该说明尚未准备。"
+  },
+  "tools": {
+    "saveInApp": "在应用中保存",
+    "signupToSave": "注册后可保存到经历库。",
+    "char": {
+      "title": "字数统计",
+      "desc": "含空格、不含空格与 UTF-8 字节。仅在浏览器中计算。",
+      "input": "正文",
+      "placeholder": "粘贴求职信。",
+      "withSpaces": "含空格",
+      "withoutSpaces": "不含空格",
+      "bytes": "UTF-8 字节"
+    },
+    "star": {
+      "title": "STAR 模板",
+      "desc": "只填空白。不要写没做过的事。保存需注册。"
+    },
+    "spell": {
+      "title": "草稿提示",
+      "desc": "浏览器拼写检查加上少量本地模式。",
+      "disclaimer": "这不是完整的韩语校对器，也不调用校对 API。红色下划线来自浏览器。",
+      "input": "正文",
+      "none": "没有明显模式。拼写请看浏览器下划线。",
+      "repeatSpaces": "存在连续空格。",
+      "repeatPunct": "标点重复。",
+      "tooManyCommas": "逗号过多，可拆分句子。",
+      "calque": "出现偏翻译腔的连接表达。"
+    }
+  },
+  "calendar": {
+    "title": "公开招聘日历",
+    "desc": "仅公开共享招聘的标题、公司与截止日期，不含公告原文。",
+    "empty": "暂无公开截止日期。",
+    "noDeadline": "未定",
+    "cta": "注册并用该招聘撰写",
+    "columns": {
+      "title": "标题",
+      "company": "公司",
+      "closesAt": "截止"
+    }
+  },
+  "share": {
+    "fallbackTitle": "已分享的求职信",
+    "metaDesc": "仅持有链接的人可见，不提交搜索引擎。",
+    "missingTitle": "链接不存在或已过期",
+    "missingDesc": "可能已被撤销或已超过 7 天。",
+    "expires": "有效至 {{date}}"
+  },
+  "legal": {
+    "nav": "条款与运营信息",
+    "updated": "最近说明：2026-08-25。个人运营，无营业执照号。",
+    "personalNote": "个人运营的服务，无营业执照号。",
+    "about": {
+      "title": "介绍",
+      "desc": "基于 RAG 的企业定制求职信。",
+      "body": [
+        "ResumePilot 在同一处使用经历库、招聘分析、RAG 推荐与 AI 生成/润色。",
+        "AI 不会编造经历。缺少依据时不会生成。",
+        "目前为个人项目，没有营业执照或通信销售备案号。"
+      ]
+    },
+    "privacy": {
+      "title": "隐私",
+      "desc": "账户与文稿如何处理。",
+      "body": [
+        "收集：注册邮箱与哈希密码、资料、经历、招聘、求职信、令牌、AI 日志。",
+        "用途：登录、撰写与运维。广告仅可能出现在公开指南/工具页，不会放在私密文稿旁。",
+        "删除账户会移除该用户数据。审阅分享链接 7 天或直到撤销。",
+        "生成可能把所需正文发给已配置的 AI。广告脚本仅在配置了客户端 ID 时加载到公开页。",
+        "联系见联系页。若未公布运营者邮箱，不会编造。"
+      ]
+    },
+    "terms": {
+      "title": "条款",
+      "desc": "使用条件。",
+      "body": [
+        "免费提供，尚无付费套餐。",
+        "提交前请自行核对事实，不要写未做过的经历。",
+        "不要擅自公开他人招聘或求职信，也不要把分享链接提交给搜索引擎。",
+        "服务可能变更或暂停，个人项目不提供超出范围的保证。"
+      ]
+    },
+    "contact": {
+      "title": "联系",
+      "desc": "运营联系方式。",
+      "noEmail": "应用中未公布运营者邮箱，不会编造。",
+      "body": [
+        "个人运营，无营业执照号。",
+        "账户相关请以注册邮箱为准。"
+      ]
+    }
   }
 }

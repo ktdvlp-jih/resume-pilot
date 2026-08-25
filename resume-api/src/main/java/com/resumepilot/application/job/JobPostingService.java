@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -270,6 +271,32 @@ public class JobPostingService {
         return toPostingResponse(posting, userId);
     }
 
+    @Transactional
+    public JobPostingResponse setClosesAt(UUID userId, UUID id, Instant closesAt) {
+        JobPosting posting = getOwned(userId, id);
+        posting.setClosesAt(closesAt);
+        return toPostingResponse(posting, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PublicJobPostingResponse> listSharedPublic() {
+        return jobPostingRepository.findBySharedTrue().stream()
+                .sorted(Comparator
+                        .comparing(JobPosting::getClosesAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(JobPosting::getCreatedAt, Comparator.reverseOrder()))
+                .map(this::toPublicResponse)
+                .toList();
+    }
+
+    private PublicJobPostingResponse toPublicResponse(JobPosting p) {
+        String companyName = null;
+        if (p.getCompanyId() != null) {
+            companyName = companyRepository.findById(p.getCompanyId())
+                    .map(Company::getName).orElse(null);
+        }
+        return new PublicJobPostingResponse(p.getTitle(), companyName, p.getClosesAt(), p.getCreatedAt());
+    }
+
     @Transactional(readOnly = true)
     public List<AdminJobPostingResponse> listAllForAdmin() {
         List<JobPosting> postings = jobPostingRepository.findAllByOrderBySharedDescCreatedAtDesc();
@@ -395,7 +422,7 @@ public class JobPostingService {
         return new JobPostingResponse(
                 p.getId(), p.getTitle(), p.getSourceType(), p.getSourceUrl(),
                 p.getRawContent(), p.getParsedJson(), p.getCompanyId(), companyName, p.getCreatedAt(),
-                p.isShared(), p.getUserId().equals(currentUserId)
+                p.isShared(), p.getUserId().equals(currentUserId), p.getClosesAt()
         );
     }
 
@@ -423,7 +450,8 @@ public class JobPostingService {
                 p.isShared(),
                 p.getUserId(),
                 emails.get(p.getUserId()),
-                p.getCreatedAt()
+                p.getCreatedAt(),
+                p.getClosesAt()
         );
     }
 

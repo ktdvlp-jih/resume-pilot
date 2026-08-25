@@ -23,6 +23,7 @@ import {
   Columns2,
 } from 'lucide-react';
 import { api, type JobPostingResponse } from '@/lib/api';
+import { ResumeExportMenu } from '@/components/resume/resume-export-menu';
 import {
   buildRecommendKeywords,
   EXPERIENCE_REEMBED_SESSION_KEY,
@@ -1828,6 +1829,11 @@ export default function WorkspacePage() {
                   <Save className="size-3.5" />
                   {t('workspace.saveToDashboard')}
                 </Button>
+                <ResumeExportMenu
+                  title={primarySavedResume?.title || selectedPosting?.title || t('workspace.title')}
+                  content={currentLetter}
+                  resumeId={primarySavedResume?.id}
+                />
               </div>
 
               {resultView === 'diff' && canCompareHumanize ? (

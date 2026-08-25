@@ -36,6 +36,19 @@ function isOwnedPosting(p?: JobPostingResponse | null) {
   return p?.owned !== false;
 }
 
+function instantToDateInput(iso?: string | null) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const shifted = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return shifted.toISOString().slice(0, 10);
+}
+
+function dateInputToIso(value: string): string | null {
+  if (!value) return null;
+  return new Date(`${value}T23:59:59+09:00`).toISOString();
+}
+
 const LAYOUT_STORAGE_KEY = 'job-postings-layout';
 
 function readLayoutMode(): LayoutMode {
@@ -474,6 +487,16 @@ export default function JobPostingsPage() {
     onError: () => toast.error(t('common.error')),
   });
 
+  const closesAtMutation = useMutation({
+    mutationFn: ({ id, closesAt }: { id: string; closesAt: string | null }) =>
+      api.setJobPostingClosesAt(id, closesAt),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['job-postings'] });
+      toast.success(t('jobPostings.closesAtSaved'));
+    },
+    onError: () => toast.error(t('common.error')),
+  });
+
   const fileUploadMutation = useMutation({
     mutationFn: ({ file, title: fileTitle }: { file: File; title?: string }) =>
       api.uploadJobPostingFile(file, fileTitle),
@@ -612,6 +635,8 @@ export default function JobPostingsPage() {
         (a.companyName ?? '').localeCompare(b.companyName ?? ''),
       date: (a: JobPostingResponse, b: JobPostingResponse) =>
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      deadline: (a: JobPostingResponse, b: JobPostingResponse) =>
+        new Date(a.closesAt ?? 0).getTime() - new Date(b.closesAt ?? 0).getTime(),
     }),
     [],
   );
@@ -960,6 +985,11 @@ export default function JobPostingsPage() {
                         <span>{p.companyName || '—'}</span>
                         <StatusChip label={p.sourceType} variant="default" />
                         <span>{new Date(p.createdAt).toLocaleDateString(dateLocale)}</span>
+                        {p.closesAt && (
+                          <span>
+                            {t('jobPostings.deadline')}: {new Date(p.closesAt).toLocaleDateString(dateLocale)}
+                          </span>
+                        )}
                       </div>
                     </div>
                     {postingActions(p, true)}
@@ -995,6 +1025,14 @@ export default function JobPostingsPage() {
                     onSort={toggleSort}
                     className="hidden xl:table-cell"
                   />
+                  <SortableTableHead
+                    label={t('jobPostings.columns.deadline')}
+                    sortKey="deadline"
+                    activeKey={sortKey}
+                    direction={direction}
+                    onSort={toggleSort}
+                    className="hidden xl:table-cell"
+                  />
                   <TableHead className="text-right">{t('jobPostings.columns.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1021,6 +1059,9 @@ export default function JobPostingsPage() {
                       </TableCell>
                       <TableCell className="hidden text-muted-foreground xl:table-cell">
                         {new Date(p.createdAt).toLocaleDateString(dateLocale)}
+                      </TableCell>
+                      <TableCell className="hidden text-muted-foreground xl:table-cell">
+                        {p.closesAt ? new Date(p.closesAt).toLocaleDateString(dateLocale) : '—'}
                       </TableCell>
                       <TableCell className="text-right">{postingActions(p, false)}</TableCell>
                     </TableRow>
@@ -1051,6 +1092,24 @@ export default function JobPostingsPage() {
             action={analysisActions}
             className="min-h-0 xl:sticky xl:top-4 xl:h-[calc(100svh-5.5rem)] xl:min-h-96 xl:overflow-hidden"
           >
+            {canMutateSelected && selectedPosting && (
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <Label htmlFor="job-closes-at">{t('jobPostings.deadline')}</Label>
+                <Input
+                  id="job-closes-at"
+                  type="date"
+                  className="w-auto"
+                  value={instantToDateInput(selectedPosting.closesAt)}
+                  disabled={closesAtMutation.isPending}
+                  onChange={(e) =>
+                    closesAtMutation.mutate({
+                      id: selectedPosting.id,
+                      closesAt: dateInputToIso(e.target.value),
+                    })
+                  }
+                />
+              </div>
+            )}
             <AnalysisPanel
               analysis={analysis}
               emptyTitle={t('jobPostings.selectOrUpload')}
@@ -1070,6 +1129,24 @@ export default function JobPostingsPage() {
             description={!canMutateSelected && selectedPosting?.shared ? t('jobPostings.readOnlyHint') : undefined}
             action={analysisActions}
           >
+            {canMutateSelected && selectedPosting && (
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <Label htmlFor="job-closes-at-stack">{t('jobPostings.deadline')}</Label>
+                <Input
+                  id="job-closes-at-stack"
+                  type="date"
+                  className="w-auto"
+                  value={instantToDateInput(selectedPosting.closesAt)}
+                  disabled={closesAtMutation.isPending}
+                  onChange={(e) =>
+                    closesAtMutation.mutate({
+                      id: selectedPosting.id,
+                      closesAt: dateInputToIso(e.target.value),
+                    })
+                  }
+                />
+              </div>
+            )}
             <AnalysisPanel
               analysis={analysis}
               emptyTitle={t('jobPostings.selectOrUpload')}

@@ -17,5 +17,6 @@ public record JobPostingResponse(
         String companyName,
         Instant createdAt,
         boolean shared,
-        boolean owned
+        boolean owned,
+        Instant closesAt
 ) {}

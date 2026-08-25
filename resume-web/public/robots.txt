@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /workspace
+Disallow: /settings
+Disallow: /experiences
+Disallow: /job-postings
+Disallow: /writing-style
+Disallow: /role-guide
+Disallow: /resumes
+Disallow: /r/
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://resume.ggury.com/sitemap.xml

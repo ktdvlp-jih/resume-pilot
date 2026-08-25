@@ -15,5 +15,6 @@ public record AdminJobPostingResponse(
         boolean shared,
         UUID userId,
         String ownerEmail,
-        Instant createdAt
+        Instant createdAt,
+        Instant closesAt
 ) {}
