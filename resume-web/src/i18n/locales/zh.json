@@ -47,6 +47,7 @@
     "dashboard": "仪表盘",
     "jobPostings": "招聘公告",
     "experiences": "经历库",
+    "roleGuide": "岗位用法",
     "writingStyle": "文风分析",
     "workspace": "工作区",
     "settings": "设置",
@@ -58,6 +59,11 @@
     "groupPrepare": "准备",
     "groupCreate": "创作",
     "groupAccount": "账户"
+  },
+  "roleGuide": {
+    "title": "岗位用法",
+    "description": "选择岗位后只显示该说明，不会用于生成。",
+    "unavailable": "{{role}} 用法尚未准备。"
   },
   "common": {
     "loading": "加载中...",

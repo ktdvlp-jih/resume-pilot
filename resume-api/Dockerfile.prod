@@ -6,6 +6,8 @@ WORKDIR /web
 COPY resume-web/package.json resume-web/package-lock.json* ./
 RUN npm ci
 COPY resume-web/ ./
+COPY docs/직군별-사용법 /docs/직군별-사용법
+COPY docs/직군별-사용법 ./src/content/role-guides
 ARG VITE_API_URL=
 ENV VITE_API_URL=${VITE_API_URL}
 RUN npm run build

@@ -15,6 +15,7 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const ExperiencesPage = lazy(() => import('./pages/ExperiencesPage'));
 const WorkspacePage = lazy(() => import('./pages/WorkspacePage'));
 const JobPostingsPage = lazy(() => import('./pages/JobPostingsPage'));
+const RoleGuidePage = lazy(() => import('./pages/RoleGuidePage'));
 const WritingStylePage = lazy(() => import('./pages/WritingStylePage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const VersionComparePage = lazy(() => import('./pages/VersionComparePage'));
@@ -41,6 +42,7 @@ export default function App() {
                     <Route path="/dashboard" element={<DashboardPage />} />
                     <Route path="/job-postings" element={<JobPostingsPage />} />
                     <Route path="/experiences" element={<ExperiencesPage />} />
+                    <Route path="/role-guide" element={<RoleGuidePage />} />
                     <Route path="/writing-style" element={<WritingStylePage />} />
                     <Route path="/workspace" element={<WorkspacePage />} />
                     <Route path="/settings" element={<SettingsPage />} />

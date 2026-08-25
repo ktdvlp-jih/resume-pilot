@@ -47,6 +47,7 @@
     "dashboard": "ダッシュボード",
     "jobPostings": "求人票",
     "experiences": "経験ライブラリ",
+    "roleGuide": "職種別の使い方",
     "writingStyle": "文体分析",
     "workspace": "ワークスペース",
     "settings": "設定",
@@ -58,6 +59,11 @@
     "groupPrepare": "準備",
     "groupCreate": "作成",
     "groupAccount": "アカウント"
+  },
+  "roleGuide": {
+    "title": "職種別の使い方",
+    "description": "職種を選ぶとその案内だけが表示されます。生成には使いません。",
+    "unavailable": "{{role}} の案内はまだありません。"
   },
   "common": {
     "loading": "読み込み中...",

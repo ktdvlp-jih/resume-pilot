@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   BookOpen,
   Briefcase,
+  GraduationCap,
   LayoutDashboard,
   PenLine,
   Settings,
@@ -52,6 +53,7 @@ export const appSidebarGroups: NavGroup[] = [
     items: [
       { to: '/job-postings', labelKey: 'nav.jobPostings', icon: Briefcase },
       { to: '/experiences', labelKey: 'nav.experiences', icon: BookOpen },
+      { to: '/role-guide', labelKey: 'nav.roleGuide', icon: GraduationCap },
       { to: '/writing-style', labelKey: 'nav.writingStyle', icon: PenLine },
     ],
   },

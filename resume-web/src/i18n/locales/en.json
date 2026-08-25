@@ -47,6 +47,7 @@
     "dashboard": "Dashboard",
     "jobPostings": "Job Postings",
     "experiences": "Experience Library",
+    "roleGuide": "Role guide",
     "writingStyle": "Writing Style",
     "workspace": "Workspace",
     "settings": "Settings",
@@ -58,6 +59,11 @@
     "groupPrepare": "Prepare",
     "groupCreate": "Create",
     "groupAccount": "Account"
+  },
+  "roleGuide": {
+    "title": "Role guide",
+    "description": "Pick a role to read that guide only. It is not used for generation.",
+    "unavailable": "The {{role}} guide is not available yet."
   },
   "common": {
     "loading": "Loading...",

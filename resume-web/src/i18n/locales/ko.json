@@ -47,6 +47,7 @@
     "dashboard": "대시보드",
     "jobPostings": "채용 공고",
     "experiences": "경험 라이브러리",
+    "roleGuide": "직군 사용법",
     "writingStyle": "문체 분석",
     "workspace": "워크스페이스",
     "settings": "설정",
@@ -58,6 +59,11 @@
     "groupPrepare": "준비",
     "groupCreate": "작성",
     "groupAccount": "계정"
+  },
+  "roleGuide": {
+    "title": "직군 사용법",
+    "description": "지원하는 직군을 고르면 그 직군 안내만 봅니다. 생성에는 쓰이지 않습니다.",
+    "unavailable": "{{role}} 사용법은 아직 없습니다."
   },
   "common": {
     "loading": "로딩 중...",
