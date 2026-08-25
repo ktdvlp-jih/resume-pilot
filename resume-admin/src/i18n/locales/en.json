@@ -56,7 +56,7 @@
     "login": "Log in",
     "loginFailed": "Login failed",
     "loginId": "Admin ID",
-    "notAdmin": "Only administrator or job-posting admin accounts can sign in here.",
+    "notAdmin": "Only administrator, job-posting admin, or user-admin accounts can sign in here.",
     "email": "Email",
     "password": "Password"
   },
@@ -136,21 +136,32 @@
     "passwordHint": "At least 8 characters",
     "name": "Name (optional)",
     "namePlaceholder": "Display name",
+    "phone": "Phone",
     "role": "Permission",
     "status": "Status",
     "action": "Action",
     "createTitle": "Create account",
-    "createHint": "When you create an account you can assign a regular user, a job-posting admin, or a full admin.",
+    "createHint": "When you create an account you can assign a regular user, job-posting admin, user admin, or full admin.",
     "create": "Create account",
     "created": "Account created.",
+    "signupTitle": "Sign up a user",
+    "signupHint": "Creates a regular account for the user app. Name, email, and password can be edited later.",
+    "signup": "Sign up",
+    "editTitle": "Edit user",
+    "editHint": "Update the same email, name, phone, and password used in the user app.",
+    "updated": "User saved.",
+    "newPassword": "New password (optional)",
+    "newPasswordHint": "Leave blank to keep the current password. New passwords must be at least 8 characters.",
     "roles": {
       "USER": "User",
       "JOB_ADMIN": "Job posting admin",
+      "USER_ADMIN": "User admin",
       "ADMIN": "Full admin"
     },
     "roleHints": {
       "USER": "Can use the user app only. Cannot sign in to admin.",
       "JOB_ADMIN": "Can sign in to admin and manage shared job postings only.",
+      "USER_ADMIN": "Can sign in to admin to register regular users and edit their profile.",
       "ADMIN": "Has every admin capability, including users and prompts."
     }
   },

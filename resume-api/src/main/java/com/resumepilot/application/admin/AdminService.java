@@ -14,6 +14,7 @@ import com.resumepilot.domain.company.CompanyRepository;
 import com.resumepilot.application.mapper.CompanyMapper;
 import com.resumepilot.global.exception.BusinessException;
 import com.resumepilot.global.exception.ErrorCode;
+import com.resumepilot.global.config.SecurityUtils;
 import com.resumepilot.infrastructure.ai.PromptServiceClient;
 import com.resumepilot.presentation.dto.admin.*;
 import com.resumepilot.presentation.dto.job.CompanyResponse;
@@ -183,8 +184,10 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public List<UserAdminResponse> listUsers() {
+        Map<UUID, UserProfile> profiles = userProfileRepository.findAll().stream()
+                .collect(java.util.stream.Collectors.toMap(UserProfile::getUserId, p -> p, (a, b) -> a));
         return userRepository.findAll().stream()
-                .map(this::toUserResponse)
+                .map(u -> toUserResponse(u, profiles.get(u.getId())))
                 .toList();
     }
 
@@ -194,21 +197,51 @@ public class AdminService {
         if (userRepository.existsByEmail(email)) {
             throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
+        UserRole role = actorIsFullAdmin()
+                ? (req.role() == null || req.role().isBlank() ? UserRole.USER : parseRole(req.role()))
+                : UserRole.USER;
         User user = userRepository.save(User.builder()
                 .email(email)
                 .passwordHash(passwordEncoder.encode(req.password()))
-                .role(parseRole(req.role()))
+                .role(role)
                 .enabled(true)
                 .build());
-        userProfileRepository.save(UserProfile.builder()
+        UserProfile profile = userProfileRepository.save(UserProfile.builder()
                 .userId(user.getId())
                 .name(blankToNull(req.name()))
                 .build());
-        return toUserResponse(user);
+        return toUserResponse(user, profile);
+    }
+
+    @Transactional
+    public UserAdminResponse updateUser(UUID id, AdminUserUpdateRequest req) {
+        User user = userRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
+        assertCanEditUserAccount(user);
+        if (req.email() != null && !req.email().isBlank()) {
+            String email = req.email().trim();
+            if (!email.equalsIgnoreCase(user.getEmail()) && userRepository.existsByEmail(email)) {
+                throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
+            }
+            user.setEmail(email);
+        }
+        if (req.password() != null && !req.password().isBlank()) {
+            user.setPasswordHash(passwordEncoder.encode(req.password()));
+        }
+        UserProfile profile = userProfileRepository.findByUserId(id)
+                .orElseGet(() -> UserProfile.builder().userId(id).build());
+        if (req.name() != null) {
+            profile.setName(blankToNull(req.name()));
+        }
+        if (req.phone() != null) {
+            profile.setPhone(blankToNull(req.phone()));
+        }
+        userProfileRepository.save(profile);
+        return toUserResponse(user, profile);
     }
 
     @Transactional
     public UserAdminResponse updateUserRole(UUID id, UserRoleUpdateRequest req) {
+        assertFullAdmin();
         User user = userRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
         user.setRole(parseRole(req.role()));
         return toUserResponse(user);
@@ -217,6 +250,7 @@ public class AdminService {
     @Transactional
     public UserAdminResponse updateUserEnabled(UUID id, UserEnabledUpdateRequest req) {
         User user = userRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
+        assertCanEditUserAccount(user);
         user.setEnabled(req.enabled());
         return toUserResponse(user);
     }
@@ -372,12 +406,41 @@ public class AdminService {
     }
 
     private UserAdminResponse toUserResponse(User user) {
+        return toUserResponse(user, userProfileRepository.findByUserId(user.getId()).orElse(null));
+    }
+
+    private UserAdminResponse toUserResponse(User user, UserProfile profile) {
         return new UserAdminResponse(
                 user.getId(),
                 user.getEmail(),
                 user.getRole().name(),
+                profile != null ? profile.getName() : null,
+                profile != null ? profile.getPhone() : null,
                 user.isEnabled(),
                 user.getCreatedAt());
+    }
+
+    private UserRole actorRole() {
+        return parseRole(SecurityUtils.getCurrentRole());
+    }
+
+    private boolean actorIsFullAdmin() {
+        return actorRole().isFullAdmin();
+    }
+
+    private void assertFullAdmin() {
+        if (!actorIsFullAdmin()) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "전체 관리자만 권한을 변경할 수 있습니다.");
+        }
+    }
+
+    private void assertCanEditUserAccount(User target) {
+        if (actorIsFullAdmin()) {
+            return;
+        }
+        if (target.getRole() != UserRole.USER) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "일반 사용자만 수정할 수 있습니다.");
+        }
     }
 
     private UserRole parseRole(String role) {

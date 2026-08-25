@@ -82,6 +82,14 @@ public class AdminController {
         return ApiResponse.ok(adminService.createUser(req));
     }
 
+    @PatchMapping("/users/{id}")
+    @Operation(summary = "사용자 프로필·로그인 정보 수정")
+    public ApiResponse<UserAdminResponse> updateUser(
+            @PathVariable UUID id,
+            @Valid @RequestBody AdminUserUpdateRequest req) {
+        return ApiResponse.ok(adminService.updateUser(id, req));
+    }
+
     @PatchMapping("/users/{id}/role")
     public ApiResponse<UserAdminResponse> updateUserRole(
             @PathVariable UUID id, @Valid @RequestBody UserRoleUpdateRequest req) {

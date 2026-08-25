@@ -147,12 +147,25 @@ export const api = {
       method: 'POST', body: JSON.stringify({ expression, suggestion }),
     }),
   deleteForbidden: (id: string) => request<void>(`/api/v1/admin/forbidden-expressions/${id}`, { method: 'DELETE' }),
-  listUsers: () => request<Array<{ id: string; email: string; role: string; enabled: boolean; createdAt?: string }>>('/api/v1/admin/users'),
-  createUser: (data: { email: string; password: string; role: string; name?: string }) =>
+  listUsers: () => request<Array<{
+    id: string;
+    email: string;
+    role: string;
+    name?: string;
+    phone?: string;
+    enabled: boolean;
+    createdAt?: string;
+  }>>('/api/v1/admin/users'),
+  createUser: (data: { email: string; password: string; role?: string; name?: string }) =>
     request<{ id: string; email: string; role: string; enabled: boolean }>('/api/v1/admin/users', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  updateUser: (id: string, data: { email?: string; name?: string; phone?: string; password?: string }) =>
+    request<{ id: string; email: string; role: string; name?: string; phone?: string; enabled: boolean }>(
+      `/api/v1/admin/users/${id}`,
+      { method: 'PATCH', body: JSON.stringify(data) },
+    ),
   updateUserRole: (id: string, role: string) =>
     request<void>(`/api/v1/admin/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }),
   updateUserEnabled: (id: string, enabled: boolean) =>

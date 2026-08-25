@@ -56,7 +56,7 @@
     "login": "登录",
     "loginFailed": "登录失败",
     "loginId": "管理员 ID",
-    "notAdmin": "仅管理员或招聘管理员账号可登录。",
+    "notAdmin": "仅管理员、招聘管理员或用户管理员账号可登录。",
     "email": "邮箱",
     "password": "密码"
   },
@@ -136,21 +136,32 @@
     "passwordHint": "至少 8 个字符",
     "name": "姓名（可选）",
     "namePlaceholder": "显示名称",
+    "phone": "电话",
     "role": "权限",
     "status": "状态",
     "action": "操作",
     "createTitle": "创建账号",
-    "createHint": "创建时可指定普通用户、仅管理公共招聘的招聘管理员，或全部权限的管理员。",
+    "createHint": "创建时可指定普通用户、招聘管理员、用户管理员，或全部权限的管理员。",
     "create": "创建账号",
     "created": "已创建账号。",
+    "signupTitle": "用户注册",
+    "signupHint": "创建可登录用户端的普通账号。姓名、邮箱、密码之后可以修改。",
+    "signup": "注册",
+    "editTitle": "编辑用户",
+    "editHint": "按用户端相同字段修改邮箱、姓名、电话和密码。",
+    "updated": "已保存用户信息。",
+    "newPassword": "新密码（可选）",
+    "newPasswordHint": "留空则保持原密码。若更改，至少 8 个字符。",
     "roles": {
       "USER": "普通用户",
       "JOB_ADMIN": "招聘管理员",
+      "USER_ADMIN": "用户管理员",
       "ADMIN": "全部管理员"
     },
     "roleHints": {
       "USER": "只能使用用户端应用，无法登录管理后台。",
       "JOB_ADMIN": "可登录管理后台，仅能登记、公开、删除公共招聘。",
+      "USER_ADMIN": "可登录管理后台，为普通用户注册并修改姓名、邮箱等信息。",
       "ADMIN": "可使用提示词、用户、公共招聘等全部管理功能。"
     }
   },

@@ -59,6 +59,8 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                             .requestMatchers("/api/v1/admin/job-postings", "/api/v1/admin/job-postings/**")
                             .hasAnyRole("ADMIN", "JOB_ADMIN")
+                            .requestMatchers("/api/v1/admin/users", "/api/v1/admin/users/**")
+                            .hasAnyRole("ADMIN", "USER_ADMIN")
                             .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                             .requestMatchers("/api/**").authenticated();
                     if (spaEnabled) {

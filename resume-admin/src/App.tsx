@@ -8,7 +8,7 @@ import { ErrorBoundary } from '@/components/common/error-boundary';
 import { LoadingSpinner } from '@/components/common/loading-state';
 import { AdminLayout } from './components/AdminLayout';
 import { getUserRole } from '@/lib/api';
-import { homePath, isFullAdmin } from '@/lib/roles';
+import { homePath } from '@/lib/roles';
 
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const PromptsPage = lazy(() => import('./pages/PromptsPage'));
@@ -28,9 +28,10 @@ function PageFallback() {
   return <LoadingSpinner className="min-h-[50vh]" />;
 }
 
-function RequireFullAdmin() {
-  if (!isFullAdmin(getUserRole())) {
-    return <Navigate to={homePath(getUserRole())} replace />;
+function RequireRoles({ roles }: { roles: string[] }) {
+  const role = getUserRole();
+  if (!role || !roles.includes(role)) {
+    return <Navigate to={homePath(role)} replace />;
   }
   return <Outlet />;
 }
@@ -47,13 +48,17 @@ export default function App() {
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route element={<AdminLayout />}>
-                  <Route path="/job-postings" element={<JobPostingsPage />} />
-                  <Route element={<RequireFullAdmin />}>
+                  <Route element={<RequireRoles roles={['ADMIN', 'JOB_ADMIN']} />}>
+                    <Route path="/job-postings" element={<JobPostingsPage />} />
+                  </Route>
+                  <Route element={<RequireRoles roles={['ADMIN', 'USER_ADMIN']} />}>
+                    <Route path="/users" element={<UsersPage />} />
+                  </Route>
+                  <Route element={<RequireRoles roles={['ADMIN']} />}>
                     <Route path="/prompts" element={<PromptsPage />} />
                     <Route path="/forbidden-expressions" element={<ForbiddenPage />} />
                     <Route path="/skill-catalog" element={<SkillCatalogPage />} />
                     <Route path="/companies" element={<CompaniesPage />} />
-                    <Route path="/users" element={<UsersPage />} />
                     <Route path="/ai-logs" element={<AiLogsPage />} />
                     <Route path="/llm-settings" element={<LlmSettingsPage />} />
                     <Route path="/deploy-ci-settings" element={<DeployCiSettingsPage />} />

@@ -12,17 +12,17 @@ import {
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { getUserRole } from '@/lib/api';
-import { isFullAdmin } from '@/lib/roles';
+import { canManageJobPostings, canManageUsers, isFullAdmin } from '@/lib/roles';
 
 const navItems = [
-  { to: '/prompts', icon: FileText, key: 'nav.prompts', fullAdmin: true },
-  { to: '/forbidden-expressions', icon: ShieldBan, key: 'nav.forbidden', fullAdmin: true },
-  { to: '/companies', icon: Building2, key: 'nav.companies', fullAdmin: true },
-  { to: '/job-postings', icon: Briefcase, key: 'nav.jobPostings', fullAdmin: false },
-  { to: '/users', icon: Users, key: 'nav.users', fullAdmin: true },
-  { to: '/ai-logs', icon: ScrollText, key: 'nav.aiLogs', fullAdmin: true },
-  { to: '/llm-settings', icon: Bot, key: 'nav.llmSettings', fullAdmin: true },
-  { to: '/deploy-ci-settings', icon: Settings2, key: 'nav.deploySettings', fullAdmin: true },
+  { to: '/prompts', icon: FileText, key: 'nav.prompts', kind: 'full' },
+  { to: '/forbidden-expressions', icon: ShieldBan, key: 'nav.forbidden', kind: 'full' },
+  { to: '/companies', icon: Building2, key: 'nav.companies', kind: 'full' },
+  { to: '/job-postings', icon: Briefcase, key: 'nav.jobPostings', kind: 'jobs' },
+  { to: '/users', icon: Users, key: 'nav.users', kind: 'users' },
+  { to: '/ai-logs', icon: ScrollText, key: 'nav.aiLogs', kind: 'full' },
+  { to: '/llm-settings', icon: Bot, key: 'nav.llmSettings', kind: 'full' },
+  { to: '/deploy-ci-settings', icon: Settings2, key: 'nav.deploySettings', kind: 'full' },
 ] as const;
 
 export function CommandMenu() {
@@ -42,18 +42,21 @@ export function CommandMenu() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  const items = useMemo(
-    () =>
-      navItems
-        .filter((item) => isFullAdmin(getUserRole()) || !item.fullAdmin)
-        .map((item) => ({
-          id: item.to,
-          label: t(item.key),
-          to: item.to,
-          icon: item.icon,
-        })),
-    [t],
-  );
+  const items = useMemo(() => {
+    const role = getUserRole();
+    return navItems
+      .filter((item) => {
+        if (item.kind === 'jobs') return canManageJobPostings(role);
+        if (item.kind === 'users') return canManageUsers(role);
+        return isFullAdmin(role);
+      })
+      .map((item) => ({
+        id: item.to,
+        label: t(item.key),
+        to: item.to,
+        icon: item.icon,
+      }));
+  }, [t]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

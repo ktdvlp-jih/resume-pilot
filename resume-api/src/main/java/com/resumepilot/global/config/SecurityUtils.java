@@ -13,10 +13,18 @@ public final class SecurityUtils {
     private SecurityUtils() {}
 
     public static UUID getCurrentUserId() {
+        return getPrincipal().getId();
+    }
+
+    public static String getCurrentRole() {
+        return getPrincipal().getRole();
+    }
+
+    private static UserPrincipal getPrincipal() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof UserPrincipal principal)) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
-        return principal.getId();
+        return principal;
     }
 }
