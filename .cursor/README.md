@@ -1,6 +1,7 @@
 # ResumePilot — Cursor 설정
 
-**실행·설치:** [docs/설치-가이드.md](../docs/설치-가이드.md) · [docs/실행-가이드.md](../docs/실행-가이드.md)
+**실행·설치:** [docs/설치-가이드.md](../docs/설치-가이드.md) · [docs/실행-가이드.md](../docs/실행-가이드.md)  
+**Grok Bot:** [docs/grok-bot-프롬프트.md](../docs/grok-bot-프롬프트.md) — 섹션 `ResumePilot` 봇 5개 첫 메시지
 
 프로젝트 공유 AI 워크플로. Cursor **창 새로고침** 후 `/` 명령·훅 반영.
 

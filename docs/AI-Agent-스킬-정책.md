@@ -184,3 +184,4 @@ ResumePilot은 **Docker 5컨테이너 배포**(Vercel 아님)·웹 전용이므�
 
 - `.agents/skills/`와 `.claude/skills/`의 Junction은 생성물이라 커밋하지 않습니다. 사라지면 섹션 B로 재현합니다.
 - 커스텀 스킬 내용 변경은 `.claude/skills/`·`.cursor/skills/`의 SKILL.md를 직접 수정해 커밋합니다. (`.agents/`에는 커스텀 스킬이 더 이상 없음)
+- Grok Bot(공고수집가·경험사서·직군가이드·개발에이전트·품질점검) 첫 메시지: [grok-bot-프롬프트.md](grok-bot-프롬프트.md)
