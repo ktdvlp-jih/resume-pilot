@@ -120,6 +120,7 @@
     "passwordMin": "Password (8+ characters)",
     "name": "Name",
     "loginFailed": "Login failed",
+    "sessionExpired": "Your session expired. Please log in again.",
     "signupFailed": "Sign up failed",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",

@@ -55,6 +55,7 @@
     "loginTitle": "Admin Login",
     "login": "로그인",
     "loginFailed": "로그인 실패",
+    "sessionExpired": "세션이 만료되었습니다. 다시 로그인해 주세요.",
     "loginId": "관리자 ID",
     "notAdmin": "관리자, 공고 관리자, 사용자 관리자 계정만 로그인할 수 있습니다.",
     "email": "이메일",

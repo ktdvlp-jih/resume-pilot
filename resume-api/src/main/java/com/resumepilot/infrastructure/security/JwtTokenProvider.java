@@ -32,7 +32,11 @@ public class JwtTokenProvider {
     }
 
     public String createRefreshToken(UUID userId, String email, String role) {
-        return buildToken(userId, email, role, refreshExpirationMs, true);
+        return createRefreshToken(userId, email, role, refreshExpirationMs);
+    }
+
+    public String createRefreshToken(UUID userId, String email, String role, long expirationMs) {
+        return buildToken(userId, email, role, expirationMs, true);
     }
 
     public long getRefreshExpirationMs() {

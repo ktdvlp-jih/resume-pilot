@@ -205,7 +205,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     } else {
       clearTokens();
       if (!path.includes('/auth/')) {
-        window.location.href = '/login';
+        window.location.href = '/login?expired=1';
       }
       throw new Error('Session expired');
     }
@@ -214,7 +214,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (response.status === 401) {
     clearTokens();
     if (!path.includes('/auth/')) {
-      window.location.href = '/login';
+      window.location.href = '/login?expired=1';
     }
     throw new Error('Authentication required');
   }

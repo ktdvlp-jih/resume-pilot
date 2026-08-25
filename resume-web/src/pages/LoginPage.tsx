@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api, setTokens } from '@/lib/api';
 import { AuthFormCard, AuthSplitLayout } from '@/components/layout/auth-split-layout';
@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 
 export default function LoginPage() {
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -37,6 +38,11 @@ export default function LoginPage() {
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          {!error && searchParams.get('expired') === '1' && (
+            <Alert>
+              <AlertDescription>{t('auth.sessionExpired')}</AlertDescription>
             </Alert>
           )}
           <div className="space-y-2">

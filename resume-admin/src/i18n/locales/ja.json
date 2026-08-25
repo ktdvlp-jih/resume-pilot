@@ -55,6 +55,7 @@
     "loginTitle": "Admin Login",
     "login": "ログイン",
     "loginFailed": "ログインに失敗しました",
+    "sessionExpired": "セッションが切れました。再度ログインしてください。",
     "loginId": "管理者ID",
     "notAdmin": "管理者、求人管理者、ユーザー管理者アカウントのみログインできます。",
     "email": "メール",

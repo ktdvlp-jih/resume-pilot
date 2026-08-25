@@ -75,9 +75,10 @@ public class AuthService {
 
         User user = userRepository.findById(stored.getUserId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
+        Instant refreshExpiresAt = stored.getExpiresAt();
         stored.setRevoked(true);
         refreshTokenRepository.save(stored);
-        return issueTokens(user);
+        return issueTokens(user, refreshExpiresAt);
     }
 
     @Transactional
@@ -91,13 +92,22 @@ public class AuthService {
     }
 
     private TokenResponse issueTokens(User user) {
+        return issueTokens(user, Instant.now().plusMillis(jwtTokenProvider.getRefreshExpirationMs()));
+    }
+
+    private TokenResponse issueTokens(User user, Instant refreshExpiresAt) {
+        long refreshTtlMs = refreshExpiresAt.toEpochMilli() - Instant.now().toEpochMilli();
+        if (refreshTtlMs <= 0) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN);
+        }
         String access = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole().name());
-        String refresh = jwtTokenProvider.createRefreshToken(user.getId(), user.getEmail(), user.getRole().name());
+        String refresh = jwtTokenProvider.createRefreshToken(
+                user.getId(), user.getEmail(), user.getRole().name(), refreshTtlMs);
 
         refreshTokenRepository.save(RefreshToken.builder()
                 .userId(user.getId())
                 .tokenHash(hashToken(refresh))
-                .expiresAt(Instant.now().plusMillis(jwtTokenProvider.getRefreshExpirationMs()))
+                .expiresAt(refreshExpiresAt)
                 .build());
 
         return new TokenResponse(access, refresh, user.getId(), user.getEmail(), user.getRole().name());

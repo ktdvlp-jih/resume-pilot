@@ -16,4 +16,4 @@ spring:
 jwt:
   secret: test-secret-key-for-unit-tests-must-be-long-enough-256bits
   access-expiration-ms: 900000
-  refresh-expiration-ms: 604800000
+  refresh-expiration-ms: 86400000

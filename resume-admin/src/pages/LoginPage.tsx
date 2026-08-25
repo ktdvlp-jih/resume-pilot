@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { LogoMark } from '@/components/Logo';
@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 export default function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -46,6 +47,9 @@ export default function LoginPage() {
           <CardContent className="space-y-4">
             {error && (
               <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>
+            )}
+            {!error && searchParams.get('expired') === '1' && (
+              <Alert><AlertDescription>{t('auth.sessionExpired')}</AlertDescription></Alert>
             )}
             <div className="space-y-2">
               <Label htmlFor="loginId">{t('auth.loginId')}</Label>

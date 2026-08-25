@@ -120,6 +120,7 @@
     "passwordMin": "密码（至少8位）",
     "name": "姓名",
     "loginFailed": "登录失败",
+    "sessionExpired": "会话已过期，请重新登录。",
     "signupFailed": "注册失败",
     "noAccount": "还没有账号？",
     "hasAccount": "已有账号？",

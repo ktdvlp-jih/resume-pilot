@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { getAccessToken } from '@/lib/api';
+import { useIdleSession } from '@/hooks/use-idle-session';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { AppHeader } from '@/components/layout/app-header';
 import { CommandMenu } from '@/components/layout/command-menu';
@@ -7,6 +8,7 @@ import { PageTransition } from '@/components/layout/page-transition';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 
 export function ProtectedLayout() {
+  useIdleSession('/login');
   if (!getAccessToken()) {
     return <Navigate to="/login" replace />;
   }

@@ -55,6 +55,7 @@
     "loginTitle": "Admin Login",
     "login": "登录",
     "loginFailed": "登录失败",
+    "sessionExpired": "会话已过期，请重新登录。",
     "loginId": "管理员 ID",
     "notAdmin": "仅管理员、招聘管理员或用户管理员账号可登录。",
     "email": "邮箱",

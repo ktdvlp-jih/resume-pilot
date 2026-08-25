@@ -120,6 +120,7 @@
     "passwordMin": "パスワード（8文字以上）",
     "name": "名前",
     "loginFailed": "ログイン失敗",
+    "sessionExpired": "セッションが切れました。再度ログインしてください。",
     "signupFailed": "登録失敗",
     "noAccount": "アカウントをお持ちでないですか？",
     "hasAccount": "すでにアカウントをお持ちですか？",

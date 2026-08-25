@@ -55,6 +55,7 @@
     "loginTitle": "Admin Login",
     "login": "Log in",
     "loginFailed": "Login failed",
+    "sessionExpired": "Your session expired. Please log in again.",
     "loginId": "Admin ID",
     "notAdmin": "Only administrator, job-posting admin, or user-admin accounts can sign in here.",
     "email": "Email",
