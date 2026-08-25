@@ -20,6 +20,7 @@
     "forbidden": "禁止表現",
     "companies": "企業データ",
     "skillCatalog": "スキルカタログ",
+    "jobPostings": "共通求人",
     "users": "ユーザー",
     "aiLogs": "AIログ",
     "llmSettings": "LLM設定",
@@ -45,14 +46,17 @@
     "paginationSummary": "{{from}}–{{to}} / 全{{total}}件",
     "previous": "前へ",
     "next": "次へ",
-    "vs": "vs"
+    "vs": "vs",
+    "analyzing": "分析中...",
+    "deleted": "削除しました。",
+    "error": "リクエストに失敗しました。"
   },
   "auth": {
     "loginTitle": "Admin Login",
     "login": "ログイン",
     "loginFailed": "ログインに失敗しました",
     "loginId": "管理者ID",
-    "notAdmin": "管理者アカウントのみログインできます。",
+    "notAdmin": "管理者または求人管理者アカウントのみログインできます。",
     "email": "メール",
     "password": "パスワード"
   },
@@ -103,12 +107,52 @@
     "categoryHint": "既存の分類を選ぶか、新しい分類を直接入力できます。",
     "empty": "登録されたスキルがありません。"
   },
+  "jobPostings": {
+    "title": "共通求人の管理",
+    "uploadTitle": "共通求人を登録",
+    "uploadHint": "登録した求人は、ログイン中の全ユーザーがダッシュボードとワークスペースで見て志望動機を書けます。他ユーザーの非公開求人は共有をオンにするまで見えません。",
+    "url": "URL",
+    "text": "テキスト",
+    "urlLabel": "求人URL",
+    "content": "求人本文",
+    "titleOptional": "タイトル（任意）",
+    "titleRequired": "タイトル",
+    "upload": "分析して共通登録",
+    "uploaded": "共通求人として登録しました。",
+    "empty": "登録された求人がありません。",
+    "noTitle": "タイトルなし",
+    "columns": {
+      "title": "タイトル",
+      "company": "企業",
+      "owner": "登録者",
+      "shared": "共通公開",
+      "date": "登録日"
+    }
+  },
   "users": {
     "title": "ユーザー管理",
     "email": "メール",
-    "role": "Role",
+    "password": "パスワード",
+    "passwordHint": "8文字以上",
+    "name": "名前（任意）",
+    "namePlaceholder": "表示名",
+    "role": "権限",
     "status": "状態",
-    "action": "操作"
+    "action": "操作",
+    "createTitle": "アカウント作成",
+    "createHint": "作成時に一般ユーザー、共通求人のみ管理する求人管理者、全体管理者を指定できます。",
+    "create": "アカウント作成",
+    "created": "アカウントを作成しました。",
+    "roles": {
+      "USER": "一般ユーザー",
+      "JOB_ADMIN": "求人管理者",
+      "ADMIN": "全体管理者"
+    },
+    "roleHints": {
+      "USER": "ユーザーアプリのみ利用できます。管理画面には入れません。",
+      "JOB_ADMIN": "管理画面で共通求人の登録・公開・削除だけできます。",
+      "ADMIN": "プロンプトやユーザー、共通求人を含むすべての管理機能を使えます。"
+    }
   },
   "companies": {
     "title": "企業データ管理",

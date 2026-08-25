@@ -57,6 +57,8 @@ public class SecurityConfig {
                             .requestMatchers("/api/v1/internal/**").permitAll()
                             .requestMatchers("/swagger-ui/**", "/api-docs/**", "/actuator/health").permitAll()
                             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                            .requestMatchers("/api/v1/admin/job-postings", "/api/v1/admin/job-postings/**")
+                            .hasAnyRole("ADMIN", "JOB_ADMIN")
                             .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                             .requestMatchers("/api/**").authenticated();
                     if (spaEnabled) {

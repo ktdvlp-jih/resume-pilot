@@ -4,10 +4,13 @@ import com.resumepilot.application.company.CompanyService;
 import com.resumepilot.domain.admin.AiUsageLog;
 import com.resumepilot.domain.admin.AiUsageLogRepository;
 import com.resumepilot.domain.company.*;
+import com.resumepilot.domain.user.User;
+import com.resumepilot.domain.user.UserRepository;
 import com.resumepilot.global.exception.BusinessException;
 import com.resumepilot.global.exception.ErrorCode;
 import com.resumepilot.infrastructure.ai.AiGatewayClient;
 import com.resumepilot.infrastructure.document.DocumentExtractor;
+import com.resumepilot.presentation.dto.admin.AdminJobPostingResponse;
 import com.resumepilot.presentation.dto.job.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +28,7 @@ public class JobPostingService {
     private final JobPostingRepository jobPostingRepository;
     private final JobAnalysisRepository jobAnalysisRepository;
     private final CompanyRepository companyRepository;
+    private final UserRepository userRepository;
     private final CompanyService companyService;
     private final AiGatewayClient aiGatewayClient;
     private final DocumentExtractor documentExtractor;
@@ -31,14 +36,19 @@ public class JobPostingService {
 
     @Transactional(readOnly = true)
     public List<JobPostingResponse> list(UUID userId) {
-        return jobPostingRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
-                .map(this::toPostingResponse)
+        return jobPostingRepository.findAccessibleByUserId(userId).stream()
+                .map(p -> toPostingResponse(p, userId))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public JobPostingResponse get(UUID userId, UUID id) {
-        return toPostingResponse(getOwned(userId, id));
+        return toPostingResponse(getAccessible(userId, id), userId);
+    }
+
+    @Transactional(readOnly = true)
+    public void assertAccessible(UUID userId, UUID id) {
+        getAccessible(userId, id);
     }
 
     @Transactional
@@ -82,7 +92,7 @@ public class JobPostingService {
         }
 
         saveAnalysis(posting.getId(), aiResult);
-        return toPostingResponse(posting);
+        return toPostingResponse(posting, userId);
     }
 
     @Transactional
@@ -127,12 +137,12 @@ public class JobPostingService {
         }
 
         saveAnalysis(posting.getId(), aiResult);
-        return toPostingResponse(posting);
+        return toPostingResponse(posting, userId);
     }
 
     @Transactional(readOnly = true)
     public JobAnalysisResponse getAnalysis(UUID userId, UUID jobPostingId) {
-        getOwned(userId, jobPostingId);
+        getAccessible(userId, jobPostingId);
         JobAnalysis analysis = jobAnalysisRepository.findTopByJobPostingIdOrderByCreatedAtDesc(jobPostingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Analysis not found"));
         return toAnalysisResponse(analysis);
@@ -253,6 +263,56 @@ public class JobPostingService {
         jobPostingRepository.delete(getOwned(userId, id));
     }
 
+    @Transactional
+    public JobPostingResponse setShared(UUID userId, UUID id, boolean shared) {
+        JobPosting posting = getOwned(userId, id);
+        posting.setShared(shared);
+        return toPostingResponse(posting, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminJobPostingResponse> listAllForAdmin() {
+        List<JobPosting> postings = jobPostingRepository.findAllByOrderBySharedDescCreatedAtDesc();
+        Set<UUID> companyIds = postings.stream()
+                .map(JobPosting::getCompanyId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Set<UUID> ownerIds = postings.stream()
+                .map(JobPosting::getUserId)
+                .collect(Collectors.toSet());
+        Map<UUID, String> companyNames = companyRepository.findAllById(companyIds).stream()
+                .collect(Collectors.toMap(Company::getId, Company::getName));
+        Map<UUID, String> emails = userRepository.findAllById(ownerIds).stream()
+                .collect(Collectors.toMap(User::getId, User::getEmail));
+        return postings.stream()
+                .map(p -> toAdminResponse(p, companyNames, emails))
+                .toList();
+    }
+
+    @Transactional
+    public AdminJobPostingResponse setSharedAdmin(UUID id, boolean shared) {
+        JobPosting posting = jobPostingRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
+        posting.setShared(shared);
+        return toAdminResponse(posting);
+    }
+
+    @Transactional
+    public JobPostingResponse uploadShared(UUID adminUserId, JobPostingUploadRequest request) {
+        JobPostingResponse created = upload(adminUserId, request);
+        JobPosting posting = jobPostingRepository.findById(created.id())
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
+        posting.setShared(true);
+        return toPostingResponse(posting, adminUserId);
+    }
+
+    @Transactional
+    public void deleteAdmin(UUID id) {
+        JobPosting posting = jobPostingRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
+        jobPostingRepository.delete(posting);
+    }
+
     private String resolveContent(JobPostingUploadRequest request) {
         if (request.sourceType() == JobSourceType.URL) {
             if (request.sourceUrl() == null || request.sourceUrl().isBlank()) {
@@ -317,7 +377,16 @@ public class JobPostingService {
         return posting;
     }
 
-    private JobPostingResponse toPostingResponse(JobPosting p) {
+    private JobPosting getAccessible(UUID userId, UUID id) {
+        JobPosting posting = jobPostingRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
+        if (!posting.getUserId().equals(userId) && !posting.isShared()) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        return posting;
+    }
+
+    private JobPostingResponse toPostingResponse(JobPosting p, UUID currentUserId) {
         String companyName = null;
         if (p.getCompanyId() != null) {
             companyName = companyRepository.findById(p.getCompanyId())
@@ -325,7 +394,36 @@ public class JobPostingService {
         }
         return new JobPostingResponse(
                 p.getId(), p.getTitle(), p.getSourceType(), p.getSourceUrl(),
-                p.getRawContent(), p.getParsedJson(), p.getCompanyId(), companyName, p.getCreatedAt()
+                p.getRawContent(), p.getParsedJson(), p.getCompanyId(), companyName, p.getCreatedAt(),
+                p.isShared(), p.getUserId().equals(currentUserId)
+        );
+    }
+
+    private AdminJobPostingResponse toAdminResponse(JobPosting p) {
+        Map<UUID, String> companyNames = p.getCompanyId() == null
+                ? Map.of()
+                : companyRepository.findById(p.getCompanyId())
+                        .map(c -> Map.of(c.getId(), c.getName()))
+                        .orElse(Map.of());
+        Map<UUID, String> emails = userRepository.findById(p.getUserId())
+                .map(u -> Map.of(u.getId(), u.getEmail()))
+                .orElse(Map.of());
+        return toAdminResponse(p, companyNames, emails);
+    }
+
+    private AdminJobPostingResponse toAdminResponse(
+            JobPosting p, Map<UUID, String> companyNames, Map<UUID, String> emails) {
+        return new AdminJobPostingResponse(
+                p.getId(),
+                p.getTitle(),
+                p.getSourceType(),
+                p.getSourceUrl(),
+                p.getCompanyId(),
+                p.getCompanyId() != null ? companyNames.get(p.getCompanyId()) : null,
+                p.isShared(),
+                p.getUserId(),
+                emails.get(p.getUserId()),
+                p.getCreatedAt()
         );
     }
 

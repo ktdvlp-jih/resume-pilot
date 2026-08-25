@@ -1,5 +1,6 @@
 package com.resumepilot.application.resume;
 
+import com.resumepilot.application.job.JobPostingService;
 import com.resumepilot.application.rag.RagService;
 import com.resumepilot.domain.resume.Resume;
 import com.resumepilot.domain.resume.ResumeRepository;
@@ -25,6 +26,7 @@ public class ResumeService {
     private final ResumeRepository resumeRepository;
     private final ResumeVersionRepository resumeVersionRepository;
     private final RagService ragService;
+    private final JobPostingService jobPostingService;
 
     @Transactional(readOnly = true)
     public List<ResumeResponse> list(UUID userId, UUID jobPostingId) {
@@ -45,6 +47,7 @@ public class ResumeService {
     @Transactional
     public ResumeResponse create(UUID userId, ResumeCreateRequest request) {
         if (request.jobPostingId() != null) {
+            jobPostingService.assertAccessible(userId, request.jobPostingId());
             List<Resume> existing = resumeRepository
                     .findByUserIdAndJobPostingIdOrderByUpdatedAtDesc(userId, request.jobPostingId());
             if (!existing.isEmpty()) {

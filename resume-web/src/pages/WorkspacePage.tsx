@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
@@ -97,7 +97,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -362,8 +364,18 @@ function SectionTargetCharsField({
 export default function WorkspacePage() {
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { draft, setDraft, clearDraft, saveStatus: draftSaveStatus, wasRestored } = useWorkspaceDraft();
   const { selectedPostingId, jobText, rewriteLevel, sectionTitles, sectionTargetChars, selectedExperienceIds, experiencePoolLimit, sectionExperienceIds, sectionIntents, sectionIntentsKey } = draft;
+
+  useEffect(() => {
+    const postingId = searchParams.get('postingId');
+    if (!postingId) return;
+    setDraft({ selectedPostingId: postingId });
+    const next = new URLSearchParams(searchParams);
+    next.delete('postingId');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setDraft, setSearchParams]);
   const {
     result,
     sectionTitles: savedSectionTitles,
@@ -694,6 +706,11 @@ export default function WorkspacePage() {
   };
 
   const { data: postings = [] } = useQuery({ queryKey: ['job-postings'], queryFn: api.listJobPostings });
+  const sharedPostings = useMemo(() => postings.filter((p) => p.shared), [postings]);
+  const myPostings = useMemo(
+    () => postings.filter((p) => p.owned !== false && !p.shared),
+    [postings],
+  );
   const { data: allResumes = [] } = useQuery({ queryKey: ['resumes'], queryFn: () => api.listResumes() });
   const writtenPostingIds = useMemo(() => {
     const ids = postingIdsWithSavedLetter();
@@ -1322,21 +1339,46 @@ export default function WorkspacePage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">{t('workspace.newOrManual')}</SelectItem>
-                  {postings.map((p: JobPostingResponse) => {
-                    const written = writtenPostingIds.has(p.id);
-                    return (
-                    <SelectItem key={p.id} value={p.id}>
-                      <span className="flex min-w-0 items-center gap-2">
-                        <span className="truncate">{p.title || p.companyName}</span>
-                        {written && (
-                          <Badge variant="secondary" className="shrink-0 px-1.5 py-0 text-[10px] font-normal">
-                            {t('workspace.writtenBadge')}
-                          </Badge>
-                        )}
-                      </span>
-                    </SelectItem>
-                    );
-                  })}
+                  {sharedPostings.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel>{t('workspace.sharedGroup')}</SelectLabel>
+                      {sharedPostings.map((p: JobPostingResponse) => {
+                        const written = writtenPostingIds.has(p.id);
+                        return (
+                          <SelectItem key={p.id} value={p.id}>
+                            <span className="flex min-w-0 items-center gap-2">
+                              <span className="truncate">{p.title || p.companyName}</span>
+                              {written && (
+                                <Badge variant="secondary" className="shrink-0 px-1.5 py-0 text-[10px] font-normal">
+                                  {t('workspace.writtenBadge')}
+                                </Badge>
+                              )}
+                            </span>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectGroup>
+                  )}
+                  {myPostings.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel>{t('workspace.mineGroup')}</SelectLabel>
+                      {myPostings.map((p: JobPostingResponse) => {
+                        const written = writtenPostingIds.has(p.id);
+                        return (
+                          <SelectItem key={p.id} value={p.id}>
+                            <span className="flex min-w-0 items-center gap-2">
+                              <span className="truncate">{p.title || p.companyName}</span>
+                              {written && (
+                                <Badge variant="secondary" className="shrink-0 px-1.5 py-0 text-[10px] font-normal">
+                                  {t('workspace.writtenBadge')}
+                                </Badge>
+                              )}
+                            </span>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectGroup>
+                  )}
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">{t('workspace.writtenHint')}</p>

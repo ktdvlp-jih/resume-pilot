@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { getAccessToken, getUserRole } from '@/lib/api';
+import { canAccessAdmin } from '@/lib/roles';
 import { AdminSidebar } from '@/components/admin-sidebar';
 import { AdminHeader } from '@/components/layout/admin-header';
 import { CommandMenu } from '@/components/layout/command-menu';
@@ -10,7 +11,7 @@ export function AdminLayout() {
   if (!getAccessToken()) {
     return <Navigate to="/login" replace />;
   }
-  if (getUserRole() !== 'ADMIN') {
+  if (!canAccessAdmin(getUserRole())) {
     return <Navigate to="/login" replace />;
   }
 

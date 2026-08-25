@@ -1,9 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Building2, Bot, FileText, LogOut, ScrollText, Settings2, ShieldBan, Sparkles, Users } from 'lucide-react';
+import { Building2, Briefcase, Bot, FileText, LogOut, ScrollText, Settings2, ShieldBan, Sparkles, Users } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { LogoMark } from '@/components/Logo';
-import { clearTokens } from '@/lib/api';
+import { clearTokens, getUserRole } from '@/lib/api';
+import { isFullAdmin } from '@/lib/roles';
 import { Button } from '@/components/ui/button';
 import {
   Sidebar,
@@ -20,19 +21,22 @@ import {
 } from '@/components/ui/sidebar';
 
 const navItems = [
-  { to: '/prompts', icon: FileText, key: 'nav.prompts' },
-  { to: '/forbidden-expressions', icon: ShieldBan, key: 'nav.forbidden' },
-  { to: '/companies', icon: Building2, key: 'nav.companies' },
-  { to: '/skill-catalog', icon: Sparkles, key: 'nav.skillCatalog' },
-  { to: '/users', icon: Users, key: 'nav.users' },
-  { to: '/ai-logs', icon: ScrollText, key: 'nav.aiLogs' },
-  { to: '/llm-settings', icon: Bot, key: 'nav.llmSettings' },
-  { to: '/deploy-ci-settings', icon: Settings2, key: 'nav.deploySettings' },
+  { to: '/prompts', icon: FileText, key: 'nav.prompts', fullAdmin: true },
+  { to: '/forbidden-expressions', icon: ShieldBan, key: 'nav.forbidden', fullAdmin: true },
+  { to: '/companies', icon: Building2, key: 'nav.companies', fullAdmin: true },
+  { to: '/job-postings', icon: Briefcase, key: 'nav.jobPostings', fullAdmin: false },
+  { to: '/skill-catalog', icon: Sparkles, key: 'nav.skillCatalog', fullAdmin: true },
+  { to: '/users', icon: Users, key: 'nav.users', fullAdmin: true },
+  { to: '/ai-logs', icon: ScrollText, key: 'nav.aiLogs', fullAdmin: true },
+  { to: '/llm-settings', icon: Bot, key: 'nav.llmSettings', fullAdmin: true },
+  { to: '/deploy-ci-settings', icon: Settings2, key: 'nav.deploySettings', fullAdmin: true },
 ] as const;
 
 export function AdminSidebar() {
   const { t } = useTranslation();
   const location = useLocation();
+  const fullAdmin = isFullAdmin(getUserRole());
+  const visibleNav = navItems.filter((item) => fullAdmin || !item.fullAdmin);
 
   return (
     <Sidebar variant="inset" collapsible="icon">
@@ -54,7 +58,7 @@ export function AdminSidebar() {
           <SidebarGroupLabel>{t('nav.menu', { defaultValue: 'Menu' })}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map(({ to, icon: Icon, key }) => (
+              {visibleNav.map(({ to, icon: Icon, key }) => (
                 <SidebarMenuItem key={to}>
                   <SidebarMenuButton asChild isActive={location.pathname === to}>
                     <Link to={to}>

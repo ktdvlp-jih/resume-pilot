@@ -20,6 +20,7 @@
     "forbidden": "금지 표현",
     "companies": "기업 데이터",
     "skillCatalog": "스킬 카탈로그",
+    "jobPostings": "공통 공고",
     "users": "사용자",
     "aiLogs": "AI 로그",
     "llmSettings": "LLM 설정",
@@ -45,14 +46,17 @@
     "paginationSummary": "{{from}}–{{to}} / 총 {{total}}건",
     "previous": "이전",
     "next": "다음",
-    "vs": "vs"
+    "vs": "vs",
+    "analyzing": "분석 중...",
+    "deleted": "삭제했습니다.",
+    "error": "요청에 실패했습니다."
   },
   "auth": {
     "loginTitle": "Admin Login",
     "login": "로그인",
     "loginFailed": "로그인 실패",
     "loginId": "관리자 ID",
-    "notAdmin": "관리자 계정만 로그인할 수 있습니다.",
+    "notAdmin": "관리자 또는 공고 관리자 계정만 로그인할 수 있습니다.",
     "email": "이메일",
     "password": "비밀번호"
   },
@@ -103,12 +107,52 @@
     "categoryHint": "기존 분류를 선택하거나 새로운 분류를 직접 입력할 수 있습니다.",
     "empty": "등록된 스킬이 없습니다."
   },
+  "jobPostings": {
+    "title": "공통 공고 관리",
+    "uploadTitle": "공통 공고 등록",
+    "uploadHint": "등록한 공고는 모든 로그인 사용자가 대시보드·워크스페이스에서 보고 자기소개서를 작성할 수 있습니다. 다른 사용자의 비공개 공고는 공통으로 켜기 전까지 보이지 않습니다.",
+    "url": "URL",
+    "text": "텍스트",
+    "urlLabel": "공고 URL",
+    "content": "공고 본문",
+    "titleOptional": "제목 (선택)",
+    "titleRequired": "제목",
+    "upload": "분석 후 공통 등록",
+    "uploaded": "공통 공고로 등록했습니다.",
+    "empty": "등록된 공고가 없습니다.",
+    "noTitle": "제목 없음",
+    "columns": {
+      "title": "제목",
+      "company": "기업",
+      "owner": "등록자",
+      "shared": "공통 공개",
+      "date": "등록일"
+    }
+  },
   "users": {
     "title": "사용자 관리",
     "email": "이메일",
-    "role": "Role",
+    "password": "비밀번호",
+    "passwordHint": "8자 이상",
+    "name": "이름 (선택)",
+    "namePlaceholder": "표시 이름",
+    "role": "권한",
     "status": "상태",
-    "action": "액션"
+    "action": "액션",
+    "createTitle": "계정 만들기",
+    "createHint": "일반 사용자, 공통 공고만 관리하는 공고 관리자, 전체 관리자를 계정 생성 때 바로 지정할 수 있습니다.",
+    "create": "계정 생성",
+    "created": "계정을 만들었습니다.",
+    "roles": {
+      "USER": "일반 사용자",
+      "JOB_ADMIN": "공고 관리자",
+      "ADMIN": "전체 관리자"
+    },
+    "roleHints": {
+      "USER": "사용자 앱만 사용합니다. 어드민에는 들어가지 못합니다.",
+      "JOB_ADMIN": "어드민에서 공통 공고만 등록·공개·삭제할 수 있습니다.",
+      "ADMIN": "프롬프트, 사용자, 공통 공고를 포함한 모든 관리 기능을 씁니다."
+    }
   },
   "companies": {
     "title": "기업 데이터 관리",

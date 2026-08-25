@@ -5,6 +5,8 @@ import com.resumepilot.domain.prompt.*;
 import com.resumepilot.domain.skill.SkillCatalogItem;
 import com.resumepilot.domain.skill.SkillCatalogRepository;
 import com.resumepilot.domain.user.User;
+import com.resumepilot.domain.user.UserProfile;
+import com.resumepilot.domain.user.UserProfileRepository;
 import com.resumepilot.domain.user.UserRepository;
 import com.resumepilot.domain.user.UserRole;
 import com.resumepilot.domain.company.Company;
@@ -17,6 +19,7 @@ import com.resumepilot.presentation.dto.admin.*;
 import com.resumepilot.presentation.dto.job.CompanyResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +40,8 @@ public class AdminService {
     private final PromptHistoryRepository promptHistoryRepository;
     private final ForbiddenExpressionRepository forbiddenRepository;
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
+    private final PasswordEncoder passwordEncoder;
     private final CompanyRepository companyRepository;
     private final CompanyMapper companyMapper;
     private final AiUsageLogRepository usageLogRepository;
@@ -179,22 +184,41 @@ public class AdminService {
     @Transactional(readOnly = true)
     public List<UserAdminResponse> listUsers() {
         return userRepository.findAll().stream()
-                .map(u -> new UserAdminResponse(u.getId(), u.getEmail(), u.getRole().name(), u.isEnabled(), u.getCreatedAt()))
+                .map(this::toUserResponse)
                 .toList();
+    }
+
+    @Transactional
+    public UserAdminResponse createUser(AdminUserCreateRequest req) {
+        String email = req.email().trim();
+        if (userRepository.existsByEmail(email)) {
+            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
+        User user = userRepository.save(User.builder()
+                .email(email)
+                .passwordHash(passwordEncoder.encode(req.password()))
+                .role(parseRole(req.role()))
+                .enabled(true)
+                .build());
+        userProfileRepository.save(UserProfile.builder()
+                .userId(user.getId())
+                .name(blankToNull(req.name()))
+                .build());
+        return toUserResponse(user);
     }
 
     @Transactional
     public UserAdminResponse updateUserRole(UUID id, UserRoleUpdateRequest req) {
         User user = userRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
-        user.setRole(UserRole.valueOf(req.role()));
-        return new UserAdminResponse(user.getId(), user.getEmail(), user.getRole().name(), user.isEnabled(), user.getCreatedAt());
+        user.setRole(parseRole(req.role()));
+        return toUserResponse(user);
     }
 
     @Transactional
     public UserAdminResponse updateUserEnabled(UUID id, UserEnabledUpdateRequest req) {
         User user = userRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
         user.setEnabled(req.enabled());
-        return new UserAdminResponse(user.getId(), user.getEmail(), user.getRole().name(), user.isEnabled(), user.getCreatedAt());
+        return toUserResponse(user);
     }
 
     @Transactional(readOnly = true)
@@ -345,5 +369,32 @@ public class AdminService {
                 v.getSystemPrompt(),
                 v.getUserPrompt(),
                 v.isActive());
+    }
+
+    private UserAdminResponse toUserResponse(User user) {
+        return new UserAdminResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getRole().name(),
+                user.isEnabled(),
+                user.getCreatedAt());
+    }
+
+    private UserRole parseRole(String role) {
+        if (role == null || role.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "권한을 선택해 주세요.");
+        }
+        try {
+            return UserRole.valueOf(role.trim().toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "지원하지 않는 권한입니다.");
+        }
+    }
+
+    private String blankToNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 }

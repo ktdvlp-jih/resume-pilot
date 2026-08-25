@@ -47,6 +47,10 @@ public class JobPosting {
     @Builder.Default
     private Map<String, Object> parsedJson = Map.of();
 
+    @Column(name = "is_shared", nullable = false)
+    @Builder.Default
+    private boolean shared = false;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;

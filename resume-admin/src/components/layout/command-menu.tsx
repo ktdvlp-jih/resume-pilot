@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Building2, Bot, FileText, ScrollText, Search, Settings2, ShieldBan, Users } from 'lucide-react';
+import { Building2, Briefcase, Bot, FileText, ScrollText, Search, Settings2, ShieldBan, Users } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -11,15 +11,18 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { getUserRole } from '@/lib/api';
+import { isFullAdmin } from '@/lib/roles';
 
 const navItems = [
-  { to: '/prompts', icon: FileText, key: 'nav.prompts' },
-  { to: '/forbidden-expressions', icon: ShieldBan, key: 'nav.forbidden' },
-  { to: '/companies', icon: Building2, key: 'nav.companies' },
-  { to: '/users', icon: Users, key: 'nav.users' },
-  { to: '/ai-logs', icon: ScrollText, key: 'nav.aiLogs' },
-  { to: '/llm-settings', icon: Bot, key: 'nav.llmSettings' },
-  { to: '/deploy-ci-settings', icon: Settings2, key: 'nav.deploySettings' },
+  { to: '/prompts', icon: FileText, key: 'nav.prompts', fullAdmin: true },
+  { to: '/forbidden-expressions', icon: ShieldBan, key: 'nav.forbidden', fullAdmin: true },
+  { to: '/companies', icon: Building2, key: 'nav.companies', fullAdmin: true },
+  { to: '/job-postings', icon: Briefcase, key: 'nav.jobPostings', fullAdmin: false },
+  { to: '/users', icon: Users, key: 'nav.users', fullAdmin: true },
+  { to: '/ai-logs', icon: ScrollText, key: 'nav.aiLogs', fullAdmin: true },
+  { to: '/llm-settings', icon: Bot, key: 'nav.llmSettings', fullAdmin: true },
+  { to: '/deploy-ci-settings', icon: Settings2, key: 'nav.deploySettings', fullAdmin: true },
 ] as const;
 
 export function CommandMenu() {
@@ -41,12 +44,14 @@ export function CommandMenu() {
 
   const items = useMemo(
     () =>
-      navItems.map((item) => ({
-        id: item.to,
-        label: t(item.key),
-        to: item.to,
-        icon: item.icon,
-      })),
+      navItems
+        .filter((item) => isFullAdmin(getUserRole()) || !item.fullAdmin)
+        .map((item) => ({
+          id: item.to,
+          label: t(item.key),
+          to: item.to,
+          icon: item.icon,
+        })),
     [t],
   );
 

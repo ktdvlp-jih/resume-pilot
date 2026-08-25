@@ -69,6 +69,15 @@ public class JobPostingController {
         return ApiResponse.ok(jobPostingService.reanalyze(SecurityUtils.getCurrentUserId(), id));
     }
 
+    @PatchMapping("/{id}/share")
+    @Operation(summary = "공고를 공통 공고로 공개하거나 비공개로 되돌린다")
+    public ApiResponse<JobPostingResponse> setShared(
+            @PathVariable UUID id,
+            @Valid @RequestBody JobPostingShareRequest request) {
+        return ApiResponse.ok(jobPostingService.setShared(
+                SecurityUtils.getCurrentUserId(), id, request.shared()));
+    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "공고 삭제")
     public ApiResponse<Void> delete(@PathVariable UUID id) {

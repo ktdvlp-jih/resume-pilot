@@ -82,6 +82,8 @@ export interface JobPostingResponse {
   companyId?: string;
   companyName?: string;
   createdAt: string;
+  shared?: boolean;
+  owned?: boolean;
 }
 
 export interface RecruitmentSection {
@@ -291,6 +293,11 @@ export const api = {
       body: JSON.stringify(data),
     }),
   deleteJobPosting: (id: string) => request<void>(`/api/v1/job-postings/${id}`, { method: 'DELETE' }),
+  setJobPostingShared: (id: string, shared: boolean) =>
+    request<JobPostingResponse>(`/api/v1/job-postings/${id}/share`, {
+      method: 'PATCH',
+      body: JSON.stringify({ shared }),
+    }),
   getSkillCatalog: () => request<Array<{ name: string; category: string }>>('/api/v1/skill-catalog'),
   lookupCertification: (q: string) =>
     request<{

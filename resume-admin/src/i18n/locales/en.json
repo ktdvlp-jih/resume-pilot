@@ -20,6 +20,7 @@
     "forbidden": "Forbidden Expressions",
     "companies": "Companies",
     "skillCatalog": "Skill Catalog",
+    "jobPostings": "Shared postings",
     "users": "Users",
     "aiLogs": "AI Logs",
     "llmSettings": "LLM Settings",
@@ -45,14 +46,17 @@
     "paginationSummary": "{{from}}–{{to}} of {{total}}",
     "previous": "Previous",
     "next": "Next",
-    "vs": "vs"
+    "vs": "vs",
+    "analyzing": "Analyzing...",
+    "deleted": "Deleted.",
+    "error": "Request failed."
   },
   "auth": {
     "loginTitle": "Admin Login",
     "login": "Log in",
     "loginFailed": "Login failed",
     "loginId": "Admin ID",
-    "notAdmin": "Only administrator accounts can sign in here.",
+    "notAdmin": "Only administrator or job-posting admin accounts can sign in here.",
     "email": "Email",
     "password": "Password"
   },
@@ -103,12 +107,52 @@
     "categoryHint": "Pick an existing category or type a new one.",
     "empty": "No skills registered."
   },
+  "jobPostings": {
+    "title": "Shared job postings",
+    "uploadTitle": "Add a shared posting",
+    "uploadHint": "Shared postings appear on every signed-in user's dashboard and workspace. Private postings stay hidden until you turn sharing on.",
+    "url": "URL",
+    "text": "Text",
+    "urlLabel": "Posting URL",
+    "content": "Posting text",
+    "titleOptional": "Title (optional)",
+    "titleRequired": "Title",
+    "upload": "Analyze and share",
+    "uploaded": "Posted as a shared job.",
+    "empty": "No job postings yet.",
+    "noTitle": "Untitled",
+    "columns": {
+      "title": "Title",
+      "company": "Company",
+      "owner": "Owner",
+      "shared": "Shared",
+      "date": "Added"
+    }
+  },
   "users": {
     "title": "User Management",
     "email": "Email",
-    "role": "Role",
+    "password": "Password",
+    "passwordHint": "At least 8 characters",
+    "name": "Name (optional)",
+    "namePlaceholder": "Display name",
+    "role": "Permission",
     "status": "Status",
-    "action": "Action"
+    "action": "Action",
+    "createTitle": "Create account",
+    "createHint": "When you create an account you can assign a regular user, a job-posting admin, or a full admin.",
+    "create": "Create account",
+    "created": "Account created.",
+    "roles": {
+      "USER": "User",
+      "JOB_ADMIN": "Job posting admin",
+      "ADMIN": "Full admin"
+    },
+    "roleHints": {
+      "USER": "Can use the user app only. Cannot sign in to admin.",
+      "JOB_ADMIN": "Can sign in to admin and manage shared job postings only.",
+      "ADMIN": "Has every admin capability, including users and prompts."
+    }
   },
   "companies": {
     "title": "Company Data",

@@ -148,6 +148,11 @@ export const api = {
     }),
   deleteForbidden: (id: string) => request<void>(`/api/v1/admin/forbidden-expressions/${id}`, { method: 'DELETE' }),
   listUsers: () => request<Array<{ id: string; email: string; role: string; enabled: boolean; createdAt?: string }>>('/api/v1/admin/users'),
+  createUser: (data: { email: string; password: string; role: string; name?: string }) =>
+    request<{ id: string; email: string; role: string; enabled: boolean }>('/api/v1/admin/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
   updateUserRole: (id: string, role: string) =>
     request<void>(`/api/v1/admin/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }),
   updateUserEnabled: (id: string, enabled: boolean) =>
@@ -160,6 +165,28 @@ export const api = {
   updateSkillCatalog: (id: number, data: { name?: string; category?: string }) =>
     request<void>(`/api/v1/admin/skill-catalog/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteSkillCatalog: (id: number) => request<void>(`/api/v1/admin/skill-catalog/${id}`, { method: 'DELETE' }),
+  listJobPostings: () =>
+    request<Array<{
+      id: string;
+      title?: string;
+      sourceType: string;
+      sourceUrl?: string;
+      companyName?: string;
+      shared: boolean;
+      ownerEmail?: string;
+      createdAt: string;
+    }>>('/api/v1/admin/job-postings'),
+  uploadSharedJobPosting: (data: { sourceType: string; content?: string; sourceUrl?: string; title?: string }) =>
+    request<{ id: string }>('/api/v1/admin/job-postings/upload', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  setJobPostingShared: (id: string, shared: boolean) =>
+    request<void>(`/api/v1/admin/job-postings/${id}/share`, {
+      method: 'PATCH',
+      body: JSON.stringify({ shared }),
+    }),
+  deleteJobPosting: (id: string) => request<void>(`/api/v1/admin/job-postings/${id}`, { method: 'DELETE' }),
   listCompanies: () => request<Array<{ id: string; name: string; culture?: string; hiringKeywords: string[]; techStack: string[] }>>('/api/v1/admin/companies'),
   updateCompany: (id: string, data: { culture?: string; hiringKeywords?: string[] }) =>
     request<void>(`/api/v1/admin/companies/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),

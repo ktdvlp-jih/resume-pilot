@@ -1,10 +1,14 @@
 package com.resumepilot.presentation.controller;
 
 import com.resumepilot.application.admin.AdminService;
+import com.resumepilot.application.job.JobPostingService;
 import com.resumepilot.global.config.SecurityUtils;
 import com.resumepilot.global.response.ApiResponse;
 import com.resumepilot.presentation.dto.admin.*;
 import com.resumepilot.presentation.dto.job.CompanyResponse;
+import com.resumepilot.presentation.dto.job.JobPostingResponse;
+import com.resumepilot.presentation.dto.job.JobPostingShareRequest;
+import com.resumepilot.presentation.dto.job.JobPostingUploadRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -21,6 +25,7 @@ import java.util.UUID;
 public class AdminController {
 
     private final AdminService adminService;
+    private final JobPostingService jobPostingService;
 
     @GetMapping("/prompts")
     public ApiResponse<List<PromptAdminResponse>> listPrompts() {
@@ -71,6 +76,12 @@ public class AdminController {
         return ApiResponse.ok(adminService.listUsers());
     }
 
+    @PostMapping("/users")
+    @Operation(summary = "계정 생성 (권한 지정)")
+    public ApiResponse<UserAdminResponse> createUser(@Valid @RequestBody AdminUserCreateRequest req) {
+        return ApiResponse.ok(adminService.createUser(req));
+    }
+
     @PatchMapping("/users/{id}/role")
     public ApiResponse<UserAdminResponse> updateUserRole(
             @PathVariable UUID id, @Valid @RequestBody UserRoleUpdateRequest req) {
@@ -118,6 +129,34 @@ public class AdminController {
     @DeleteMapping("/skill-catalog/{id}")
     public ApiResponse<Void> deleteSkillCatalog(@PathVariable Long id) {
         adminService.deleteSkillCatalog(id);
+        return ApiResponse.ok(null);
+    }
+
+    @GetMapping("/job-postings")
+    @Operation(summary = "전체 공고 목록 (공통 공개 여부 관리)")
+    public ApiResponse<List<AdminJobPostingResponse>> listJobPostings() {
+        return ApiResponse.ok(jobPostingService.listAllForAdmin());
+    }
+
+    @PostMapping("/job-postings/upload")
+    @Operation(summary = "공통 공고 업로드 및 분석")
+    public ApiResponse<JobPostingResponse> uploadSharedJobPosting(
+            @Valid @RequestBody JobPostingUploadRequest request) {
+        return ApiResponse.ok(jobPostingService.uploadShared(SecurityUtils.getCurrentUserId(), request));
+    }
+
+    @PatchMapping("/job-postings/{id}/share")
+    @Operation(summary = "공고 공통 공개 여부 변경")
+    public ApiResponse<AdminJobPostingResponse> setJobPostingShared(
+            @PathVariable UUID id,
+            @Valid @RequestBody JobPostingShareRequest request) {
+        return ApiResponse.ok(jobPostingService.setSharedAdmin(id, request.shared()));
+    }
+
+    @DeleteMapping("/job-postings/{id}")
+    @Operation(summary = "공고 삭제")
+    public ApiResponse<Void> deleteJobPosting(@PathVariable UUID id) {
+        jobPostingService.deleteAdmin(id);
         return ApiResponse.ok(null);
     }
 

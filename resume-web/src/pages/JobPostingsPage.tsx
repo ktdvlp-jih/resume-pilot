@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Columns2, Pencil, Rows3, Trash2 } from 'lucide-react';
+import { Columns2, Pencil, Rows3, Share2, Trash2 } from 'lucide-react';
 import { api, type JobAnalysisResponse, type JobPostingResponse } from '@/lib/api';
 import { PageHeader } from '@/components/common/page-header';
 import { PageShell } from '@/components/common/page-shell';
@@ -18,6 +19,7 @@ import { StatusChip } from '@/components/common/status-chip';
 import { useUrlPagination } from '@/hooks/use-url-pagination';
 import { useUrlSort } from '@/hooks/use-url-sort';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,6 +30,11 @@ import { cn } from '@/lib/utils';
 
 type SourceType = 'URL' | 'TEXT';
 type LayoutMode = 'split' | 'stack';
+type PostingScope = 'all' | 'mine' | 'shared';
+
+function isOwnedPosting(p?: JobPostingResponse | null) {
+  return p?.owned !== false;
+}
 
 const LAYOUT_STORAGE_KEY = 'job-postings-layout';
 
@@ -387,6 +394,7 @@ export default function JobPostingsPage() {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<AnalysisDraft | null>(null);
   const [search, setSearch] = useState('');
+  const [scope, setScope] = useState<PostingScope>('all');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(() =>
     typeof window === 'undefined' ? 'split' : readLayoutMode(),
   );
@@ -453,6 +461,15 @@ export default function JobPostingsPage() {
         setDraft(null);
       }
       toast.success(t('common.deleted'));
+    },
+    onError: () => toast.error(t('common.error')),
+  });
+
+  const shareMutation = useMutation({
+    mutationFn: ({ id, shared }: { id: string; shared: boolean }) => api.setJobPostingShared(id, shared),
+    onSuccess: (_, { shared }) => {
+      queryClient.invalidateQueries({ queryKey: ['job-postings'] });
+      toast.success(shared ? t('jobPostings.shareDone') : t('jobPostings.unshareDone'));
     },
     onError: () => toast.error(t('common.error')),
   });
@@ -537,6 +554,7 @@ export default function JobPostingsPage() {
   };
 
   const handleStartEdit = async (posting: JobPostingResponse) => {
+    if (!isOwnedPosting(posting)) return;
     setSelectedId(posting.id);
     try {
       const result = await api.getJobAnalysis(posting.id);
@@ -569,16 +587,22 @@ export default function JobPostingsPage() {
     }
   };
 
+  const scopedPostings = useMemo(() => {
+    if (scope === 'mine') return postings.filter((p) => isOwnedPosting(p));
+    if (scope === 'shared') return postings.filter((p) => p.shared);
+    return postings;
+  }, [postings, scope]);
+
   const filteredPostings = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return postings;
-    return postings.filter(
+    if (!q) return scopedPostings;
+    return scopedPostings.filter(
       (p) =>
         (p.title?.toLowerCase().includes(q) ?? false) ||
         (p.companyName?.toLowerCase().includes(q) ?? false) ||
         p.sourceType.toLowerCase().includes(q),
     );
-  }, [postings, search]);
+  }, [scopedPostings, search]);
 
   const comparators = useMemo(
     () => ({
@@ -597,6 +621,8 @@ export default function JobPostingsPage() {
   const { page, setPage, totalPages, paginated, from, to, total } = useUrlPagination(sorted, pageSize);
   const dateLocale =
     i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'ja' ? 'ja-JP' : i18n.language === 'zh' ? 'zh-CN' : 'en-US';
+  const selectedPosting = postings.find((p) => p.id === selectedId);
+  const canMutateSelected = isOwnedPosting(selectedPosting);
 
   const layoutToggle = (
     <div className="flex gap-1 rounded-lg border p-1">
@@ -772,13 +798,68 @@ export default function JobPostingsPage() {
           {t('common.cancel')}
         </Button>
       </div>
-    ) : (
+    ) : canMutateSelected ? (
       <Button type="button" size="sm" variant="outline" onClick={() => startEdit(analysis)}>
         <Pencil className="size-3.5" />
         {t('jobPostings.editAnalysis')}
       </Button>
+    ) : (
+      <Button size="sm" asChild>
+        <Link to={`/workspace?postingId=${selectedId}`}>{t('jobPostings.useInWorkspace')}</Link>
+      </Button>
     )
   ) : null;
+
+  const postingActions = (p: JobPostingResponse, compact: boolean) => {
+    const owned = isOwnedPosting(p);
+    return (
+      <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+        {p.shared && (
+          <Badge variant="secondary" className="shrink-0">
+            {t('jobPostings.sharedBadge')}
+          </Badge>
+        )}
+        {owned ? (
+          <>
+            <Button
+              variant="ghost"
+              size={compact ? 'icon-sm' : 'sm'}
+              aria-label={p.shared ? t('jobPostings.unshare') : t('jobPostings.share')}
+              disabled={shareMutation.isPending}
+              onClick={() => shareMutation.mutate({ id: p.id, shared: !p.shared })}
+            >
+              {compact ? <Share2 className="size-4" /> : p.shared ? t('jobPostings.unshare') : t('jobPostings.share')}
+            </Button>
+            <Button
+              variant="ghost"
+              size={compact ? 'icon-sm' : 'sm'}
+              aria-label={t('common.edit')}
+              onClick={() => handleStartEdit(p)}
+            >
+              {compact ? <Pencil className="size-4" /> : t('common.edit')}
+            </Button>
+            <ConfirmDialog
+              trigger={
+                <Button variant="ghost" size={compact ? 'icon-sm' : 'sm'} aria-label={t('common.delete')}>
+                  {compact ? <Trash2 className="size-4" /> : t('common.delete')}
+                </Button>
+              }
+              title={t('common.confirmDelete')}
+              description={t('common.confirmDeleteDesc')}
+              confirmLabel={t('common.delete')}
+              cancelLabel={t('common.cancel')}
+              destructive
+              onConfirm={() => deleteMutation.mutate(p.id)}
+            />
+          </>
+        ) : (
+          <Button variant="ghost" size="sm" asChild>
+            <Link to={`/workspace?postingId=${p.id}`}>{t('jobPostings.useInWorkspace')}</Link>
+          </Button>
+        )}
+      </div>
+    );
+  };
 
   const savedList = (
     <Section
@@ -811,7 +892,31 @@ export default function JobPostingsPage() {
         <DataTableCard
           className={cn(splitPanel && 'flex min-h-0 flex-1 flex-col')}
           bodyClassName={cn(splitPanel && 'min-h-0 flex-1 overflow-y-auto overscroll-contain')}
-          toolbar={<SearchBar value={search} onChange={setSearch} placeholder={t('common.searchPlaceholder')} />}
+          toolbar={
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="flex gap-1 rounded-lg border p-1">
+                {(['all', 'mine', 'shared'] as const).map((value) => (
+                  <Button
+                    key={value}
+                    type="button"
+                    variant={scope === value ? 'secondary' : 'ghost'}
+                    size="sm"
+                    aria-pressed={scope === value}
+                    onClick={() => setScope(value)}
+                  >
+                    {t(
+                      value === 'all'
+                        ? 'jobPostings.filterAll'
+                        : value === 'mine'
+                          ? 'jobPostings.filterMine'
+                          : 'jobPostings.filterShared',
+                    )}
+                  </Button>
+                ))}
+              </div>
+              <SearchBar value={search} onChange={setSearch} placeholder={t('common.searchPlaceholder')} />
+            </div>
+          }
           footer={
             <PaginationControls
               page={page}
@@ -857,29 +962,7 @@ export default function JobPostingsPage() {
                         <span>{new Date(p.createdAt).toLocaleDateString(dateLocale)}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={t('common.edit')}
-                        onClick={() => handleStartEdit(p)}
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                      <ConfirmDialog
-                        trigger={
-                          <Button variant="ghost" size="icon-sm" aria-label={t('common.delete')}>
-                            <Trash2 className="size-4" />
-                          </Button>
-                        }
-                        title={t('common.confirmDelete')}
-                        description={t('common.confirmDeleteDesc')}
-                        confirmLabel={t('common.delete')}
-                        cancelLabel={t('common.cancel')}
-                        destructive
-                        onConfirm={() => deleteMutation.mutate(p.id)}
-                      />
-                    </div>
+                    {postingActions(p, true)}
                   </div>
                 );
               })}
@@ -939,26 +1022,7 @@ export default function JobPostingsPage() {
                       <TableCell className="hidden text-muted-foreground xl:table-cell">
                         {new Date(p.createdAt).toLocaleDateString(dateLocale)}
                       </TableCell>
-                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => handleStartEdit(p)}>
-                          {t('common.edit')}
-                        </Button>
-                        <ConfirmDialog
-                          trigger={
-                            <Button variant="ghost" size="sm">
-                              {t('common.delete')}
-                            </Button>
-                          }
-                          title={t('common.confirmDelete')}
-                          description={t('common.confirmDeleteDesc')}
-                          confirmLabel={t('common.delete')}
-                          cancelLabel={t('common.cancel')}
-                          destructive
-                          onConfirm={() => deleteMutation.mutate(p.id)}
-                        />
-                        </div>
-                      </TableCell>
+                      <TableCell className="text-right">{postingActions(p, false)}</TableCell>
                     </TableRow>
                   );
                 })}
@@ -983,6 +1047,7 @@ export default function JobPostingsPage() {
           </div>
           <Section
             title={t('jobPostings.analysis')}
+            description={!canMutateSelected && selectedPosting?.shared ? t('jobPostings.readOnlyHint') : undefined}
             action={analysisActions}
             className="min-h-0 xl:sticky xl:top-4 xl:h-[calc(100svh-5.5rem)] xl:min-h-96 xl:overflow-hidden"
           >
@@ -1000,7 +1065,11 @@ export default function JobPostingsPage() {
       ) : (
         <div className="space-y-6">
           {savedList}
-          <Section title={t('jobPostings.analysis')} action={analysisActions}>
+          <Section
+            title={t('jobPostings.analysis')}
+            description={!canMutateSelected && selectedPosting?.shared ? t('jobPostings.readOnlyHint') : undefined}
+            action={analysisActions}
+          >
             <AnalysisPanel
               analysis={analysis}
               emptyTitle={t('jobPostings.selectOrUpload')}

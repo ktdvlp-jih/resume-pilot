@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { LogoMark } from '@/components/Logo';
 import { api, clearTokens, setTokens } from '@/lib/api';
+import { canAccessAdmin, homePath } from '@/lib/roles';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,13 +22,13 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       const tokens = await api.login(loginId, password);
-      if (tokens.role !== 'ADMIN') {
+      if (!canAccessAdmin(tokens.role)) {
         clearTokens();
         setError(t('auth.notAdmin'));
         return;
       }
       setTokens(tokens.accessToken, tokens.refreshToken, tokens.role);
-      navigate('/prompts');
+      navigate(homePath(tokens.role));
     } catch (err) {
       setError(err instanceof Error ? err.message : t('auth.loginFailed'));
     }

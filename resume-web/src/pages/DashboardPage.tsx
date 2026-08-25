@@ -8,6 +8,7 @@ import { CareerPortfolioOverview } from '@/components/career/CareerPortfolioOver
 import { normalizeCareerPortfolio } from '@/lib/career-portfolio';
 import { PageHeader } from '@/components/common/page-header';
 import { PageShell } from '@/components/common/page-shell';
+import { Section } from '@/components/common/section';
 import { EmptyState } from '@/components/common/empty-state';
 import { ConfirmDialog } from '@/components/common/confirm-dialog';
 import { SearchBar } from '@/components/common/search-bar';
@@ -19,6 +20,8 @@ import { useUrlPagination } from '@/hooks/use-url-pagination';
 import { useUrlSort } from '@/hooks/use-url-sort';
 import { OnboardingGuide } from '@/components/common/onboarding-guide';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 export default function DashboardPage() {
@@ -29,6 +32,7 @@ export default function DashboardPage() {
   const { data: resumes = [], isLoading } = useQuery({ queryKey: ['resumes'], queryFn: () => api.listResumes() });
   const { data: experiences = [] } = useQuery({ queryKey: ['experiences'], queryFn: () => api.listExperiences() });
   const { data: jobPostings = [] } = useQuery({ queryKey: ['job-postings'], queryFn: api.listJobPostings });
+  const sharedPostings = useMemo(() => jobPostings.filter((p) => p.shared), [jobPostings]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -74,6 +78,44 @@ export default function DashboardPage() {
         resumesCount={resumes.length}
       />
       <CareerPortfolioOverview name={user?.name} portfolio={portfolio} />
+
+      {sharedPostings.length > 0 && (
+        <Section
+          title={t('dashboard.sharedTitle')}
+          description={t('dashboard.sharedHint')}
+          action={
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/job-postings">{t('dashboard.viewAllShared')}</Link>
+            </Button>
+          }
+        >
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {sharedPostings.slice(0, 6).map((p) => {
+              const displayTitle = p.title || p.companyName || t('jobPostings.noTitle');
+              return (
+                <Card key={p.id} size="sm">
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="line-clamp-2 text-pretty">{displayTitle}</CardTitle>
+                      <Badge variant="secondary" className="shrink-0">
+                        {t('jobPostings.sharedBadge')}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">{p.companyName || '—'}</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button size="sm" asChild>
+                      <Link to={`/workspace?postingId=${p.id}`}>{t('dashboard.usePosting')}</Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
+        </Section>
+      )}
 
       <PageHeader
         title={t('dashboard.title')}
