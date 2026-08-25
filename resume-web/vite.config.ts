@@ -39,7 +39,8 @@ export default defineConfig({
         navigateFallbackDenylist: [
           /^\/admin(?:\/|$)/,
           /^\/api(?:\/|$)/,
-          /^\/swagger-ui(?:\/|$)/,
+          /* `/swagger-ui.html`는 `/swagger-ui/`와 다름 — PWA navigateFallback이 SPA로 가로채지 않게 */
+          /^\/swagger-ui(\.html(?:\?|$)|\/|$)/,
           /^\/api-docs(?:\/|$)/,
           /^\/actuator(?:\/|$)/,
         ],
