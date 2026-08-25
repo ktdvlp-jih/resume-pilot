@@ -4,6 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
+import {
+  PORTFOLIO_DRAFT_ROWS_KEY,
+  readUserScopedItem,
+  writeUserScopedItem,
+} from '@/lib/user-storage';
 import type { CareerPortfolio, CareerItem, EducationItem, CertificationItem } from '@/lib/career-portfolio';
 import { emptyCareerItem, emptyEducationItem, emptyCertificationItem, SKILL_LEVELS, certificationDisplayText } from '@/lib/career-portfolio';
 import { Badge } from '@/components/ui/badge';
@@ -759,7 +764,7 @@ function CoverField({
   );
 }
 
-const DRAFT_ROWS_STORAGE_KEY = 'resume-pilot.portfolio-draft-rows';
+const DRAFT_ROWS_STORAGE_KEY = PORTFOLIO_DRAFT_ROWS_KEY;
 const DRAFT_ROWS_MIN = 6;
 const DRAFT_ROWS_MAX = 60;
 
@@ -779,7 +784,7 @@ function clampDraftRows(n: number): number {
 
 function readStoredDraftRows(sectionType: PortfolioSectionType): number | null {
   try {
-    const raw = localStorage.getItem(DRAFT_ROWS_STORAGE_KEY);
+    const raw = readUserScopedItem(DRAFT_ROWS_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Record<string, unknown>;
     const value = parsed[sectionType];
@@ -791,10 +796,10 @@ function readStoredDraftRows(sectionType: PortfolioSectionType): number | null {
 
 function writeStoredDraftRows(sectionType: PortfolioSectionType, rows: number) {
   try {
-    const raw = localStorage.getItem(DRAFT_ROWS_STORAGE_KEY);
+    const raw = readUserScopedItem(DRAFT_ROWS_STORAGE_KEY);
     const parsed = raw ? (JSON.parse(raw) as Record<string, number>) : {};
     parsed[sectionType] = rows;
-    localStorage.setItem(DRAFT_ROWS_STORAGE_KEY, JSON.stringify(parsed));
+    writeUserScopedItem(DRAFT_ROWS_STORAGE_KEY, JSON.stringify(parsed));
   } catch {
     // ignore quota / private mode
   }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api, setTokens } from '@/lib/api';
 import { AuthFormCard, AuthSplitLayout } from '@/components/layout/auth-split-layout';
@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 
 export default function SignupPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -23,8 +22,8 @@ export default function SignupPage() {
     setLoading(true);
     try {
       const tokens = await api.signup(email, password, name);
-      setTokens(tokens.accessToken, tokens.refreshToken);
-      navigate('/dashboard');
+      setTokens(tokens.accessToken, tokens.refreshToken, tokens.userId);
+      window.location.assign('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : t('auth.signupFailed'));
     } finally {

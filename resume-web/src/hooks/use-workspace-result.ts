@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  readUserScopedItem,
+  removeUserScopedItem,
+  WORKSPACE_RESULT_KEY,
+  writeUserScopedItem,
+} from '@/lib/user-storage';
 
-const RESULT_KEY = 'resume-pilot-workspace-result';
 const DEBOUNCE_MS = 400;
 const MANUAL_KEY = '__manual__';
 
@@ -35,7 +40,7 @@ type ResultsByPosting = Record<string, WorkspaceResultState>;
 
 function loadAllResults(): ResultsByPosting {
   try {
-    const raw = localStorage.getItem(RESULT_KEY);
+    const raw = readUserScopedItem(WORKSPACE_RESULT_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw) as ResultsByPosting;
     if (!parsed || typeof parsed !== 'object') return {};
@@ -102,9 +107,9 @@ export function useWorkspaceResult(postingId: string) {
           Object.entries(next).filter(([, v]) => v.result || v.recommended.length > 0),
         );
         if (Object.keys(cleaned).length === 0) {
-          localStorage.removeItem(RESULT_KEY);
+          removeUserScopedItem(WORKSPACE_RESULT_KEY);
         } else {
-          localStorage.setItem(RESULT_KEY, JSON.stringify(cleaned));
+          writeUserScopedItem(WORKSPACE_RESULT_KEY, JSON.stringify(cleaned));
         }
         setSaveStatus('saved');
       } catch {

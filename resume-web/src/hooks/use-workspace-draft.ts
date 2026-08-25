@@ -6,8 +6,13 @@ import {
   qualityExperiencePoolLimit,
   type SectionIntent,
 } from '@/lib/section-experiences';
+import {
+  readUserScopedItem,
+  removeUserScopedItem,
+  WORKSPACE_DRAFT_KEY,
+  writeUserScopedItem,
+} from '@/lib/user-storage';
 
-const STORAGE_KEY = 'resume-pilot-workspace-draft';
 const DEBOUNCE_MS = 400;
 
 export type WorkspaceDraft = {
@@ -79,7 +84,7 @@ const DEFAULTS: WorkspaceDraft = {
 
 export function loadWorkspaceDraft(): WorkspaceDraft | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = readUserScopedItem(WORKSPACE_DRAFT_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Record<string, unknown>;
     const draft = { ...DEFAULTS, ...parsed } as WorkspaceDraft;
@@ -133,7 +138,7 @@ export function useWorkspaceDraft() {
     setSaveStatus('saving');
     timer.current = setTimeout(() => {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        writeUserScopedItem(WORKSPACE_DRAFT_KEY, JSON.stringify(next));
         setSaveStatus('saved');
       } catch {
         setSaveStatus('idle');
@@ -155,7 +160,7 @@ export function useWorkspaceDraft() {
   const clearDraft = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
     setDraftState(DEFAULTS);
-    localStorage.removeItem(STORAGE_KEY);
+    removeUserScopedItem(WORKSPACE_DRAFT_KEY);
     setSaveStatus('idle');
   }, []);
 

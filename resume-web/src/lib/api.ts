@@ -1,4 +1,5 @@
 import { resolveApiUrl } from './api-base';
+import { bindSessionUserId, userIdFromJwt } from './user-storage';
 
 const API_URL = resolveApiUrl();
 
@@ -144,12 +145,15 @@ function getRefreshToken(): string | null {
   return localStorage.getItem('refreshToken');
 }
 
-export function setTokens(access: string, refresh: string) {
+export function setTokens(access: string, refresh: string, userId?: string) {
+  const previousAccess = getAccessToken();
   localStorage.setItem('accessToken', access);
   localStorage.setItem('refreshToken', refresh);
+  bindSessionUserId(userId || userIdFromJwt(access), previousAccess);
 }
 
 export function clearTokens() {
+  bindSessionUserId(null, getAccessToken());
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
 }
@@ -195,7 +199,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     });
     if (refreshRes.ok) {
       const refreshed = await parseApiJson<TokenResponse>(refreshRes);
-      setTokens(refreshed.data.accessToken, refreshed.data.refreshToken);
+      setTokens(refreshed.data.accessToken, refreshed.data.refreshToken, refreshed.data.userId);
       headers['Authorization'] = `Bearer ${refreshed.data.accessToken}`;
       response = await fetch(`${API_URL}${path}`, { ...options, headers });
     } else {
