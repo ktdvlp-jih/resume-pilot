@@ -5,7 +5,8 @@
 
 ## 언제 재실행해야 하나 (필수)
 
-- `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, `EMBEDDING_MODEL`, `EMBEDDING_DIMENSION` 변경
+- Admin `/admin/llm-settings` 라우트·키 변경, 또는 `EMBEDDING_DIMENSION` 변경
+- `.env`의 `OPENAI_*` 폴백을 실제로 쓰는 경우 그 값 변경
 - `rag-service`, `resume-ai`, `e2e/tests/ai-flow.spec.ts` 변경
 - 배포 후 `추천 경험 0건`, `AI 생성 실패(500)` 등 징후 발생
 - 운영 이슈 핫픽스(특히 임베딩/프롬프트/생성 경로) 직후

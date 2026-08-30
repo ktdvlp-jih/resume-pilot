@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     )
 
     database_url: str = "postgresql://resumepilot:resumepilot@localhost:5432/resumepilot"
+    # /prompts/test 전용 env 폴백. 자소서 생성 LLM은 resume-ai + Admin llm-settings.
     openai_api_key: str = ""
     openai_base_url: str = ""
     openai_model: str = "gpt-4o-mini"

@@ -10,6 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 
 const FEATURE_ICONS = [BookOpen, Briefcase, Sparkles] as const;
+const FEATURE_ANCHORS = ['library', 'job', 'workspace'] as const;
+const PRICING_ANCHORS = ['free', 'pro'] as const;
 
 export default function LandingPage() {
   const { t } = useTranslation();
@@ -25,12 +27,12 @@ export default function LandingPage() {
     {
       name: t('landing.tierFree'),
       price: '₩0',
-      features: [t('nav.experiences'), t('nav.jobPostings'), t('nav.workspace')],
+      features: [t('nav.experiences'), t('nav.jobPostings'), t('nav.workspace'), t('writingStyle.title')],
     },
     {
       name: t('landing.tierPro'),
       price: t('landing.comingSoon'),
-      features: [t('writingStyle.title'), t('nav.settings'), 'API'],
+      features: [t('landing.proConnect'), t('landing.proSchedule')],
     },
   ];
 
@@ -81,49 +83,84 @@ export default function LandingPage() {
         </section>
 
         <section id="features" className="scroll-mt-20 border-t py-16 md:py-20">
-          <div className="mb-10 text-center">
+          <div className="mb-10 flex flex-col items-center gap-2 text-center">
             <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">{t('nav.features')}</h2>
-            <p className="mt-2 text-muted-foreground">{t('landing.featuresSubtitle')}</p>
+            <p className="text-muted-foreground">{t('landing.featuresSubtitle')}</p>
+            <Button variant="link" asChild>
+              <Link to="/features">
+                {t('landing.viewFeatures')}
+                <ArrowRight className="size-4" aria-hidden />
+              </Link>
+            </Button>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             {features.map((item, i) => {
               const Icon = FEATURE_ICONS[i] ?? PenLine;
+              const to = `/features#${FEATURE_ANCHORS[i]}`;
               return (
-                <Card key={item.title} className="transition-all hover:border-primary/30 hover:shadow-md">
-                  <CardHeader>
-                    <div className="mb-2 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Icon className="size-5" />
-                    </div>
-                    <CardTitle>{item.title}</CardTitle>
-                    <CardDescription>{item.desc}</CardDescription>
-                  </CardHeader>
-                </Card>
+                <Link
+                  key={item.title}
+                  to={to}
+                  className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <Card className="h-full transition-all hover:border-primary/30 hover:shadow-md">
+                    <CardHeader>
+                      <div className="mb-2 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <Icon className="size-5" aria-hidden />
+                      </div>
+                      <CardTitle>{item.title}</CardTitle>
+                      <CardDescription>{item.desc}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <span className="inline-flex items-center gap-1 text-sm text-primary">
+                        {t('landing.viewMore')}
+                        <ArrowRight className="size-4" aria-hidden />
+                      </span>
+                    </CardContent>
+                  </Card>
+                </Link>
               );
             })}
           </div>
         </section>
 
         <section id="pricing" className="scroll-mt-20 border-t py-16 md:py-20">
-          <div className="mb-10 text-center">
+          <div className="mb-10 flex flex-col items-center gap-2 text-center">
             <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">{t('nav.pricing')}</h2>
-            <p className="mt-2 text-muted-foreground">{t('landing.pricingSubtitle')}</p>
+            <p className="text-muted-foreground">{t('landing.pricingSubtitle')}</p>
+            <Button variant="link" asChild>
+              <Link to="/pricing">
+                {t('landing.viewPricing')}
+                <ArrowRight className="size-4" aria-hidden />
+              </Link>
+            </Button>
           </div>
           <div className="mx-auto grid max-w-3xl gap-4 md:grid-cols-2">
-            {pricingTiers.map((tier) => (
-              <Card key={tier.name} className="transition-shadow hover:shadow-md">
-                <CardHeader>
-                  <CardTitle>{tier.name}</CardTitle>
-                  <p className="text-3xl font-semibold tracking-tight">{tier.price}</p>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {tier.features.map((f) => (
-                    <div key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Check className="size-4 shrink-0 text-primary" />
-                      {f}
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+            {pricingTiers.map((tier, i) => (
+              <Link
+                key={tier.name}
+                to={`/pricing#${PRICING_ANCHORS[i]}`}
+                className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Card className="h-full transition-shadow hover:shadow-md">
+                  <CardHeader>
+                    <CardTitle>{tier.name}</CardTitle>
+                    <p className="text-3xl font-semibold tracking-tight">{tier.price}</p>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-2">
+                    {tier.features.map((f) => (
+                      <div key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Check className="size-4 shrink-0 text-primary" aria-hidden />
+                        {f}
+                      </div>
+                    ))}
+                    <span className="mt-2 inline-flex items-center gap-1 text-sm text-primary">
+                      {t('landing.viewMore')}
+                      <ArrowRight className="size-4" aria-hidden />
+                    </span>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         </section>

@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://resumepilot:resumepilot@localhost:5432/resumepilot"
     resume_api_url: str = "http://localhost:8080"
     internal_api_token: str = ""
-    # 마이그레이션 폴백 — Admin LLM 설정 사용 시 비워도 됨
+    # OpenAI SDK 호환 env 폴백. 실제 임베딩 모델은 Admin EMBEDDING 라우트 (runtime-config).
     openai_api_key: str = ""
     openai_base_url: str = ""
     embedding_model: str = "text-embedding-3-small"

@@ -291,6 +291,56 @@ public class AdminService {
     }
 
     @Transactional(readOnly = true)
+    public GenerateLengthStatsResponse generateLengthStats() {
+        List<GenerateLengthStats.Sample> samples = new java.util.ArrayList<>();
+        for (AiUsageLog log : usageLogRepository.findTop200ByOperationIgnoreCaseOrderByCreatedAtDesc("generate")) {
+            Object raw = log.getMetadata() == null ? null : log.getMetadata().get("sections");
+            if (!(raw instanceof List<?> rows)) {
+                continue;
+            }
+            for (Object row : rows) {
+                if (!(row instanceof Map<?, ?> map)) {
+                    continue;
+                }
+                String quality = map.get("quality") == null ? "" : String.valueOf(map.get("quality"));
+                if ("skipped".equals(quality)) {
+                    continue;
+                }
+                int target = GenerateLogMetadata.toInt(map.get("target_chars"), 0);
+                if (target <= 0) {
+                    continue;
+                }
+                samples.add(new GenerateLengthStats.Sample(
+                        target,
+                        GenerateLogMetadata.toInt(map.get("output_chars"), 0),
+                        quality,
+                        map.get("title") == null ? "" : String.valueOf(map.get("title")),
+                        log.getModel(),
+                        log.getCreatedAt()));
+            }
+        }
+        GenerateLengthStats.Result result = GenerateLengthStats.from(samples);
+        return new GenerateLengthStatsResponse(
+                result.sampleCount(),
+                result.unreliableFromChars(),
+                GenerateLengthStats.UNRELIABLE_RATE,
+                GenerateLengthStats.MIN_BUCKET_N,
+                GenerateLengthStats.UI_MIN_CHARS,
+                GenerateLengthStats.UI_MAX_CHARS,
+                GenerateLengthStats.UI_DEFAULT_CHARS,
+                GenerateLengthStats.GENERATE_MAX_TOKENS,
+                result.buckets().stream()
+                        .map(b -> new GenerateLengthStatsResponse.Bucket(
+                                b.from(), b.to(), b.n(), b.ok(), b.shortCount(), b.truncated(),
+                                b.error(), b.overshoot(), b.insufficient(), b.medianOutput(), b.unreliableRate()))
+                        .toList(),
+                result.recent().stream()
+                        .map(s -> new GenerateLengthStatsResponse.Recent(
+                                s.createdAt(), s.model(), s.title(), s.targetChars(), s.outputChars(), s.quality()))
+                        .toList());
+    }
+
+    @Transactional(readOnly = true)
     public List<SkillCatalogAdminResponse> listSkillCatalog() {
         return skillCatalogRepository.findAllByOrderByCategoryAscNameAsc().stream()
                 .map(SkillCatalogAdminResponse::from)

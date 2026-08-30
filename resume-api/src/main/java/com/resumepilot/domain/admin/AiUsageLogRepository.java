@@ -8,4 +8,6 @@ public interface AiUsageLogRepository extends JpaRepository<AiUsageLog, UUID> {
     List<AiUsageLog> findTop30ByOrderByCreatedAtDesc();
 
     List<AiUsageLog> findTop100ByOrderByCreatedAtDesc();
+
+    List<AiUsageLog> findTop200ByOperationIgnoreCaseOrderByCreatedAtDesc(String operation);
 }

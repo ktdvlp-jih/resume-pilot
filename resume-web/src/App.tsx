@@ -19,6 +19,8 @@ const CharCountPage = lazy(() => import('./pages/public/CharCountPage'));
 const StarToolPage = lazy(() => import('./pages/public/StarToolPage'));
 const SpellCheckPage = lazy(() => import('./pages/public/SpellCheckPage'));
 const CalendarPage = lazy(() => import('./pages/public/CalendarPage'));
+const FeaturesPage = lazy(() => import('./pages/public/FeaturesPage'));
+const PricingPage = lazy(() => import('./pages/public/PricingPage'));
 const SharedResumePage = lazy(() => import('./pages/public/SharedResumePage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const ExperiencesPage = lazy(() => import('./pages/ExperiencesPage'));
@@ -54,6 +56,8 @@ export default function App() {
                   <Route path="/tools/star" element={<StarToolPage />} />
                   <Route path="/tools/spell" element={<SpellCheckPage />} />
                   <Route path="/calendar" element={<CalendarPage />} />
+                  <Route path="/features" element={<FeaturesPage />} />
+                  <Route path="/pricing" element={<PricingPage />} />
                   <Route path="/about" element={<LegalPage />} />
                   <Route path="/privacy" element={<LegalPage />} />
                   <Route path="/terms" element={<LegalPage />} />
@@ -62,6 +66,7 @@ export default function App() {
                   <Route element={<ProtectedLayout />}>
                     <Route path="/dashboard" element={<DashboardPage />} />
                     <Route path="/job-postings" element={<JobPostingsPage />} />
+                    <Route path="/job-calendar" element={<CalendarPage embedded />} />
                     <Route path="/experiences" element={<ExperiencesPage />} />
                     <Route path="/role-guide" element={<RoleGuidePage />} />
                     <Route path="/writing-style" element={<WritingStylePage />} />

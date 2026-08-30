@@ -67,6 +67,7 @@ public class JobPostingService {
                 .sourceType(request.sourceType())
                 .sourceUrl(request.sourceUrl())
                 .rawContent(content)
+                .closesAt(request.closesAt())
                 .build();
         jobPostingRepository.save(posting);
 
@@ -92,7 +93,13 @@ public class JobPostingService {
             posting.setCompanyId(company.getId());
         }
 
-        saveAnalysis(posting.getId(), aiResult);
+        saveAnalysis(posting.getId(), aiResult, request.position());
+        if (request.position() != null && !request.position().isBlank()) {
+            Map<String, Object> parsed = new HashMap<>(
+                    posting.getParsedJson() == null ? Map.of() : posting.getParsedJson());
+            parsed.put("position", request.position().trim());
+            posting.setParsedJson(parsed);
+        }
         return toPostingResponse(posting, userId);
     }
 
@@ -311,8 +318,9 @@ public class JobPostingService {
                 .collect(Collectors.toMap(Company::getId, Company::getName));
         Map<UUID, String> emails = userRepository.findAllById(ownerIds).stream()
                 .collect(Collectors.toMap(User::getId, User::getEmail));
+        Map<UUID, String> positions = latestPositions(postings.stream().map(JobPosting::getId).toList());
         return postings.stream()
-                .map(p -> toAdminResponse(p, companyNames, emails))
+                .map(p -> toAdminResponse(p, companyNames, emails, positions))
                 .toList();
     }
 
@@ -326,6 +334,15 @@ public class JobPostingService {
 
     @Transactional
     public JobPostingResponse uploadShared(UUID adminUserId, JobPostingUploadRequest request) {
+        if (request.title() == null || request.title().isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "제목을 입력해 주세요.");
+        }
+        if (request.position() == null || request.position().isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "직무를 선택하거나 입력해 주세요.");
+        }
+        if (request.closesAt() == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "마감일을 입력해 주세요.");
+        }
         JobPostingResponse created = upload(adminUserId, request);
         JobPosting posting = jobPostingRepository.findById(created.id())
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
@@ -375,10 +392,18 @@ public class JobPostingService {
     }
 
     private JobAnalysis saveAnalysis(UUID jobPostingId, Map<String, Object> aiResult) {
+        return saveAnalysis(jobPostingId, aiResult, null);
+    }
+
+    private JobAnalysis saveAnalysis(UUID jobPostingId, Map<String, Object> aiResult, String positionOverride) {
+        String position = blankToNull(positionOverride);
+        if (position == null) {
+            position = str(aiResult.get("position"));
+        }
         JobAnalysis analysis = JobAnalysis.builder()
                 .jobPostingId(jobPostingId)
                 .companyName(str(aiResult.get("company_name")))
-                .position(str(aiResult.get("position")))
+                .position(position)
                 .requiredSkills(toStringList(aiResult.get("required_skills")))
                 .preferredSkills(toStringList(aiResult.get("preferred_skills")))
                 .qualifications(toStringList(aiResult.get("qualifications")))
@@ -435,14 +460,15 @@ public class JobPostingService {
         Map<UUID, String> emails = userRepository.findById(p.getUserId())
                 .map(u -> Map.of(u.getId(), u.getEmail()))
                 .orElse(Map.of());
-        return toAdminResponse(p, companyNames, emails);
+        return toAdminResponse(p, companyNames, emails, latestPositions(List.of(p.getId())));
     }
 
     private AdminJobPostingResponse toAdminResponse(
-            JobPosting p, Map<UUID, String> companyNames, Map<UUID, String> emails) {
+            JobPosting p, Map<UUID, String> companyNames, Map<UUID, String> emails, Map<UUID, String> positions) {
         return new AdminJobPostingResponse(
                 p.getId(),
                 p.getTitle(),
+                positions.get(p.getId()),
                 p.getSourceType(),
                 p.getSourceUrl(),
                 p.getCompanyId(),
@@ -453,6 +479,17 @@ public class JobPostingService {
                 p.getCreatedAt(),
                 p.getClosesAt()
         );
+    }
+
+    private Map<UUID, String> latestPositions(Collection<UUID> postingIds) {
+        if (postingIds == null || postingIds.isEmpty()) {
+            return Map.of();
+        }
+        Map<UUID, String> positions = new LinkedHashMap<>();
+        jobAnalysisRepository.findByJobPostingIdIn(postingIds).stream()
+                .sorted(Comparator.comparing(JobAnalysis::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+                .forEach(a -> positions.putIfAbsent(a.getJobPostingId(), a.getPosition()));
+        return positions;
     }
 
     private JobAnalysisResponse toAnalysisResponse(JobAnalysis a) {

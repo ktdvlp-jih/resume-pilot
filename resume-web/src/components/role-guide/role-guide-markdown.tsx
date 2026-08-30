@@ -1,8 +1,26 @@
 import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
+
+const LINK_CLASS = 'text-primary underline-offset-4 hover:underline';
+
+function hrefNode(href: string, label: string, key: number): ReactNode {
+  if (href.startsWith('/') && !href.startsWith('//')) {
+    return (
+      <Link key={key} to={href} className={LINK_CLASS}>
+        {label}
+      </Link>
+    );
+  }
+  return (
+    <a key={key} href={href} target="_blank" rel="noreferrer" className={`break-all ${LINK_CLASS}`}>
+      {label}
+    </a>
+  );
+}
 
 function inline(text: string): ReactNode[] {
   const nodes: ReactNode[] = [];
-  const re = /(\*\*[^*]+\*\*|`[^`]+`|https?:\/\/[^\s)]+)/g;
+  const re = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\)|https?:\/\/[^\s)]+)/g;
   let last = 0;
   let match: RegExpExecArray | null;
   let key = 0;
@@ -19,18 +37,15 @@ function inline(text: string): ReactNode[] {
           {token.slice(1, -1)}
         </code>,
       );
+    } else if (token.startsWith('[')) {
+      const md = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (md) {
+        nodes.push(hrefNode(md[2], md[1], key++));
+      } else {
+        nodes.push(token);
+      }
     } else {
-      nodes.push(
-        <a
-          key={key++}
-          href={token}
-          target="_blank"
-          rel="noreferrer"
-          className="break-all text-primary underline-offset-4 hover:underline"
-        >
-          {token}
-        </a>,
-      );
+      nodes.push(hrefNode(token, token, key++));
     }
     last = match.index + token.length;
   }

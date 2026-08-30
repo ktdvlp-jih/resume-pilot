@@ -64,7 +64,13 @@ export function HumanizeFindingsList({ findings }: { findings: HumanizeFinding[]
         <div key={`${f.pattern ?? 'p'}-${i}`} className="rounded-md border bg-muted/20 p-3 text-sm">
           <div className="mb-1.5 flex flex-wrap items-center gap-2">
             <StatusChip
-              label={f.severity || 'S2'}
+              label={
+                f.severity === 'S1'
+                  ? t('workspace.humanizeSeverityS1')
+                  : f.severity === 'S3'
+                    ? t('workspace.humanizeSeverityS3')
+                    : t('workspace.humanizeSeverityS2')
+              }
               variant={SEVERITY_VARIANT[f.severity ?? ''] ?? 'warning'}
             />
             <span className="font-medium">

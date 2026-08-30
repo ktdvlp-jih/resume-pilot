@@ -521,6 +521,57 @@ class LlmService:
             "- 사실 부족 시 더 짧게. 없는 내용으로 채우지 마세요.\n"
         )
 
+    @classmethod
+    def _section_write_quality(cls, status: str, para: str, target: int) -> str:
+        """문항 한 번의 쓰기 결과. short/insufficient는 사실 부족일 수 있어 실패가 아니다."""
+        if status == "error":
+            return "error"
+        if status == "skipped":
+            return "skipped"
+        text = (para or "").strip()
+        if "내용이 부족하여 생성하지 않음" in text:
+            return "insufficient"
+        if not text:
+            return "error"
+        if not cls._looks_complete_korean(text):
+            return "truncated"
+        n = len(text)
+        cap = max(1, int(target))
+        if n > int(cap * 1.05):
+            return "overshoot"
+        if n < max(40, int(cap * 0.5)):
+            return "short"
+        return "ok"
+
+    @classmethod
+    def _section_result(
+        cls,
+        index: int,
+        title: str,
+        content: str,
+        status: str,
+        error: str | None,
+        target_chars: int,
+        generated: bool,
+    ) -> dict[str, Any]:
+        text = content or ""
+        quality = (
+            "skipped"
+            if not generated
+            else cls._section_write_quality(status, text, target_chars)
+        )
+        return {
+            "index": index,
+            "title": title,
+            "content": text,
+            "status": status,
+            "error": error,
+            "generated": generated,
+            "target_chars": int(target_chars),
+            "output_chars": len(text.strip()),
+            "quality": quality,
+        }
+
     @staticmethod
     def _looks_complete_korean(text: str) -> bool:
         stripped = (text or "").rstrip()
@@ -853,13 +904,15 @@ class LlmService:
         for i, title in enumerate(titles):
             if i not in target_indices:
                 kept = (paragraphs[i] if i < len(paragraphs) else "").strip()
-                sections.append({
-                    "index": i,
-                    "title": title,
-                    "content": kept,
-                    "status": "ok" if kept else "skipped",
-                    "error": None,
-                })
+                sections.append(self._section_result(
+                    index=i,
+                    title=title,
+                    content=kept,
+                    status="ok" if kept else "skipped",
+                    error=None,
+                    target_chars=target_chars[i] if i < len(target_chars) else 1200,
+                    generated=False,
+                ))
                 continue
 
             try:
@@ -982,13 +1035,15 @@ class LlmService:
                     raise RuntimeError("Empty section content")
 
                 paragraphs[i] = para
-                sections.append({
-                    "index": i,
-                    "title": title,
-                    "content": para,
-                    "status": "ok",
-                    "error": None,
-                })
+                sections.append(self._section_result(
+                    index=i,
+                    title=title,
+                    content=para,
+                    status="ok",
+                    error=None,
+                    target_chars=chars,
+                    generated=True,
+                ))
                 logger.info(
                     "Section generated %s/%s (%s): %s chars (style_violations=%s)",
                     i + 1,
@@ -1002,13 +1057,15 @@ class LlmService:
                 # 부분 재생성 실패 시 기존 본문 유지
                 kept = (existing[i] if i < len(existing) else "").strip()
                 paragraphs[i] = kept
-                sections.append({
-                    "index": i,
-                    "title": title,
-                    "content": kept,
-                    "status": "error",
-                    "error": str(exc) or "Section generation failed",
-                })
+                sections.append(self._section_result(
+                    index=i,
+                    title=title,
+                    content=kept,
+                    status="error",
+                    error=str(exc) or "Section generation failed",
+                    target_chars=target_chars[i] if i < len(target_chars) else 1200,
+                    generated=True,
+                ))
 
         return "\n\n".join(paragraphs), model_name, sections
 

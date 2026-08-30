@@ -137,7 +137,9 @@ npx -y skills add cloudflare/skills -a cursor -a claude-code --skill cloudflare-
 
 워크스페이스 「AI 흔적 다듬기」와 같은 계열(KatFishNet). 에이전트가 초안을 고칠 때도 이 스킬을 읽습니다.
 
-제품은 스킬 파일(`SKILL.md`)을 실행하지 않습니다. 런타임은 prompt-service `AI_HUMANIZE` v3가 스킬의 페르소나·가드·40패턴·의미 보존을 로드하고, 출력만 제품 계약(JSON `replacements`)으로 받습니다.
+제품은 스킬 파일(`SKILL.md`)을 실행하지 않습니다. 런타임은 prompt-service `AI_HUMANIZE`가 스킬에서 옮겨 둔 패턴을 로드하고, 출력만 제품 계약(JSON `replacements`)으로 받습니다.
+
+GitHub 스킬이 새 패턴으로 올라와도 **자동 반영되지 않습니다.** 로컬은 `npx skills check` / `update`, 웹은 Admin·Flyway로 `AI_HUMANIZE` Skill을 맞춥니다. 절차: [humanizer-스킬-동기화.md](humanizer-스킬-동기화.md)
 
 ```powershell
 npx -y skills add https://github.com/DaleSeo/korean-skills --skill humanizer -a cursor -a claude-code -y

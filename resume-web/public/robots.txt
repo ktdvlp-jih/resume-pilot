@@ -7,6 +7,7 @@ Disallow: /experiences
 Disallow: /job-postings
 Disallow: /writing-style
 Disallow: /role-guide
+Disallow: /guides/roles
 Disallow: /resumes
 Disallow: /r/
 Disallow: /admin

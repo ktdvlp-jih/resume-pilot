@@ -1,10 +1,20 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Moon, Sun } from 'lucide-react';
-import { Logo } from '@/components/Logo';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { useTheme } from '@/lib/theme';
+import { useQuery } from '@tanstack/react-query';
+import { ChevronsUpDown, LogOut, Settings } from 'lucide-react';
+import { LogoMark } from '@/components/Logo';
+import { api, clearTokens } from '@/lib/api';
 import { appSidebarGroups, isNavActive } from '@/config/navigation';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Sidebar,
   SidebarContent,
@@ -17,18 +27,101 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
+
+function initials(name?: string, email?: string) {
+  const source = name?.trim() || email?.trim() || '?';
+  const parts = source.split(/[\s@.]+/).filter(Boolean);
+  const letters = parts.slice(0, 2).map((part) => part[0] ?? '').join('');
+  return letters.toUpperCase() || '?';
+}
+
+function SidebarUserMenu() {
+  const { t } = useTranslation();
+  const { isMobile } = useSidebar();
+  const { data: user } = useQuery({ queryKey: ['me'], queryFn: api.getMe });
+  const displayName = user?.name?.trim() || user?.email || t('nav.profile');
+  const email = user?.email ?? '';
+
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              size="lg"
+              tooltip={displayName}
+              className="rounded-lg data-open:bg-sidebar-accent data-open:text-sidebar-accent-foreground"
+            >
+              <Avatar size="sm">
+                <AvatarFallback>{initials(user?.name, user?.email)}</AvatarFallback>
+              </Avatar>
+              <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">{displayName}</span>
+                {email && <span className="truncate text-xs text-muted-foreground">{email}</span>}
+              </div>
+              <ChevronsUpDown className="ml-auto" />
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="min-w-56"
+            side={isMobile ? 'bottom' : 'right'}
+            align="end"
+            sideOffset={4}
+          >
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col gap-0.5">
+                  <span className="truncate text-sm font-medium">{displayName}</span>
+                  {email && <span className="truncate text-xs text-muted-foreground">{email}</span>}
+                </div>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem asChild>
+                <Link to="/settings">
+                  <Settings />
+                  {t('nav.settings')}
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => {
+                clearTokens();
+                window.location.href = '/';
+              }}
+            >
+              <LogOut />
+              {t('nav.logout')}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  );
+}
 
 export function AppSidebar() {
   const { t } = useTranslation();
-  const { theme, toggle } = useTheme();
   const location = useLocation();
 
   return (
     <Sidebar variant="inset" collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border">
-        <Logo to="/" variant="sidebar" />
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild tooltip={t('app.name')} className="rounded-lg [&_svg]:size-8">
+              <Link to="/dashboard" aria-label={t('app.name')}>
+                <LogoMark size={32} />
+                <span className="truncate font-semibold">{t('app.name')}</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         {appSidebarGroups.map((group) => (
@@ -41,7 +134,7 @@ export function AppSidebar() {
                   const active = isNavActive(location.pathname, item);
                   return (
                     <SidebarMenuItem key={item.to}>
-                      <SidebarMenuButton asChild isActive={active} tooltip={t(item.labelKey)}>
+                      <SidebarMenuButton asChild isActive={active} tooltip={t(item.labelKey)} className="rounded-lg">
                         <Link to={item.to}>
                           <Icon />
                           <span>{t(item.labelKey)}</span>
@@ -55,12 +148,8 @@ export function AppSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
-      <SidebarFooter className="gap-2">
-        <LanguageSwitcher />
-        <Button variant="ghost" size="sm" className="w-full justify-start" onClick={toggle}>
-          {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
-          <span>{theme === 'dark' ? t('nav.lightMode') : t('nav.darkMode')}</span>
-        </Button>
+      <SidebarFooter>
+        <SidebarUserMenu />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

@@ -5,7 +5,7 @@
     "footer": "© {{name}}. All rights reserved."
   },
   "landing": {
-    "badge": "RAG · AI cover letters",
+    "badge": "AI cover letters",
     "heroSubtitle": "Build company-tailored cover letters with your experience library and job analysis.",
     "featuresSubtitle": "From prep to writing and review — in one place",
     "pricingSubtitle": "Start free today",
@@ -14,15 +14,20 @@
     "feature2Title": "Job posting analysis",
     "feature2Desc": "Extract skills and keywords from postings for tailored writing.",
     "feature3Title": "AI workspace",
-    "feature3Desc": "RAG, generation, review, and interview prep in a 3-pane layout.",
+    "feature3Desc": "Recommend matching experiences, write, review, and prep interviews in one screen.",
     "tierFree": "Free",
     "tierPro": "Pro",
     "comingSoon": "Coming soon",
+    "proConnect": "Connect other services",
+    "proSchedule": "Date and price not set yet",
     "authPitch": "Faster, sharper cover letters tailored to each company.",
-    "authBullet1": "Experience-based RAG recommendations",
+    "authBullet1": "Experiences matched to the job posting",
     "authBullet2": "Job keyword matching",
     "authBullet3": "AI trace detection & review",
-    "backHome": "Back to home"
+    "backHome": "Back to home",
+    "viewMore": "Learn more",
+    "viewFeatures": "See all features",
+    "viewPricing": "See pricing"
   },
   "command": {
     "title": "Command menu",
@@ -41,6 +46,7 @@
     "main": "Main navigation",
     "menu": "Menu",
     "openMenu": "Open menu",
+    "toggleSidebar": "Collapse or expand the side menu",
     "intro": "About",
     "features": "Features",
     "pricing": "Pricing",
@@ -66,7 +72,14 @@
   "roleGuide": {
     "title": "Role guide",
     "description": "Pick a role to read that guide only. It is not used for generation.",
-    "unavailable": "The {{role}} guide is not available yet."
+    "unavailable": "The {{role}} guide is not available yet.",
+    "roleName": {
+      "Backend": "Backend",
+      "Frontend": "Frontend",
+      "PM": "Product",
+      "Data": "Data",
+      "Design": "Design"
+    }
   },
   "common": {
     "loading": "Loading...",
@@ -163,23 +176,23 @@
     "emptyHint": "Add concrete project/integration/ops stories so recommendation and generation work better.",
     "countBadge": "{{count}}/{{max}}",
     "limitReached": "You can save up to {{max}} experiences. Remove unused ones first.",
-    "reembed": "Refresh RAG index",
-    "reembedDone": "Re-indexed {{count}} experiences.",
-    "reembedFailed": "Failed to refresh the RAG index.",
+    "reembed": "Refresh recommendations",
+    "reembedDone": "Refreshed recommendations for {{count}} experiences.",
+    "reembedFailed": "Failed to refresh recommendations.",
     "guideMain": "Detail beats volume. Role, description, and outcomes (numbers if real) work best.",
     "guideSelect": "In Workspace, picked experiences are split across sections. One deep experience per section works best.",
-    "guideReady": "If status is not Ready, the model may invent details to fill gaps. Before generate: 80+ chars description, role, and outcome or STAR.",
+    "guideReady": "If status is not Ready, the model may invent details to fill gaps. Before generate: 80+ chars description, role, and outcome or situation–task–action–result.",
     "readySummary": "Ready {{ready}} / total {{total}}",
     "readySummaryWarn": "No experiences are ready for generation. Enrich fields below, then select them in the workspace.",
     "formHint": "One experience = one clear angle. Fill situation, role, and result—not just a title.",
-    "formRequiredForGen": "For generation: description 80+ chars · role · (outcome or some STAR)",
+    "formRequiredForGen": "For generation: description 80+ chars · role · (outcome or some situation–task–action–result)",
     "typeLabel": "Type",
     "typeHint": "Project, tech, leadership, etc. help section-aware recommendations.",
     "titlePlaceholder": "Title",
     "titleExample": "e.g. CMS upgrade with SAP integration",
     "descriptionPlaceholder": "Description",
     "descriptionExample": "What, why, and how—without inventing numbers.",
-    "descriptionHint": "Aim for 80+ characters so RAG has enough signal.",
+    "descriptionHint": "Aim for 80+ characters so matching and writing have enough to go on.",
     "rolePlaceholder": "Role",
     "roleExample": "e.g. Backend engineer",
     "resultPlaceholder": "Outcome",
@@ -193,7 +206,7 @@
     "startDate": "Start",
     "endDate": "End",
     "ongoing": "Currently ongoing",
-    "starTitle": "STAR details (optional)",
+    "starTitle": "Situation, task, action, result (optional)",
     "starHint": "Situation–Task–Action–Result helps section-fit generation.",
     "starShow": "Expand",
     "starHide": "Collapse",
@@ -334,8 +347,8 @@
     "jobTextDisabledPlaceholder": "This field is unused while a saved posting is selected",
     "jobTextDisabledHint": "With a saved posting selected, its analyzed data is used automatically and this field is ignored.",
     "recommend": "Refresh recommendations",
-    "recommendAutoHint": "Recommendations refresh when the job posting changes, using company, role, and JD. Low-similarity (percent) items are hidden.",
-    "recommendManualHint": "Refresh after changing experiences/index or retrying a failure. Browse more via pages.",
+    "recommendAutoHint": "Recommendations refresh when the job posting changes, using company, role, and posting text. Low-match items are hidden.",
+    "recommendManualHint": "Refresh after changing experiences or retrying a failure. Browse more via pages.",
     "recommendFailed": "Failed to recommend experiences",
     "recommendEmpty": "No experiences scored high enough for this posting. Enrich your library or check the job details.",
     "recommendPageKeep": "Selections are kept when you change pages.",
@@ -346,14 +359,14 @@
     "preflightThinWarn": "Selected experiences need more detail. Confirm to continue — fabrication risk is higher.",
     "preflightOk": "Selected experiences look ready for generation.",
     "preflightSectionShort": "{{title}}: target {{target}} chars needs {{need}} experiences, but {{count}} assigned.",
-    "preflightRewriteHigh": "Rewrite is high. Only wording should change; facts, numbers, and timeline must stay the same.",
+    "preflightRewriteHigh": "Rewrite strength is high. Only wording should change; facts, numbers, and timeline must stay the same.",
     "preflightOpenLibrary": "Open experience library",
     "preflightThinConfirmTitle": "Generate with thin experiences?",
     "preflightThinConfirmDesc": "Only thinly filled experiences are selected. The model may invent details to fill gaps. Prefer enriching the library first.",
     "preflightThinConfirmAction": "Generate anyway",
-    "recommended": "Recommended (RAG)",
+    "recommended": "Recommended experiences",
     "recommendedHint": "Click to add as posting material. It is placed by matching the question title.",
-    "step2": "2. Rewrite Level: {{level}}%",
+    "step2": "2. Rewrite strength: {{level}}%",
     "step2Title": "2. Section titles & experiences",
     "step3Title": "3. Generate cover letter",
     "sectionTitlesLabel": "Section titles (optional)",
@@ -377,7 +390,7 @@
     "consistencyHint": "Sections still read as one person's letter. The same scene is not repeated.",
     "sectionTitleCustomPlaceholder": "Type your own, then Enter",
     "sectionTitleAdd": "Add",
-    "step2Label": "Rewrite Level",
+    "step2Label": "Rewrite strength",
     "step2Desc": "Controls how strongly to rewrite wording and sentence structure. Facts, numbers, and timelines stay the same — 100% means full expression rewrite, not invention.",
     "step2Low": "Keep original",
     "step2High": "Rewrite expression",
@@ -442,7 +455,7 @@
     "regenSection": "Rewrite this section",
     "regenSectionRun": "Run rewrite",
     "regenSectionBusy": "Rewriting this section. Please wait.",
-    "regenInstructionHint": "Uses your selected experiences (RAG). Add emphasis or structure below — facts not in the library will not be invented.",
+    "regenInstructionHint": "Uses your selected experiences. Add emphasis or structure below — facts not in the library will not be invented.",
     "regenInstructionPlaceholder": "e.g. Expand the decision rationale for the customs outage, toward the target length",
     "sectionEmpty": "No content for this section yet.",
     "sectionRegenFailed": "Section rewrite failed",
@@ -455,7 +468,10 @@
     "humanizeSuccess": "Polished {{count}} sentence(s).",
     "humanizeReportOnly": "No sentences changed. Compare the analysis on the Result tab.",
     "humanizeReportTitle": "AI-trace analysis",
-    "humanizeReportSummary": "S1 {{s1}} · S2 {{s2}} · S3 {{s3}}",
+    "humanizeReportSummary": "Strong traces {{s1}} · Noticeable traces {{s2}} · Light traces {{s3}}",
+    "humanizeSeverityS1": "Strong trace",
+    "humanizeSeverityS2": "Noticeable trace",
+    "humanizeSeverityS3": "Light trace",
     "humanizeGrade": "Naturalness {{grade}}",
     "humanizePattern": "Pattern {{n}} {{title}}",
     "humanizeCompareTitle": "Polish comparison",
@@ -559,7 +575,7 @@
     "certTextPlaceholder": "e.g. Information Processing Engineer",
     "certTextHint": "Plain text is enough — no fixed format required.",
     "certLookup": "Verify catalog match",
-    "certLookupNotConfigured": "External certification catalog API is not configured. Your text will still be saved.",
+    "certLookupNotConfigured": "Certificate lookup is not available yet. Your text will still be saved.",
     "certLookupNoMatch": "No matching national qualification found.",
     "certLookupMatched": "Matched national qualification: {{name}}",
     "certMatchedBadge": "Verified · {{name}}",
@@ -608,13 +624,13 @@
   },
   "guides": {
     "title": "Writing guides",
-    "pageDesc": "Role guides, STAR blanks, and how to upload a job posting — no login. Full essay answers are not provided.",
+    "pageDesc": "How to split an experience and how to upload a job posting — no login. Full essay answers are not provided.",
     "rolesTitle": "Role guides",
-    "rolesDesc": "Backend, Frontend, PM. Only roles with a document have a body.",
-    "starTitle": "STAR blanks",
+    "rolesDesc": "Backend, frontend, and product. Only roles with a document have a body.",
+    "starTitle": "How to split an experience",
     "starDesc": "Situation, Task, Action, Result. Leave numbers blank if you do not have them.",
     "jobTitle": "How to upload a posting",
-    "jobDesc": "URL, paste, or file — then analyze.",
+    "jobDesc": "Add a title and deadline, then import from URL, paste, or file. The calendar shows deadlines only.",
     "missing": "This guide is not available yet."
   },
   "tools": {
@@ -622,21 +638,21 @@
     "signupToSave": "Sign up to save this to your experience library.",
     "char": {
       "title": "Character count",
-      "desc": "Counts with/without spaces and UTF-8 bytes. Stays in the browser.",
+      "desc": "Counts with/without spaces and in bytes. Stays on this device.",
       "input": "Text",
       "placeholder": "Paste a cover letter.",
       "withSpaces": "With spaces",
       "withoutSpaces": "Without spaces",
-      "bytes": "UTF-8 bytes"
+      "bytes": "Bytes"
     },
     "star": {
-      "title": "STAR template",
+      "title": "Experience writing form",
       "desc": "Fill blanks only. Do not invent work you did not do. Saving requires an account."
     },
     "spell": {
       "title": "Draft hints",
       "desc": "Browser spellcheck plus a few local patterns.",
-      "disclaimer": "This is not a Korean grammar checker and does not call a spelling API. Red underlines come from the browser.",
+      "disclaimer": "This is not a Korean grammar checker and does not use an external spelling check. Red underlines come from the browser.",
       "input": "Text",
       "none": "No obvious patterns. Check browser underlines for spelling.",
       "repeatSpaces": "Repeated spaces found.",
@@ -646,16 +662,152 @@
     }
   },
   "calendar": {
-    "title": "Shared job calendar",
-    "desc": "Only title, company, and deadline of shared postings. Job descriptions are not published.",
-    "empty": "No shared deadlines yet.",
+    "title": "Job calendar",
+    "desc": "See shared and your own posting deadlines on a calendar. Shared items show only title, company, and deadline—not the job description.",
+    "descShared": "See shared posting deadlines on a calendar. Only title, company, and deadline are public—job descriptions are not.",
+    "descMine": "Deadlines for postings you imported. Other people cannot see this list.",
+    "viewLabel": "Calendar source",
+    "viewShared": "Shared",
+    "viewMine": "My postings",
+    "hintShared": "You can view this without signing in. An account is needed to write against a posting.",
+    "hintMine": "Only postings you imported appear here. Shared postings from others are under Shared.",
+    "hintMineGuest": "Sign in to see deadlines for your own postings.",
+    "emptyShared": "No shared deadlines yet.",
+    "emptyMine": "You have not imported a posting yet.",
+    "emptyMineGuest": "Sign in to see your posting deadlines on the calendar.",
     "noDeadline": "TBD",
     "cta": "Sign up to write against a posting",
+    "ctaLoggedIn": "Continue in My postings",
+    "ctaMine": "Import a posting",
+    "ctaMineGuest": "Sign in to see my postings",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "today": "Today",
+    "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "monthGridCaption": "{{month}} deadline calendar",
+    "dayAria": "{{date}}, {{count}} deadlines",
+    "more": "+{{count}}",
+    "selectedEmpty": "No postings close on this day.",
+    "undatedTitle": "Postings without a deadline",
+    "undatedHint": "Postings with no deadline do not appear on a date cell.",
+    "noDatedHint": "Only postings with a deadline appear on the calendar. For now they are all TBD—check the list on the side or below.",
     "columns": {
       "title": "Title",
       "company": "Company",
       "closesAt": "Deadline"
     }
+  },
+  "featuresPage": {
+    "title": "Features",
+    "pageDesc": "Collect experiences, write against a job posting, then polish the draft. We do not invent work you did not do.",
+    "cta": "Sign up to start",
+    "openRelated": "Open related guide",
+    "sections": {
+      "library": {
+        "title": "Experience library",
+        "lead": "Keep the stories you will use in cover letters in one place. Fill role, description, and outcomes—not just a title.",
+        "points": [
+          "Save each project or role as one experience. Merge similar items; split different angles.",
+          "You can split a story into situation, task, action, and result. Leave numbers blank if you do not have them.",
+          "If the description is too short, the status shows that it needs more detail before generation.",
+          "You can store up to 30 experiences."
+        ]
+      },
+      "job": {
+        "title": "Job posting analysis",
+        "lead": "Bring in the posting you are applying to. Required skills and keywords are extracted for writing.",
+        "points": [
+          "Import from a hiring-site URL, pasted text, or a PDF/image. If the image is hard to read, use text or a URL.",
+          "Keep duties, requirements, and plus-factors. You can drop apply buttons and privacy notices.",
+          "If you share a posting, other signed-in users can write against it.",
+          "The public calendar shows only title, company, and deadline—not the job description."
+        ]
+      },
+      "workspace": {
+        "title": "AI workspace",
+        "lead": "Keep the posting and your experiences on one screen. Draft, review, and interview questions follow in the same place.",
+        "points": [
+          "When the posting changes, matching experiences are suggested from company, role, and posting text.",
+          "Set section titles and target length so paragraphs follow that order and size.",
+          "Deep-dive experiences are split across questions. The same scene is not repeated.",
+          "If evidence is missing, generation says so. It does not invent careers.",
+          "After a draft, you can run review, keyword compare, and likely interview questions.",
+          "When writing is done, you can soften AI-sounding sentences. Facts and numbers stay the same."
+        ]
+      },
+      "style": {
+        "title": "Writing style",
+        "lead": "Check tone and sentence length on a saved letter or pasted text.",
+        "points": [
+          "Shows frequent phrases, sentence length, and whether formal speech is used.",
+          "It is not used as generation material. Use it to review your own writing."
+        ]
+      },
+      "calendar": {
+        "title": "Job calendar",
+        "lead": "Shared deadlines are public. Your own posting deadlines appear after you sign in.",
+        "points": [
+          "Shared postings show only title, company, and deadline.",
+          "Select a day to see which postings close that day.",
+          "The My postings calendar is visible only to you.",
+          "Job descriptions and private drafts are not published."
+        ]
+      },
+      "tools": {
+        "title": "Guides and tools",
+        "lead": "Before you sign up, you can read how to split an experience and use a character counter.",
+        "points": [
+          "The writing form is situation, task, action, and result. Saving needs an account.",
+          "Character counts stay on this device and are not sent to the server.",
+          "Full essay answers are not provided."
+        ]
+      }
+    }
+  },
+  "pricingPage": {
+    "title": "Pricing",
+    "pageDesc": "Sign up and start. There is no paid plan or card checkout yet.",
+    "cta": "Start for free",
+    "nowNote": "This matches the Free and Pro summary on the intro page. Pro is planned; we do not charge today.",
+    "faqTitle": "Common questions",
+    "free": {
+      "name": "Free",
+      "price": "₩0",
+      "tag": "Now",
+      "lead": "Create an account and use the items below.",
+      "points": [
+        "Experience library (up to 30)",
+        "Import and analyze job postings",
+        "Draft, review, and interview questions in the workspace",
+        "Writing style, TXT/print, and review share links",
+        "Job calendar (shared without login; my postings after sign-in)",
+        "Writing guides, character count, and experience form (view/fill without login; saving needs an account)"
+      ]
+    },
+    "pro": {
+      "name": "Pro",
+      "price": "Coming soon",
+      "tag": "Planned",
+      "lead": "A later plan. Date and price are not set.",
+      "points": [
+        "Connect other services",
+        "Paid limits and pricing (none yet)"
+      ]
+    },
+    "faq": [
+      {
+        "q": "Do I pay now?",
+        "a": "No. There is no paid plan. After signup you use the Free range."
+      },
+      {
+        "q": "Can I submit a generated draft as-is?",
+        "a": "It is a draft. Check facts, numbers, and timeline yourself. Do not add work you did not do."
+      },
+      {
+        "q": "When does Pro launch?",
+        "a": "No public date yet. This page and the intro pricing cards will be updated when it is ready."
+      }
+    ]
   },
   "share": {
     "fallbackTitle": "Shared cover letter",
@@ -670,9 +822,9 @@
     "personalNote": "Personally operated. No business registration number.",
     "about": {
       "title": "About",
-      "desc": "RAG-based company-tailored cover letters.",
+      "desc": "Company-tailored cover letters.",
       "body": [
-        "ResumePilot stores an experience library, analyzes job postings, recommends with RAG, and generates or reviews letters.",
+        "ResumePilot stores an experience library, analyzes job postings, recommends matching experiences, and generates or reviews letters.",
         "The AI does not invent your experience. If evidence is missing it says so.",
         "This is a personal project. There is no business registration or mail-order license number."
       ]
@@ -681,7 +833,7 @@
       "title": "Privacy",
       "desc": "How account and writing data are used.",
       "body": [
-        "We store signup email and hashed password, profile fields, experiences, postings, letter text, session tokens, and AI usage logs.",
+        "We store signup email and a password stored so it cannot be read back, profile fields, experiences, postings, letter text, sign-in session info, and AI usage logs.",
         "Purpose: sign-in, tailored writing, operations. Ads may appear only on public guide/tool pages, never beside a private letter.",
         "Deleting an account removes that user’s data. Review share links last 7 days or until revoked.",
         "Generation may send needed text to the configured AI provider. An ad script loads on public pages only when a client id is configured.",

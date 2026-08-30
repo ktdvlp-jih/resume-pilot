@@ -95,6 +95,10 @@ logs/
 .docker-deploy-ci/
 docker-data/
 
+# Playwright CLI 로컬 스냅샷
+.playwright-cli/
+**/.playwright-cli/
+
 # SpecStory — 로컬 전용 (대화에 API 키 등이 섞일 수 있어 Git 제외)
 .specstory/
 

@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   BookOpen,
   Briefcase,
-  GraduationCap,
+  CalendarDays,
   LayoutDashboard,
   PenLine,
   Settings,
@@ -23,11 +23,11 @@ export type NavGroup = {
 
 /** Public marketing header */
 export const publicHeaderLinks = [
-  { href: '/#intro', labelKey: 'nav.intro' },
+  { href: '/', labelKey: 'nav.intro' },
   { href: '/guides', labelKey: 'nav.guides' },
   { href: '/calendar', labelKey: 'nav.calendar' },
-  { href: '/#features', labelKey: 'nav.features' },
-  { href: '/#pricing', labelKey: 'nav.pricing' },
+  { href: '/features', labelKey: 'nav.features' },
+  { href: '/pricing', labelKey: 'nav.pricing' },
 ] as const;
 
 /** Flat nav list derived from sidebar (command palette, etc.) */
@@ -54,8 +54,8 @@ export const appSidebarGroups: NavGroup[] = [
     labelKey: 'nav.groupPrepare',
     items: [
       { to: '/job-postings', labelKey: 'nav.jobPostings', icon: Briefcase },
+      { to: '/job-calendar', labelKey: 'nav.calendar', icon: CalendarDays },
       { to: '/experiences', labelKey: 'nav.experiences', icon: BookOpen },
-      { to: '/role-guide', labelKey: 'nav.roleGuide', icon: GraduationCap },
       { to: '/writing-style', labelKey: 'nav.writingStyle', icon: PenLine },
     ],
   },
@@ -74,4 +74,8 @@ export function isNavActive(pathname: string, item: NavItem): boolean {
     return pathname === '/dashboard' || pathname.startsWith('/resumes/');
   }
   return pathname === item.to || pathname.startsWith(`${item.to}/`);
+}
+
+export function currentNavItem(pathname: string): NavItem | undefined {
+  return flattenAppNav().find((item) => isNavActive(pathname, item));
 }

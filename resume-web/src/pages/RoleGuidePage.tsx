@@ -40,10 +40,10 @@ export default function RoleGuidePage() {
           setParams({ role: next }, { replace: true });
         }}
       >
-        <TabsList className="w-full max-w-md">
+        <TabsList className="flex h-auto min-h-8 w-full max-w-3xl flex-wrap justify-start">
           {ROLE_GUIDE_IDS.map((id) => (
             <TabsTrigger key={id} value={id}>
-              {id}
+              {t(`roleGuide.roleName.${id}`)}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -56,7 +56,7 @@ export default function RoleGuidePage() {
         </Card>
       ) : (
         <Alert>
-          <AlertDescription>{t('roleGuide.unavailable', { role })}</AlertDescription>
+          <AlertDescription>{t('roleGuide.unavailable', { role: t(`roleGuide.roleName.${role}`) })}</AlertDescription>
         </Alert>
       )}
     </PageShell>

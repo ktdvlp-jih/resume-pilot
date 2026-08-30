@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Building2, Briefcase, Bot, FileText, LogOut, ScrollText, Settings2, ShieldBan, Sparkles, Users } from 'lucide-react';
+import { Building2, Briefcase, Bot, FileText, Link2, LogOut, ScrollText, Settings2, ShieldBan, Sparkles, Users } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { LogoMark } from '@/components/Logo';
 import { clearTokens, getUserRole } from '@/lib/api';
@@ -27,6 +27,7 @@ const navItems = [
   { to: '/job-postings', icon: Briefcase, key: 'nav.jobPostings', kind: 'jobs' },
   { to: '/skill-catalog', icon: Sparkles, key: 'nav.skillCatalog', kind: 'full' },
   { to: '/users', icon: Users, key: 'nav.users', kind: 'users' },
+  { to: '/bot-links', icon: Link2, key: 'nav.botLinks', kind: 'full' },
   { to: '/ai-logs', icon: ScrollText, key: 'nav.aiLogs', kind: 'full' },
   { to: '/llm-settings', icon: Bot, key: 'nav.llmSettings', kind: 'full' },
   { to: '/deploy-ci-settings', icon: Settings2, key: 'nav.deploySettings', kind: 'full' },

@@ -28,7 +28,7 @@ export function AuthSplitLayout({ children, title, subtitle }: AuthSplitLayoutPr
         <div className="space-y-4">
           <div className={cn('inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm', brandSurfaceMutedClass)}>
             <Sparkles className="size-4" />
-            RAG · AI
+            {t('landing.badge')}
           </div>
           <h1 className="text-3xl font-semibold tracking-tight">{t('app.name')}</h1>
           <p className={cn('max-w-md', brandSurfaceMutedClass)}>{t('landing.authPitch')}</p>

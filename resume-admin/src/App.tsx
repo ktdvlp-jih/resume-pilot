@@ -20,6 +20,7 @@ const UsersPage = lazy(() => import('./pages/UsersPage'));
 const AiLogsPage = lazy(() => import('./pages/AiLogsPage'));
 const DeployCiSettingsPage = lazy(() => import('./pages/DeployCiSettingsPage'));
 const LlmSettingsPage = lazy(() => import('./pages/LlmSettingsPage'));
+const BotLinksPage = lazy(() => import('./pages/BotLinksPage'));
 
 const queryClient = new QueryClient();
 const adminBase = (import.meta.env.BASE_URL || '/admin/').replace(/\/$/, '') || '/admin';
@@ -61,6 +62,7 @@ export default function App() {
                     <Route path="/companies" element={<CompaniesPage />} />
                     <Route path="/ai-logs" element={<AiLogsPage />} />
                     <Route path="/llm-settings" element={<LlmSettingsPage />} />
+                    <Route path="/bot-links" element={<BotLinksPage />} />
                     <Route path="/deploy-ci-settings" element={<DeployCiSettingsPage />} />
                   </Route>
                 </Route>

@@ -1,6 +1,7 @@
 package com.resumepilot.application.ai;
 
 import com.resumepilot.domain.ai.*;
+import com.resumepilot.application.admin.GenerateLogMetadata;
 import com.resumepilot.domain.admin.AiUsageLog;
 import com.resumepilot.domain.admin.AiUsageLogRepository;
 import com.resumepilot.domain.admin.ForbiddenExpressionRepository;
@@ -77,7 +78,8 @@ public class AiOrchestrationService {
 
         try {
             Map<String, Object> result = aiGatewayClient.generateResume(payload);
-            logUsage(userId, "generate", start, true, str(result != null ? result.get("model") : null), null);
+            logUsage(userId, "generate", start, true, str(result != null ? result.get("model") : null), null,
+                    GenerateLogMetadata.fromResult(request, result));
 
             if (result != null) {
                 validateExperienceIds(userId, result);
@@ -110,10 +112,10 @@ public class AiOrchestrationService {
             }
             return result;
         } catch (BusinessException e) {
-            logUsage(userId, "generate", start, false, null, e.getMessage());
+            logUsage(userId, "generate", start, false, null, e.getMessage(), GenerateLogMetadata.fromFailure(request));
             throw e;
         } catch (RuntimeException e) {
-            logUsage(userId, "generate", start, false, null, e.getMessage());
+            logUsage(userId, "generate", start, false, null, e.getMessage(), GenerateLogMetadata.fromFailure(request));
             throw e;
         }
     }
@@ -480,11 +482,24 @@ public class AiOrchestrationService {
     }
 
     private void logUsage(UUID userId, String operation, long startMs, boolean success, String model, String errorMessage) {
+        logUsage(userId, operation, startMs, success, model, errorMessage, Map.of());
+    }
+
+    private void logUsage(
+            UUID userId,
+            String operation,
+            long startMs,
+            boolean success,
+            String model,
+            String errorMessage,
+            Map<String, Object> metadata
+    ) {
         String err = errorMessage;
         if (err != null && err.length() > 500) {
             err = err.substring(0, 500);
         }
         final String errFinal = err;
+        Map<String, Object> meta = metadata == null || metadata.isEmpty() ? Map.of() : Map.copyOf(metadata);
         // 실패 로그가 상위 @Transactional 롤백에 말리지 않도록 독립 커밋
         TransactionTemplate tx = new TransactionTemplate(transactionManager);
         tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
@@ -496,6 +511,7 @@ public class AiOrchestrationService {
                 .durationMs((int) (System.currentTimeMillis() - startMs))
                 .status(success ? "SUCCESS" : "FAILED")
                 .errorMessage(success ? null : errFinal)
+                .metadata(meta)
                 .build()));
     }
 

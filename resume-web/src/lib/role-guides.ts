@@ -1,4 +1,4 @@
-export const ROLE_GUIDE_IDS = ['Backend', 'Frontend', 'PM'] as const;
+export const ROLE_GUIDE_IDS = ['Backend', 'Frontend', 'PM', 'Data', 'Design'] as const;
 export type RoleGuideId = (typeof ROLE_GUIDE_IDS)[number];
 
 const fromDocs = import.meta.glob('../../../docs/직군별-사용법/*.md', {

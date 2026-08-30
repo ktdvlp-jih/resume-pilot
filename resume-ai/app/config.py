@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     )
 
     database_url: str = "postgresql://resumepilot:resumepilot@localhost:5432/resumepilot"
+    # OpenAI SDK 호환 env 폴백. 실제 생성 모델은 Admin /admin/llm-settings (runtime-config).
     openai_api_key: str = ""
     openai_base_url: str = ""
     openai_model: str = "gpt-4o-mini"

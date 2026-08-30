@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Menu } from 'lucide-react';
 import { Logo } from '@/components/Logo';
@@ -12,7 +12,11 @@ import { cn } from '@/lib/utils';
 
 export function PublicHeader() {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
   const isLoggedIn = !!getAccessToken();
+
+  const isPublicNavActive = (href: string) =>
+    href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
 
   const authActions = isLoggedIn ? (
     <>
@@ -50,11 +54,16 @@ export function PublicHeader() {
         <Logo to="/" />
 
         <nav className="hidden items-center gap-1 md:flex" aria-label={t('nav.main')}>
-          {publicHeaderLinks.map(({ href, labelKey }) => (
-            <Button key={href} variant="ghost" size="sm" asChild>
-              {href.startsWith('/#') ? <a href={href}>{t(labelKey)}</a> : <Link to={href}>{t(labelKey)}</Link>}
-            </Button>
-          ))}
+          {publicHeaderLinks.map(({ href, labelKey }) => {
+            const active = isPublicNavActive(href);
+            return (
+              <Button key={href} variant="ghost" size="sm" asChild>
+                <Link to={href} aria-current={active ? 'page' : undefined} className={cn(active && 'bg-muted')}>
+                  {t(labelKey)}
+                </Link>
+              </Button>
+            );
+          })}
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
@@ -77,11 +86,16 @@ export function PublicHeader() {
             <div className="mt-6 flex flex-col gap-2">
               <LocaleThemeControls languageClassName="w-full" />
               <Separator className="my-2" />
-              {publicHeaderLinks.map(({ href, labelKey }) => (
-                <Button key={href} variant="ghost" className="justify-start" asChild>
-                  {href.startsWith('/#') ? <a href={href}>{t(labelKey)}</a> : <Link to={href}>{t(labelKey)}</Link>}
-                </Button>
-              ))}
+              {publicHeaderLinks.map(({ href, labelKey }) => {
+                const active = isPublicNavActive(href);
+                return (
+                  <Button key={href} variant="ghost" className="justify-start" asChild>
+                    <Link to={href} aria-current={active ? 'page' : undefined} className={cn(active && 'bg-muted')}>
+                      {t(labelKey)}
+                    </Link>
+                  </Button>
+                );
+              })}
               {isLoggedIn && (
                 <Button variant="ghost" className="justify-start" asChild>
                   <Link to="/dashboard">{t('nav.dashboard')}</Link>
@@ -127,6 +141,8 @@ export function AppFooter({ className }: { className?: string }) {
   const links = [
     { href: '/guides', label: t('nav.guides') },
     { href: '/calendar', label: t('nav.calendar') },
+    { href: '/features', label: t('nav.features') },
+    { href: '/pricing', label: t('nav.pricing') },
     { href: '/tools/char-count', label: t('nav.tools') },
     { href: '/about', label: t('legal.about.title') },
     { href: '/privacy', label: t('legal.privacy.title') },

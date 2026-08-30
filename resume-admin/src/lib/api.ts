@@ -171,6 +171,8 @@ export const api = {
   updateUserEnabled: (id: string, enabled: boolean) =>
     request<void>(`/api/v1/admin/users/${id}/enabled`, { method: 'PATCH', body: JSON.stringify({ enabled }) }),
   listSkillCatalog: () => request<Array<{ id: number; name: string; category: string }>>('/api/v1/admin/skill-catalog'),
+  listSkillCatalogPublic: () =>
+    request<Array<{ name: string; category: string }>>('/api/v1/skill-catalog'),
   createSkillCatalog: (name: string, category: string) =>
     request<{ id: number }>('/api/v1/admin/skill-catalog', {
       method: 'POST', body: JSON.stringify({ name, category }),
@@ -182,6 +184,8 @@ export const api = {
     request<Array<{
       id: string;
       title?: string;
+      position?: string;
+      closesAt?: string | null;
       sourceType: string;
       sourceUrl?: string;
       companyName?: string;
@@ -189,7 +193,14 @@ export const api = {
       ownerEmail?: string;
       createdAt: string;
     }>>('/api/v1/admin/job-postings'),
-  uploadSharedJobPosting: (data: { sourceType: string; content?: string; sourceUrl?: string; title?: string }) =>
+  uploadSharedJobPosting: (data: {
+    sourceType: string;
+    content?: string;
+    sourceUrl?: string;
+    title: string;
+    position: string;
+    closesAt: string;
+  }) =>
     request<{ id: string }>('/api/v1/admin/job-postings/upload', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -218,6 +229,38 @@ export const api = {
       metadata?: Record<string, unknown>;
       createdAt: string;
     }>>('/api/v1/admin/ai-logs'),
+  getGenerateLengthStats: () =>
+    request<{
+      sampleCount: number;
+      unreliableFromChars: number | null;
+      unreliableThreshold: number;
+      minBucketN: number;
+      uiMinChars: number;
+      uiMaxChars: number;
+      uiDefaultChars: number;
+      generateMaxTokens: number;
+      buckets: Array<{
+        from: number;
+        to: number;
+        n: number;
+        ok: number;
+        shortCount: number;
+        truncated: number;
+        error: number;
+        overshoot: number;
+        insufficient: number;
+        medianOutput: number;
+        unreliableRate: number;
+      }>;
+      recent: Array<{
+        createdAt: string;
+        model?: string;
+        title: string;
+        targetChars: number;
+        outputChars: number;
+        quality: string;
+      }>;
+    }>('/api/v1/admin/ai-logs/section-length'),
   getDeployCiSettings: () =>
     request<{ deployAiE2eEnabled: boolean; deployE2eEnabled: boolean; updatedAt?: string }>('/api/v1/admin/deploy-ci-settings'),
   updateDeployCiSettings: (data: { deployAiE2eEnabled?: boolean; deployE2eEnabled?: boolean }) =>

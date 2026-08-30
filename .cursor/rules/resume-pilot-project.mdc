@@ -32,3 +32,4 @@ alwaysApply: true
 2. 프롬프트는 **prompt-service**에서만 로드 (하드코딩 금지)
 3. AI 호출은 `ai_usage_logs`에 기록
 4. Flyway 마이그레이션은 **resume-api**만 소유
+5. LLM은 **외부 API 호출** (Admin `/admin/llm-settings`). 서버에 모델 가중치를 올리지 않음

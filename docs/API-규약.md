@@ -88,6 +88,7 @@ All under `/admin/**`, requires `ROLE_ADMIN`.
 | `/admin/users` (+ `/{id}/role`, `/{id}/enabled`) | User management |
 | `/admin/companies` | Company management |
 | `/admin/ai-logs` | AI usage logs |
+| `/admin/ai-logs/section-length` | 문항별 생성 목표/실제 글자 수 집계 |
 | `/admin/llm/providers`, `/admin/llm/routes` | LLM provider keys & per-task model routes (failover) |
 | `/admin/deploy-ci-settings` | Deploy CI toggle settings |
 

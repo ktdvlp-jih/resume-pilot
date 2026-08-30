@@ -118,6 +118,11 @@ public class AdminController {
         return ApiResponse.ok(adminService.listAiLogs());
     }
 
+    @GetMapping("/ai-logs/section-length")
+    public ApiResponse<GenerateLengthStatsResponse> generateLengthStats() {
+        return ApiResponse.ok(adminService.generateLengthStats());
+    }
+
     @GetMapping("/skill-catalog")
     public ApiResponse<List<SkillCatalogAdminResponse>> listSkillCatalog() {
         return ApiResponse.ok(adminService.listSkillCatalog());

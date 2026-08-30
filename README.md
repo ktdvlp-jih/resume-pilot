@@ -62,7 +62,7 @@ cp .env.production.example .env
 | 변수 | 설명 |
 |------|------|
 | `JWT_SECRET` | JWT 서명 키 (변경 필수) |
-| `OPENAI_API_KEY` | LLM API 키 (Gemini 등) |
+| LLM 키·모델 | Admin `/admin/llm-settings` (외부 AI API 호출). `.env`의 `OPENAI_*`는 폴백 전용 |
 | `VITE_API_URL` | 프론트 → API (`http://localhost:8080`) |
 
 ## API 문서

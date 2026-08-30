@@ -21,6 +21,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { GenerateLengthCard } from '@/components/ai-logs/generate-length-card';
 import { formatModelDisplay } from '@/lib/model-labels';
 
 type LogRow = {
@@ -87,8 +88,9 @@ export default function AiLogsPage() {
   const { page, setPage, totalPages, paginated, from, to, total } = useUrlPagination(sorted, 15);
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <PageHeader title={t('aiLogs.title')} description={t('aiLogs.subtitle')} />
+      <GenerateLengthCard />
       {isError ? (
         <EmptyState
           title={t('aiLogs.loadFailed', { defaultValue: 'AI 사용 로그를 불러오지 못했습니다.' })}

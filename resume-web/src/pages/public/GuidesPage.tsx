@@ -6,7 +6,6 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 export default function GuidesPage() {
   const { t } = useTranslation();
   const items = [
-    { to: '/guides/roles', title: t('guides.rolesTitle'), desc: t('guides.rolesDesc') },
     { to: '/guides/star', title: t('guides.starTitle'), desc: t('guides.starDesc') },
     { to: '/guides/job-posting', title: t('guides.jobTitle'), desc: t('guides.jobDesc') },
     { to: '/tools/char-count', title: t('tools.char.title'), desc: t('tools.char.desc') },

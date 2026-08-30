@@ -8,6 +8,7 @@ import java.util.UUID;
 public record AdminJobPostingResponse(
         UUID id,
         String title,
+        String position,
         JobSourceType sourceType,
         String sourceUrl,
         UUID companyId,

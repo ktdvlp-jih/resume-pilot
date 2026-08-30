@@ -53,6 +53,8 @@ services:
     ports:
       - "${APP_PORT:-9180}:8080"
 
+  # LLM은 외부 OpenAI 호환 API 호출. 모델·키는 Admin /admin/llm-settings.
+  # OPENAI_* 는 SDK 폴백 전용(운영에서는 비움). 컨테이너 안에 LLM을 올리지 않음.
   resume-ai:
     build:
       context: ./resume-ai
@@ -66,7 +68,7 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-resumepilot}:${POSTGRES_PASSWORD:-resumepilot}@postgres:5432/${POSTGRES_DB:-resumepilot}}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
-      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
       RAG_SERVICE_URL: ${RAG_SERVICE_URL:-http://rag-service:8002}
       PROMPT_SERVICE_URL: ${PROMPT_SERVICE_URL:-http://prompt-service:8001}
       RESUME_API_URL: ${RESUME_API_URL:-http://app:8080}
@@ -85,7 +87,7 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-resumepilot}:${POSTGRES_PASSWORD:-resumepilot}@postgres:5432/${POSTGRES_DB:-resumepilot}}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
-      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
 
   rag-service:
     build:

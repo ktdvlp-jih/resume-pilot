@@ -20,7 +20,7 @@
 # 0-3. 환경변수 파일
 #    cd ~/Desktop/Work/resume-pilot
 #    cp .env.example .env.local
-#    # 필요 시 OPENAI_API_KEY 등만 수정
+#    # JWT_SECRET 등 필요 시 수정. LLM 키는 Admin /admin/llm-settings (외부 API)
 
 # 0-4. Python venv (서비스별)
 #    cd ~/Desktop/Work/resume-pilot/rag-service

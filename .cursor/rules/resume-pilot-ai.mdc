@@ -12,8 +12,9 @@ alwaysApply: false
 | prompt-service | 8001 | 프롬프트 템플릿 런타임 |
 | rag-service | 8002 | 임베딩·벡터 검색 |
 
-- 설정: 각 `app/config.py` — `DATABASE_URL`, `OPENAI_API_KEY` 등
+- 설정: 각 `app/config.py` — `DATABASE_URL`, `RESUME_API_URL`, `INTERNAL_API_TOKEN`
 - DB: asyncpg pool, resume-api Flyway 스키마 공유
-- LLM: `OPENAI_API_KEY` + `OPENAI_BASE_URL` (Gemini 호환 OpenAI API)
+- LLM: 외부 OpenAI 호환 API 호출. 모델·키는 Admin `/admin/llm-settings` (`runtime-config`). 로컬 가중치 호스팅 아님.
+- `OPENAI_API_KEY` / `OPENAI_BASE_URL` / `OPENAI_MODEL` 은 env 폴백 전용 (운영에서는 비움)
 
 변경 후 해당 서비스에서 `uvicorn app.main:app --reload --port <port>` 또는 pytest.

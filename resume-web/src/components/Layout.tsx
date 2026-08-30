@@ -21,8 +21,7 @@ export function ProtectedLayout() {
     <SidebarProvider>
       <DocumentHead title={t('app.name')} description={t('app.tagline')} path={pathname} noIndex />
       <AppSidebar />
-      <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="md:peer-data-[variant=inset]:ml-2">
         <AppHeader />
         <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
           <PageTransition />

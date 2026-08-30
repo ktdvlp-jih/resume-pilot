@@ -34,7 +34,20 @@ type UserRow = {
   name?: string;
   phone?: string;
   enabled: boolean;
+  createdAt?: string;
 };
+
+function formatCreatedOn(iso?: string) {
+  if (!iso) return '—';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '—';
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
 
 export default function UsersPage() {
   const { t } = useTranslation();
@@ -70,6 +83,8 @@ export default function UsersPage() {
       name: (a: UserRow, b: UserRow) => (a.name ?? '').localeCompare(b.name ?? ''),
       role: (a: UserRow, b: UserRow) => a.role.localeCompare(b.role),
       status: (a: UserRow, b: UserRow) => Number(b.enabled) - Number(a.enabled),
+      createdAt: (a: UserRow, b: UserRow) =>
+        (a.createdAt ? new Date(a.createdAt).getTime() : 0) - (b.createdAt ? new Date(b.createdAt).getTime() : 0),
     }),
     [],
   );
@@ -210,7 +225,7 @@ export default function UsersPage() {
                 <TableHead>{t('users.email')}</TableHead>
               </TableRow>
             </TableHeader>
-            <TableSkeletonRows rows={5} cols={5} />
+            <TableSkeletonRows rows={5} cols={6} />
           </Table>
         </DataTableCard>
       ) : filtered.length === 0 && !search ? (
@@ -232,6 +247,13 @@ export default function UsersPage() {
                   <SortableTableHead label={t('users.name')} sortKey="name" activeKey={sortKey} direction={direction} onSort={toggleSort} className="hidden md:table-cell" />
                   <SortableTableHead label={t('users.role')} sortKey="role" activeKey={sortKey} direction={direction} onSort={toggleSort} />
                   <SortableTableHead label={t('users.status')} sortKey="status" activeKey={sortKey} direction={direction} onSort={toggleSort} />
+                  <SortableTableHead
+                    label={t('users.createdAt')}
+                    sortKey="createdAt"
+                    activeKey={sortKey}
+                    direction={direction}
+                    onSort={toggleSort}
+                  />
                   <TableHead className="text-right">{t('users.action')}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -258,6 +280,9 @@ export default function UsersPage() {
                       )}
                     </TableCell>
                     <TableCell>{u.enabled ? t('common.active') : t('common.inactive')}</TableCell>
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
+                      {formatCreatedOn(u.createdAt)}
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         {canEditRow(u) && (

@@ -5,7 +5,7 @@
     "footer": "© {{name}}. All rights reserved."
   },
   "landing": {
-    "badge": "RAG · AI 求职信",
+    "badge": "AI 求职信",
     "heroSubtitle": "用经历库与招聘公告分析，撰写贴合企业的求职信。",
     "featuresSubtitle": "从准备到撰写与润色，一站完成",
     "pricingSubtitle": "现在免费开始",
@@ -14,15 +14,20 @@
     "feature2Title": "招聘公告分析",
     "feature2Desc": "提取必备技能与关键词，用于定制撰写。",
     "feature3Title": "AI 工作区",
-    "feature3Desc": "RAG、生成、润色与面试题，三栏布局。",
+    "feature3Desc": "从推荐相关经历到撰写、润色与面试题，都在同一画面完成。",
     "tierFree": "Free",
     "tierPro": "Pro",
     "comingSoon": "即将推出",
+    "proConnect": "连接其他服务",
+    "proSchedule": "日期与价格尚未确定",
     "authPitch": "更快、更准地撰写企业定制求职信。",
-    "authBullet1": "基于经历的 RAG 推荐",
+    "authBullet1": "按招聘匹配经历",
     "authBullet2": "公告关键词匹配",
     "authBullet3": "AI 痕迹检测与润色",
-    "backHome": "返回首页"
+    "backHome": "返回首页",
+    "viewMore": "了解更多",
+    "viewFeatures": "查看全部功能",
+    "viewPricing": "查看价格"
   },
   "command": {
     "title": "命令面板",
@@ -41,6 +46,7 @@
     "main": "主导航",
     "menu": "菜单",
     "openMenu": "打开菜单",
+    "toggleSidebar": "折叠或展开侧栏",
     "intro": "介绍",
     "features": "功能",
     "pricing": "价格",
@@ -66,7 +72,14 @@
   "roleGuide": {
     "title": "岗位用法",
     "description": "选择岗位后只显示该说明，不会用于生成。",
-    "unavailable": "{{role}} 用法尚未准备。"
+    "unavailable": "{{role}} 用法尚未准备。",
+    "roleName": {
+      "Backend": "后端",
+      "Frontend": "前端",
+      "PM": "产品策划",
+      "Data": "数据",
+      "Design": "设计"
+    }
   },
   "common": {
     "loading": "加载中...",
@@ -159,9 +172,9 @@
     "title": "经历库",
     "add": "+ 添加经历",
     "empty": "暂无经历。",
-    "reembed": "刷新 RAG 索引",
-    "reembedDone": "已重新索引 {{count}} 条经历。",
-    "reembedFailed": "刷新 RAG 索引失败。",
+    "reembed": "刷新推荐",
+    "reembedDone": "已更新 {{count}} 条经历的推荐。",
+    "reembedFailed": "刷新推荐失败。",
     "typeLabel": "类型",
     "titlePlaceholder": "标题",
     "descriptionPlaceholder": "描述",
@@ -297,8 +310,8 @@
     "jobTextDisabledPlaceholder": "选择已保存公告后，此输入框将不会被使用",
     "jobTextDisabledHint": "选择已保存公告时，将自动使用其分析数据，此输入框内容会被忽略。",
     "recommend": "刷新推荐",
-    "recommendAutoHint": "更换公告后，将按公司、职位与 JD 自动推荐相关经历。相似度（百分比）过低的项目会隐藏。",
-    "recommendManualHint": "更改经历/索引后或失败重试时请刷新。可通过分页查看更多候选。",
+    "recommendAutoHint": "更换公告后，将按公司、职位与公告内容自动推荐相关经历。匹配度过低的项目会隐藏。",
+    "recommendManualHint": "更改经历后或失败重试时请刷新。可通过分页查看更多候选。",
     "recommendFailed": "推荐经历失败",
     "recommendEmpty": "没有与该公告足够相似的经历。请补充经历库或检查公告内容。",
     "recommendPageKeep": "翻页后仍保留已选经历。",
@@ -309,12 +322,12 @@
     "preflightThinWarn": "所选经历内容偏少，虚假细节风险较高，确认后继续。",
     "preflightOk": "所选经历已具备生成所需内容。",
     "preflightSectionShort": "{{title}}: 目标 {{target}} 字需要 {{need}} 条经历，但只分配了 {{count}} 条。",
-    "preflightRewriteHigh": "Rewrite 较高。应只改表达，事实、数据与时间线必须保持不变。",
+    "preflightRewriteHigh": "改写程度较高。应只改表达，事实、数据与时间线必须保持不变。",
     "preflightOpenLibrary": "打开经历库",
     "preflightThinConfirmTitle": "用较薄的经历继续生成？",
     "preflightThinConfirmDesc": "当前只选择了内容不足的经历。模型可能为填满篇幅编造细节。建议先补充经历库。",
     "preflightThinConfirmAction": "仍要生成",
-    "recommended": "推荐经历 (RAG)",
+    "recommended": "推荐经历",
     "recommendedHint": "点击后作为本次公告材料，并按题目标题分配。",
     "step2": "2. 改写程度: {{level}}%",
     "step2Title": "2. 题目标题及经历推荐",
@@ -405,7 +418,7 @@
     "regenSection": "仅重写此题",
     "regenSectionRun": "执行重写",
     "regenSectionBusy": "正在重写此题，请稍候。",
-    "regenInstructionHint": "使用已选经历（RAG）。可在下方补充强调或结构；库中没有的事实不会编造。",
+    "regenInstructionHint": "使用已选经历。可在下方补充强调或结构；库中没有的事实不会编造。",
     "regenInstructionPlaceholder": "例：把通关故障时的判断理由写得更具体，贴近目标行数",
     "sectionEmpty": "该题尚无内容。",
     "sectionRegenFailed": "题目重写失败",
@@ -418,7 +431,10 @@
     "humanizeSuccess": "已润色 {{count}} 句。",
     "humanizeReportOnly": "句子未改。可在结果页对照分析。",
     "humanizeReportTitle": "AI 痕迹分析",
-    "humanizeReportSummary": "S1 {{s1}} · S2 {{s2}} · S3 {{s3}}",
+    "humanizeReportSummary": "强痕迹 {{s1}} · 明显痕迹 {{s2}} · 轻痕迹 {{s3}}",
+    "humanizeSeverityS1": "强痕迹",
+    "humanizeSeverityS2": "明显痕迹",
+    "humanizeSeverityS3": "轻痕迹",
     "humanizeGrade": "自然度 {{grade}}",
     "humanizePattern": "模式 {{n}} {{title}}",
     "humanizeCompareTitle": "润色对照",
@@ -522,7 +538,7 @@
     "certTextPlaceholder": "例如：信息处理工程师",
     "certTextHint": "无需固定格式，直接输入文本即可。",
     "certLookup": "核对目录",
-    "certLookupNotConfigured": "尚未配置外部资格目录 API。文本仍会正常保存。",
+    "certLookupNotConfigured": "资格目录查询暂不可用。输入的文字仍会保存。",
     "certLookupNoMatch": "未找到匹配的国家资格项目。",
     "certLookupMatched": "已匹配国家资格：{{name}}",
     "certMatchedBadge": "已确认 · {{name}}",
@@ -571,13 +587,13 @@
   },
   "guides": {
     "title": "写作指南",
-    "pageDesc": "无需登录即可查看岗位用法、STAR 空白与招聘上传说明。不提供完整答题范文。",
+    "pageDesc": "无需登录即可查看如何拆分经历与招聘上传说明。不提供完整答题范文。",
     "rolesTitle": "岗位用法",
-    "rolesDesc": "Backend、Frontend、PM。仅已有文档的岗位显示正文。",
-    "starTitle": "STAR 空白",
+    "rolesDesc": "后端、前端、产品策划。仅已有说明的岗位显示正文。",
+    "starTitle": "如何拆分经历",
     "starDesc": "情境、任务、行动、结果。没有的数字请留空。",
     "jobTitle": "如何上传招聘",
-    "jobDesc": "链接、粘贴或文件后分析。",
+    "jobDesc": "先填标题和截止日期，再用链接、粘贴或文件导入。日历只显示截止日期。",
     "missing": "该说明尚未准备。"
   },
   "tools": {
@@ -585,21 +601,21 @@
     "signupToSave": "注册后可保存到经历库。",
     "char": {
       "title": "字数统计",
-      "desc": "含空格、不含空格与 UTF-8 字节。仅在浏览器中计算。",
+      "desc": "含空格、不含空格与字节数。仅在本机计算。",
       "input": "正文",
       "placeholder": "粘贴求职信。",
       "withSpaces": "含空格",
       "withoutSpaces": "不含空格",
-      "bytes": "UTF-8 字节"
+      "bytes": "字节数"
     },
     "star": {
-      "title": "STAR 模板",
+      "title": "经历填写表",
       "desc": "只填空白。不要写没做过的事。保存需注册。"
     },
     "spell": {
       "title": "草稿提示",
       "desc": "浏览器拼写检查加上少量本地模式。",
-      "disclaimer": "这不是完整的韩语校对器，也不调用校对 API。红色下划线来自浏览器。",
+      "disclaimer": "这不是完整的韩语校对器，也不使用外部拼写检查。红色下划线来自浏览器。",
       "input": "正文",
       "none": "没有明显模式。拼写请看浏览器下划线。",
       "repeatSpaces": "存在连续空格。",
@@ -609,16 +625,152 @@
     }
   },
   "calendar": {
-    "title": "公开招聘日历",
-    "desc": "仅公开共享招聘的标题、公司与截止日期，不含公告原文。",
-    "empty": "暂无公开截止日期。",
+    "title": "招聘日历",
+    "desc": "在日历中查看共享招聘与自己招聘的截止日期。共享项仅公开标题、公司与截止日期，不含公告原文。",
+    "descShared": "在日历中查看共享招聘的截止日期。仅公开标题、公司与截止日期，不含公告原文。",
+    "descMine": "你导入的招聘截止日期。其他人看不到这份列表。",
+    "viewLabel": "日历分类",
+    "viewShared": "共享招聘",
+    "viewMine": "我的招聘",
+    "hintShared": "无需登录即可查看。要用该招聘撰写，请先注册。",
+    "hintMine": "只显示你导入的招聘。他人公开的共享招聘请到「共享招聘」查看。",
+    "hintMineGuest": "登录后即可查看自己招聘的截止日期。",
+    "emptyShared": "暂无公开截止日期。",
+    "emptyMine": "尚未导入招聘。",
+    "emptyMineGuest": "登录后即可在日历中查看自己招聘的截止日期。",
     "noDeadline": "未定",
     "cta": "注册并用该招聘撰写",
+    "ctaLoggedIn": "在我的招聘中继续撰写",
+    "ctaMine": "导入招聘",
+    "ctaMineGuest": "登录并查看我的招聘",
+    "prevMonth": "上个月",
+    "nextMonth": "下个月",
+    "today": "今天",
+    "weekdays": ["日", "一", "二", "三", "四", "五", "六"],
+    "monthGridCaption": "{{month}}截止日期日历",
+    "dayAria": "{{date}}，{{count}} 个截止",
+    "more": "+{{count}}",
+    "selectedEmpty": "这一天没有截止的招聘。",
+    "undatedTitle": "没有截止日期的招聘",
+    "undatedHint": "截止日期未定的招聘不会出现在日期格子里。",
+    "noDatedHint": "只有填写截止日期的招聘会出现在日历上。目前均为未定，请查看右侧或下方列表。",
     "columns": {
       "title": "标题",
       "company": "公司",
       "closesAt": "截止"
     }
+  },
+  "featuresPage": {
+    "title": "功能",
+    "pageDesc": "整理经历、按招聘撰写、再润色草稿。不会编造未做过的经历。",
+    "cta": "注册并开始",
+    "openRelated": "查看相关说明",
+    "sections": {
+      "library": {
+        "title": "经历库",
+        "lead": "把求职信要用的经历放在一处。请填写角色、描述和成果，不要只留标题。",
+        "points": [
+          "按项目或角色逐条保存。相近内容合并，不同阶段分开写。",
+          "可按情境、任务、行动、结果拆开写。没有的数字和没做过的事请留空。",
+          "描述过短会显示需要补充。生成前能看出该填哪些栏。",
+          "最多可保存 30 条。"
+        ]
+      },
+      "job": {
+        "title": "招聘公告分析",
+        "lead": "导入要投的招聘后，会抽出必备技能与关键词用于撰写。",
+        "points": [
+          "可用招聘网站链接、粘贴文本或 PDF/图片导入。图片不好认时请改用文本或链接。",
+          "只放入职责、资格、加分项等已有内容。投递按钮与隐私说明可删。",
+          "设为共享后，其他已登录用户可用该招聘撰写。",
+          "日历只公开标题、公司与截止日期，不含公告原文。"
+        ]
+      },
+      "workspace": {
+        "title": "AI 工作区",
+        "lead": "招聘与经历在同一画面，草稿、润色与面试题可接着做。",
+        "points": [
+          "更换招聘后，会按公司、职位与公告内容推荐相关经历。",
+          "设定题目标题与目标字数后，按该顺序和篇幅生成段落。",
+          "深入经历按题分配。同一场面不重复。",
+          "缺少依据时不会生成，也不会编造经历。",
+          "出草稿后可运行润色、关键词对比与可能的面试题。",
+          "写完后只可淡化像 AI 的句子。事实和数字保持不变。"
+        ]
+      },
+      "style": {
+        "title": "文风分析",
+        "lead": "检查已保存求职信或粘贴文本的语气与句长。",
+        "points": [
+          "显示常用表达、句子长度以及是否用敬体。",
+          "不作为生成材料。用来回顾自己的文章。"
+        ]
+      },
+      "calendar": {
+        "title": "招聘日历",
+        "lead": "共享招聘无需登录即可查看，自己招聘的截止日期登录后单独查看。",
+        "points": [
+          "共享招聘仅公开标题、公司与截止日期。",
+          "点选日期即可查看当天截止的招聘。",
+          "「我的招聘」日历仅本人可见。",
+          "不公开公告原文与私人文稿。"
+        ]
+      },
+      "tools": {
+        "title": "写作指南与工具",
+        "lead": "注册前可查看如何拆分经历和字数统计。",
+        "points": [
+          "填写表是情境、任务、行动、结果。保存需注册。",
+          "字数只在本机计算，不发送到服务器。",
+          "不提供完整答题范文。"
+        ]
+      }
+    }
+  },
+  "pricingPage": {
+    "title": "价格",
+    "pageDesc": "注册即可使用。尚无付费套餐或银行卡扣款。",
+    "cta": "免费开始",
+    "nowNote": "与介绍页的 Free、Pro 摘要一致。Pro 为计划中，目前不收费。",
+    "faqTitle": "常见问题",
+    "free": {
+      "name": "Free",
+      "price": "₩0",
+      "tag": "现在",
+      "lead": "创建账户后即可使用下列内容。",
+      "points": [
+        "经历库（最多 30 条）",
+        "导入并分析招聘",
+        "在工作区写草稿、润色与面试题",
+        "文风分析、TXT/打印、审阅分享链接",
+        "招聘日历（共享无需登录，我的招聘需登录）",
+        "写作指南、字数统计与经历表（查看和填写无需登录，保存需注册）"
+      ]
+    },
+    "pro": {
+      "name": "Pro",
+      "price": "即将推出",
+      "tag": "计划中",
+      "lead": "以后再加入。日期与价格尚未确定。",
+      "points": [
+        "连接其他服务",
+        "付费额度与价格（尚无）"
+      ]
+    },
+    "faq": [
+      {
+        "q": "现在需要付款吗？",
+        "a": "不需要。没有付费套餐。注册后按 Free 范围使用。"
+      },
+      {
+        "q": "生成结果可以直接提交吗？",
+        "a": "这是草稿。请自行核对事实、数字与时间。不要写没做过的经历。"
+      },
+      {
+        "q": "Pro 何时上线？",
+        "a": "尚无公开日期。准备好后会更新本页与介绍页的价格栏。"
+      }
+    ]
   },
   "share": {
     "fallbackTitle": "已分享的求职信",
@@ -633,9 +785,9 @@
     "personalNote": "个人运营的服务，无营业执照号。",
     "about": {
       "title": "介绍",
-      "desc": "基于 RAG 的企业定制求职信。",
+      "desc": "企业定制求职信。",
       "body": [
-        "ResumePilot 在同一处使用经历库、招聘分析、RAG 推荐与 AI 生成/润色。",
+        "ResumePilot 在同一处使用经历库、招聘分析、相关经历推荐与 AI 生成/润色。",
         "AI 不会编造经历。缺少依据时不会生成。",
         "目前为个人项目，没有营业执照或通信销售备案号。"
       ]
@@ -644,7 +796,7 @@
       "title": "隐私",
       "desc": "账户与文稿如何处理。",
       "body": [
-        "收集：注册邮箱与哈希密码、资料、经历、招聘、求职信、令牌、AI 日志。",
+        "收集：注册邮箱与无法还原的密码、资料、经历、招聘、求职信、登录保持信息、AI 使用记录。",
         "用途：登录、撰写与运维。广告仅可能出现在公开指南/工具页，不会放在私密文稿旁。",
         "删除账户会移除该用户数据。审阅分享链接 7 天或直到撤销。",
         "生成可能把所需正文发给已配置的 AI。广告脚本仅在配置了客户端 ID 时加载到公开页。",

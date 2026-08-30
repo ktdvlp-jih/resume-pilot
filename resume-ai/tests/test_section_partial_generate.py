@@ -178,3 +178,18 @@ async def test_generate_by_sections_compresses_without_clipping(
     assert "분량 계획" in calls[0]
     assert "장면은 1개" in calls[0]
     assert any("완성된 글로" in c for c in calls)
+    assert sections[0]["generated"] is True
+    assert sections[0]["target_chars"] == 200
+    assert sections[0]["output_chars"] == len(compressed)
+
+
+def test_section_write_quality_classes() -> None:
+    svc = LlmService
+    complete = "프로젝트에서 제약을 확인하고 배포 순서를 바꿨습니다. 장애 시간이 줄었습니다."
+    assert svc._section_write_quality("ok", complete, 80) == "ok"
+    assert svc._section_write_quality("error", complete, 800) == "error"
+    assert svc._section_write_quality("ok", "내용이 부족하여 생성하지 않음", 800) == "insufficient"
+    assert svc._section_write_quality("ok", "문장이 여기서 끊겨", 800) == "truncated"
+    long_ok = (complete + " ") * 20
+    assert svc._section_write_quality("ok", long_ok, 80) == "overshoot"
+    assert svc._section_write_quality("ok", complete, 800) == "short"

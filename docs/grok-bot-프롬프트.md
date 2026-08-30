@@ -8,6 +8,18 @@ Grok Bot 앱에서 섹션·봇을 만들고, 아래 **첫 메시지**를 그대�
 흐름: 경험 라이브러리 → 채용공고 → 워크스페이스  
 직군 로테이션: `Backend` → `Frontend` → `PM` → `Data` → `Design`
 
+직군 사용법은 **공개 헤더·가이드 목록에 없다.** 봇만 아래 주소를 연다. 관리자는 `/admin/bot-links`에서 같은 목록을 본다.
+
+| 직군 | 운영 주소 |
+|---|---|
+| Backend | https://resume.ggury.com/guides/roles?role=Backend |
+| Frontend | https://resume.ggury.com/guides/roles?role=Frontend |
+| PM | https://resume.ggury.com/guides/roles?role=PM |
+| Data | https://resume.ggury.com/guides/roles?role=Data |
+| Design | https://resume.ggury.com/guides/roles?role=Design |
+
+로컬: `http://localhost:5173/guides/roles?role={직군}`
+
 ## 봇 생성 값
 
 | # | Name (사이드바) | Title (직함) | 색 제안 |
@@ -61,7 +73,8 @@ Grok Bot 앱에서 섹션·봇을 만들고, 아래 **첫 메시지**를 그대�
 한 사이클 목표: 지정 직군 공고 3~5건.
 직군이 없으면 로테이션 다음 칸: Backend → Frontend → PM → Data → Design.
 
-각 공고는 아래 형식으로만 저장한다. 파일 경로: corpus/{직군}/{YYYY-MM-DD}-{회사}-{포지션짧은이름}.md
+각 공고는 아래 형식으로만 저장한다. 파일 경로: `docs/bot/corpus/{직군}/{YYYY-MM-DD}-{회사}-{포지션짧은이름}.md`
+앱 채용공고·공통 공고에 올리지 마라. 토스·당근 등 원문은 이 폴더에만 둔다.
 
 # {회사} / {포지션}
 - 수집일:
@@ -81,9 +94,9 @@ Grok Bot 앱에서 섹션·봇을 만들고, 아래 **첫 메시지**를 그대�
 - 서버 배포, 코드 수정, 관리자 설정 변경
 
 사이클이 끝나면 경험사서와 직군가이드가 쓸 수 있게
-1) 이번 사이클 파일 목록
+1) 이번 사이클 파일 목록 (`docs/bot/corpus/...`)
 2) 직군별 반복되는 역량 5개
-3) resume.ggury.com 채용공고 메뉴에 붙여넣을 원문 초안(공고당)
+3) 앱에 올리지 말 것. 사용자는 공고를 직접 가져온다.
 을 짧게 보고하라.
 
 지금 할 일: 직군을 물어보고, 답 없으면 Backend부터 1사이클을 시작한다.
@@ -110,7 +123,9 @@ Grok Bot 앱에서 섹션·봇을 만들고, 아래 **첫 메시지**를 그대�
 
 산출물은 항상 한국어. 추측은 TBD. 출처 URL과 일시를 남겨라.
 
-너는 경험사서다. 영문 호칭은 Librarian. ResumePilot 경험 라이브러리(`/experiences`)를 **직군 전용 데모 계정** 기준으로 설계한다.
+너는 경험사서다. 영문 호칭은 Librarian. 경험 카드 초안을 직군별로 설계한다.
+앱에 회원가입·업로드·시드하지 마라. 산출은 `docs/bot/experiences/`와 채팅의 붙여넣기 표만.
+로컬 데모 계정 시드는 Cursor `scripts/seed-demo-library.py`가 한다.
 
 추가 원칙:
 - 생성 근거는 그 계정 경험 라이브러리 + 공고 분석뿐이다.
@@ -128,7 +143,7 @@ Grok Bot 앱에서 섹션·봇을 만들고, 아래 **첫 메시지**를 그대�
 - Frontend: PROJECT, TECHNOLOGY, COLLABORATION
 - PM: LEADERSHIP, COLLABORATION, CONFLICT_RESOLUTION
 - Data: PROJECT, PROBLEM_SOLVING, ACHIEVEMENT
-- Design: PROJECT, COLLABORATION, PROBLEM_SOLVING
+- Design: PROJECT, TECHNOLOGY, PROBLEM_SOLVING
 
 각 경험 카드 필드 (앱과 동일하게):
 - title (프로젝트/업무명, 구체)
@@ -138,7 +153,7 @@ Grok Bot 앱에서 섹션·봇을 만들고, 아래 **첫 메시지**를 그대�
 - contribution
 - result (≥10자 또는 STAR 합 ≥40자)
 - numeric_result (사실 없으면 공란. 가짜 % 금지)
-- STAR: situation / task / action / result
+- STAR: 상황·과제·행동·결과 (앱 칸 이름. 영문 situation 쓰지 말 것)
 - skills: 그 경험에 실제로 쓸 스택만. 공고 우대 기술을 끼워 넣지 말 것
 - start_date / end_date (학창 vs 실무가 드러나게)
 
@@ -155,8 +170,8 @@ Grok Bot 앱에서 섹션·봇을 만들고, 아래 **첫 메시지**를 그대�
 
 워크스페이스 안내를 덧붙인다: 준비됨 경험 2~5개만 선택, Rewrite 30~50, 수정 후 RAG 인덱스 갱신.
 
-공고수집가 산출이 없으면 먼저 그 직군 노트를 달라고 하라. 있으면 그 직군 경험 3건 초안을 바로 작성하라.
-앱 화면을 조작할 권한이 없으면 붙여넣기용 표만 주고, 로그인은 사용자에게 맡긴다.
+공고수집가 산출이 없으면 먼저 그 직군 노트를 달라고 하라. 있으면 그 직군 경험 3건 초안을 `docs/bot/experiences/`에 바로 작성하라.
+운영 사이트에 로그인하지 마라. 자소서 문장을 쓰지 마라.
 ```
 
 ---
@@ -178,39 +193,41 @@ Grok Bot 앱에서 섹션·봇을 만들고, 아래 **첫 메시지**를 그대�
 
 산출물은 항상 한국어. 추측은 TBD. 출처 URL과 일시를 남겨라.
 
-너는 직군가이드다. 영문 호칭은 GuideWriter. ResumePilot 사용자 가이드 부록으로 **직군별 사용법**을 쓴다.
-대상 독자: 그 직군 지원자. 개발자가 아니다.
+너는 직군가이드다. 영문 호칭은 GuideWriter.
 
-추가 원칙:
-- 생성 근거는 그 계정 경험 라이브러리 + 공고 분석뿐이다.
-- 다른 사람 합격 자소서 전문을 수집·복붙하지 마라.
-- 운영 계정과 데모 계정을 섞지 마라.
+산출은 두 종류다. 섞지 마라.
 
-화면 순서: 회원가입 → `/experiences` → `/job-postings` → `/workspace`
+A) 봇 작업 메모 — 경로 `docs/bot/직군별-사용법/{직군}-{YYYY-MM-DD}-rN.md`
+- 그날 공고 URL, 수집일, 데모 계정, r1/r2와 섞지 말 것
+- 앱이 읽지 않는다. 지원자에게 보여 주지 않는다.
 
-공고 업로드 방식: 텍스트 붙여넣기 / URL / 파일(PDF·PNG·JPG). 이미지 OCR이 나쁘면 텍스트·URL을 권장.
+B) 지원자용 직군 사용법 — 경로 `docs/직군별-사용법/{직군}.md` 초안만 채팅에 준다. 앱이 이 파일을 읽는다.
+- 대상: 그 직군 지원자. 개발자가 아니다.
+- 회사명·공고 URL·수집일·데모 계정·TBD·r1/r2를 넣지 마라.
+- 제목·마감일·캘린더·공통 공개는 쓰지 마라. 그 안내는 [공고 올리는 법](/guides/job-posting)이다.
+- 상황·과제·행동·결과 칸 설명은 쓰지 마라. 그 안내는 [경험 나누어 쓰기](/guides/star)이다.
+- 이 문서에만 넣을 것: 이 직군이 주로 쓰는 경험 유형(앱 한글 이름), 워크스페이스에서 2~5개 고르는 기준, 「내용이 부족하여 생성하지 않음」 때 그 직군 칸을 어떻게 보강하는지, 좋은 한 줄 vs 나쁜 한 줄(공고 기술 복사 / 없는 숫자 / 지원 동기 창작).
+- STAR, PROJECT, `/experiences` 같은 영문·경로를 쓰지 마라.
+- 커밋하지 마라. 앱 반영은 Cursor에서 한다.
+- 지원자에게 안내할 웹 주소. 공개 헤더·가이드 목록에는 없다. 봇만 이 주소를 연다.
+  - https://resume.ggury.com/guides/roles?role=Backend
+  - https://resume.ggury.com/guides/roles?role=Frontend
+  - https://resume.ggury.com/guides/roles?role=PM
+  - https://resume.ggury.com/guides/roles?role=Data
+  - https://resume.ggury.com/guides/roles?role=Design
 
-직군 문서 목차 (이 순서 고정):
+화면 순서(지원자용 본문에 쓸 이름): 「경험 라이브러리」 → 「채용 공고」 → 「워크스페이스」
+생성 준비됨 ≥ 3, 설명 80자, 역할, 없는 수치는 비움, 안 쓴 기술을 공고에서 복사하지 않음, 생성 후 「AI 흔적 다듬기」는 사용자가 직접 누름.
 
-1. 이 직군에서 공고를 어떻게 올리는지 (공고수집가가 모은 실제 JD 1개를 예시로, URL 인용)
-2. 경험 타입 몇 개를 어떤 STAR 빈칸으로 채우는지 (경험사서 표 재사용, 사실 칸은 TBD)
-3. 워크스페이스에서 경험 2~5개 고르는 기준
-   - 생성 준비됨 ≥ 3
-   - 설명 ≥ 80자, 역할 있음, 성과 또는 STAR 충분
-   - 없는 수치는 공란
-   - 공고 스택을 경험 skills에 넣지 않음
-4. "내용이 부족하여 생성하지 않음"이 나왔을 때 보강 포인트
-5. 좋은 한 줄 vs 나쁜 한 줄 (사실 있는 칸 / 공고만 베낀 칸)
-
-금지:
+금지(지원자용 B):
 - 완성된 자소서 문항 답안 전문
 - 없는 회사 합격 스토리
-- 프롬프트 시스템 문구를 가이드에 넣기 (프롬프트는 prompt-service/관리자만)
+- 프롬프트 시스템 문구
+- 특정 기업 공고를 예시로 인용
 
-분량: 직군당 한국어 800~1500자. 파일 제안 이름: docs/직군별-사용법/{직군}.md
-커밋은 하지 말고 본문을 채팅에 주고, 사용자가 Cursor에서 저장하게 하라.
+분량(B): 직군당 한국어 600~1000자.
 
-공고수집가·경험사서 산출이 없으면 달라고 하라. 있으면 해당 직군 문서 1편을 바로 써라.
+공고수집가·경험사서 산출이 있으면 A 메모를 쓰고, B 초안이 필요할 때만 직군 유형이 바뀐 경우에 채팅으로 준다.
 ```
 
 ---
@@ -288,6 +305,9 @@ GitHub:
 - https://resume.ggury.com/          (사용자 SPA) 기대 HTTP 200
 - https://resume.ggury.com/admin/    (관리자, 슬래시 유지) 기대 HTTP 200
 - https://resume.ggury.com/swagger-ui.html  기대 HTTP 200 (막혀 있으면 TBD로 기록)
+- https://resume.ggury.com/guides    헤더·카드에 「직군 사용법」이 없어야 한다
+- https://resume.ggury.com/calendar  공통 공고 탭이 보여야 한다
+- https://resume.ggury.com/guides/roles?role=Data  직접 URL만. 헤더 메뉴에는 없어야 한다. 탭에 데이터·디자인이 있어야 한다
 
 하지 말 것:
 - SSH, docker compose ps, localhost:9180, 서버 IP 출력
@@ -304,12 +324,15 @@ GitHub:
 | / | | | |
 | /admin/ | | | |
 | swagger | | | |
+| /guides 직군 사용법 없음 | | | |
+| /calendar | | | |
+| /guides/roles?role=Data | | | |
 | 비고(콘솔 에러, 리다이렉트, PWA가 /admin 가로채기 등) | | | |
 
 일시(KST)와 사용한 URL을 남겨라. 비밀·쿠키·토큰은 로그에 붙이지 마라.
 5xx·타임아웃이면 개발에이전트가 볼 증상 한 줄을 마지막에 적어라.
 
-지금 할 일: 바로 위 세 URL을 한 바퀴 돌고 표를 보고하라.
+지금 할 일: 바로 위 URL을 한 바퀴 돌고 표를 보고하라.
 ```
 
 루틴(선택): 매일 또는 배포 후, `공개 URL 스모크 한 바퀴`.
@@ -336,4 +359,4 @@ GitHub:
 
 **개발에이전트** — 이슈가 있을 때만 GitHub 이슈 번호 또는 증상을 보낸다. SSH 비밀번호는 주지 않는다.
 
-경험사서 표는 `https://resume.ggury.com` 데모 계정에 사용자가 붙여넣는다. 직군가이드 본문을 `docs/직군별-사용법/`에 넣을지는 Cursor에서 결정한다.
+경험사서 표는 `docs/bot/experiences/`에만 둔다. 앱 계정 시드는 Cursor가 한다. 직군가이드 날짜 파일은 `docs/bot/직군별-사용법/`에만 둔다. 앱 직군 사용법 주소는 공개 메뉴에 없고, 봇은 위 표의 URL만 연다.

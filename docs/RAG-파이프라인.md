@@ -44,10 +44,10 @@ JobAnalysis → KeywordExtraction → VectorSearch
 
 ## Embedding Configuration
 
-- Model: `text-embedding-3-small`
-- Dimensions: 1536
+- 모델: Admin `EMBEDDING` 라우트 (1순위 `gemini-embedding-001`, 폴백 `text-embedding-3-small`)
+- Dimensions: 1536 (`vector(1536)` 고정)
 - Index: HNSW with `vector_cosine_ops`
-- Fallback: Deterministic hash-based vector (dev without OpenAI key)
+- Fallback: 임베딩 라우트 실패 시 해시 기반 벡터 (검색 품질 저하)
 
 ## Business Constraints
 
