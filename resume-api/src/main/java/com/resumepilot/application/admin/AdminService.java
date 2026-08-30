@@ -191,6 +191,20 @@ public class AdminService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public UserAdminResponse getUser(UUID id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
+        return toUserResponse(user);
+    }
+
+    /** 관리자가 경험 라이브러리를 대신 넣을 대상. 사용자 관리자는 일반 사용자만. */
+    @Transactional(readOnly = true)
+    public UUID requireExperienceTarget(UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
+        assertCanEditUserAccount(user);
+        return user.getId();
+    }
+
     @Transactional
     public UserAdminResponse createUser(AdminUserCreateRequest req) {
         String email = req.email().trim();

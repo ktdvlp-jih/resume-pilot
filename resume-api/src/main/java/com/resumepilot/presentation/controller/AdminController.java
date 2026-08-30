@@ -1,10 +1,14 @@
 package com.resumepilot.presentation.controller;
 
 import com.resumepilot.application.admin.AdminService;
+import com.resumepilot.application.experience.ExperienceService;
 import com.resumepilot.application.job.JobPostingService;
 import com.resumepilot.global.config.SecurityUtils;
 import com.resumepilot.global.response.ApiResponse;
 import com.resumepilot.presentation.dto.admin.*;
+import com.resumepilot.presentation.dto.experience.ExperienceCreateRequest;
+import com.resumepilot.presentation.dto.experience.ExperienceResponse;
+import com.resumepilot.presentation.dto.experience.ExperienceUpdateRequest;
 import com.resumepilot.presentation.dto.job.CompanyResponse;
 import com.resumepilot.presentation.dto.job.JobPostingResponse;
 import com.resumepilot.presentation.dto.job.JobPostingShareRequest;
@@ -26,6 +30,7 @@ public class AdminController {
 
     private final AdminService adminService;
     private final JobPostingService jobPostingService;
+    private final ExperienceService experienceService;
 
     @GetMapping("/prompts")
     public ApiResponse<List<PromptAdminResponse>> listPrompts() {
@@ -80,6 +85,45 @@ public class AdminController {
     @Operation(summary = "계정 생성 (권한 지정)")
     public ApiResponse<UserAdminResponse> createUser(@Valid @RequestBody AdminUserCreateRequest req) {
         return ApiResponse.ok(adminService.createUser(req));
+    }
+
+    @GetMapping("/users/{id}")
+    @Operation(summary = "사용자 한 명 조회")
+    public ApiResponse<UserAdminResponse> getUser(@PathVariable UUID id) {
+        return ApiResponse.ok(adminService.getUser(id));
+    }
+
+    @GetMapping("/users/{id}/experiences")
+    @Operation(summary = "해당 사용자 경험 목록")
+    public ApiResponse<List<ExperienceResponse>> listUserExperiences(@PathVariable UUID id) {
+        return ApiResponse.ok(experienceService.list(adminService.requireExperienceTarget(id), null));
+    }
+
+    @PostMapping("/users/{id}/experiences")
+    @Operation(summary = "해당 사용자 경험 추가")
+    public ApiResponse<ExperienceResponse> createUserExperience(
+            @PathVariable UUID id,
+            @Valid @RequestBody ExperienceCreateRequest request) {
+        return ApiResponse.ok(experienceService.create(adminService.requireExperienceTarget(id), request));
+    }
+
+    @PatchMapping("/users/{id}/experiences/{experienceId}")
+    @Operation(summary = "해당 사용자 경험 수정")
+    public ApiResponse<ExperienceResponse> updateUserExperience(
+            @PathVariable UUID id,
+            @PathVariable UUID experienceId,
+            @RequestBody ExperienceUpdateRequest request) {
+        return ApiResponse.ok(experienceService.update(
+                adminService.requireExperienceTarget(id), experienceId, request));
+    }
+
+    @DeleteMapping("/users/{id}/experiences/{experienceId}")
+    @Operation(summary = "해당 사용자 경험 삭제")
+    public ApiResponse<Void> deleteUserExperience(
+            @PathVariable UUID id,
+            @PathVariable UUID experienceId) {
+        experienceService.delete(adminService.requireExperienceTarget(id), experienceId);
+        return ApiResponse.ok(null);
     }
 
     @PatchMapping("/users/{id}")

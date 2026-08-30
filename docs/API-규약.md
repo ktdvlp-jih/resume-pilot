@@ -79,13 +79,13 @@ Authorization: Bearer <access_token>
 
 ## Admin Endpoints
 
-All under `/admin/**`, requires `ROLE_ADMIN`.
+All under `/admin/**`. Full `ADMIN` sees every path. `USER_ADMIN` is limited to users; `JOB_ADMIN` to shared job postings.
 
 | Path | Description |
 |------|-------------|
 | `/admin/prompts` (+ `/{templateId}/versions`, `/versions/{versionId}/activate`, `/test`) | Prompt management |
 | `/admin/forbidden-expressions` | Forbidden expressions |
-| `/admin/users` (+ `/{id}/role`, `/{id}/enabled`) | User management |
+| `/admin/users` (+ `/{id}`, `/{id}/experiences`, `/{id}/role`, `/{id}/enabled`) | User accounts. `ADMIN` and `USER_ADMIN`. Experience CRUD fills that user's library (`USER_ADMIN`: regular `USER` only). |
 | `/admin/companies` | Company management |
 | `/admin/ai-logs` | AI usage logs |
 | `/admin/ai-logs/section-length` | 문항별 생성 목표/실제 글자 수 집계 |

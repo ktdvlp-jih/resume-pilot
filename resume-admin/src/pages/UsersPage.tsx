@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -154,7 +155,7 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('users.title')} />
+      <PageHeader title={t('users.title')} description={t('users.titleHint')} />
 
       <Card>
         <CardHeader>
@@ -285,6 +286,11 @@ export default function UsersPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
+                        {canEditRow(u) && (
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link to={`/users/${u.id}/experiences`}>{t('users.experiences')}</Link>
+                          </Button>
+                        )}
                         {canEditRow(u) && (
                           <Button variant="ghost" size="sm" onClick={() => openEdit(u)}>
                             {t('common.edit')}

@@ -17,6 +17,7 @@ const SkillCatalogPage = lazy(() => import('./pages/SkillCatalogPage'));
 const JobPostingsPage = lazy(() => import('./pages/JobPostingsPage'));
 const CompaniesPage = lazy(() => import('./pages/CompaniesPage'));
 const UsersPage = lazy(() => import('./pages/UsersPage'));
+const UserExperiencesPage = lazy(() => import('./pages/UserExperiencesPage'));
 const AiLogsPage = lazy(() => import('./pages/AiLogsPage'));
 const DeployCiSettingsPage = lazy(() => import('./pages/DeployCiSettingsPage'));
 const LlmSettingsPage = lazy(() => import('./pages/LlmSettingsPage'));
@@ -54,6 +55,7 @@ export default function App() {
                   </Route>
                   <Route element={<RequireRoles roles={['ADMIN', 'USER_ADMIN']} />}>
                     <Route path="/users" element={<UsersPage />} />
+                    <Route path="/users/:userId/experiences" element={<UserExperiencesPage />} />
                   </Route>
                   <Route element={<RequireRoles roles={['ADMIN']} />}>
                     <Route path="/prompts" element={<PromptsPage />} />

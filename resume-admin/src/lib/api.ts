@@ -38,6 +38,29 @@ export function clearTokens() {
 
 type TokenPayload = { accessToken: string; refreshToken: string; role?: string };
 
+export type AdminExperienceWrite = {
+  type: string;
+  title: string;
+  description?: string;
+  role?: string;
+  contribution?: string;
+  result?: string;
+  numericResult?: string;
+  starSituation?: string;
+  starTask?: string;
+  starAction?: string;
+  starResult?: string;
+  skills?: string[];
+  startDate?: string | null;
+  endDate?: string | null;
+};
+
+export type AdminExperience = AdminExperienceWrite & {
+  id: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -156,6 +179,30 @@ export const api = {
     enabled: boolean;
     createdAt?: string;
   }>>('/api/v1/admin/users'),
+  getUser: (id: string) =>
+    request<{
+      id: string;
+      email: string;
+      role: string;
+      name?: string;
+      phone?: string;
+      enabled: boolean;
+      createdAt?: string;
+    }>(`/api/v1/admin/users/${id}`),
+  listUserExperiences: (userId: string) =>
+    request<AdminExperience[]>(`/api/v1/admin/users/${userId}/experiences`),
+  createUserExperience: (userId: string, data: AdminExperienceWrite) =>
+    request<AdminExperience>(`/api/v1/admin/users/${userId}/experiences`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateUserExperience: (userId: string, experienceId: string, data: Partial<AdminExperienceWrite>) =>
+    request<AdminExperience>(`/api/v1/admin/users/${userId}/experiences/${experienceId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  deleteUserExperience: (userId: string, experienceId: string) =>
+    request<void>(`/api/v1/admin/users/${userId}/experiences/${experienceId}`, { method: 'DELETE' }),
   createUser: (data: { email: string; password: string; role?: string; name?: string }) =>
     request<{ id: string; email: string; role: string; enabled: boolean }>('/api/v1/admin/users', {
       method: 'POST',
