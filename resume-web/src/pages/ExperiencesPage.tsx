@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Info } from 'lucide-react';
+import { Download, Info } from 'lucide-react';
 import { api } from '@/lib/api';
 import { EXPERIENCE_TYPES } from '@/i18n';
 import {
@@ -36,41 +37,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-
-type ExperienceForm = {
-  type: string;
-  title: string;
-  description: string;
-  role: string;
-  result: string;
-  contribution: string;
-  numericResult: string;
-  starSituation: string;
-  starTask: string;
-  starAction: string;
-  starResult: string;
-  startDate: string;
-  endDate: string;
-  ongoing: boolean;
-};
-
-const emptyForm = (): ExperienceForm => ({
-  type: 'PROJECT',
-  title: '',
-  description: '',
-  role: '',
-  result: '',
-  contribution: '',
-  numericResult: '',
-  starSituation: '',
-  starTask: '',
-  starAction: '',
-  starResult: '',
-  startDate: '',
-  endDate: '',
-  ongoing: false,
-});
+import { ExperiencesMapView } from '@/components/experience/experiences-map-view';
+import { ExperienceChatPanel } from '@/components/experience/experience-chat-panel';
+import { ExperienceDetailModal } from '@/components/experience/experience-detail-modal';
+import type { ExperienceResponse } from '@/lib/api';
+import { loadStoredExperienceChatSessionId } from '@/lib/experience-chat-storage';
+import {
+  emptyExperienceForm,
+  isExperienceFormOverLimit,
+  payloadFromExperienceForm,
+  type ExperienceForm,
+} from '@/lib/experience-form';
+import { cn } from '@/lib/utils';
 
 function formatLocalDate(iso: string): string {
   const [y, m, d] = iso.split('-');
@@ -96,14 +76,53 @@ export default function ExperiencesPage() {
   const [showStar, setShowStar] = useState(false);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('ALL');
-  const [form, setForm] = useState<ExperienceForm>(emptyForm);
+  const [form, setForm] = useState<ExperienceForm>(emptyExperienceForm);
+  const [view, setView] = useState<'list' | 'map'>('list');
+  const [modalExperience, setModalExperience] = useState<ExperienceResponse | null>(null);
+  const [chatSessionId, setChatSessionId] = useState<string | null>(null);
 
   const { data: experiences = [], isLoading } = useQuery({
     queryKey: ['experiences'],
     queryFn: () => api.listExperiences(),
   });
 
+  useEffect(() => {
+    if (chatSessionId) return;
+    const stored = loadStoredExperienceChatSessionId();
+    if (!stored) return;
+    api
+      .getExperienceChatSession(stored)
+      .then(() => setChatSessionId(stored))
+      .catch(() => {
+        try {
+          localStorage.removeItem('rp-exp-chat-session');
+        } catch {
+          /* ignore */
+        }
+      });
+  }, [chatSessionId]);
+
   const atLibraryLimit = experiences.length >= MAX_LIBRARY_EXPERIENCES;
+
+  const attachChatSession = (session: { id: string }) => {
+    setChatSessionId(session.id);
+    queryClient.setQueryData(['experience-chat-session', session.id], session);
+    queryClient.invalidateQueries({ queryKey: ['experience-chat-sessions'] });
+  };
+
+  const continueCoachForExperience = async (exp: ExperienceResponse) => {
+    setModalExperience(null);
+    try {
+      const session = await api.resumeExperienceChatForExperience(exp.id);
+      attachChatSession(session);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('common.error'));
+    }
+  };
+
+  const startCoachForExperience = async (exp: ExperienceResponse) => {
+    await continueCoachForExperience(exp);
+  };
   const readyCount = experiences.filter((e) => experienceReadiness(e) === 'ready').length;
 
   const filtered = useMemo(() => {
@@ -132,22 +151,7 @@ export default function ExperiencesPage() {
   const { sorted, sortKey, direction, toggleSort } = useUrlSort(filtered, comparators, 'title');
   const { page, setPage, totalPages, paginated, from, to, total } = useUrlPagination(sorted, 10);
 
-  const payloadFromForm = () => ({
-    type: form.type,
-    title: form.title.trim(),
-    description: form.description.trim() || undefined,
-    role: form.role.trim() || undefined,
-    result: form.result.trim() || undefined,
-    contribution: form.contribution.trim() || undefined,
-    numericResult: form.numericResult.trim() || undefined,
-    starSituation: form.starSituation.trim() || undefined,
-    starTask: form.starTask.trim() || undefined,
-    starAction: form.starAction.trim() || undefined,
-    starResult: form.starResult.trim() || undefined,
-    startDate: form.startDate || undefined,
-    endDate: form.ongoing ? undefined : form.endDate || undefined,
-    ongoing: form.ongoing,
-  });
+  const payloadFromForm = () => payloadFromExperienceForm(form);
 
   const createMutation = useMutation({
     mutationFn: () => api.createExperience(payloadFromForm()),
@@ -195,7 +199,7 @@ export default function ExperiencesPage() {
     setShowForm(false);
     setEditingId(null);
     setShowStar(false);
-    setForm(emptyForm());
+    setForm(emptyExperienceForm());
   };
 
   const openCreate = () => {
@@ -204,45 +208,28 @@ export default function ExperiencesPage() {
       return;
     }
     setEditingId(null);
-    setForm(emptyForm());
+    setForm(emptyExperienceForm());
     setShowStar(false);
     setShowForm(true);
   };
 
-  const startEdit = (exp: (typeof experiences)[0]) => {
-    setForm({
-      type: exp.type,
-      title: exp.title,
-      description: exp.description ?? '',
-      role: exp.role ?? '',
-      result: exp.result ?? '',
-      contribution: exp.contribution ?? '',
-      numericResult: exp.numericResult ?? '',
-      starSituation: exp.starSituation ?? '',
-      starTask: exp.starTask ?? '',
-      starAction: exp.starAction ?? '',
-      starResult: exp.starResult ?? '',
-      startDate: exp.startDate ?? '',
-      endDate: exp.endDate ?? '',
-      ongoing: !exp.endDate,
-    });
-    setShowStar(Boolean(exp.starSituation || exp.starTask || exp.starAction || exp.starResult));
-    setEditingId(exp.id);
-    setShowForm(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const formOverLimit = isExperienceFormOverLimit(form);
+
+  const openExperienceModal = (exp: ExperienceResponse) => {
+    setModalExperience(exp);
   };
 
-  const formOverLimit =
-    form.title.length > EXPERIENCE_FIELD_LIMITS.title ||
-    form.description.length > EXPERIENCE_FIELD_LIMITS.description ||
-    form.role.length > EXPERIENCE_FIELD_LIMITS.role ||
-    form.result.length > EXPERIENCE_FIELD_LIMITS.result ||
-    form.contribution.length > EXPERIENCE_FIELD_LIMITS.contribution ||
-    form.numericResult.length > EXPERIENCE_FIELD_LIMITS.numericResult ||
-    form.starSituation.length > EXPERIENCE_FIELD_LIMITS.star ||
-    form.starTask.length > EXPERIENCE_FIELD_LIMITS.star ||
-    form.starAction.length > EXPERIENCE_FIELD_LIMITS.star ||
-    form.starResult.length > EXPERIENCE_FIELD_LIMITS.star;
+  const startNewChat = async () => {
+    if (atLibraryLimit) {
+      toast.error(t('experiences.limitReached', { max: MAX_LIBRARY_EXPERIENCES }));
+      return;
+    }
+    try {
+      attachChatSession(await api.createExperienceChatSession());
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('common.error'));
+    }
+  };
 
   const draftReadiness = experienceReadiness(form);
 
@@ -259,6 +246,12 @@ export default function ExperiencesPage() {
                 max: MAX_LIBRARY_EXPERIENCES,
               })}
             </Badge>
+            <Button type="button" variant="outline" asChild>
+              <Link to="/experiences/import">
+                <Download className="size-4" aria-hidden />
+                {t('experiences.import')}
+              </Link>
+            </Button>
             <Button
               type="button"
               variant="outline"
@@ -274,6 +267,9 @@ export default function ExperiencesPage() {
               onClick={() => (showForm ? closeForm() : openCreate())}
             >
               {showForm ? t('common.cancel') : t('experiences.add')}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => void startNewChat()}>
+              {t('experiences.chatStart')}
             </Button>
           </div>
         }
@@ -293,13 +289,17 @@ export default function ExperiencesPage() {
         </AlertDescription>
       </Alert>
 
-      {atLibraryLimit && !showForm ? (
-        <p className="text-sm text-amber-700 dark:text-amber-400">
-          {t('experiences.limitReached', { max: MAX_LIBRARY_EXPERIENCES })}
-        </p>
-      ) : null}
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_min(480px,38vw)] xl:items-stretch">
+        <div className="flex min-w-0 flex-col gap-4">
+      <Tabs value={view} onValueChange={(v) => setView(v as 'list' | 'map')}>
+        <TabsList>
+          <TabsTrigger value="list">{t('experiences.tabList')}</TabsTrigger>
+          <TabsTrigger value="map">{t('experiences.tabMap')}</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
-      {showForm && (
+      <div className="relative isolate overflow-hidden">
+      {showForm ? (
         <Card>
           <CardHeader>
             <CardTitle>{editingId ? t('common.edit') : t('experiences.add')}</CardTitle>
@@ -520,7 +520,17 @@ export default function ExperiencesPage() {
             </CardFooter>
           </form>
         </Card>
-      )}
+      ) : (
+        <>
+          <div
+            className={cn(view !== 'list' && 'invisible pointer-events-none')}
+            aria-hidden={view !== 'list'}
+          >
+      {atLibraryLimit ? (
+        <p className="mb-4 text-sm text-amber-700 dark:text-amber-400">
+          {t('experiences.limitReached', { max: MAX_LIBRARY_EXPERIENCES })}
+        </p>
+      ) : null}
 
       {isLoading ? (
         <DataTableCard>
@@ -590,7 +600,7 @@ export default function ExperiencesPage() {
                 {paginated.map((exp) => {
                   const readiness = experienceReadiness(exp);
                   return (
-                    <TableRow key={exp.id} className="cursor-pointer" onClick={() => startEdit(exp)}>
+                    <TableRow key={exp.id} className="cursor-pointer" onClick={() => openExperienceModal(exp)}>
                       <TableCell>
                         <StatusChip label={t(`experienceType.${exp.type}`, { defaultValue: exp.type })} variant="primary" />
                       </TableCell>
@@ -642,6 +652,48 @@ export default function ExperiencesPage() {
           )}
         </DataTableCard>
       )}
+          </div>
+          {view === 'map' ? (
+            <div className="absolute inset-0 z-10 min-h-0">
+              <ExperiencesMapView
+                experiences={experiences}
+                isLoading={isLoading}
+                onOpenExperience={openExperienceModal}
+                onAdd={openCreate}
+                className="h-full min-h-0"
+              />
+            </div>
+          ) : null}
+        </>
+      )}
+      </div>
+        </div>
+
+        <ExperienceChatPanel
+          sessionId={chatSessionId}
+          onSessionChange={setChatSessionId}
+          onApplied={() => queryClient.invalidateQueries({ queryKey: ['experiences'] })}
+          className="hidden min-h-0 xl:flex xl:h-full xl:self-stretch"
+        />
+      </div>
+
+      <ExperienceChatPanel
+        sessionId={chatSessionId}
+        onSessionChange={setChatSessionId}
+        onApplied={() => queryClient.invalidateQueries({ queryKey: ['experiences'] })}
+        className="xl:hidden h-[min(560px,70vh)]"
+      />
+
+      <ExperienceDetailModal
+        experience={modalExperience}
+        open={Boolean(modalExperience)}
+        onOpenChange={(open) => {
+          if (!open) setModalExperience(null);
+        }}
+        onUpdated={(exp) => setModalExperience(exp)}
+        onCoach={(exp) => void startCoachForExperience(exp)}
+        onContinueChat={(exp) => void continueCoachForExperience(exp)}
+      />
     </PageShell>
   );
 }

@@ -1,0 +1,31 @@
+---
+description: 사용자-facing 문구·AI reply — 쉬운 말만
+alwaysApply: true
+---
+
+# 사용자-facing 언어 (ResumePilot)
+
+**대상:** resume-web, resume-admin UI · toast · 안내 · AI가 사용자에게 보여주는 `reply` · API 오류 메시지(사용자 노출)
+
+## 반드시 지킬 것
+
+1. **전문 용어·약어를 사용자에게 쓰지 않는다.**
+   - 금지 예: STAR, RAG, draft, JSON, API, 임베딩, 토큰, LLM, 프롬프트, failover, pgvector
+   - 대신 풀어 쓴다: 「상황·과제·행동·결과」, 「경험 라이브러리」, 「지금 정리 중인 경험」, 「추천」
+
+2. **영문 필드명·코드 식별자를 UI에 노출하지 않는다.**
+   - `starSituation`, `missingFields` 등은 내부/API만. 화면에는 「상황」「과제」 등 한글 라벨.
+
+3. **i18n 우선** — 사용자 문구는 `resume-web/src/i18n/locales/*.json` (하드코딩 지양).
+
+4. **AI reply·웰컴 메시지** — EXPERIENCE_COACH 등 사용자 대화 프롬프트의 Guard에 동일 규칙 반영. DB prompt-service 템플릿 수정 시 Flyway 또는 Admin 버전으로.
+
+## 내부·개발자용은 예외
+
+- 코드·DB 컬럼·Admin 기술 설정·docs/아키텍처·커밋·에이전트 간 대화에는 기술 용어 사용 가능.
+
+## 검토 체크
+
+- 새 UI 문자열에 약어가 있는가?
+- AI가 사용자에게 「draft」「STAR」라고 말하는가?
+- 오류 메시지가 개발자용인가?

@@ -9,7 +9,8 @@ import {
   Settings,
   Sparkles,
 } from 'lucide-react';
-import { appSidebarGroups } from '@/config/navigation';
+import { buildAppSidebarGroups } from '@/config/navigation';
+import { useOnboardingFlowPending } from '@/lib/onboarding-flow';
 import {
   Dialog,
   DialogContent,
@@ -34,9 +35,12 @@ export function CommandMenu() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
 
+  const showQuickStart = useOnboardingFlowPending();
+
   const items: CommandItem[] = useMemo(() => {
     const nav: CommandItem[] = [];
-    appSidebarGroups.forEach((group) => {
+    const groups = showQuickStart ? buildAppSidebarGroups({ showQuickStart: true }) : buildAppSidebarGroups();
+    groups.forEach((group) => {
       group.items.forEach((item) => {
         nav.push({
           id: item.to,
@@ -48,7 +52,7 @@ export function CommandMenu() {
       });
     });
     return nav;
-  }, [t]);
+  }, [t, showQuickStart]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {

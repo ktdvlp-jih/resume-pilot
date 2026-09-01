@@ -50,6 +50,8 @@ services:
       LLM_ENCRYPTION_KEY: ${LLM_ENCRYPTION_KEY:-}
       QNET_LOOKUP_ENABLED: ${QNET_LOOKUP_ENABLED:-false}
       QNET_SERVICE_KEY: ${QNET_SERVICE_KEY:-}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-https://resume.ggury.com}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-https://resume.ggury.com}
     ports:
       - "${APP_PORT:-9180}:8080"
 

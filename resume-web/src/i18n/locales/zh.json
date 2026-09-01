@@ -54,12 +54,15 @@
     "calendar": "招聘日历",
     "tools": "工具",
     "dashboard": "仪表盘",
+    "quickStart": "1分钟开始",
     "jobPostings": "招聘公告",
     "experiences": "经历库",
     "roleGuide": "岗位用法",
     "writingStyle": "文风分析",
     "workspace": "工作区",
+    "billing": "充值",
     "settings": "设置",
+    "login": "登录",
     "profile": "个人资料",
     "logout": "退出登录",
     "lightMode": "浅色模式",
@@ -124,6 +127,12 @@
     "step3Desc": "在工作区中 AI 生成。",
     "step3Cta": "打开工作区",
     "dismiss": "关闭指南"
+  },
+  "onboardingFlow": {
+    "bannerTitle": "用招聘链接1分钟开始",
+    "bannerDesc": "粘贴链接即可开始分析，经历可稍后补充。",
+    "bannerCta": "1分钟开始",
+    "bannerDismiss": "关闭"
   },
   "experienceType": {
     "PROJECT": "项目",

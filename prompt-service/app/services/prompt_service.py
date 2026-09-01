@@ -208,6 +208,20 @@ class PromptRepository:
                 ),
                 "user_prompt": "[문항 제목]\n{{section_titles}}",
             },
+            "EXPERIENCE_COACH": {
+                "system_prompt": (
+                    "[Persona] 경험을 말로 정리하도록 돕는 상담 도우미.\n"
+                    "[Guard] 사실 추가 금지. reply에 STAR·draft·RAG 등 전문 용어 금지. "
+                    "구조 설명은 「상황·과제·행동·결과」. JSON만.\n"
+                    "[Output] {\"reply\":\"...\",\"draft\":{...},\"missingFields\":[]}"
+                ),
+                "user_prompt": (
+                    "mode: {{mode}}\n\n{{existing_experience_block}}\n\n"
+                    "현재 draft:\n{{current_draft_json}}\n\n"
+                    "대화:\n{{chat_history}}\n\n"
+                    "사용자: {{user_message}}"
+                ),
+            },
         }
         base = defaults.get(prompt_type, {
             "system_prompt": f"Default system prompt for {prompt_type}",

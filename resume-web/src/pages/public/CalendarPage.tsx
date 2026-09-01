@@ -6,7 +6,7 @@ import { api, getAccessToken, type JobPostingResponse, type PublicJobPostingResp
 import { PublicPage } from '@/components/layout/public-page';
 import { PageShell } from '@/components/common/page-shell';
 import { EmptyState } from '@/components/common/empty-state';
-import { JobMonthView, type CalendarJob } from '@/components/calendar/job-month-view';
+import { JobMonthGrid, JobMonthNav, type CalendarJob } from '@/components/calendar/job-month-view';
 import { dateKeyFromInstant, formatDayTitle, parseDateKey, todayKey } from '@/lib/calendar-month';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -88,6 +88,11 @@ export default function CalendarPage({ embedded = false }: { embedded?: boolean 
   const today = todayKey();
   const [selectedKey, setSelectedKey] = useState(today);
   const jumpedToDeadline = useRef(false);
+  const calendarGridRef = useRef<HTMLDivElement>(null);
+  const [sidePanelHeight, setSidePanelHeight] = useState<number>();
+  const [isWideLayout, setIsWideLayout] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 1280px)').matches : false,
+  );
 
   const { dated, undated } = useMemo(() => groupByDeadline(rows), [rows]);
   const selectedJobs = dated.get(selectedKey) ?? [];
@@ -102,6 +107,32 @@ export default function CalendarPage({ embedded = false }: { embedded?: boolean 
     setSelectedKey(nearestDateKey(dated, todayKey()));
     jumpedToDeadline.current = true;
   }, [dated, view]);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1280px)');
+    const onChange = () => setIsWideLayout(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  useEffect(() => {
+    const node = calendarGridRef.current;
+    if (!node) return;
+
+    const syncHeight = () => {
+      setSidePanelHeight(node.getBoundingClientRect().height);
+    };
+
+    syncHeight();
+    const observer = new ResizeObserver(syncHeight);
+    observer.observe(node);
+    window.addEventListener('resize', syncHeight);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', syncHeight);
+    };
+  }, [cursor.year, cursor.month, dated, selectedKey, view, rows.length]);
 
   const setView = (next: string) => {
     const nextParams = new URLSearchParams(params);
@@ -190,58 +221,69 @@ export default function CalendarPage({ embedded = false }: { embedded?: boolean 
           }
         />
       ) : (
-        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)]">
-          <div className="flex flex-col gap-3">
-            {dated.size === 0 && (
-              <p className="text-sm text-muted-foreground">{t('calendar.noDatedHint')}</p>
-            )}
-            <JobMonthView
+        <div className="flex flex-col gap-3">
+          {dated.size === 0 && (
+            <p className="text-sm text-muted-foreground">{t('calendar.noDatedHint')}</p>
+          )}
+          <div className="grid gap-x-6 gap-y-3 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)] xl:items-start">
+            <JobMonthNav
+              className="col-start-1 row-start-1"
               cursor={{ year: cursor.year, month: cursor.month }}
-              selectedKey={selectedKey}
               onSelect={setSelectedKey}
-              byDate={dated}
               locale={locale}
             />
-          </div>
-          <div className="flex flex-col gap-4 xl:sticky xl:top-20">
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  <h2 className="text-base font-medium">{formatDayTitle(selectedKey, locale)}</h2>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {selectedJobs.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">{t('calendar.selectedEmpty')}</p>
-                ) : (
-                  <ul className="flex max-h-80 flex-col gap-2 overflow-y-auto">
-                    {selectedJobs.map((job, i) => renderJob(job, 'day', i, false))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
-            {undated.length > 0 && (
-              <Card>
-                <CardHeader>
+            <div ref={calendarGridRef} className="col-start-1 row-start-2">
+              <JobMonthGrid
+                cursor={{ year: cursor.year, month: cursor.month }}
+                selectedKey={selectedKey}
+                onSelect={setSelectedKey}
+                byDate={dated}
+                locale={locale}
+              />
+            </div>
+            <aside
+              className="col-start-1 row-start-3 flex flex-col gap-4 xl:col-start-2 xl:row-start-2 xl:min-h-0 xl:overflow-hidden"
+              style={isWideLayout && sidePanelHeight ? { height: sidePanelHeight } : undefined}
+            >
+              <Card className="shrink-0">
+                <CardHeader className="pb-3">
                   <CardTitle>
-                    <h2 className="text-base font-medium">{t('calendar.undatedTitle')}</h2>
+                    <h2 className="text-base font-medium">{formatDayTitle(selectedKey, locale)}</h2>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="flex flex-col gap-2">
-                  <p className="text-xs text-muted-foreground">{t('calendar.undatedHint')}</p>
-                  <ul className="flex max-h-64 flex-col gap-2 overflow-y-auto">
-                    {undated.map((job, i) => renderJob(job, 'undated', i, true))}
-                  </ul>
+                <CardContent>
+                  {selectedJobs.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">{t('calendar.selectedEmpty')}</p>
+                  ) : (
+                    <ul className="flex max-h-36 flex-col gap-2 overflow-y-auto">
+                      {selectedJobs.map((job, i) => renderJob(job, 'day', i, false))}
+                    </ul>
+                  )}
                 </CardContent>
               </Card>
+              {undated.length > 0 ? (
+                <Card className="flex min-h-0 flex-1 flex-col">
+                  <CardHeader className="pb-3">
+                    <CardTitle>
+                      <h2 className="text-base font-medium">{t('calendar.undatedTitle')}</h2>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex min-h-0 flex-1 flex-col gap-2">
+                    <p className="shrink-0 text-xs text-muted-foreground">{t('calendar.undatedHint')}</p>
+                    <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
+                      {undated.map((job, i) => renderJob(job, 'undated', i, true))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              ) : null}
+            </aside>
+            {!guestMine && rows.length > 0 && (
+              <Button variant="outline" className="col-start-1 row-start-4 w-full xl:row-start-3" asChild>
+                <Link to={ctaTo}>{ctaLabel}</Link>
+              </Button>
             )}
           </div>
         </div>
-      )}
-      {!guestMine && rows.length > 0 && (
-        <Button variant="outline" asChild>
-          <Link to={ctaTo}>{ctaLabel}</Link>
-        </Button>
       )}
     </>
   );

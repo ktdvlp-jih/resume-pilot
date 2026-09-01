@@ -16,6 +16,10 @@ public enum ErrorCode {
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "Invalid email or password"),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN", "Invalid or expired token"),
     AI_SERVICE_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "AI_SERVICE_ERROR", "AI service unavailable"),
+    INSUFFICIENT_BALANCE(HttpStatus.PAYMENT_REQUIRED, "INSUFFICIENT_BALANCE", "Insufficient token or count balance"),
+    PAYMENT_NOT_CONFIGURED(HttpStatus.SERVICE_UNAVAILABLE, "PAYMENT_NOT_CONFIGURED", "Payment is not configured"),
+    PAYMENT_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "PAYMENT_AMOUNT_MISMATCH", "Payment amount mismatch"),
+    PAYMENT_ALREADY_PROCESSING(HttpStatus.CONFLICT, "PAYMENT_ALREADY_PROCESSING", "Payment already processing"),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "Internal server error");
 
     private final HttpStatus status;

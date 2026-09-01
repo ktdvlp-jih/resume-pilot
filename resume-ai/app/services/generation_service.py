@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Any
 
@@ -764,6 +765,101 @@ class HumanizeService:
         return next_content, applied
 
 
+class ExperienceCoachService:
+    """대화로 경험 draft를 정리한다. 사실 추가 금지."""
+
+    EXPERIENCE_TYPES = {
+        "PROJECT", "ACHIEVEMENT", "COLLABORATION", "CONFLICT_RESOLUTION",
+        "PROBLEM_SOLVING", "LEADERSHIP", "TECHNOLOGY", "OTHER",
+    }
+
+    async def coach(self, payload: dict[str, Any]) -> dict[str, Any]:
+        if not await llm_service.has_routes("EXPERIENCE_CHAT"):
+            raise RuntimeError("LLM routes unavailable for EXPERIENCE_CHAT")
+
+        mode = str(payload.get("mode") or "create")
+        user_message = str(payload.get("user_message") or "").strip()
+        if not user_message:
+            raise RuntimeError("user_message is required")
+
+        current_draft = payload.get("current_draft")
+        if not isinstance(current_draft, dict):
+            current_draft = {}
+
+        history_raw = payload.get("chat_history")
+        history_lines: list[str] = []
+        if isinstance(history_raw, list):
+            for item in history_raw[-20:]:
+                if not isinstance(item, dict):
+                    continue
+                role = str(item.get("role") or "user")
+                content = str(item.get("content") or "").strip()
+                if content:
+                    prefix = "나" if role == "user" else "도우미"
+                    history_lines.append(f"{prefix}: {content}")
+
+        existing = payload.get("existing_experience")
+        existing_block = ""
+        if isinstance(existing, dict) and existing:
+            existing_block = "기존 경험 (JSON):\n" + json.dumps(existing, ensure_ascii=False, indent=2)
+
+        variables = {
+            "mode": mode,
+            "existing_experience_block": existing_block or "(없음)",
+            "current_draft_json": json.dumps(current_draft, ensure_ascii=False, indent=2),
+            "chat_history": "\n".join(history_lines) if history_lines else "(없음)",
+            "user_message": user_message,
+        }
+        prompt = await prompt_client.render("EXPERIENCE_COACH", variables)
+        parsed, completion = await llm_service.complete_json_value_for_operation(
+            "EXPERIENCE_CHAT",
+            prompt["system_prompt"],
+            prompt["user_prompt"],
+            temperature=0.35,
+        )
+        if not isinstance(parsed, dict):
+            raise RuntimeError(
+                f"EXPERIENCE_CHAT returned unparseable response: {(completion.content or '')[:200]}"
+            )
+        return {
+            "reply": str(parsed.get("reply") or "").strip(),
+            "draft": self.normalize_draft(parsed.get("draft")),
+            "missingFields": self.normalize_missing(parsed.get("missingFields")),
+            "model": completion.model,
+        }
+
+    @classmethod
+    def normalize_draft(cls, raw: Any) -> dict[str, Any]:
+        if not isinstance(raw, dict):
+            return {}
+        out: dict[str, Any] = {}
+        for key in (
+            "type", "title", "description", "role", "contribution", "result",
+            "numericResult", "starSituation", "starTask", "starAction", "starResult",
+            "startDate", "endDate",
+        ):
+            val = raw.get(key)
+            if val is not None and str(val).strip():
+                out[key] = str(val).strip()
+        exp_type = str(out.get("type") or "PROJECT").strip().upper()
+        out["type"] = exp_type if exp_type in cls.EXPERIENCE_TYPES else "PROJECT"
+        skills_raw = raw.get("skills")
+        skills: list[str] = []
+        if isinstance(skills_raw, list):
+            for s in skills_raw:
+                name = str(s or "").strip()
+                if name and name not in skills:
+                    skills.append(name)
+        out["skills"] = skills
+        return out
+
+    @staticmethod
+    def normalize_missing(raw: Any) -> list[str]:
+        if not isinstance(raw, list):
+            return []
+        return [str(v).strip() for v in raw if str(v or "").strip()]
+
+
 generation_service = GenerationService()
 detection_service = DetectionService()
 humanize_service = HumanizeService()
@@ -772,3 +868,4 @@ interview_service = InterviewService()
 keyword_service = KeywordService()
 portfolio_review_service = PortfolioReviewService()
 section_analysis_service = SectionAnalysisService()
+experience_coach_service = ExperienceCoachService()

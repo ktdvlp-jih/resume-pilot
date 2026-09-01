@@ -16,5 +16,6 @@ alwaysApply: false
 - DB: asyncpg pool, resume-api Flyway 스키마 공유
 - LLM: 외부 OpenAI 호환 API 호출. 모델·키는 Admin `/admin/llm-settings` (`runtime-config`). 로컬 가중치 호스팅 아님.
 - `OPENAI_API_KEY` / `OPENAI_BASE_URL` / `OPENAI_MODEL` 은 env 폴백 전용 (운영에서는 비움)
+- 사용자에게 보이는 AI `reply`·오류 메시지: **쉬운 말만** (`user-facing-language.mdc`)
 
 변경 후 해당 서비스에서 `uvicorn app.main:app --reload --port <port>` 또는 pytest.

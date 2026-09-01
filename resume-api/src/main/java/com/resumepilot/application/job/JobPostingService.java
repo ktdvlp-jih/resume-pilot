@@ -1,9 +1,12 @@
 package com.resumepilot.application.job;
 
+import com.resumepilot.application.billing.BillingGuard;
+import com.resumepilot.application.billing.ConsumptionHold;
 import com.resumepilot.application.company.CompanyService;
 import com.resumepilot.domain.admin.AiUsageLog;
 import com.resumepilot.domain.admin.AiUsageLogRepository;
 import com.resumepilot.domain.company.*;
+import com.resumepilot.domain.llm.LlmOperation;
 import com.resumepilot.domain.user.User;
 import com.resumepilot.domain.user.UserRepository;
 import com.resumepilot.global.exception.BusinessException;
@@ -34,6 +37,7 @@ public class JobPostingService {
     private final AiGatewayClient aiGatewayClient;
     private final DocumentExtractor documentExtractor;
     private final AiUsageLogRepository usageLogRepository;
+    private final BillingGuard billingGuard;
 
     @Transactional(readOnly = true)
     public List<JobPostingResponse> list(UUID userId) {
@@ -71,9 +75,17 @@ public class JobPostingService {
                 .build();
         jobPostingRepository.save(posting);
 
-        Map<String, Object> aiResult = analyzeWithAi(request.sourceType().name(), content, request.sourceUrl(), null, null);
+        ConsumptionHold hold = billingGuard.consume(userId, LlmOperation.JOB_ANALYSIS);
+        Map<String, Object> aiResult;
+        try {
+            aiResult = analyzeWithAi(request.sourceType().name(), content, request.sourceUrl(), null, null);
+        } catch (RuntimeException e) {
+            billingGuard.refund(hold);
+            throw e;
+        }
         logUsage(userId, request.sourceType().name(), startedAt, !aiResult.containsKey("error"), aiResult);
         if (request.sourceType() == JobSourceType.URL && aiResult.containsKey("error")) {
+            billingGuard.refund(hold);
             throw new BusinessException(
                     ErrorCode.INVALID_INPUT,
                     "채용공고 URL에서 본문을 가져오지 못했습니다. 링크를 확인하거나 텍스트로 붙여넣어 주세요."
@@ -120,13 +132,20 @@ public class JobPostingService {
                 .build();
         jobPostingRepository.save(posting);
 
-        Map<String, Object> aiResult = analyzeWithAi(
-                sourceType.name(),
-                doc.text() != null ? doc.text() : "",
-                null,
-                doc.fileBase64(),
-                doc.mimeType()
-        );
+        ConsumptionHold hold = billingGuard.consume(userId, LlmOperation.JOB_ANALYSIS);
+        Map<String, Object> aiResult;
+        try {
+            aiResult = analyzeWithAi(
+                    sourceType.name(),
+                    doc.text() != null ? doc.text() : "",
+                    null,
+                    doc.fileBase64(),
+                    doc.mimeType()
+            );
+        } catch (RuntimeException e) {
+            billingGuard.refund(hold);
+            throw e;
+        }
         logUsage(userId, sourceType.name(), startedAt, !aiResult.containsKey("error"), aiResult);
         Object rawFromAi = aiResult.get("raw_content");
         if (rawFromAi != null && !String.valueOf(rawFromAi).isBlank()) {
@@ -250,13 +269,20 @@ public class JobPostingService {
     public JobAnalysisResponse reanalyze(UUID userId, UUID jobPostingId) {
         long startedAt = System.currentTimeMillis();
         JobPosting posting = getOwned(userId, jobPostingId);
-        Map<String, Object> aiResult = analyzeWithAi(
-                posting.getSourceType().name(),
-                posting.getRawContent(),
-                posting.getSourceUrl(),
-                null,
-                null
-        );
+        ConsumptionHold hold = billingGuard.consume(userId, LlmOperation.JOB_ANALYSIS);
+        Map<String, Object> aiResult;
+        try {
+            aiResult = analyzeWithAi(
+                    posting.getSourceType().name(),
+                    posting.getRawContent(),
+                    posting.getSourceUrl(),
+                    null,
+                    null
+            );
+        } catch (RuntimeException e) {
+            billingGuard.refund(hold);
+            throw e;
+        }
         logUsage(userId, posting.getSourceType().name(), startedAt, !aiResult.containsKey("error"), aiResult);
         posting.setParsedJson(aiResult);
         Company company = companyService.upsertFromAnalysis(aiResult);

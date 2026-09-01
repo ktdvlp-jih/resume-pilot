@@ -10,5 +10,6 @@ public enum LlmOperation {
     KEYWORD_COMPARE,
     PORTFOLIO_REVIEW,
     SECTION_ANALYSIS,
+    EXPERIENCE_CHAT,
     EMBEDDING
 }

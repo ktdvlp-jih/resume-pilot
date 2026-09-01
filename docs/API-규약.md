@@ -76,6 +76,11 @@ Authorization: Bearer <access_token>
 | POST | `/ai/interview-questions` | Interview question generation |
 | POST | `/ai/compare-keywords` | Posting↔resume keyword comparison |
 | GET | `/ai/generations` | My generation history |
+| GET | `/payments/client-key` | Toss client key (public, no secret) |
+| GET | `/billing/products` | Enabled products (public) |
+| GET | `/billing/wallet` | Token + count balances (auth) |
+| POST | `/payments/orders` | Create order from product (auth) |
+| POST | `/payments/confirm` | Confirm Toss payment + grant lots (auth) |
 
 ## Admin Endpoints
 
@@ -85,11 +90,14 @@ All under `/admin/**`. Full `ADMIN` sees every path. `USER_ADMIN` is limited to 
 |------|-------------|
 | `/admin/prompts` (+ `/{templateId}/versions`, `/versions/{versionId}/activate`, `/test`) | Prompt management |
 | `/admin/forbidden-expressions` | Forbidden expressions |
-| `/admin/users` (+ `/{id}`, `/{id}/experiences`, `/{id}/role`, `/{id}/enabled`) | User accounts. `ADMIN` and `USER_ADMIN`. Experience CRUD fills that user's library (`USER_ADMIN`: regular `USER` only). |
+| `/admin/users` (+ `/{id}`, `/{id}/experiences`, `/{id}/role`, `/{id}/enabled`, `/{id}/wallet`, `/{id}/entitlements`) | User accounts. `ADMIN` and `USER_ADMIN`. Wallet/grant: token·count packs. |
 | `/admin/companies` | Company management |
 | `/admin/ai-logs` | AI usage logs |
 | `/admin/ai-logs/section-length` | 문항별 생성 목표/실제 글자 수 집계 |
 | `/admin/llm/providers`, `/admin/llm/routes` | LLM provider keys & per-task model routes (failover) |
+| `/admin/integration-settings` | Toss Payments keys (AES-GCM, masked secrets) |
+| `/admin/billing/products`, `/admin/billing/operation-costs` | Token/count products & per-operation token costs |
+| `/admin/payments`, `/admin/payments/{id}/cancel` | Payment list & full cancel |
 | `/admin/deploy-ci-settings` | Deploy CI toggle settings |
 
 ## Internal Endpoints
@@ -139,6 +147,10 @@ Each FastAPI service exposes:
 | EMAIL_ALREADY_EXISTS | 409 | Email taken |
 | INVALID_CREDENTIALS | 401 | Wrong email/password |
 | INVALID_TOKEN | 401 | Expired/invalid token |
+| INSUFFICIENT_BALANCE | 402 | Not enough tokens or feature counts |
+| PAYMENT_AMOUNT_MISMATCH | 400 | Confirm amount ≠ order amount |
+| PAYMENT_NOT_CONFIGURED | 503 | Toss keys missing in integration settings |
+| PAYMENT_ALREADY_PROCESSING | 409 | Toss already processing / idempotent confirm |
 
 ## Versioning
 

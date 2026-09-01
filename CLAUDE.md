@@ -28,5 +28,6 @@
 3. AI 호출은 `ai_usage_logs`에 기록
 4. Flyway 마이그레이션은 **resume-api**만 소유
 5. LLM은 **외부 API 호출** (Admin `/admin/llm-settings`). 서버에 모델 가중치를 올리지 않음
+6. 사용자 UI·AI reply에는 **쉬운 말만** — STAR·RAG·draft 등 전문 용어 금지 (`.cursor/rules/user-facing-language.mdc`)
 
 영역별 세부 규칙: `.claude/rules/` (백엔드·프론트·AI 서비스·비밀정보·커밋 규칙)

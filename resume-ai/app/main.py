@@ -15,6 +15,7 @@ from app.services.generation_service import (
     portfolio_review_service,
     review_service,
     section_analysis_service,
+    experience_coach_service,
 )
 from app.services.job_analysis_service import job_analysis_service
 from app.services.writing_style_service import writing_style_service
@@ -80,6 +81,14 @@ class PortfolioReviewRequest(BaseModel):
 
 class SectionAnalysisRequest(BaseModel):
     section_titles: list[str] = []
+
+
+class ExperienceCoachRequest(BaseModel):
+    mode: str = "create"
+    user_message: str
+    current_draft: dict[str, Any] = Field(default_factory=dict)
+    chat_history: list[dict[str, str]] = Field(default_factory=list)
+    existing_experience: dict[str, Any] | None = None
 
 
 class JobAnalyzeRequest(BaseModel):
@@ -158,3 +167,8 @@ async def review_portfolio(request: PortfolioReviewRequest):
 @app.post("/analyze/sections")
 async def analyze_sections(request: SectionAnalysisRequest):
     return ApiResponse(data=await section_analysis_service.analyze(request.section_titles))
+
+
+@app.post("/coach/experience")
+async def coach_experience(request: ExperienceCoachRequest):
+    return ApiResponse(data=await experience_coach_service.coach(request.model_dump()))

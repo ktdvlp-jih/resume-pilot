@@ -2,7 +2,11 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { CareerPortfolio } from '@/lib/career-portfolio';
 import { portfolioCompletion, certificationDisplayText } from '@/lib/career-portfolio';
-import { brandSurfaceClass, brandSurfaceMutedClass } from '@/lib/brand-surface';
+import {
+  brandSurfaceActionButtonClass,
+  brandSurfaceClass,
+  brandSurfaceMutedClass,
+} from '@/lib/brand-surface';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,8 +40,8 @@ export function CareerPortfolioOverview({ name, portfolio }: Props) {
                 <div className="text-3xl font-bold">{pct}%</div>
                 <div className={cn('text-xs', brandSurfaceMutedClass)}>{t('portfolio.completion')}</div>
               </div>
-              <Button variant="secondary" asChild>
-                <Link to="/settings">{t('portfolio.edit')}</Link>
+              <Button variant="outline" className={brandSurfaceActionButtonClass} asChild>
+                <Link to="/portfolio">{t('portfolio.edit')}</Link>
               </Button>
             </div>
           </div>

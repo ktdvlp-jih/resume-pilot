@@ -381,4 +381,113 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify({ routes }),
     }),
+  listIntegrationSettings: () =>
+    request<Array<{
+      key: string;
+      category: string;
+      secret: boolean;
+      configured: boolean;
+      displayValue: string;
+    }>>('/api/v1/admin/integration-settings'),
+  getIntegrationOAuthHints: () =>
+    request<{
+      publicApiUrl: string;
+      notionRedirectUri: string;
+      githubRedirectUri: string;
+      notionRedirectTemplate: string;
+      githubRedirectTemplate: string;
+    }>('/api/v1/admin/integration-settings/oauth-hints'),
+  updateIntegrationSettings: (items: Array<{ key: string; value: string }>) =>
+    request<Array<{
+      key: string;
+      category: string;
+      secret: boolean;
+      configured: boolean;
+      displayValue: string;
+    }>>('/api/v1/admin/integration-settings', {
+      method: 'PATCH',
+      body: JSON.stringify({ items }),
+    }),
+  revealIntegrationSettingKey: (key: string) =>
+    request<{ key: string; value: string }>(`/api/v1/admin/integration-settings/${encodeURIComponent(key)}/reveal`),
+  listBillingProducts: () =>
+    request<Array<{
+      id: string;
+      name: string;
+      kind: string;
+      operation?: string;
+      grantAmount: number;
+      priceKrw: number;
+      enabled: boolean;
+      sortOrder: number;
+    }>>('/api/v1/admin/billing/products'),
+  upsertBillingProduct: (data: {
+    id?: string;
+    name: string;
+    kind: string;
+    operation?: string;
+    grantAmount: number;
+    priceKrw: number;
+    enabled?: boolean;
+    sortOrder?: number;
+  }) =>
+    request<{
+      id: string;
+      name: string;
+      kind: string;
+      operation?: string;
+      grantAmount: number;
+      priceKrw: number;
+      enabled: boolean;
+      sortOrder: number;
+    }>('/api/v1/admin/billing/products', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  listOperationCosts: () =>
+    request<Array<{ operation: string; tokenCost: number }>>('/api/v1/admin/billing/operation-costs'),
+  updateOperationCost: (operation: string, tokenCost: number) =>
+    request<{ operation: string; tokenCost: number }>(`/api/v1/admin/billing/operation-costs/${operation}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ tokenCost }),
+    }),
+  listPayments: () =>
+    request<Array<{
+      id: string;
+      userId: string;
+      productId: string;
+      productName: string;
+      orderId: string;
+      amountKrw: number;
+      refundedAmountKrw: number;
+      status: string;
+      createdAt: string;
+      cancelledAt?: string;
+    }>>('/api/v1/admin/payments'),
+  cancelPayment: (id: string, reason?: string) =>
+    request<{
+      id: string;
+      status: string;
+    }>(`/api/v1/admin/payments/${id}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+  getUserWallet: (userId: string) =>
+    request<{
+      tokenBalance: number;
+      countBalances: Record<string, number>;
+      operationCosts: Array<{ operation: string; tokenCost: number }>;
+    }>(`/api/v1/admin/users/${userId}/wallet`),
+  grantUserEntitlement: (
+    userId: string,
+    data: { kind: string; operation?: string; amount: number; note?: string },
+  ) =>
+    request<{
+      tokenBalance: number;
+      countBalances: Record<string, number>;
+      operationCosts: Array<{ operation: string; tokenCost: number }>;
+    }>(`/api/v1/admin/users/${userId}/entitlements`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };

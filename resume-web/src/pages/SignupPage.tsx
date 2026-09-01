@@ -24,7 +24,7 @@ export default function SignupPage() {
     try {
       const tokens = await api.signup(email, password, name);
       setTokens(tokens.accessToken, tokens.refreshToken, tokens.userId);
-      window.location.assign('/dashboard');
+      window.location.assign('/onboarding');
     } catch (err) {
       setError(err instanceof Error ? err.message : t('auth.signupFailed'));
     } finally {

@@ -1,10 +1,13 @@
 package com.resumepilot.presentation.controller;
 
+import com.resumepilot.application.experience.ExperienceChatService;
 import com.resumepilot.application.experience.ExperienceService;
 import com.resumepilot.domain.experience.ExperienceType;
 import com.resumepilot.global.config.SecurityUtils;
 import com.resumepilot.global.response.ApiResponse;
 import com.resumepilot.presentation.dto.experience.ExperienceCreateRequest;
+import com.resumepilot.presentation.dto.experience.ExperienceChatSessionDetailResponse;
+import com.resumepilot.presentation.dto.experience.ExperienceChatSessionSummaryResponse;
 import com.resumepilot.presentation.dto.experience.ExperienceResponse;
 import com.resumepilot.presentation.dto.experience.ExperienceUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,6 +26,7 @@ import java.util.UUID;
 public class ExperienceController {
 
     private final ExperienceService experienceService;
+    private final ExperienceChatService experienceChatService;
 
     @GetMapping
     @Operation(summary = "경험 목록")
@@ -67,5 +71,18 @@ public class ExperienceController {
     public ApiResponse<Void> embed(@PathVariable UUID id) {
         experienceService.embed(SecurityUtils.getCurrentUserId(), id);
         return ApiResponse.ok(null);
+    }
+
+    @GetMapping("/{id}/chat-session")
+    @Operation(summary = "경험에 연결된 최근 대화")
+    public ApiResponse<ExperienceChatSessionSummaryResponse> getChatSession(@PathVariable UUID id) {
+        return ApiResponse.ok(experienceChatService.findSessionForExperience(SecurityUtils.getCurrentUserId(), id));
+    }
+
+    @PostMapping("/{id}/chat-session/resume")
+    @Operation(summary = "경험 대화 이어가기")
+    public ApiResponse<ExperienceChatSessionDetailResponse> resumeChatSession(@PathVariable UUID id) {
+        return ApiResponse.ok(
+                experienceChatService.resumeOrCreateForExperience(SecurityUtils.getCurrentUserId(), id));
     }
 }

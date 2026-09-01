@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { ChevronsUpDown, LogOut, Settings } from 'lucide-react';
 import { LogoMark } from '@/components/Logo';
 import { api, clearTokens } from '@/lib/api';
-import { appSidebarGroups, isNavActive } from '@/config/navigation';
+import { appSidebarGroups, buildAppSidebarGroups, isNavActive } from '@/config/navigation';
+import { useOnboardingFlowPending } from '@/lib/onboarding-flow';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -108,14 +109,16 @@ function SidebarUserMenu() {
 export function AppSidebar() {
   const { t } = useTranslation();
   const location = useLocation();
+  const showQuickStart = useOnboardingFlowPending();
+  const sidebarGroups = showQuickStart ? buildAppSidebarGroups({ showQuickStart: true }) : appSidebarGroups;
 
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild tooltip={t('app.name')} className="rounded-lg [&_svg]:size-8">
-              <Link to="/dashboard" aria-label={t('app.name')}>
+            <SidebarMenuButton size="lg" asChild tooltip={t('nav.intro')} className="rounded-lg [&_svg]:size-8">
+              <Link to="/" aria-label={t('nav.intro')}>
                 <LogoMark size={32} />
                 <span className="truncate font-semibold">{t('app.name')}</span>
               </Link>
@@ -124,7 +127,7 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        {appSidebarGroups.map((group) => (
+        {sidebarGroups.map((group) => (
           <SidebarGroup key={group.labelKey}>
             <SidebarGroupLabel>{t(group.labelKey)}</SidebarGroupLabel>
             <SidebarGroupContent>

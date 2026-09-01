@@ -3,8 +3,10 @@ import {
   BookOpen,
   Briefcase,
   CalendarDays,
+  FileText,
   LayoutDashboard,
   PenLine,
+  Rocket,
   Settings,
   Sparkles,
 } from 'lucide-react';
@@ -44,8 +46,13 @@ export function flattenAppNav(): NavItem[] {
   return items;
 }
 
-/** App sidebar groups */
-export const appSidebarGroups: NavGroup[] = [
+export const quickStartNavItem: NavItem = {
+  to: '/onboarding',
+  labelKey: 'nav.quickStart',
+  icon: Rocket,
+};
+
+const baseSidebarGroups: NavGroup[] = [
   {
     labelKey: 'nav.groupOverview',
     items: [{ to: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard }],
@@ -56,6 +63,7 @@ export const appSidebarGroups: NavGroup[] = [
       { to: '/job-postings', labelKey: 'nav.jobPostings', icon: Briefcase },
       { to: '/job-calendar', labelKey: 'nav.calendar', icon: CalendarDays },
       { to: '/experiences', labelKey: 'nav.experiences', icon: BookOpen },
+      { to: '/portfolio', labelKey: 'nav.portfolio', icon: FileText },
       { to: '/writing-style', labelKey: 'nav.writingStyle', icon: PenLine },
     ],
   },
@@ -68,6 +76,18 @@ export const appSidebarGroups: NavGroup[] = [
     items: [{ to: '/settings', labelKey: 'nav.settings', icon: Settings }],
   },
 ];
+
+export function buildAppSidebarGroups(options?: { showQuickStart?: boolean }): NavGroup[] {
+  if (!options?.showQuickStart) return baseSidebarGroups;
+  return baseSidebarGroups.map((group) =>
+    group.labelKey === 'nav.groupOverview'
+      ? { ...group, items: [...group.items, quickStartNavItem] }
+      : group,
+  );
+}
+
+/** 기본 사이드바 (1분 시작 미포함) */
+export const appSidebarGroups: NavGroup[] = buildAppSidebarGroups();
 
 export function isNavActive(pathname: string, item: NavItem): boolean {
   if (item.to === '/dashboard') {

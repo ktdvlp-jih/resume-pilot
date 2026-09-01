@@ -54,12 +54,15 @@
     "calendar": "求人カレンダー",
     "tools": "ツール",
     "dashboard": "ダッシュボード",
+    "quickStart": "1分スタート",
     "jobPostings": "求人票",
     "experiences": "経験ライブラリ",
     "roleGuide": "職種別の使い方",
     "writingStyle": "文体分析",
     "workspace": "ワークスペース",
+    "billing": "チャージ",
     "settings": "設定",
+    "login": "ログイン",
     "profile": "プロフィール",
     "logout": "ログアウト",
     "lightMode": "ライトモード",
@@ -124,6 +127,12 @@
     "step3Desc": "ワークスペースでAI生成します。",
     "step3Cta": "ワークスペースを開く",
     "dismiss": "ガイドを閉じる"
+  },
+  "onboardingFlow": {
+    "bannerTitle": "求人URLで1分スタート",
+    "bannerDesc": "リンクを貼るだけで分析が始まります。経験は後から追加できます。",
+    "bannerCta": "1分スタート",
+    "bannerDismiss": "閉じる"
   },
   "experienceType": {
     "PROJECT": "プロジェクト",

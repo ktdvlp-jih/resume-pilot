@@ -1,29 +1,48 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { ArrowRight } from 'lucide-react';
+import { GitHubConnectPanel } from '@/components/experience/github-connect-panel';
+import { NotionConnectPanel } from '@/components/experience/notion-connect-panel';
 import { api } from '@/lib/api';
-import { CareerPortfolioEditor } from '@/components/career/CareerPortfolioEditor';
-import { normalizeCareerPortfolio, portfolioCompletion, type CareerPortfolio } from '@/lib/career-portfolio';
+import { BillingPanel } from '@/components/billing/billing-panel';
 import { PageHeader } from '@/components/common/page-header';
 import { PageShell } from '@/components/common/page-shell';
 import { Section } from '@/components/common/section';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 
+const TABS = ['wallet', 'billing', 'integrations', 'account'] as const;
+type SettingsTab = (typeof TABS)[number];
+
+function parseTab(raw: string | null): SettingsTab {
+  if (raw && (TABS as readonly string[]).includes(raw)) {
+    return raw as SettingsTab;
+  }
+  return 'wallet';
+}
+
 export default function SettingsPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState('portfolio');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = parseTab(searchParams.get('tab'));
+
   const { data: user } = useQuery({ queryKey: ['me'], queryFn: api.getMe });
+  const integrationsQuery = useQuery({
+    queryKey: ['experience-import-integrations'],
+    queryFn: api.listExperienceImportIntegrations,
+  });
+
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [bio, setBio] = useState('');
-  const [portfolio, setPortfolio] = useState<CareerPortfolio>(normalizeCareerPortfolio());
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
 
@@ -32,12 +51,57 @@ export default function SettingsPage() {
       setName(user.name || '');
       setPhone(user.phone || '');
       setBio(user.bio || '');
-      setPortfolio(normalizeCareerPortfolio(user.careerPortfolio));
     }
   }, [user]);
 
+  const setTab = (next: string) => {
+    const value = parseTab(next);
+    setSearchParams(value === 'wallet' ? {} : { tab: value }, { replace: true });
+  };
+
+  useEffect(() => {
+    if (tab !== 'integrations') return;
+    const notionResult = searchParams.get('notion');
+    const githubResult = searchParams.get('github');
+    if (notionResult) {
+      if (notionResult === 'connected') {
+        toast.success(t('experienceImport.notionOAuthOk'));
+        queryClient.invalidateQueries({ queryKey: ['experience-import-integrations'] });
+      } else if (notionResult === 'error') {
+        toast.error(searchParams.get('message') || t('experienceImport.notionOAuthFailed'));
+      }
+    }
+    if (githubResult) {
+      if (githubResult === 'connected') {
+        const login = searchParams.get('login');
+        toast.success(
+          login
+            ? t('experienceImport.githubOAuthOkLogin', { login })
+            : t('experienceImport.githubOAuthOk'),
+        );
+        queryClient.invalidateQueries({ queryKey: ['experience-import-integrations'] });
+      } else if (githubResult === 'error') {
+        toast.error(searchParams.get('message') || t('experienceImport.githubOAuthFailed'));
+      }
+    }
+    if (!notionResult && !githubResult) return;
+    const next = new URLSearchParams(searchParams);
+    next.delete('notion');
+    next.delete('github');
+    next.delete('workspace');
+    next.delete('login');
+    next.delete('message');
+    setSearchParams(next, { replace: true });
+  }, [queryClient, searchParams, setSearchParams, t, tab]);
+
   const updateMutation = useMutation({
-    mutationFn: () => api.updateMe({ name, phone, bio, careerPortfolio: portfolio }),
+    mutationFn: () =>
+      api.updateMe({
+        name,
+        phone,
+        bio,
+        careerPortfolio: user?.careerPortfolio,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['me'] });
       toast.success(t('settings.profileSaved'));
@@ -55,29 +119,87 @@ export default function SettingsPage() {
     onError: (err) => toast.error(err instanceof Error ? err.message : t('settings.passwordChangeFailed')),
   });
 
-  const pct = portfolioCompletion(portfolio);
+  const notion = integrationsQuery.data?.find((s) => s.provider === 'NOTION');
+  const github = integrationsQuery.data?.find((s) => s.provider === 'GITHUB');
 
   return (
     <PageShell>
-      <PageHeader title={t('settings.myPage')} description={t('settings.myPageSubtitle')} />
+      <PageHeader title={t('settings.title')} description={t('settings.pageDesc')} />
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="w-full">
-          <TabsTrigger value="portfolio" className="flex-1">
-            {t('portfolio.tab')} · {pct}%
-          </TabsTrigger>
-          <TabsTrigger value="account" className="flex-1">
-            {t('settings.accountTab')}
-          </TabsTrigger>
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:grid-cols-4">
+          <TabsTrigger value="wallet">{t('settings.tabWallet')}</TabsTrigger>
+          <TabsTrigger value="billing">{t('settings.tabBilling')}</TabsTrigger>
+          <TabsTrigger value="integrations">{t('settings.tabIntegrations')}</TabsTrigger>
+          <TabsTrigger value="account">{t('settings.tabAccount')}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="portfolio" className="mt-6 space-y-6">
-          <Section title={t('portfolio.tab')} description={t('settings.portfolioSectionDesc')}>
-            <CareerPortfolioEditor value={portfolio} onChange={setPortfolio} />
+        <TabsContent value="wallet" className="mt-6">
+          <Section title={t('settings.tabWallet')} description={t('settings.walletDesc')}>
+            <BillingPanel balanceOnly />
           </Section>
-          <Button size="lg" onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
-            {updateMutation.isPending ? t('common.loading') : t('portfolio.saveAll')}
-          </Button>
+        </TabsContent>
+
+        <TabsContent value="billing" className="mt-6">
+          <Section title={t('settings.tabBilling')} description={t('settings.billingDesc')}>
+            <BillingPanel />
+          </Section>
+        </TabsContent>
+
+        <TabsContent value="integrations" className="mt-6 space-y-4">
+          <Section title={t('settings.tabIntegrations')} description={t('settings.integrationsDesc')}>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notion</CardTitle>
+                  <CardDescription>
+                    {notion?.configured
+                      ? t('settings.integrationConnected', { mask: notion.accessTokenMasked || '****' })
+                      : t('settings.integrationNotConnected')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <NotionConnectPanel
+                    compact
+                    configured={!!notion?.configured}
+                    maskedToken={notion?.accessTokenMasked}
+                    returnPath="/settings?tab=integrations"
+                    onTokenSaved={() =>
+                      queryClient.invalidateQueries({ queryKey: ['experience-import-integrations'] })
+                    }
+                  />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>GitHub</CardTitle>
+                  <CardDescription>
+                    {github?.configured
+                      ? t('settings.integrationConnected', { mask: github.accessTokenMasked || '****' })
+                      : t('settings.integrationNotConnected')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <GitHubConnectPanel
+                    compact
+                    configured={!!github?.configured}
+                    maskedToken={github?.accessTokenMasked}
+                    externalLogin={github?.externalUserId}
+                    returnPath="/settings?tab=integrations"
+                    onTokenSaved={() =>
+                      queryClient.invalidateQueries({ queryKey: ['experience-import-integrations'] })
+                    }
+                  />
+                </CardContent>
+              </Card>
+            </div>
+            <Button asChild className="mt-2">
+              <Link to="/experiences/import">
+                {t('settings.openImport')}
+                <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+          </Section>
         </TabsContent>
 
         <TabsContent value="account" className="mt-6 space-y-6">
@@ -137,6 +259,15 @@ export default function SettingsPage() {
                 </Button>
               </CardContent>
             </Card>
+          </Section>
+
+          <Section title={t('portfolio.tab')} description={t('settings.portfolioMovedDesc')}>
+            <Button variant="outline" asChild>
+              <Link to="/portfolio">
+                {t('settings.openPortfolio')}
+                <ArrowRight className="size-4" />
+              </Link>
+            </Button>
           </Section>
         </TabsContent>
       </Tabs>

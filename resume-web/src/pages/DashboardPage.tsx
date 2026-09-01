@@ -20,6 +20,7 @@ import { TableSkeletonRows } from '@/components/common/table-skeleton';
 import { useUrlPagination } from '@/hooks/use-url-pagination';
 import { useUrlSort } from '@/hooks/use-url-sort';
 import { OnboardingGuide } from '@/components/common/onboarding-guide';
+import { QuickStartBanner } from '@/components/common/quick-start-banner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -73,6 +74,7 @@ export default function DashboardPage() {
 
   return (
     <PageShell className="space-y-8">
+      <QuickStartBanner />
       <OnboardingGuide
         experiencesCount={experiences.length}
         jobPostingsCount={jobPostings.length}

@@ -38,7 +38,10 @@ cors:
 app:
   spa:
     enabled: false
+  public-api-url: ${PUBLIC_API_URL:http://localhost:8080}
+  public-web-url: ${PUBLIC_WEB_URL:http://localhost:5173}
   internal-api-token: ${INTERNAL_API_TOKEN:}
+  ops-bot-token: ${OPS_BOT_TOKEN:}
   llm:
     encryption-key: ${LLM_ENCRYPTION_KEY:}
   certification:

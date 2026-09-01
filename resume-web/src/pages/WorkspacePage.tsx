@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { api, type JobPostingResponse } from '@/lib/api';
 import { ResumeExportMenu } from '@/components/resume/resume-export-menu';
+import { InlineEditChat } from '@/components/workspace/inline-edit-chat';
 import {
   buildRecommendKeywords,
   EXPERIENCE_REEMBED_SESSION_KEY,
@@ -375,6 +376,17 @@ export default function WorkspacePage() {
     setDraft({ selectedPostingId: postingId });
     const next = new URLSearchParams(searchParams);
     next.delete('postingId');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setDraft, setSearchParams]);
+
+  useEffect(() => {
+    const raw = searchParams.get('experienceIds');
+    if (!raw) return;
+    const ids = raw.split(',').map((id) => id.trim()).filter(Boolean);
+    if (ids.length === 0) return;
+    setDraft({ selectedExperienceIds: ids });
+    const next = new URLSearchParams(searchParams);
+    next.delete('experienceIds');
     setSearchParams(next, { replace: true });
   }, [searchParams, setDraft, setSearchParams]);
   const {
@@ -2100,6 +2112,13 @@ export default function WorkspacePage() {
                   findings={humanizeFindings}
                   replacements={humanizeReplacements}
                   onOpenDiagnosis={() => setRightTab('diagnosis')}
+                />
+              )}
+
+              {!isTyping && !!result?.content && (
+                <InlineEditChat
+                  fullContent={String(result.content)}
+                  onApply={(next) => applyEditedContent('all', next)}
                 />
               )}
 

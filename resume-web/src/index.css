@@ -191,3 +191,45 @@
     transition: background-color 9999s ease-out 0s;
   }
 }
+
+/* 경험 맵 — 부드러운 베지어 연결선 */
+.experience-map-edge .react-flow__edge-path {
+  stroke: color-mix(in oklch, var(--muted-foreground) 55%, transparent);
+  stroke-linecap: round;
+}
+
+/* 경험 맵 — xyflow Controls (줌·fit) 테마 연동 */
+.experience-map .experience-map-controls {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+  overflow: hidden;
+}
+
+.experience-map .experience-map-controls .react-flow__controls-button {
+  background: var(--card) !important;
+  border: none !important;
+  border-bottom: 1px solid var(--border) !important;
+  color: var(--foreground);
+  width: 28px;
+  height: 28px;
+}
+
+.experience-map .experience-map-controls .react-flow__controls-button:last-child {
+  border-bottom: none !important;
+}
+
+.experience-map .experience-map-controls .react-flow__controls-button:hover {
+  background: var(--muted) !important;
+}
+
+.experience-map .experience-map-controls .react-flow__controls-button svg {
+  fill: var(--foreground) !important;
+  max-width: 14px;
+  max-height: 14px;
+}
+
+.dark .experience-map .experience-map-controls {
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+}

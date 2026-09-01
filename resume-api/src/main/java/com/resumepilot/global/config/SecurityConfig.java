@@ -3,6 +3,7 @@ package com.resumepilot.global.config;
 import com.resumepilot.infrastructure.security.CustomUserDetailsService;
 import com.resumepilot.infrastructure.security.InternalApiAuthFilter;
 import com.resumepilot.infrastructure.security.JwtAuthenticationFilter;
+import com.resumepilot.infrastructure.security.OpsBotAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -38,6 +39,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final InternalApiAuthFilter internalApiAuthFilter;
+    private final OpsBotAuthFilter opsBotAuthFilter;
     private final CustomUserDetailsService userDetailsService;
 
     @Value("${cors.allowed-origins:http://localhost:5173,http://localhost:5174}")
@@ -56,6 +58,13 @@ public class SecurityConfig {
                     auth.requestMatchers("/api/v1/auth/**").permitAll()
                             .requestMatchers("/api/v1/public/**").permitAll()
                             .requestMatchers("/api/v1/internal/**").permitAll()
+                            .requestMatchers("/api/v1/ops/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/payments/client-key").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/billing/products").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/experiences/import/notion/oauth/callback")
+                            .permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/experiences/import/github/oauth/callback")
+                            .permitAll()
                             .requestMatchers("/swagger-ui/**", "/api-docs/**", "/actuator/health").permitAll()
                             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                             .requestMatchers("/api/v1/admin/job-postings", "/api/v1/admin/job-postings/**")
@@ -71,6 +80,7 @@ public class SecurityConfig {
                     }
                 })
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(opsBotAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(internalApiAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(ex -> ex

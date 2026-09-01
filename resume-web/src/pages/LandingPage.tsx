@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, BookOpen, Briefcase, Check, PenLine, Sparkles } from 'lucide-react';
+import { ArrowRight, BookOpen, Briefcase, Check, MessageCircle, PenLine, Sparkles } from 'lucide-react';
 import { getAccessToken } from '@/lib/api';
 import { PublicLayout } from '@/components/layout/public-layout';
 import { ProductPreview } from '@/components/landing/product-preview';
@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 
 const FEATURE_ICONS = [BookOpen, Briefcase, Sparkles] as const;
 const FEATURE_ANCHORS = ['library', 'job', 'workspace'] as const;
-const PRICING_ANCHORS = ['free', 'pro'] as const;
 
 export default function LandingPage() {
   const { t } = useTranslation();
@@ -25,15 +24,35 @@ export default function LandingPage() {
 
   const pricingTiers = [
     {
+      id: 'free',
       name: t('landing.tierFree'),
       price: '₩0',
-      features: [t('nav.experiences'), t('nav.jobPostings'), t('nav.workspace'), t('writingStyle.title')],
+      features: [t('landing.freeF1'), t('landing.freeF2'), t('landing.freeF3')],
     },
     {
-      name: t('landing.tierPro'),
-      price: t('landing.comingSoon'),
-      features: [t('landing.proConnect'), t('landing.proSchedule')],
+      id: 'starter',
+      name: t('landing.tierStarter'),
+      price: t('landing.tierStarterPrice'),
+      features: [t('landing.starterF1'), t('landing.starterF2')],
     },
+    {
+      id: 'standard',
+      name: t('landing.tierStandard'),
+      price: t('landing.tierStandardPrice'),
+      features: [t('landing.standardF1'), t('landing.standardF2')],
+    },
+    {
+      id: 'power',
+      name: t('landing.tierPower'),
+      price: t('landing.tierPowerPrice'),
+      features: [t('landing.powerF1'), t('landing.powerF2')],
+    },
+  ];
+
+  const testimonials = [
+    { quote: t('landing.review1'), name: t('landing.review1Name') },
+    { quote: t('landing.review2'), name: t('landing.review2Name') },
+    { quote: t('landing.review3'), name: t('landing.review3Name') },
   ];
 
   return (
@@ -48,17 +67,18 @@ export default function LandingPage() {
             </Badge>
             <h1 className="text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl">{t('app.name')}</h1>
             <p className="mt-4 text-lg text-pretty text-muted-foreground md:text-xl">{t('landing.heroSubtitle')}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{t('landing.heroHint')}</p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               {isLoggedIn ? (
                 <>
                   <Button size="lg" asChild>
-                    <Link to="/dashboard">
-                      {t('nav.dashboard')}
+                    <Link to="/onboarding">
+                      {t('landing.startOnboarding')}
                       <ArrowRight className="size-4" />
                     </Link>
                   </Button>
                   <Button size="lg" variant="outline" asChild>
-                    <Link to="/guides">{t('nav.guides')}</Link>
+                    <Link to="/dashboard">{t('nav.dashboard')}</Link>
                   </Button>
                 </>
               ) : (
@@ -124,6 +144,23 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <section id="reviews" className="scroll-mt-20 border-t py-16 md:py-20">
+          <div className="mb-10 text-center">
+            <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">{t('landing.reviewsTitle')}</h2>
+            <p className="mt-2 text-muted-foreground">{t('landing.reviewsSubtitle')}</p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {testimonials.map((item) => (
+              <Card key={item.name}>
+                <CardHeader>
+                  <CardDescription className="text-base text-foreground">&ldquo;{item.quote}&rdquo;</CardDescription>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">{item.name}</CardTitle>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        </section>
+
         <section id="pricing" className="scroll-mt-20 border-t py-16 md:py-20">
           <div className="mb-10 flex flex-col items-center gap-2 text-center">
             <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">{t('nav.pricing')}</h2>
@@ -135,22 +172,22 @@ export default function LandingPage() {
               </Link>
             </Button>
           </div>
-          <div className="mx-auto grid max-w-3xl gap-4 md:grid-cols-2">
-            {pricingTiers.map((tier, i) => (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {pricingTiers.map((tier) => (
               <Link
-                key={tier.name}
-                to={`/pricing#${PRICING_ANCHORS[i]}`}
+                key={tier.id}
+                to={`/pricing#${tier.id}`}
                 className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Card className="h-full transition-shadow hover:shadow-md">
                   <CardHeader>
                     <CardTitle>{tier.name}</CardTitle>
-                    <p className="text-3xl font-semibold tracking-tight">{tier.price}</p>
+                    <p className="text-2xl font-semibold tracking-tight">{tier.price}</p>
                   </CardHeader>
                   <CardContent className="flex flex-col gap-2">
                     {tier.features.map((f) => (
-                      <div key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Check className="size-4 shrink-0 text-primary" aria-hidden />
+                      <div key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
                         {f}
                       </div>
                     ))}
@@ -163,6 +200,23 @@ export default function LandingPage() {
               </Link>
             ))}
           </div>
+        </section>
+
+        <section id="community" className="scroll-mt-20 border-t py-12 md:py-16">
+          <Card>
+            <CardHeader className="flex flex-row items-start gap-3 space-y-0">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <MessageCircle className="size-5" aria-hidden />
+              </div>
+              <div className="flex flex-col gap-1">
+                <CardTitle>{t('landing.communityTitle')}</CardTitle>
+                <CardDescription>{t('landing.communityDesc')}</CardDescription>
+                <Button variant="outline" className="mt-3 w-fit" asChild>
+                  <Link to="/contact">{t('landing.communityCta')}</Link>
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
         </section>
       </div>
     </PublicLayout>

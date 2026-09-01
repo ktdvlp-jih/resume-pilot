@@ -73,6 +73,37 @@ export interface ExperienceResponse {
   updatedAt: string;
 }
 
+export interface ExperienceChatSessionSummary {
+  id: string;
+  title: string;
+  status: 'ACTIVE' | 'APPLIED' | 'ARCHIVED';
+  targetExperienceId?: string | null;
+  appliedExperienceId?: string | null;
+  updatedAt: string;
+}
+
+export interface ExperienceChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  draftSnapshot?: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface ExperienceChatSessionDetail extends ExperienceChatSessionSummary {
+  latestDraft: Record<string, unknown>;
+  messages: ExperienceChatMessage[];
+  createdAt: string;
+}
+
+export interface ExperienceChatTurnResult {
+  userMessage: ExperienceChatMessage;
+  assistantMessage: ExperienceChatMessage;
+  latestDraft: Record<string, unknown>;
+  missingFields: string[];
+  model?: string | null;
+}
+
 export interface JobPostingResponse {
   id: string;
   title?: string;
@@ -305,6 +336,123 @@ export const api = {
   updateExperience: (id: string, data: Record<string, unknown>) =>
     request<ExperienceResponse>(`/api/v1/experiences/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteExperience: (id: string) => request<void>(`/api/v1/experiences/${id}`, { method: 'DELETE' }),
+  listExperienceChatSessions: () =>
+    request<ExperienceChatSessionSummary[]>('/api/v1/experiences/chat/sessions'),
+  createExperienceChatSession: (targetExperienceId?: string) =>
+    request<ExperienceChatSessionDetail>('/api/v1/experiences/chat/sessions', {
+      method: 'POST',
+      body: JSON.stringify(targetExperienceId ? { targetExperienceId } : {}),
+    }),
+  getExperienceChatSession: (id: string) =>
+    request<ExperienceChatSessionDetail>(`/api/v1/experiences/chat/sessions/${id}`),
+  sendExperienceChatMessage: (sessionId: string, message: string) =>
+    request<ExperienceChatTurnResult>(`/api/v1/experiences/chat/sessions/${sessionId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    }),
+  applyExperienceChatDraft: (sessionId: string) =>
+    request<{ experience: ExperienceResponse; sessionId: string }>(
+      `/api/v1/experiences/chat/sessions/${sessionId}/apply`,
+      { method: 'POST' },
+    ),
+  deleteExperienceChatSession: (sessionId: string) =>
+    request<void>(`/api/v1/experiences/chat/sessions/${sessionId}`, { method: 'DELETE' }),
+  getExperienceChatSessionForExperience: (experienceId: string) =>
+    request<ExperienceChatSessionSummary | null>(`/api/v1/experiences/${experienceId}/chat-session`),
+  resumeExperienceChatForExperience: (experienceId: string) =>
+    request<ExperienceChatSessionDetail>(`/api/v1/experiences/${experienceId}/chat-session/resume`, {
+      method: 'POST',
+    }),
+  resumeExperienceChatSession: (sessionId: string) =>
+    request<ExperienceChatSessionDetail>(`/api/v1/experiences/chat/sessions/${sessionId}/resume`, {
+      method: 'POST',
+    }),
+  listExperienceImportIntegrations: () =>
+    request<Array<{
+      provider: string;
+      configured: boolean;
+      accessTokenMasked: string;
+      externalUserId?: string | null;
+    }>>('/api/v1/experiences/import/integrations'),
+  saveNotionImportToken: (accessToken: string) =>
+    request<{
+      provider: string;
+      configured: boolean;
+      accessTokenMasked: string;
+      externalUserId?: string | null;
+    }>('/api/v1/experiences/import/integrations/notion', {
+      method: 'PUT',
+      body: JSON.stringify({ accessToken }),
+    }),
+  getNotionOAuthAuthorizeUrl: (params: { returnPath?: string; frontendUrl?: string } = {}) => {
+    const q = new URLSearchParams();
+    if (params.returnPath) q.set('returnPath', params.returnPath);
+    if (params.frontendUrl) q.set('frontendUrl', params.frontendUrl);
+    const query = q.toString();
+    return request<{ authorizeUrl: string; redirectUri: string }>(
+      `/api/v1/experiences/import/notion/oauth/authorize-url${query ? `?${query}` : ''}`,
+    );
+  },
+  getGitHubOAuthAuthorizeUrl: (params: { returnPath?: string; frontendUrl?: string } = {}) => {
+    const q = new URLSearchParams();
+    if (params.returnPath) q.set('returnPath', params.returnPath);
+    if (params.frontendUrl) q.set('frontendUrl', params.frontendUrl);
+    const query = q.toString();
+    return request<{ authorizeUrl: string; redirectUri: string }>(
+      `/api/v1/experiences/import/github/oauth/authorize-url${query ? `?${query}` : ''}`,
+    );
+  },
+  saveGitHubImportToken: (accessToken: string) =>
+    request<{
+      provider: string;
+      configured: boolean;
+      accessTokenMasked: string;
+      externalUserId?: string | null;
+    }>('/api/v1/experiences/import/integrations/github', {
+      method: 'PUT',
+      body: JSON.stringify({ accessToken }),
+    }),
+  previewNotionImport: (data: { pageId?: string; pageUrl?: string; accessToken?: string } = {}) =>
+    request<Array<{
+      sourceKey: string;
+      type: string;
+      title: string;
+      description: string;
+      role?: string | null;
+      skills?: string[];
+    }>>('/api/v1/experiences/import/notion/preview', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  previewGitHubImport: (data: { repoFullName?: string; accessToken?: string } = {}) =>
+    request<Array<{
+      sourceKey: string;
+      type: string;
+      title: string;
+      description: string;
+      role?: string | null;
+      skills?: string[];
+    }>>('/api/v1/experiences/import/github/preview', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  previewMarkdownImport: (files: Array<{ filename: string; content: string }>) =>
+    request<Array<{
+      sourceKey: string;
+      type: string;
+      title: string;
+      description: string;
+      role?: string | null;
+      skills?: string[];
+    }>>('/api/v1/experiences/import/markdown/preview', {
+      method: 'POST',
+      body: JSON.stringify({ files }),
+    }),
+  confirmExperienceImport: (drafts: Record<string, unknown>[]) =>
+    request<ExperienceResponse[]>('/api/v1/experiences/import/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ drafts }),
+    }),
   listJobPostings: () => request<JobPostingResponse[]>('/api/v1/job-postings'),
   uploadJobPosting: (data: { sourceType: string; content?: string; sourceUrl?: string; title?: string }) =>
     request<JobPostingResponse>('/api/v1/job-postings/upload', { method: 'POST', body: JSON.stringify(data) }),
@@ -474,4 +622,38 @@ export const api = {
       method: 'POST', body: JSON.stringify({ jobKeywords, resumeContent }),
     }),
   listAiGenerations: () => request<Array<{ id: string; outputContent: string; createdAt: string }>>('/api/v1/ai/generations'),
+  getPaymentClientKey: () =>
+    publicRequest<{ clientKey: string }>('/api/v1/payments/client-key'),
+  getBillingWallet: () =>
+    request<{
+      tokenBalance: number;
+      countBalances: Record<string, number>;
+      operationCosts: Array<{ operation: string; tokenCost: number }>;
+    }>('/api/v1/billing/wallet'),
+  listBillingProducts: () =>
+    publicRequest<Array<{
+      id: string;
+      name: string;
+      kind: string;
+      operation?: string;
+      grantAmount: number;
+      priceKrw: number;
+      enabled: boolean;
+      sortOrder: number;
+    }>>('/api/v1/billing/products'),
+  createPaymentOrder: (productId: string) =>
+    request<{
+      orderId: string;
+      amount: number;
+      orderName: string;
+      customerKey: string;
+    }>('/api/v1/payments/orders', {
+      method: 'POST',
+      body: JSON.stringify({ productId }),
+    }),
+  confirmPayment: (data: { paymentKey: string; orderId: string; amount: number }) =>
+    request<{ paymentId: string; status: string; result: string }>('/api/v1/payments/confirm', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };

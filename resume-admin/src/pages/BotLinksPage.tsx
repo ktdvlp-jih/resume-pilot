@@ -67,6 +67,14 @@ export default function BotLinksPage() {
   const { t } = useTranslation();
   const copied = t('botLinks.copied');
 
+  const opsEndpoints = [
+    { method: 'GET', path: '/api/v1/ops/health', noteKey: 'botLinks.opsHealth' },
+    { method: 'GET', path: '/api/v1/ops/wallet?email=', noteKey: 'botLinks.opsWallet' },
+    { method: 'POST', path: '/api/v1/ops/grant', noteKey: 'botLinks.opsGrant' },
+    { method: 'POST', path: '/api/v1/ops/free-allowance/{email}', noteKey: 'botLinks.opsFree' },
+    { method: 'GET', path: '/api/v1/ops/payments/recent', noteKey: 'botLinks.opsPayments' },
+  ] as const;
+
   return (
     <div className="flex flex-col gap-4">
       <PageHeader title={t('botLinks.title')} description={t('botLinks.subtitle')} />
@@ -86,6 +94,32 @@ export default function BotLinksPage() {
         </CardHeader>
         <CardContent>
           <LinkTable origin={LOCAL_ORIGIN} copyLabel={copied} />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('botLinks.opsTitle')}</CardTitle>
+          <CardDescription>{t('botLinks.opsDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('botLinks.opsMethod')}</TableHead>
+                <TableHead>{t('botLinks.opsPath')}</TableHead>
+                <TableHead>{t('botLinks.opsNote')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {opsEndpoints.map((row) => (
+                <TableRow key={row.path}>
+                  <TableCell className="font-mono text-xs">{row.method}</TableCell>
+                  <TableCell className="break-all font-mono text-xs">{row.path}</TableCell>
+                  <TableCell>{t(row.noteKey)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>

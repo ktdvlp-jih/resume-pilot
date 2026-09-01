@@ -1,13 +1,16 @@
 package com.resumepilot.application.ai;
 
-import com.resumepilot.domain.ai.*;
 import com.resumepilot.application.admin.GenerateLogMetadata;
+import com.resumepilot.application.billing.BillingGuard;
+import com.resumepilot.application.billing.ConsumptionHold;
 import com.resumepilot.domain.admin.AiUsageLog;
 import com.resumepilot.domain.admin.AiUsageLogRepository;
 import com.resumepilot.domain.admin.ForbiddenExpressionRepository;
+import com.resumepilot.domain.ai.*;
 import com.resumepilot.domain.experience.Experience;
 import com.resumepilot.domain.experience.ExperiencePeriod;
 import com.resumepilot.domain.experience.ExperienceRepository;
+import com.resumepilot.domain.llm.LlmOperation;
 import com.resumepilot.global.exception.BusinessException;
 import com.resumepilot.global.exception.ErrorCode;
 import com.resumepilot.infrastructure.ai.AiGatewayClient;
@@ -37,6 +40,7 @@ public class AiOrchestrationService {
     private final ForbiddenExpressionRepository forbiddenRepository;
     private final ExperienceRepository experienceRepository;
     private final WritingStyleService writingStyleService;
+    private final BillingGuard billingGuard;
     private final PlatformTransactionManager transactionManager;
 
     @Transactional
@@ -76,6 +80,7 @@ public class AiOrchestrationService {
             payload.put("skip_postprocess", true);
         }
 
+        ConsumptionHold hold = billingGuard.consume(userId, LlmOperation.GENERATE);
         try {
             Map<String, Object> result = aiGatewayClient.generateResume(payload);
             logUsage(userId, "generate", start, true, str(result != null ? result.get("model") : null), null,
@@ -112,9 +117,11 @@ public class AiOrchestrationService {
             }
             return result;
         } catch (BusinessException e) {
+            billingGuard.refund(hold);
             logUsage(userId, "generate", start, false, null, e.getMessage(), GenerateLogMetadata.fromFailure(request));
             throw e;
         } catch (RuntimeException e) {
+            billingGuard.refund(hold);
             logUsage(userId, "generate", start, false, null, e.getMessage(), GenerateLogMetadata.fromFailure(request));
             throw e;
         }
@@ -123,14 +130,17 @@ public class AiOrchestrationService {
     public Map<String, Object> detect(UUID userId, String content) {
         long start = System.currentTimeMillis();
         Map<String, Object> payload = Map.of("content", content, "forbidden_expressions", getAllForbiddenList());
+        ConsumptionHold hold = billingGuard.consume(userId, LlmOperation.AI_DETECTION);
         try {
             Map<String, Object> result = aiGatewayClient.detectAiTraces(payload);
             logUsage(userId, "detect", start, true, str(result != null ? result.get("model") : null), null);
             return result;
         } catch (BusinessException e) {
+            billingGuard.refund(hold);
             logUsage(userId, "detect", start, false, null, e.getMessage());
             throw e;
         } catch (RuntimeException e) {
+            billingGuard.refund(hold);
             logUsage(userId, "detect", start, false, null, e.getMessage());
             throw e;
         }
@@ -148,14 +158,17 @@ public class AiOrchestrationService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("content", request.content());
         payload.put("sentences", sentences);
+        ConsumptionHold hold = billingGuard.consume(userId, LlmOperation.AI_HUMANIZE);
         try {
             Map<String, Object> result = aiGatewayClient.humanizeAiTraces(payload);
             logUsage(userId, "humanize", start, true, str(result != null ? result.get("model") : null), null);
             return result;
         } catch (BusinessException e) {
+            billingGuard.refund(hold);
             logUsage(userId, "humanize", start, false, null, e.getMessage());
             throw e;
         } catch (RuntimeException e) {
+            billingGuard.refund(hold);
             logUsage(userId, "humanize", start, false, null, e.getMessage());
             throw e;
         }
@@ -166,14 +179,17 @@ public class AiOrchestrationService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("content", request.content());
         if (request.jobAnalysis() != null) payload.put("job_analysis", request.jobAnalysis());
+        ConsumptionHold hold = billingGuard.consume(userId, LlmOperation.AI_REVIEW);
         try {
             Map<String, Object> result = aiGatewayClient.reviewFeedback(payload);
             logUsage(userId, "review", start, true, str(result != null ? result.get("model") : null), null);
             return result;
         } catch (BusinessException e) {
+            billingGuard.refund(hold);
             logUsage(userId, "review", start, false, null, e.getMessage());
             throw e;
         } catch (RuntimeException e) {
+            billingGuard.refund(hold);
             logUsage(userId, "review", start, false, null, e.getMessage());
             throw e;
         }
@@ -181,14 +197,17 @@ public class AiOrchestrationService {
 
     public Map<String, Object> interviewQuestions(UUID userId, String content) {
         long start = System.currentTimeMillis();
+        ConsumptionHold hold = billingGuard.consume(userId, LlmOperation.INTERVIEW_QUESTIONS);
         try {
             Map<String, Object> result = aiGatewayClient.interviewQuestions(Map.of("content", content));
             logUsage(userId, "interview", start, true, str(result != null ? result.get("model") : null), null);
             return result;
         } catch (BusinessException e) {
+            billingGuard.refund(hold);
             logUsage(userId, "interview", start, false, null, e.getMessage());
             throw e;
         } catch (RuntimeException e) {
+            billingGuard.refund(hold);
             logUsage(userId, "interview", start, false, null, e.getMessage());
             throw e;
         }
@@ -196,6 +215,7 @@ public class AiOrchestrationService {
 
     public Map<String, Object> compareKeywords(UUID userId, AiKeywordCompareRequest request) {
         long start = System.currentTimeMillis();
+        ConsumptionHold hold = billingGuard.consume(userId, LlmOperation.KEYWORD_COMPARE);
         try {
             Map<String, Object> result = aiGatewayClient.compareKeywords(Map.of(
                     "job_keywords", request.jobKeywords(),
@@ -204,9 +224,11 @@ public class AiOrchestrationService {
             logUsage(userId, "compare_keywords", start, true, str(result != null ? result.get("model") : null), null);
             return result;
         } catch (BusinessException e) {
+            billingGuard.refund(hold);
             logUsage(userId, "compare_keywords", start, false, null, e.getMessage());
             throw e;
         } catch (RuntimeException e) {
+            billingGuard.refund(hold);
             logUsage(userId, "compare_keywords", start, false, null, e.getMessage());
             throw e;
         }
@@ -231,14 +253,17 @@ public class AiOrchestrationService {
         payload.put("section_purpose", request.sectionType().purpose());
         payload.put("content", draft);
         payload.put("experiences", formatExperiencesForPortfolioReview(experiences));
+        ConsumptionHold hold = billingGuard.consume(userId, LlmOperation.PORTFOLIO_REVIEW);
         try {
             Map<String, Object> result = aiGatewayClient.reviewPortfolio(payload);
             logUsage(userId, "portfolio_review", start, true, str(result != null ? result.get("model") : null), null);
             return result;
         } catch (BusinessException e) {
+            billingGuard.refund(hold);
             logUsage(userId, "portfolio_review", start, false, null, e.getMessage());
             throw e;
         } catch (RuntimeException e) {
+            billingGuard.refund(hold);
             logUsage(userId, "portfolio_review", start, false, null, e.getMessage());
             throw e;
         }
@@ -255,14 +280,17 @@ public class AiOrchestrationService {
         if (titles.isEmpty()) {
             return Map.of("sections", List.of());
         }
+        ConsumptionHold hold = billingGuard.consume(userId, LlmOperation.SECTION_ANALYSIS);
         try {
             Map<String, Object> result = aiGatewayClient.analyzeSections(Map.of("section_titles", titles));
             logUsage(userId, "section_analysis", start, true, str(result != null ? result.get("model") : null), null);
             return result;
         } catch (BusinessException e) {
+            billingGuard.refund(hold);
             logUsage(userId, "section_analysis", start, false, null, e.getMessage());
             throw e;
         } catch (RuntimeException e) {
+            billingGuard.refund(hold);
             logUsage(userId, "section_analysis", start, false, null, e.getMessage());
             throw e;
         }
@@ -361,7 +389,7 @@ public class AiOrchestrationService {
         if (!anySubstance) {
             throw new BusinessException(
                     ErrorCode.EXPERIENCE_INSUFFICIENT,
-                    "선택한 경험에 생성에 쓸 내용이 부족합니다. 설명·성과·STAR 중 하나 이상을 보강한 뒤 다시 시도하세요."
+                    "선택한 경험에 생성에 쓸 내용이 부족합니다. 설명·성과·상황·과제·행동·결과 중 하나 이상을 보강한 뒤 다시 시도하세요."
             );
         }
     }

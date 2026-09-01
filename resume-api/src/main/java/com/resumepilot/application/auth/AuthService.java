@@ -1,5 +1,6 @@
 package com.resumepilot.application.auth;
 
+import com.resumepilot.application.billing.FreeAllowanceService;
 import com.resumepilot.domain.user.*;
 import com.resumepilot.global.exception.BusinessException;
 import com.resumepilot.global.exception.ErrorCode;
@@ -25,6 +26,7 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final FreeAllowanceService freeAllowanceService;
 
     @Transactional
     public TokenResponse signup(SignupRequest request) {
@@ -42,6 +44,8 @@ public class AuthService {
                 .userId(user.getId())
                 .name(request.name())
                 .build());
+
+        freeAllowanceService.grantForCurrentPeriod(user.getId());
 
         return issueTokens(user);
     }

@@ -11,6 +11,7 @@ alwaysApply: false
 - 폰트: Geist(라틴) + Pretendard(한글) — `--font-sans` 스택으로 관리, 본문 `break-keep`
 - 컴포넌트: `@/components/ui/*` (shadcn) 우선 사용, 상태 표시는 `common/status-chip.tsx` 패턴
 - i18n: `src/i18n/locales/{ko,en,ja,zh}.json` — 사용자 문구 하드코딩 지양
+- **사용자-facing 언어:** STAR·RAG·draft 등 전문 용어 금지 → `user-facing-language.mdc`
 - API: `src/lib/api-base.ts`, dev 시 `VITE_API_URL=http://localhost:8080`
 - resume-admin: `VITE_BASE=/admin/` (vite.config.ts)
 - 상태: TanStack Query, 라우팅: react-router-dom

@@ -64,7 +64,34 @@ export default function UsersPage() {
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editPassword, setEditPassword] = useState('');
+  const [walletUser, setWalletUser] = useState<UserRow | null>(null);
+  const [grantKind, setGrantKind] = useState('TOKEN');
+  const [grantOperation, setGrantOperation] = useState('GENERATE');
+  const [grantAmount, setGrantAmount] = useState(100);
+  const [grantNote, setGrantNote] = useState('');
   const { data = [], isLoading } = useQuery({ queryKey: ['admin-users'], queryFn: api.listUsers });
+
+  const walletQuery = useQuery({
+    queryKey: ['admin-user-wallet', walletUser?.id],
+    queryFn: () => api.getUserWallet(walletUser!.id),
+    enabled: !!walletUser,
+  });
+
+  const grantMutation = useMutation({
+    mutationFn: () =>
+      api.grantUserEntitlement(walletUser!.id, {
+        kind: grantKind,
+        operation: grantKind === 'COUNT' ? grantOperation : undefined,
+        amount: grantAmount,
+        note: grantNote || undefined,
+      }),
+    onSuccess: () => {
+      toast.success(t('userWallet.granted'));
+      queryClient.invalidateQueries({ queryKey: ['admin-user-wallet', walletUser?.id] });
+      setGrantNote('');
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : t('common.error')),
+  });
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -286,6 +313,11 @@ export default function UsersPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
+                        {fullAdmin && (
+                          <Button variant="ghost" size="sm" onClick={() => setWalletUser(u)}>
+                            {t('userWallet.title')}
+                          </Button>
+                        )}
                         {canEditRow(u) && (
                           <Button variant="ghost" size="sm" asChild>
                             <Link to={`/users/${u.id}/experiences`}>{t('users.experiences')}</Link>
@@ -355,6 +387,54 @@ export default function UsersPage() {
                 {t('common.save')}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!walletUser} onOpenChange={(open) => !open && setWalletUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('userWallet.title')}</DialogTitle>
+            <DialogDescription>{walletUser?.email}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm">
+              {t('userWallet.tokens')}: <strong>{walletQuery.data?.tokenBalance ?? '…'}</strong>
+            </p>
+            {walletQuery.data && Object.keys(walletQuery.data.countBalances).length > 0 && (
+              <ul className="text-sm text-muted-foreground">
+                {Object.entries(walletQuery.data.countBalances).map(([op, n]) => (
+                  <li key={op}>{op}: {n}</li>
+                ))}
+              </ul>
+            )}
+            <div className="space-y-2">
+              <Label>{t('userWallet.kind')}</Label>
+              <Select value={grantKind} onValueChange={setGrantKind}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="TOKEN">TOKEN</SelectItem>
+                  <SelectItem value="COUNT">COUNT</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {grantKind === 'COUNT' && (
+              <div className="space-y-2">
+                <Label>operation</Label>
+                <Input value={grantOperation} onChange={(e) => setGrantOperation(e.target.value)} />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label>{t('userWallet.amount')}</Label>
+              <Input type="number" value={grantAmount} onChange={(e) => setGrantAmount(Number(e.target.value))} />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('userWallet.note')}</Label>
+              <Input value={grantNote} onChange={(e) => setGrantNote(e.target.value)} />
+            </div>
+            <Button disabled={grantMutation.isPending || grantAmount < 1} onClick={() => grantMutation.mutate()}>
+              {t('userWallet.grant')}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
