@@ -1,0 +1,41 @@
+---
+description: API null 안전성 — 신규·빈 계정 UI 크래시 재발 방지
+globs: resume-web/**/*.{ts,tsx},resume-api/src/main/java/**/*.java,e2e/**/*.ts,scripts/deploy-smoke.sh,scripts/pre-push-web.sh
+alwaysApply: false
+---
+
+# API null 안전성 (ResumePilot)
+
+**원칙:** 「데이터 없음」은 UI에서 `null`이 아니라 **`""` / `[]` / 정규화된 객체**로 다룬다.  
+신규 계정·레거시 DB 모두 같은 경로로 안전해야 한다.
+
+## 백엔드 (resume-api)
+
+1. **응답 DTO** — 사용자 UI에 노출되는 필드는 JSON에서 `null` 금지 (가능하면 DTO `empty()`/`from()`에서 정규화).
+   - 문자열: `""`
+   - 목록: `List.of()`
+   - 중첩 객체 내부 문자열·목록도 동일 (`CareerPortfolioDto`, `WritingStyleService.toResponse` 등)
+2. **「없음」의 의미**
+   - 분석·이력 **자체가 없음** → `data: null` 허용 (예: 문체 분석 미실행). 단, 객체가 있으면 내부 list는 `[]`.
+3. **테스트** — signup 직후 `/users/me` JSON에 `coverLetter.*` null 없음을 DTO 단위 또는 smoke에서 assert.
+
+## 프론트 (resume-web)
+
+1. **API 경계 1회 정규화** — `src/lib/api.ts`에서 처리. 컴포넌트마다 `??` 반복 금지.
+   - `getMe` / `updateMe`: `normalizeCareerPortfolio`
+   - list API: `requestList` + `asArray` (`src/lib/query-utils.ts`)
+   - wallet·writing-style·chat session 등 null list 필드 정규화
+2. **React Query 함정** — `const { data: items = [] }`는 `data === undefined`만 기본값 적용. **`data: null`은 그대로 null** → `asArray(data)` 또는 `select` 사용.
+3. **spread 함정** — `{ ...empty, ...apiPartial }` 시 API null이 빈 값을 덮어씀. merge 전 `normalizeCoverLetter` / `normalizeCareerPortfolio` 적용.
+4. **로컬 dev** — `npm run dev`는 tsc 없음. **푸시 전** `./scripts/pre-push-web.sh` 또는 `npm run build` 실행.
+
+## CI·스모크
+
+1. **E2E** — 신규 계정 플로우에 `/portfolio`, `/settings?tab=wallet` 등 빈 상태 페이지 방문 포함 (`e2e/tests/user-journey.spec.ts`).
+2. **deploy-smoke** — signup 후 `/users/me`에서 `careerPortfolio.coverLetter` null 필드 검사.
+
+## 변경 시 체크
+
+- [ ] 새 list/string 필드를 API·UI에 추가했는가? DTO·`api.ts`·필요 시 `query-utils`에 정규화를 넣었는가?
+- [ ] `.length` / `.map` / spread 전에 null 가능성을 API 경계에서 제거했는가?
+- [ ] 신규 계정으로 해당 페이지 첫 방문 시 크래시가 없는가?

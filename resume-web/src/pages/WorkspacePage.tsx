@@ -23,6 +23,7 @@ import {
   Columns2,
 } from 'lucide-react';
 import { api, type JobPostingResponse } from '@/lib/api';
+import { asArray } from '@/lib/query-utils';
 import { ResumeExportMenu } from '@/components/resume/resume-export-menu';
 import { InlineEditChat } from '@/components/workspace/inline-edit-chat';
 import {
@@ -1305,7 +1306,11 @@ export default function WorkspacePage() {
     () => setJustGenerated(false),
   );
   const previewChips = jobAnalysisPreview
-    ? (jobAnalysisPreview.techKeywords.length ? jobAnalysisPreview.techKeywords : jobAnalysisPreview.requiredSkills).slice(0, 8)
+    ? (() => {
+        const techKeywords = asArray(jobAnalysisPreview.techKeywords);
+        const requiredSkills = asArray(jobAnalysisPreview.requiredSkills);
+        return (techKeywords.length ? techKeywords : requiredSkills).slice(0, 8);
+      })()
     : [];
   const defaultSaveName = () => {
     const loaded = resumeVersions.find((v) => v.id === loadedVersionId);

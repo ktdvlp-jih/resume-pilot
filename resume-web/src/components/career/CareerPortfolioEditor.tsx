@@ -10,7 +10,7 @@ import {
   writeUserScopedItem,
 } from '@/lib/user-storage';
 import type { CareerPortfolio, CareerItem, EducationItem, CertificationItem } from '@/lib/career-portfolio';
-import { emptyCareerItem, emptyEducationItem, emptyCertificationItem, SKILL_LEVELS, certificationDisplayText } from '@/lib/career-portfolio';
+import { emptyCareerItem, emptyEducationItem, emptyCertificationItem, SKILL_LEVELS, certificationDisplayText, normalizeCareerPortfolio } from '@/lib/career-portfolio';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,7 +43,8 @@ interface Props {
 
 export function CareerPortfolioEditor({ value, onChange }: Props) {
   const { t } = useTranslation();
-  const patch = (partial: Partial<CareerPortfolio>) => onChange({ ...value, ...partial });
+  const patch = (partial: Partial<CareerPortfolio>) =>
+    onChange(normalizeCareerPortfolio({ ...value, ...partial }));
 
   return (
     <div className="space-y-8">

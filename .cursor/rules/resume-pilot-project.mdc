@@ -34,3 +34,4 @@ alwaysApply: true
 4. Flyway 마이그레이션은 **resume-api**만 소유
 5. LLM은 **외부 API 호출** (Admin `/admin/llm-settings`). 서버에 모델 가중치를 올리지 않음
 6. 사용자 UI·AI reply에는 **쉬운 말만** — STAR·RAG·draft 등 전문 용어 금지 (`user-facing-language.mdc`)
+7. API·UI 경계에서 **빈 상태는 null이 아닌 `""`/`[]`** — 신규 계정 첫 방문 크래시 방지 (`api-null-safety.mdc`)

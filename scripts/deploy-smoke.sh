@@ -61,6 +61,30 @@ api_check "POST /auth/signup" POST /api/v1/auth/signup "${SIGNUP_JSON}"
 TOKEN="$(python3 -c "import json; print(json.load(open('/tmp/smoke-body.json'))['data']['accessToken'])")"
 api_check "POST /auth/login" POST /api/v1/auth/login "{\"email\":\"${EMAIL}\",\"password\":\"${PASS}\"}"
 api_check "GET /users/me (auth)" GET /api/v1/users/me "" "${TOKEN}"
+
+python3 - <<'PY'
+import json
+import sys
+
+with open("/tmp/smoke-body.json", encoding="utf-8") as f:
+    body = json.load(f)
+
+user = body.get("data") or {}
+portfolio = user.get("careerPortfolio") or {}
+cover = portfolio.get("coverLetter") or {}
+
+if portfolio.get("careerStatement") is None:
+    print("SMOKE FAIL careerPortfolio.careerStatement is null")
+    sys.exit(1)
+
+for key in ("jobExperience", "collaboration", "growthValues", "personality", "motivation"):
+    if cover.get(key) is None:
+        print(f"SMOKE FAIL careerPortfolio.coverLetter.{key} is null")
+        sys.exit(1)
+
+print("SMOKE OK   /users/me coverLetter fields normalized")
+PY
+
 api_check "GET /experiences" GET /api/v1/experiences "" "${TOKEN}"
 api_check "GET /job-postings" GET /api/v1/job-postings "" "${TOKEN}"
 api_check "GET /resumes" GET /api/v1/resumes "" "${TOKEN}"

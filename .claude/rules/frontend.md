@@ -17,5 +17,6 @@ paths:
 - API: `src/lib/api-base.ts`, dev 시 `VITE_API_URL=http://localhost:8080`
 - resume-admin: `VITE_BASE=/admin/` (vite.config.ts)
 - 상태: TanStack Query, 라우팅: react-router-dom
+- **null 안전성:** API 경계 정규화·React Query `data: null` 함정 → `.claude/rules/api-null-safety.md`
 
-변경 후 해당 앱에서 `npm run build` 로 타입·빌드 확인.
+변경 후 해당 앱에서 `npm run build` 로 타입·빌드 확인. 푸시 전 `./scripts/pre-push-web.sh` 권장.

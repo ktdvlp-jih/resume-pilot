@@ -1,5 +1,7 @@
 import { resolveApiUrl } from './api-base';
 import { bindSessionUserId, userIdFromJwt } from './user-storage';
+import { normalizeCareerPortfolio } from './career-portfolio';
+import { asArray, asRecord } from './query-utils';
 
 const API_URL = resolveApiUrl();
 
@@ -291,6 +293,53 @@ async function publicRequest<T>(path: string): Promise<T> {
   return json.data;
 }
 
+async function requestList<T>(path: string, options: RequestInit = {}): Promise<T[]> {
+  return asArray(await request<T[]>(path, options));
+}
+
+async function publicRequestList<T>(path: string): Promise<T[]> {
+  return asArray(await publicRequest<T[]>(path));
+}
+
+function normalizeUser(user: UserResponse): UserResponse {
+  return {
+    ...user,
+    careerPortfolio: normalizeCareerPortfolio(user.careerPortfolio),
+  };
+}
+
+function normalizeExperience(experience: ExperienceResponse): ExperienceResponse {
+  return { ...experience, skills: asArray(experience.skills) };
+}
+
+function normalizeWritingStyle(style: WritingStyleResponse | null): WritingStyleResponse | null {
+  if (!style) return null;
+  return {
+    ...style,
+    frequentWords: asArray(style.frequentWords),
+    connectors: asArray(style.connectors),
+    sourceResumeIds: asArray(style.sourceResumeIds),
+  };
+}
+
+function normalizeChatDetail(session: ExperienceChatSessionDetail): ExperienceChatSessionDetail {
+  return { ...session, messages: asArray(session.messages) };
+}
+
+type WalletResponse = {
+  tokenBalance: number;
+  countBalances: Record<string, number>;
+  operationCosts: Array<{ operation: string; tokenCost: number }>;
+};
+
+function normalizeWallet(wallet: WalletResponse): WalletResponse {
+  return {
+    tokenBalance: wallet?.tokenBalance ?? 0,
+    countBalances: asRecord(wallet?.countBalances),
+    operationCosts: asArray(wallet?.operationCosts),
+  };
+}
+
 export const api = {
   signup: (email: string, password: string, name?: string) =>
     request<TokenResponse>('/api/v1/auth/signup', {
@@ -302,22 +351,25 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
-  getMe: () => request<UserResponse>('/api/v1/users/me'),
-  updateMe: (data: {
+  getMe: async () => normalizeUser(await request<UserResponse>('/api/v1/users/me')),
+  updateMe: async (data: {
     name?: string;
     phone?: string;
     bio?: string;
     careerPortfolio?: CareerPortfolio;
   }) =>
-    request<UserResponse>('/api/v1/users/me', { method: 'PATCH', body: JSON.stringify(data) }),
+    normalizeUser(
+      await request<UserResponse>('/api/v1/users/me', { method: 'PATCH', body: JSON.stringify(data) }),
+    ),
   changePassword: (currentPassword: string, newPassword: string) =>
     request<void>('/api/v1/auth/password', {
       method: 'PATCH',
       body: JSON.stringify({ currentPassword, newPassword }),
     }),
-  listResumes: (jobPostingId?: string) =>
-    request<ResumeResponse[]>(`/api/v1/resumes${jobPostingId ? `?jobPostingId=${jobPostingId}` : ''}`),
-  listResumeVersions: (id: string) => request<ResumeVersionResponse[]>(`/api/v1/resumes/${id}/versions`),
+  listResumes: async (jobPostingId?: string) =>
+    requestList<ResumeResponse>(`/api/v1/resumes${jobPostingId ? `?jobPostingId=${jobPostingId}` : ''}`),
+  listResumeVersions: async (id: string) =>
+    requestList<ResumeVersionResponse>(`/api/v1/resumes/${id}/versions`),
   compareResumeVersions: (id: string, a: number, b: number) =>
     request<{ versionA: ResumeVersionResponse; versionB: ResumeVersionResponse }>(
       `/api/v1/resumes/${id}/versions/compare?versionA=${a}&versionB=${b}`),
@@ -329,22 +381,26 @@ export const api = {
       body: JSON.stringify({ content, name }),
     }),
   deleteResume: (id: string) => request<void>(`/api/v1/resumes/${id}`, { method: 'DELETE' }),
-  listExperiences: (type?: string) =>
-    request<ExperienceResponse[]>(`/api/v1/experiences${type ? `?type=${type}` : ''}`),
+  listExperiences: async (type?: string) =>
+    (await requestList<ExperienceResponse>(`/api/v1/experiences${type ? `?type=${type}` : ''}`)).map(
+      normalizeExperience,
+    ),
   createExperience: (data: Record<string, unknown>) =>
     request<ExperienceResponse>('/api/v1/experiences', { method: 'POST', body: JSON.stringify(data) }),
   updateExperience: (id: string, data: Record<string, unknown>) =>
     request<ExperienceResponse>(`/api/v1/experiences/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteExperience: (id: string) => request<void>(`/api/v1/experiences/${id}`, { method: 'DELETE' }),
   listExperienceChatSessions: () =>
-    request<ExperienceChatSessionSummary[]>('/api/v1/experiences/chat/sessions'),
-  createExperienceChatSession: (targetExperienceId?: string) =>
-    request<ExperienceChatSessionDetail>('/api/v1/experiences/chat/sessions', {
-      method: 'POST',
-      body: JSON.stringify(targetExperienceId ? { targetExperienceId } : {}),
-    }),
-  getExperienceChatSession: (id: string) =>
-    request<ExperienceChatSessionDetail>(`/api/v1/experiences/chat/sessions/${id}`),
+    requestList<ExperienceChatSessionSummary>('/api/v1/experiences/chat/sessions'),
+  createExperienceChatSession: async (targetExperienceId?: string) =>
+    normalizeChatDetail(
+      await request<ExperienceChatSessionDetail>('/api/v1/experiences/chat/sessions', {
+        method: 'POST',
+        body: JSON.stringify(targetExperienceId ? { targetExperienceId } : {}),
+      }),
+    ),
+  getExperienceChatSession: async (id: string) =>
+    normalizeChatDetail(await request<ExperienceChatSessionDetail>(`/api/v1/experiences/chat/sessions/${id}`)),
   sendExperienceChatMessage: (sessionId: string, message: string) =>
     request<ExperienceChatTurnResult>(`/api/v1/experiences/chat/sessions/${sessionId}/messages`, {
       method: 'POST',
@@ -359,21 +415,25 @@ export const api = {
     request<void>(`/api/v1/experiences/chat/sessions/${sessionId}`, { method: 'DELETE' }),
   getExperienceChatSessionForExperience: (experienceId: string) =>
     request<ExperienceChatSessionSummary | null>(`/api/v1/experiences/${experienceId}/chat-session`),
-  resumeExperienceChatForExperience: (experienceId: string) =>
-    request<ExperienceChatSessionDetail>(`/api/v1/experiences/${experienceId}/chat-session/resume`, {
-      method: 'POST',
-    }),
-  resumeExperienceChatSession: (sessionId: string) =>
-    request<ExperienceChatSessionDetail>(`/api/v1/experiences/chat/sessions/${sessionId}/resume`, {
-      method: 'POST',
-    }),
+  resumeExperienceChatForExperience: async (experienceId: string) =>
+    normalizeChatDetail(
+      await request<ExperienceChatSessionDetail>(`/api/v1/experiences/${experienceId}/chat-session/resume`, {
+        method: 'POST',
+      }),
+    ),
+  resumeExperienceChatSession: async (sessionId: string) =>
+    normalizeChatDetail(
+      await request<ExperienceChatSessionDetail>(`/api/v1/experiences/chat/sessions/${sessionId}/resume`, {
+        method: 'POST',
+      }),
+    ),
   listExperienceImportIntegrations: () =>
-    request<Array<{
+    requestList<{
       provider: string;
       configured: boolean;
       accessTokenMasked: string;
       externalUserId?: string | null;
-    }>>('/api/v1/experiences/import/integrations'),
+    }>('/api/v1/experiences/import/integrations'),
   saveNotionImportToken: (accessToken: string) =>
     request<{
       provider: string;
@@ -412,48 +472,48 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify({ accessToken }),
     }),
-  previewNotionImport: (data: { pageId?: string; pageUrl?: string; accessToken?: string } = {}) =>
-    request<Array<{
+  previewNotionImport: async (data: { pageId?: string; pageUrl?: string; accessToken?: string } = {}) =>
+    requestList<{
       sourceKey: string;
       type: string;
       title: string;
       description: string;
       role?: string | null;
       skills?: string[];
-    }>>('/api/v1/experiences/import/notion/preview', {
+    }>('/api/v1/experiences/import/notion/preview', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-  previewGitHubImport: (data: { repoFullName?: string; accessToken?: string } = {}) =>
-    request<Array<{
+  previewGitHubImport: async (data: { repoFullName?: string; accessToken?: string } = {}) =>
+    requestList<{
       sourceKey: string;
       type: string;
       title: string;
       description: string;
       role?: string | null;
       skills?: string[];
-    }>>('/api/v1/experiences/import/github/preview', {
+    }>('/api/v1/experiences/import/github/preview', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-  previewMarkdownImport: (files: Array<{ filename: string; content: string }>) =>
-    request<Array<{
+  previewMarkdownImport: async (files: Array<{ filename: string; content: string }>) =>
+    requestList<{
       sourceKey: string;
       type: string;
       title: string;
       description: string;
       role?: string | null;
       skills?: string[];
-    }>>('/api/v1/experiences/import/markdown/preview', {
+    }>('/api/v1/experiences/import/markdown/preview', {
       method: 'POST',
       body: JSON.stringify({ files }),
     }),
-  confirmExperienceImport: (drafts: Record<string, unknown>[]) =>
-    request<ExperienceResponse[]>('/api/v1/experiences/import/confirm', {
+  confirmExperienceImport: async (drafts: Record<string, unknown>[]) =>
+    (await requestList<ExperienceResponse>('/api/v1/experiences/import/confirm', {
       method: 'POST',
       body: JSON.stringify({ drafts }),
-    }),
-  listJobPostings: () => request<JobPostingResponse[]>('/api/v1/job-postings'),
+    })).map(normalizeExperience),
+  listJobPostings: () => requestList<JobPostingResponse>('/api/v1/job-postings'),
   uploadJobPosting: (data: { sourceType: string; content?: string; sourceUrl?: string; title?: string }) =>
     request<JobPostingResponse>('/api/v1/job-postings/upload', { method: 'POST', body: JSON.stringify(data) }),
   uploadJobPostingFile: async (file: File, title?: string) => {
@@ -486,14 +546,14 @@ export const api = {
       body: JSON.stringify({ closesAt }),
     }),
   listPublicSharedJobPostings: () =>
-    publicRequest<PublicJobPostingResponse[]>('/api/v1/public/shared-job-postings'),
+    publicRequestList<PublicJobPostingResponse>('/api/v1/public/shared-job-postings'),
   getPublicSharedResume: (token: string) =>
     publicRequest<PublicSharedResumeResponse>(`/api/v1/public/shared-resumes/${token}`),
   createResumeShareLink: (id: string) =>
     request<ResumeShareLinkResponse>(`/api/v1/resumes/${id}/share-link`, { method: 'POST' }),
   revokeResumeShareLink: (id: string) =>
     request<void>(`/api/v1/resumes/${id}/share-link`, { method: 'DELETE' }),
-  getSkillCatalog: () => request<Array<{ name: string; category: string }>>('/api/v1/skill-catalog'),
+  getSkillCatalog: () => requestList<{ name: string; category: string }>('/api/v1/skill-catalog'),
   lookupCertification: (q: string) =>
     request<{
       configured: boolean;
@@ -511,18 +571,23 @@ export const api = {
     }>(`/api/v1/certifications/lookup?q=${encodeURIComponent(q)}`),
   getCertificationLookupStatus: () =>
     request<{ configured: boolean; provider?: string | null }>('/api/v1/certifications/status'),
-  getWritingStyle: () => request<WritingStyleResponse | null>('/api/v1/writing-styles/me'),
-  analyzeWritingStyle: (content: string, resumeId?: string) =>
-    request<WritingStyleResponse>('/api/v1/writing-styles/analyze', {
-      method: 'POST',
-      body: JSON.stringify({ content, resumeId }),
-    }),
-  recommendExperiences: (keywords: string[], topK = 30, minScore = 0.28) =>
-    request<Array<{ id: string; title: string; type: string; description?: string; result?: string; score: number }>>(
-      '/api/v1/rag/recommend-experiences', {
+  getWritingStyle: async () =>
+    normalizeWritingStyle(await request<WritingStyleResponse | null>('/api/v1/writing-styles/me')),
+  analyzeWritingStyle: async (content: string, resumeId?: string) =>
+    normalizeWritingStyle(
+      await request<WritingStyleResponse>('/api/v1/writing-styles/analyze', {
+        method: 'POST',
+        body: JSON.stringify({ content, resumeId }),
+      }),
+    )!,
+  recommendExperiences: async (keywords: string[], topK = 30, minScore = 0.28) =>
+    requestList<{ id: string; title: string; type: string; description?: string; result?: string; score: number }>(
+      '/api/v1/rag/recommend-experiences',
+      {
         method: 'POST',
         body: JSON.stringify({ keywords, topK, minScore }),
-      }),
+      },
+    ),
   reembedAllExperiences: () =>
     request<{ count: number }>('/api/v1/experiences/embed-all', { method: 'POST' }),
   generateAi: (data: {
@@ -621,17 +686,16 @@ export const api = {
     request<Record<string, unknown>>('/api/v1/ai/compare-keywords', {
       method: 'POST', body: JSON.stringify({ jobKeywords, resumeContent }),
     }),
-  listAiGenerations: () => request<Array<{ id: string; outputContent: string; createdAt: string }>>('/api/v1/ai/generations'),
+  listAiGenerations: () =>
+    requestList<{ id: string; outputContent: string; createdAt: string }>('/api/v1/ai/generations'),
   getPaymentClientKey: () =>
     publicRequest<{ clientKey: string }>('/api/v1/payments/client-key'),
-  getBillingWallet: () =>
-    request<{
-      tokenBalance: number;
-      countBalances: Record<string, number>;
-      operationCosts: Array<{ operation: string; tokenCost: number }>;
-    }>('/api/v1/billing/wallet'),
+  getBillingWallet: async () =>
+    normalizeWallet(
+      await request<WalletResponse>('/api/v1/billing/wallet'),
+    ),
   listBillingProducts: () =>
-    publicRequest<Array<{
+    publicRequestList<{
       id: string;
       name: string;
       kind: string;
@@ -640,7 +704,7 @@ export const api = {
       priceKrw: number;
       enabled: boolean;
       sortOrder: number;
-    }>>('/api/v1/billing/products'),
+    }>('/api/v1/billing/products'),
   createPaymentOrder: (productId: string) =>
     request<{
       orderId: string;

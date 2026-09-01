@@ -7,6 +7,7 @@ import { ArrowRight } from 'lucide-react';
 import { GitHubConnectPanel } from '@/components/experience/github-connect-panel';
 import { NotionConnectPanel } from '@/components/experience/notion-connect-panel';
 import { api } from '@/lib/api';
+import { normalizeCareerPortfolio } from '@/lib/career-portfolio';
 import { BillingPanel } from '@/components/billing/billing-panel';
 import { PageHeader } from '@/components/common/page-header';
 import { PageShell } from '@/components/common/page-shell';
@@ -100,7 +101,7 @@ export default function SettingsPage() {
         name,
         phone,
         bio,
-        careerPortfolio: user?.careerPortfolio,
+        careerPortfolio: normalizeCareerPortfolio(user?.careerPortfolio),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['me'] });

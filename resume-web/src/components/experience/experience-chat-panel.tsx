@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, MessageSquarePlus, Send, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { api, type ExperienceChatSessionDetail } from '@/lib/api';
+import { api } from '@/lib/api';
+import { asArray } from '@/lib/query-utils';
 import { storeExperienceChatSessionId } from '@/lib/experience-chat-storage';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -112,9 +113,11 @@ export function ExperienceChatPanel({
     }
   }, [session?.status, sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const sessionMessages = asArray(session?.messages);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [session?.messages.length, sendMutation.isPending]);
+  }, [sessionMessages.length, sendMutation.isPending]);
 
   const draftTitle = String(session?.latestDraft?.title ?? '').trim();
   const canApply = Boolean(sessionId && draftTitle && session?.status === 'ACTIVE');
@@ -126,7 +129,7 @@ export function ExperienceChatPanel({
 
   const showSuggestions =
     session?.status === 'ACTIVE' &&
-    (session.messages.length <= 2 || !draftTitle) &&
+    (sessionMessages.length <= 2 || !draftTitle) &&
     !sendMutation.isPending;
 
   const handleNewSession = () => {
@@ -194,7 +197,7 @@ export function ExperienceChatPanel({
           <>
             <ScrollArea className="min-h-0 flex-1 pr-2">
               <div className="space-y-3 pb-2">
-                {(session as ExperienceChatSessionDetail | undefined)?.messages.map((msg) => (
+                {sessionMessages.map((msg) => (
                   <div
                     key={msg.id}
                     className={cn(

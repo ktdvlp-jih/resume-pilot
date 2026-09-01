@@ -42,4 +42,12 @@ Invoke-WebRequest "http://localhost:8001/docs" -UseBasicParsing
 Invoke-WebRequest "http://localhost:8002/docs" -UseBasicParsing
 ```
 
-5. 실패 항목만 짧게 보고. 커밋·push는 사용자가 요청할 때만.
+5. **신규 계정 `/me` 정규화** (signup 직후 coverLetter null 없음)
+
+```powershell
+$me = Invoke-RestMethod "$base/api/v1/users/me" -Headers @{ Authorization = "Bearer $token" }
+$cl = $me.data.careerPortfolio.coverLetter
+if ($null -eq $cl.jobExperience) { throw "coverLetter.jobExperience is null" }
+```
+
+6. 실패 항목만 짧게 보고. 커밋·push는 사용자가 요청할 때만.

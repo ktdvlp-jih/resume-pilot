@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { asArray } from '@/lib/query-utils';
 import { PageHeader } from '@/components/common/page-header';
 import { PageShell } from '@/components/common/page-shell';
 import { Section } from '@/components/common/section';
@@ -156,11 +157,11 @@ export default function WritingStylePage() {
                 {style.expressionStyle && (
                   <p className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">{style.expressionStyle}</p>
                 )}
-                {style.frequentWords.length > 0 && (
-                  <TagGroup label={t('writingStyle.frequentWords')} items={style.frequentWords} variant="secondary" />
+                {asArray(style.frequentWords).length > 0 && (
+                  <TagGroup label={t('writingStyle.frequentWords')} items={asArray(style.frequentWords)} variant="secondary" />
                 )}
-                {style.connectors.length > 0 && (
-                  <TagGroup label={t('writingStyle.connectors')} items={style.connectors} variant="outline" />
+                {asArray(style.connectors).length > 0 && (
+                  <TagGroup label={t('writingStyle.connectors')} items={asArray(style.connectors)} variant="outline" />
                 )}
               </CardContent>
             </Card>

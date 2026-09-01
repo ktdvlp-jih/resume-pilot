@@ -10,5 +10,6 @@ paths:
 - 설정: `application.yml`, `application-prod.yml` — 비밀은 `.env` only
 - API prefix: `/api/v1`, 응답 래퍼 통일 (`docs/API-규약.md`)
 - AI 호출: `RESUME_AI_SERVICE_URL` → resume-ai gateway
+- **null 안전성:** 사용자 UI 응답 DTO는 빈 값을 `null` 대신 `""`/`[]`로 → `.claude/rules/api-null-safety.md`
 
 변경 후 `cd resume-api && .\gradlew.bat compileJava` 또는 관련 테스트 실행.

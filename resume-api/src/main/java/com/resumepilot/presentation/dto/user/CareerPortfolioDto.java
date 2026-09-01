@@ -44,14 +44,25 @@ public record CareerPortfolioDto(
         }
         return new CareerPortfolioDto(
                 portfolio.getCareers() == null ? List.of() : portfolio.getCareers().stream()
-                        .map(c -> new CareerItemDto(c.getCompany(), c.getPosition(), c.getStartDate(), c.getEndDate(), c.getDescription()))
+                        .map(c -> new CareerItemDto(
+                                orEmpty(c.getCompany()),
+                                orEmpty(c.getPosition()),
+                                orEmpty(c.getStartDate()),
+                                orEmpty(c.getEndDate()),
+                                orEmpty(c.getDescription())))
                         .toList(),
                 portfolio.getEducations() == null ? List.of() : portfolio.getEducations().stream()
-                        .map(e -> new EducationItemDto(e.getSchool(), e.getMajor(), e.getDegree(), e.getStartDate(), e.getEndDate(), e.getDescription()))
+                        .map(e -> new EducationItemDto(
+                                orEmpty(e.getSchool()),
+                                orEmpty(e.getMajor()),
+                                orEmpty(e.getDegree()),
+                                orEmpty(e.getStartDate()),
+                                orEmpty(e.getEndDate()),
+                                orEmpty(e.getDescription())))
                         .toList(),
                 portfolio.getCertifications() == null ? List.of() : portfolio.getCertifications().stream()
                         .map(c -> new CertificationItemDto(
-                                displayText(c),
+                                orEmpty(displayText(c)),
                                 c.getName(),
                                 c.getIssuer(),
                                 c.getIssueDate(),
@@ -62,22 +73,40 @@ public record CareerPortfolioDto(
                                 c.getMatchSource()))
                         .toList(),
                 portfolio.getSkills() == null ? List.of() : portfolio.getSkills().stream()
-                        .map(s -> new SkillItemDto(s.getName(), s.getLevel(), s.getCategory()))
+                        .map(s -> new SkillItemDto(
+                                orEmpty(s.getName()),
+                                orEmpty(s.getLevel()),
+                                orEmpty(s.getCategory())))
                         .toList(),
-                portfolio.getCareerStatement(),
-                portfolio.getCoverLetter() == null ? new CoverLetterSectionsDto(null, null, null, null, null)
-                        : new CoverLetterSectionsDto(
-                        portfolio.getCoverLetter().getJobExperience(),
-                        portfolio.getCoverLetter().getCollaboration(),
-                        portfolio.getCoverLetter().getGrowthValues(),
-                        portfolio.getCoverLetter().getPersonality(),
-                        portfolio.getCoverLetter().getMotivation())
+                orEmpty(portfolio.getCareerStatement()),
+                fromCoverLetter(portfolio.getCoverLetter())
         );
     }
 
     public static CareerPortfolioDto empty() {
-        return new CareerPortfolioDto(List.of(), List.of(), List.of(), List.of(), null,
-                new CoverLetterSectionsDto(null, null, null, null, null));
+        return new CareerPortfolioDto(List.of(), List.of(), List.of(), List.of(), "",
+                emptyCoverLetter());
+    }
+
+    private static CoverLetterSectionsDto emptyCoverLetter() {
+        return new CoverLetterSectionsDto("", "", "", "", "");
+    }
+
+    private static CoverLetterSectionsDto fromCoverLetter(CareerPortfolio.CoverLetterSections coverLetter) {
+        if (coverLetter == null) {
+            return emptyCoverLetter();
+        }
+        return new CoverLetterSectionsDto(
+                orEmpty(coverLetter.getJobExperience()),
+                orEmpty(coverLetter.getCollaboration()),
+                orEmpty(coverLetter.getGrowthValues()),
+                orEmpty(coverLetter.getPersonality()),
+                orEmpty(coverLetter.getMotivation())
+        );
+    }
+
+    private static String orEmpty(String value) {
+        return value != null ? value : "";
     }
 
     public CareerPortfolio toEntity() {

@@ -98,10 +98,17 @@ public class WritingStyleService {
 
     private WritingStyleResponse toResponse(UserWritingStyle s) {
         return new WritingStyleResponse(
-                s.getId(), s.getFrequentWords(), s.getAvgSentenceLength(),
-                s.getUsesFormalSpeech(), s.getSentenceStyle(), s.getExpressionStyle(),
-                s.getConnectors(), s.getTone(), s.getAnalysisJson(),
-                s.getSourceResumeIds(), s.getUpdatedAt()
+                s.getId(),
+                s.getFrequentWords() != null ? s.getFrequentWords() : List.of(),
+                s.getAvgSentenceLength(),
+                s.getUsesFormalSpeech(),
+                s.getSentenceStyle(),
+                s.getExpressionStyle(),
+                s.getConnectors() != null ? s.getConnectors() : List.of(),
+                s.getTone(),
+                s.getAnalysisJson(),
+                s.getSourceResumeIds() != null ? s.getSourceResumeIds() : List.of(),
+                s.getUpdatedAt()
         );
     }
 

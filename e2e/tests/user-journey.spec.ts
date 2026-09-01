@@ -17,6 +17,20 @@ test.describe('user journey', () => {
     await page.getByRole('button', { name: /Later|나중에/i }).click();
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 15_000 });
 
+    // 신규 계정 null 크래시 회귀 — 경력기술서·설정(잔액) 첫 방문
+    await page.goto('/portfolio');
+    await expect(
+      page.getByRole('heading', { name: /경력기술서|Portfolio|経歴|简历/i }),
+    ).toBeVisible({ timeout: 15_000 });
+
+    await page.goto('/settings?tab=wallet');
+    await expect(page.getByRole('heading', { name: /설정|Settings|設定|设置/i })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByText(/현재 토큰|token balance|トークン|代币/i).first()).toBeVisible({
+      timeout: 15_000,
+    });
+
     await page.goto('/experiences');
     const addBtn = page.getByTestId('experience-add-btn').or(
       page.getByRole('button', { name: /경험 추가|Add experience|経験を追加|添加经历/i }),
