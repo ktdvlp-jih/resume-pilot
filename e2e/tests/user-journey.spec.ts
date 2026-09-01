@@ -13,6 +13,8 @@ test.describe('user journey', () => {
     await page.locator('#password').fill(password);
     await page.locator('form button[type="submit"]').click();
 
+    await expect(page).toHaveURL(/\/onboarding/, { timeout: 15_000 });
+    await page.getByRole('button', { name: /Later|나중에/i }).click();
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 15_000 });
 
     await page.goto('/experiences');
