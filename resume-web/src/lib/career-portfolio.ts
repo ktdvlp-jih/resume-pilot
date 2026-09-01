@@ -100,12 +100,23 @@ export const emptyCareerPortfolio = (): CareerPortfolio => ({
   coverLetter: emptyCoverLetter(),
 });
 
+export function normalizeCoverLetter(raw?: Partial<CoverLetterSections> | null): CoverLetterSections {
+  if (!raw) return emptyCoverLetter();
+  return {
+    jobExperience: raw.jobExperience ?? '',
+    collaboration: raw.collaboration ?? '',
+    growthValues: raw.growthValues ?? '',
+    personality: raw.personality ?? '',
+    motivation: raw.motivation ?? '',
+  };
+}
+
 export function normalizeCareerPortfolio(raw?: Partial<CareerPortfolio> | null): CareerPortfolio {
   if (!raw) return emptyCareerPortfolio();
   return {
-    careers: raw.careers?.length ? raw.careers : [],
-    educations: raw.educations?.length ? raw.educations : [],
-    certifications: (raw.certifications ?? []).map((c) => ({
+    careers: Array.isArray(raw.careers) ? raw.careers : [],
+    educations: Array.isArray(raw.educations) ? raw.educations : [],
+    certifications: (Array.isArray(raw.certifications) ? raw.certifications : []).map((c) => ({
       text: (c.text || c.name || '').trim(),
       name: c.name,
       issuer: c.issuer,
@@ -116,9 +127,9 @@ export function normalizeCareerPortfolio(raw?: Partial<CareerPortfolio> | null):
       matched: c.matched,
       matchSource: c.matchSource,
     })),
-    skills: raw.skills?.length ? raw.skills : [],
+    skills: Array.isArray(raw.skills) ? raw.skills : [],
     careerStatement: raw.careerStatement ?? '',
-    coverLetter: { ...emptyCoverLetter(), ...raw.coverLetter },
+    coverLetter: normalizeCoverLetter(raw.coverLetter),
   };
 }
 

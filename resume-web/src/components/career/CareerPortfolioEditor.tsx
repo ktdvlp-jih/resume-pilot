@@ -817,25 +817,26 @@ function ReviewableDraft({
   placeholder,
 }: {
   sectionType: PortfolioSectionType;
-  value: string;
+  value: string | null | undefined;
   onChange: (v: string) => void;
   placeholder?: string;
 }) {
   const { t } = useTranslation();
+  const safeValue = value ?? '';
   const [rows, setRows] = useState(
     () => readStoredDraftRows(sectionType) ?? DEFAULT_DRAFT_ROWS[sectionType],
   );
   const [result, setResult] = useState<PortfolioReviewResult | null>(null);
   const mutation = useMutation({
-    mutationFn: () => api.reviewPortfolio(sectionType, value),
+    mutationFn: () => api.reviewPortfolio(sectionType, safeValue),
     onSuccess: (data) => setResult(data),
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : t('portfolio.reviewFailed'));
     },
   });
 
-  const lineCount = countDraftLines(value);
-  const charCount = value.length;
+  const lineCount = countDraftLines(safeValue);
+  const charCount = safeValue.length;
 
   const updateRows = (next: number) => {
     const clamped = clampDraftRows(next);
@@ -864,7 +865,7 @@ function ReviewableDraft({
       </div>
       <Textarea
         rows={rows}
-        value={value}
+        value={safeValue}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className="min-h-40 text-sm leading-relaxed"
