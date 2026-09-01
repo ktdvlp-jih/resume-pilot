@@ -125,6 +125,7 @@ export default function SettingsPage() {
 
   return (
     <PageShell>
+      <div data-testid="settings-page" className="contents">
       <PageHeader title={t('settings.title')} description={t('settings.pageDesc')} />
 
       <Tabs value={tab} onValueChange={setTab}>
@@ -272,6 +273,7 @@ export default function SettingsPage() {
           </Section>
         </TabsContent>
       </Tabs>
+      </div>
     </PageShell>
   );
 }

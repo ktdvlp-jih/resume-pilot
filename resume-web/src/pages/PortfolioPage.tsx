@@ -41,6 +41,7 @@ export default function PortfolioPage() {
 
   return (
     <PageShell>
+      <div data-testid="portfolio-page" className="contents">
       <PageHeader
         title={t('portfolio.pageTitle')}
         description={t('portfolio.pageDesc', { pct })}
@@ -51,6 +52,7 @@ export default function PortfolioPage() {
       <Button size="lg" onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
         {updateMutation.isPending ? t('common.loading') : t('portfolio.saveAll')}
       </Button>
+      </div>
     </PageShell>
   );
 }

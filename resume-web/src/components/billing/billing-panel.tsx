@@ -66,7 +66,7 @@ export function BillingPanel({ balanceOnly = false }: Props) {
   const operationCosts = wallet?.operationCosts ?? [];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6" data-testid="billing-panel">
       {!balanceOnly && !clientKey && !clientKeyQuery.isLoading && (
         <Alert>
           <AlertDescription>{t('billing.noClientKey')}</AlertDescription>
