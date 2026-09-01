@@ -45,7 +45,7 @@ export function OnboardingExperienceStep({ selectedIds, onSelectedIdsChange }: P
 
   const { data: experiences = [], isLoading } = useQuery({
     queryKey: ['experiences'],
-    queryFn: api.listExperiences,
+    queryFn: () => api.listExperiences(),
   });
 
   const formOverLimit = isExperienceFormOverLimit(form);
