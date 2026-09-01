@@ -62,6 +62,8 @@ export function BillingPanel({ balanceOnly = false }: Props) {
   const clientKey = clientKeyQuery.data?.clientKey ?? '';
   const wallet = walletQuery.data;
   const products = productsQuery.data ?? [];
+  const countBalances = wallet?.countBalances ?? {};
+  const operationCosts = wallet?.operationCosts ?? [];
 
   return (
     <div className="flex flex-col gap-6">
@@ -81,12 +83,12 @@ export function BillingPanel({ balanceOnly = false }: Props) {
             <Badge variant="secondary" className="text-sm">
               {t('billing.tokens')}: {wallet.tokenBalance}
             </Badge>
-            {Object.entries(wallet.countBalances).map(([op, n]) => (
+            {Object.entries(countBalances).map(([op, n]) => (
               <Badge key={op} variant="outline" className="text-sm">
                 {op}: {n}
               </Badge>
             ))}
-            {Object.keys(wallet.countBalances).length === 0 && (
+            {Object.keys(countBalances).length === 0 && (
               <span className="text-sm text-muted-foreground">{t('billing.noCounts')}</span>
             )}
           </CardContent>
@@ -133,14 +135,14 @@ export function BillingPanel({ balanceOnly = false }: Props) {
         </div>
       )}
 
-      {wallet && wallet.operationCosts.length > 0 && (
+      {wallet && operationCosts.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>{t('billing.costsTitle')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="grid gap-1 text-sm text-muted-foreground sm:grid-cols-2">
-              {wallet.operationCosts.map((c) => (
+              {operationCosts.map((c) => (
                 <li key={c.operation}>
                   {c.operation}: {c.tokenCost} {t('billing.tokens')}
                 </li>
