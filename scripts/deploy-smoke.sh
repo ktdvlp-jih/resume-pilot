@@ -2,8 +2,20 @@
 # Post-deploy smoke — TC-02 HTTP + TC-04 API (docs/배포-테스트-케이스.md)
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PORT="${APP_PORT:-9180}"
 BASE="${SMOKE_BASE_URL:-http://127.0.0.1:${PORT}}"
+
+# Docker에는 .env로 주입돼도, 스모크 셸에는 INTERNAL_API_TOKEN이 없을 수 있음
+if [[ -z "${INTERNAL_API_TOKEN:-}" && -f "${ROOT}/.env" ]]; then
+  INTERNAL_API_TOKEN="$(
+    grep -E '^[[:space:]]*INTERNAL_API_TOKEN=' "${ROOT}/.env" | tail -1 \
+      | sed -E 's/^[[:space:]]*INTERNAL_API_TOKEN=//' \
+      | sed -E 's/^["'\'']//; s/["'\'']$//' \
+      | tr -d '\r'
+  )"
+  export INTERNAL_API_TOKEN
+fi
 
 http_check() {
   local path="$1"
@@ -71,7 +83,10 @@ if token:
 if data.get("requiresEmailVerification"):
     internal = os.environ.get("INTERNAL_API_TOKEN", "").strip()
     if not internal:
-        raise SystemExit("SMOKE FAIL signup requires email verification but INTERNAL_API_TOKEN is empty")
+        raise SystemExit(
+            "SMOKE FAIL signup requires email verification but INTERNAL_API_TOKEN is empty "
+            "(set it in server .env — same value the app container uses — then re-run smoke)"
+        )
     email = data.get("email") or os.environ.get("EMAIL", "")
     base = os.environ["BASE_URL"].rstrip("/")
     req = urllib.request.Request(
