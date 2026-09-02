@@ -1,4 +1,16 @@
 import { test, expect } from '@playwright/test';
+import { seedAuthSession } from '../helpers/auth';
+
+type SignupApiBody = {
+  success?: boolean;
+  data?: {
+    email?: string;
+    requiresEmailVerification?: boolean;
+    message?: string;
+    tokens?: { accessToken?: string; refreshToken?: string; userId?: string } | null;
+  };
+  error?: { code?: string; message?: string };
+};
 
 test.describe('user journey', () => {
   test('signup → experience → workspace', async ({ page, request }) => {
@@ -8,21 +20,43 @@ test.describe('user journey', () => {
     const name = `E2E ${stamp}`;
 
     await page.goto('/signup');
+    await expect(page.getByTestId('signup-form')).toBeVisible({ timeout: 15_000 });
+
     await page.locator('#name').fill(name);
     await page.locator('#email').fill(email);
     await page.locator('#password').fill(password);
-    await page.locator('form input[type="checkbox"]').nth(0).check();
-    await page.locator('form input[type="checkbox"]').nth(1).check();
-    await page.locator('form button[type="submit"]').click();
 
-    // bypass 환경: 바로 온보딩 / 운영: 이메일 인증 안내 후 force-verify
-    const reachedOnboarding = await page
-      .waitForURL(/\/onboarding/, { timeout: 5_000 })
-      .then(() => true)
-      .catch(() => false);
+    const checkboxes = page.getByTestId('signup-form').locator('input[type="checkbox"]');
+    await expect(checkboxes).toHaveCount(2);
+    await checkboxes.nth(0).check();
+    await checkboxes.nth(1).check();
 
-    if (!reachedOnboarding) {
-      await expect(page.getByText(/이메일을 확인|Check your email/i)).toBeVisible({ timeout: 15_000 });
+    const submit = page.getByTestId('signup-submit');
+    await expect(submit).toBeEnabled();
+
+    const signupWait = page.waitForResponse(
+      (res) => res.url().includes('/api/v1/auth/signup') && res.request().method() === 'POST',
+      { timeout: 30_000 },
+    );
+    await submit.click();
+    const signupRes = await signupWait;
+    const signupBody = (await signupRes.json()) as SignupApiBody;
+
+    if (!signupRes.ok() || !signupBody.success || !signupBody.data) {
+      const uiError = await page.getByTestId('signup-error').textContent().catch(() => '');
+      throw new Error(
+        `signup failed: HTTP ${signupRes.status()} body=${JSON.stringify(signupBody)} ui=${uiError}`,
+      );
+    }
+
+    const data = signupBody.data;
+    const accessFromSignup = data.tokens?.accessToken;
+
+    if (accessFromSignup) {
+      await expect(page).toHaveURL(/\/onboarding/, { timeout: 15_000 });
+    } else if (data.requiresEmailVerification) {
+      await expect(page.getByTestId('signup-check-email')).toBeVisible({ timeout: 15_000 });
+
       const internal = process.env.INTERNAL_API_TOKEN?.trim();
       if (!internal) {
         throw new Error(
@@ -31,28 +65,30 @@ test.describe('user journey', () => {
       }
       const verifyRes = await request.post('/api/v1/internal/auth/force-verify-email', {
         headers: { 'X-Internal-Token': internal },
-        data: { email },
+        data: { email: data.email || email },
       });
       const verifyBody = await verifyRes.json();
       if (!verifyRes.ok() || !verifyBody.success || !verifyBody.data?.accessToken) {
         throw new Error(`force-verify failed: ${verifyRes.status()} ${JSON.stringify(verifyBody)}`);
       }
+
+      await seedAuthSession(page, verifyBody.data.accessToken as string);
       await page.evaluate(
-        ({ accessToken, refreshToken, userId }: { accessToken: string; refreshToken: string; userId: string }) => {
-          localStorage.setItem('accessToken', accessToken);
-          localStorage.setItem('refreshToken', refreshToken);
+        ({ refreshToken, userId }: { refreshToken?: string; userId?: string }) => {
+          if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
           if (userId) localStorage.setItem('userId', userId);
         },
         {
-          accessToken: verifyBody.data.accessToken as string,
-          refreshToken: (verifyBody.data.refreshToken as string) || 'e2e-refresh-token',
-          userId: String(verifyBody.data.userId ?? ''),
+          refreshToken: verifyBody.data.refreshToken as string | undefined,
+          userId: verifyBody.data.userId != null ? String(verifyBody.data.userId) : undefined,
         },
       );
       await page.goto('/onboarding');
+      await expect(page).toHaveURL(/\/onboarding/, { timeout: 15_000 });
+    } else {
+      throw new Error(`signup succeeded without tokens or verification flag: ${JSON.stringify(signupBody)}`);
     }
 
-    await expect(page).toHaveURL(/\/onboarding/, { timeout: 15_000 });
     await page.getByRole('button', { name: /Later|나중에/i }).click();
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 15_000 });
 
@@ -82,7 +118,9 @@ test.describe('user journey', () => {
     await expect(page.getByText(`E2E Project ${stamp}`)).toBeVisible({ timeout: 10_000 });
 
     await page.goto('/workspace');
-    const workspaceRoot = page.getByTestId('workspace-page').or(page.getByRole('heading', { name: /워크스페이스|Workspace|ワークスペース|工作区/i }));
+    const workspaceRoot = page
+      .getByTestId('workspace-page')
+      .or(page.getByRole('heading', { name: /워크스페이스|Workspace|ワークスペース|工作区/i }));
     await expect(workspaceRoot.first()).toBeVisible();
 
     const jobInput = page.getByTestId('workspace-job-input').or(page.locator('textarea').first());

@@ -91,7 +91,7 @@ export default function SignupPage() {
       <AuthSplitLayout title={t('auth.checkEmailTitle')} subtitle={t('app.tagline')}>
         <DocumentHead title={t('auth.checkEmailTitle')} description={t('landing.authPitch')} path="/signup" />
         <AuthFormCard>
-          <div className="space-y-4">
+          <div className="space-y-4" data-testid="signup-check-email">
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
@@ -123,10 +123,10 @@ export default function SignupPage() {
     <AuthSplitLayout title={t('auth.signupTitle')} subtitle={t('app.tagline')}>
       <DocumentHead title={t('auth.signup')} description={t('landing.authPitch')} path="/signup" />
       <AuthFormCard>
-        <div className="space-y-5">
+        <div className="space-y-5" data-testid="signup-form">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <Alert variant="destructive">
+              <Alert variant="destructive" data-testid="signup-error">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
@@ -168,7 +168,12 @@ export default function SignupPage() {
               onTermsChange={setTermsAccepted}
               onPrivacyChange={setPrivacyAccepted}
             />
-            <Button type="submit" className="w-full rounded-full" disabled={loading || !consentOk}>
+            <Button
+              type="submit"
+              className="w-full rounded-full"
+              disabled={loading || !consentOk}
+              data-testid="signup-submit"
+            >
               {loading ? t('common.loading') : t('auth.signupWithEmail')}
             </Button>
           </form>
