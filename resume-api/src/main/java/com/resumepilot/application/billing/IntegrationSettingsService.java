@@ -37,6 +37,11 @@ public class IntegrationSettingsService {
     public static final String KAKAO_OAUTH_REDIRECT_URI = "KAKAO_OAUTH_REDIRECT_URI";
     /** true일 때만 로그인 화면에 카카오 버튼 노출 (비즈 이메일 권한 확보 후 사용) */
     public static final String KAKAO_OAUTH_ENABLED = "KAKAO_OAUTH_ENABLED";
+    public static final String QNET_LOOKUP_ENABLED = "QNET_LOOKUP_ENABLED";
+    public static final String QNET_SERVICE_KEY = "QNET_SERVICE_KEY";
+    public static final String MAIL_PROVIDER = "MAIL_PROVIDER";
+    public static final String MAIL_FROM = "MAIL_FROM";
+    public static final String RESEND_API_KEY = "RESEND_API_KEY";
 
     private static final Set<String> KNOWN_KEYS = Set.of(
             TOSS_CLIENT_KEY, TOSS_SECRET_KEY,
@@ -44,10 +49,13 @@ public class IntegrationSettingsService {
             GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_OAUTH_REDIRECT_URI,
             GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, GOOGLE_OAUTH_REDIRECT_URI,
             KAKAO_OAUTH_CLIENT_ID, KAKAO_OAUTH_CLIENT_SECRET, KAKAO_OAUTH_REDIRECT_URI,
-            KAKAO_OAUTH_ENABLED);
+            KAKAO_OAUTH_ENABLED,
+            QNET_LOOKUP_ENABLED, QNET_SERVICE_KEY,
+            MAIL_PROVIDER, MAIL_FROM, RESEND_API_KEY);
     private static final Set<String> SECRET_KEYS = Set.of(
             TOSS_SECRET_KEY, NOTION_CLIENT_SECRET, GITHUB_CLIENT_SECRET,
-            GOOGLE_OAUTH_CLIENT_SECRET, KAKAO_OAUTH_CLIENT_SECRET);
+            GOOGLE_OAUTH_CLIENT_SECRET, KAKAO_OAUTH_CLIENT_SECRET,
+            QNET_SERVICE_KEY, RESEND_API_KEY);
 
     private final IntegrationConfigRepository repository;
     private final LlmSecretsCipher secretsCipher;
@@ -92,6 +100,12 @@ public class IntegrationSettingsService {
         }
         if (key.startsWith("GOOGLE_OAUTH_") || key.startsWith("KAKAO_OAUTH_")) {
             return "AUTH";
+        }
+        if (key.startsWith("QNET_")) {
+            return "QNET";
+        }
+        if (key.startsWith("MAIL_") || key.equals(RESEND_API_KEY)) {
+            return "MAIL";
         }
         return "OTHER";
     }

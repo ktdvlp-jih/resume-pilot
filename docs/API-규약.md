@@ -100,7 +100,7 @@ All under `/admin/**`. Full `ADMIN` sees every path. `USER_ADMIN` is limited to 
 | `/admin/ai-logs` | AI usage logs |
 | `/admin/ai-logs/section-length` | 문항별 생성 목표/실제 글자 수 집계 |
 | `/admin/llm/providers`, `/admin/llm/routes` | LLM provider keys & per-task model routes (failover) |
-| `/admin/integration-settings` | Toss Payments keys (AES-GCM, masked secrets) |
+| `/admin/integration-settings` | 연동 키 (토스·Notion/GitHub·SNS·Q-Net·메일, AES-GCM). 상세: [연동-설정-가이드.md](연동-설정-가이드.md) |
 | `/admin/billing/products`, `/admin/billing/operation-costs` | Token/count products & per-operation token costs |
 | `/admin/payments`, `/admin/payments/{id}/cancel` | Payment list & full cancel |
 | `/admin/deploy-ci-settings` | Deploy CI toggle settings |

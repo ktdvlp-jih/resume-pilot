@@ -20,6 +20,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type Setting = {
   key: string;
@@ -29,11 +36,34 @@ type Setting = {
   displayValue: string;
 };
 
+type SelectOption = { value: string; labelKey: string };
+
 type ProviderDef = {
   id: string;
   displayNameKey: string;
   slug: string;
   keys: string[];
+};
+
+const SELECT_OPTIONS: Record<string, SelectOption[]> = {
+  KAKAO_OAUTH_ENABLED: [
+    { value: 'false', labelKey: 'integrationSettings.optionHidden' },
+    { value: 'true', labelKey: 'integrationSettings.optionShown' },
+  ],
+  QNET_LOOKUP_ENABLED: [
+    { value: 'false', labelKey: 'integrationSettings.optionDisabled' },
+    { value: 'true', labelKey: 'integrationSettings.optionEnabled' },
+  ],
+  MAIL_PROVIDER: [
+    { value: 'log', labelKey: 'integrationSettings.optionMailLog' },
+    { value: 'resend', labelKey: 'integrationSettings.optionMailResend' },
+  ],
+};
+
+const SELECT_DEFAULTS: Record<string, string> = {
+  KAKAO_OAUTH_ENABLED: 'false',
+  QNET_LOOKUP_ENABLED: 'false',
+  MAIL_PROVIDER: 'log',
 };
 
 const PG_PROVIDERS: ProviderDef[] = [
@@ -80,6 +110,24 @@ const AUTH_PROVIDERS: ProviderDef[] = [
   },
 ];
 
+const QNET_PROVIDERS: ProviderDef[] = [
+  {
+    id: 'qnet',
+    displayNameKey: 'integrationSettings.qnetName',
+    slug: 'qnet-lookup',
+    keys: ['QNET_LOOKUP_ENABLED', 'QNET_SERVICE_KEY'],
+  },
+];
+
+const MAIL_PROVIDERS: ProviderDef[] = [
+  {
+    id: 'mail',
+    displayNameKey: 'integrationSettings.mailName',
+    slug: 'mail',
+    keys: ['MAIL_PROVIDER', 'MAIL_FROM', 'RESEND_API_KEY'],
+  },
+];
+
 const FIELD_LABEL_KEYS: Record<string, string> = {
   TOSS_PAYMENTS_CLIENT_KEY: 'integrationSettings.fields.clientKey',
   TOSS_PAYMENTS_SECRET_KEY: 'integrationSettings.fields.secretKey',
@@ -96,7 +144,22 @@ const FIELD_LABEL_KEYS: Record<string, string> = {
   KAKAO_OAUTH_CLIENT_ID: 'integrationSettings.fields.clientId',
   KAKAO_OAUTH_CLIENT_SECRET: 'integrationSettings.fields.clientSecret',
   KAKAO_OAUTH_REDIRECT_URI: 'integrationSettings.fields.redirectUri',
+  QNET_LOOKUP_ENABLED: 'integrationSettings.fields.qnetEnabled',
+  QNET_SERVICE_KEY: 'integrationSettings.fields.qnetServiceKey',
+  MAIL_PROVIDER: 'integrationSettings.fields.mailProvider',
+  MAIL_FROM: 'integrationSettings.fields.mailFrom',
+  RESEND_API_KEY: 'integrationSettings.fields.resendApiKey',
 };
+
+function fieldValue(item: Setting, edits: Record<string, string>) {
+  if (item.secret) {
+    return edits[item.key] ?? '';
+  }
+  const edited = edits[item.key];
+  if (edited !== undefined) return edited;
+  if (item.displayValue) return item.displayValue;
+  return SELECT_DEFAULTS[item.key] ?? '';
+}
 
 function providerHasPendingEdits(provider: ProviderDef, itemsByKey: Map<string, Setting>, edits: Record<string, string>) {
   return provider.keys.some((key) => {
@@ -104,7 +167,8 @@ function providerHasPendingEdits(provider: ProviderDef, itemsByKey: Map<string, 
     if (!item) return (edits[key] ?? '').trim().length > 0;
     if (edits[key] === undefined) return false;
     if (item.secret) return edits[key].trim().length > 0;
-    return edits[key] !== item.displayValue;
+    const baseline = item.displayValue || SELECT_DEFAULTS[key] || '';
+    return edits[key] !== baseline;
   });
 }
 
@@ -146,48 +210,61 @@ function IntegrationProviderCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {items.map((item) => (
-          <div key={item.key} className="space-y-1">
-            <Label htmlFor={item.key}>{t(FIELD_LABEL_KEYS[item.key] ?? item.key)}</Label>
-            <div className="flex gap-2">
-              <Input
-                id={item.key}
-                type={item.secret ? 'password' : 'text'}
-                className="min-w-0 flex-1"
-                placeholder={
-                  item.secret
-                    ? item.configured
-                      ? item.displayValue
-                      : t('integrationSettings.secretPlaceholder')
-                    : item.key === 'KAKAO_OAUTH_ENABLED'
-                      ? t('integrationSettings.enabledPlaceholder')
-                      : item.key.endsWith('_REDIRECT_URI')
-                        ? t('integrationSettings.redirectUriPlaceholder')
-                        : t('integrationSettings.valuePlaceholder')
-                }
-                value={
-                  item.secret
-                    ? (edits[item.key] ?? '')
-                    : (edits[item.key] ?? item.displayValue)
-                }
-                onChange={(e) => onEditChange(item.key, e.target.value)}
-              />
-              {item.secret && item.configured && (
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="outline"
-                  title={t('llmSettings.revealKey')}
-                  aria-label={t('llmSettings.revealKey')}
-                  disabled={revealingKey === item.key}
-                  onClick={() => onReveal(item)}
-                >
-                  <Eye className="size-4" />
-                </Button>
+        {items.map((item) => {
+          const selectOptions = SELECT_OPTIONS[item.key];
+          const value = fieldValue(item, edits);
+          return (
+            <div key={item.key} className="space-y-1">
+              <Label htmlFor={item.key}>{t(FIELD_LABEL_KEYS[item.key] ?? item.key)}</Label>
+              {selectOptions ? (
+                <Select value={value || SELECT_DEFAULTS[item.key]} onValueChange={(v) => onEditChange(item.key, v)}>
+                  <SelectTrigger id={item.key} className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {selectOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {t(opt.labelKey)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    id={item.key}
+                    type={item.secret ? 'password' : 'text'}
+                    className="min-w-0 flex-1"
+                    placeholder={
+                      item.secret
+                        ? item.configured
+                          ? item.displayValue
+                          : t('integrationSettings.secretPlaceholder')
+                        : item.key.endsWith('_REDIRECT_URI')
+                          ? t('integrationSettings.redirectUriPlaceholder')
+                          : t('integrationSettings.valuePlaceholder')
+                    }
+                    value={value}
+                    onChange={(e) => onEditChange(item.key, e.target.value)}
+                  />
+                  {item.secret && item.configured && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      title={t('llmSettings.revealKey')}
+                      aria-label={t('llmSettings.revealKey')}
+                      disabled={revealingKey === item.key}
+                      onClick={() => onReveal(item)}
+                    >
+                      <Eye className="size-4" />
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
-          </div>
-        ))}
+          );
+        })}
         <Button size="sm" variant="outline" disabled={saving || !hasPendingEdits} onClick={onSave}>
           {t('integrationSettings.saveKeys')}
         </Button>
@@ -419,6 +496,34 @@ export default function IntegrationSettingsPage() {
           </Button>
         }
         providers={AUTH_PROVIDERS}
+        itemsByKey={itemsByKey}
+        edits={edits}
+        revealingKey={revealingKey}
+        onEditChange={(key, value) => setEdits((prev) => ({ ...prev, [key]: value }))}
+        onReveal={revealSettingKey}
+        onSaveProvider={saveProvider}
+        savingProviderId={savingProviderId}
+        isLoading={query.isLoading}
+      />
+
+      <IntegrationSection
+        title={t('integrationSettings.qnetTitle')}
+        description={t('integrationSettings.qnetDesc')}
+        providers={QNET_PROVIDERS}
+        itemsByKey={itemsByKey}
+        edits={edits}
+        revealingKey={revealingKey}
+        onEditChange={(key, value) => setEdits((prev) => ({ ...prev, [key]: value }))}
+        onReveal={revealSettingKey}
+        onSaveProvider={saveProvider}
+        savingProviderId={savingProviderId}
+        isLoading={query.isLoading}
+      />
+
+      <IntegrationSection
+        title={t('integrationSettings.mailTitle')}
+        description={t('integrationSettings.mailDesc')}
+        providers={MAIL_PROVIDERS}
         itemsByKey={itemsByKey}
         edits={edits}
         revealingKey={revealingKey}

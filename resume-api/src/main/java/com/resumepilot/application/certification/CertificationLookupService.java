@@ -2,6 +2,7 @@ package com.resumepilot.application.certification;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.resumepilot.application.billing.IntegrationSettingsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,12 +32,13 @@ public class CertificationLookupService {
 
     private final WebClient.Builder webClientBuilder;
     private final ObjectMapper objectMapper;
+    private final IntegrationSettingsService integrationSettings;
 
     @Value("${app.certification.qnet.enabled:false}")
-    private boolean enabled;
+    private boolean enabledEnv;
 
     @Value("${app.certification.qnet.service-key:}")
-    private String serviceKey;
+    private String serviceKeyEnv;
 
     @Value("${app.certification.qnet.base-url:http://openapi.q-net.or.kr/api/service/rest/InquiryListNationalQualifcationSVC/getList}")
     private String baseUrl;
@@ -44,7 +46,25 @@ public class CertificationLookupService {
     private final AtomicReference<CachedCatalog> cache = new AtomicReference<>();
 
     public boolean isConfigured() {
-        return enabled && serviceKey != null && !serviceKey.isBlank();
+        String serviceKey = resolveServiceKey();
+        return resolveEnabled() && serviceKey != null && !serviceKey.isBlank();
+    }
+
+    private boolean resolveEnabled() {
+        String fromDb = integrationSettings.getPlain(IntegrationSettingsService.QNET_LOOKUP_ENABLED);
+        if (fromDb != null && !fromDb.isBlank()) {
+            String v = fromDb.trim();
+            return "true".equalsIgnoreCase(v) || "1".equals(v) || "yes".equalsIgnoreCase(v);
+        }
+        return enabledEnv;
+    }
+
+    private String resolveServiceKey() {
+        String fromDb = integrationSettings.getPlain(IntegrationSettingsService.QNET_SERVICE_KEY);
+        if (fromDb != null && !fromDb.isBlank()) {
+            return fromDb.trim();
+        }
+        return serviceKeyEnv == null ? "" : serviceKeyEnv.trim();
     }
 
     public LookupResponse lookup(String query) {
@@ -105,7 +125,7 @@ public class CertificationLookupService {
     private List<CatalogItem> fetchCatalog() {
         String uri = UriComponentsBuilder
                 .fromUriString(baseUrl)
-                .queryParam("serviceKey", serviceKey)
+                .queryParam("serviceKey", resolveServiceKey())
                 .queryParam("_type", "json")
                 .encode()
                 .build()
