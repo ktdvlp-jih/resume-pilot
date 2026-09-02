@@ -127,7 +127,7 @@ class BillingWalletServiceTest {
 
     @Test
     void adminGrantDelegatesAndReturnsWallet() {
-        when(entitlementService.adminGrant(eq(userId), eq(BillingProductKind.TOKEN), isNull(), eq(100), any()))
+        when(entitlementService.adminGrant(eq(userId), eq(BillingProductKind.TOKEN), isNull(), eq(100), eq("note"), isNull()))
                 .thenReturn(EntitlementLot.builder().build());
         when(lotRepository.sumTokenRemaining(eq(userId), any(Instant.class))).thenReturn(100L);
         when(lotRepository.sumCountRemainingByOperation(eq(userId), any(Instant.class))).thenReturn(List.of());
@@ -137,6 +137,6 @@ class BillingWalletServiceTest {
                 new AdminGrantRequest("TOKEN", null, 100, "note"));
 
         assertThat(wallet.tokenBalance()).isEqualTo(100);
-        verify(entitlementService).adminGrant(userId, BillingProductKind.TOKEN, null, 100, "note");
+        verify(entitlementService).adminGrant(userId, BillingProductKind.TOKEN, null, 100, "note", null);
     }
 }

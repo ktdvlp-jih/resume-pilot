@@ -24,6 +24,7 @@ const LlmSettingsPage = lazy(() => import('./pages/LlmSettingsPage'));
 const BotLinksPage = lazy(() => import('./pages/BotLinksPage'));
 const IntegrationSettingsPage = lazy(() => import('./pages/IntegrationSettingsPage'));
 const BillingProductsPage = lazy(() => import('./pages/BillingProductsPage'));
+const CouponsPage = lazy(() => import('./pages/CouponsPage'));
 const PaymentsPage = lazy(() => import('./pages/PaymentsPage'));
 
 const queryClient = new QueryClient();
@@ -69,6 +70,7 @@ export default function App() {
                     <Route path="/llm-settings" element={<LlmSettingsPage />} />
                     <Route path="/integration-settings" element={<IntegrationSettingsPage />} />
                     <Route path="/billing-products" element={<BillingProductsPage />} />
+                    <Route path="/coupons" element={<CouponsPage />} />
                     <Route path="/payments" element={<PaymentsPage />} />
                     <Route path="/bot-links" element={<BotLinksPage />} />
                     <Route path="/deploy-ci-settings" element={<DeployCiSettingsPage />} />

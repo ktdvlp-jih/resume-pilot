@@ -26,6 +26,7 @@
     "llmSettings": "LLM Settings",
     "integrationSettings": "Integrations",
     "billingProducts": "Billing products",
+    "coupons": "Coupons",
     "payments": "Payments",
     "botLinks": "Bot links",
     "deploySettings": "Deploy CI",
@@ -428,6 +429,36 @@
     "amount": "Amount",
     "kind": "Kind",
     "note": "Note",
-    "granted": "Granted."
+    "granted": "Granted.",
+    "ledgerTitle": "Top-up history",
+    "ledgerEmpty": "No entries yet.",
+    "grantedBy": "Admin: {{email}}",
+    "couponCode": "Coupon: {{code}}"
+  },
+  "billingLedger": {
+    "types": {
+      "GRANT": "Purchase",
+      "ADMIN_GRANT": "Admin grant",
+      "FREE_GRANT": "Free grant",
+      "COUPON_REDEEM": "Coupon",
+      "REFUND": "Refund"
+    }
+  },
+  "coupons": {
+    "desc": "Issue token or count coupons. Users redeem codes in Settings.",
+    "createTitle": "Issue coupon",
+    "listTitle": "Issued coupons",
+    "code": "Code",
+    "codeAuto": "Leave blank to auto-generate",
+    "maxRedemptions": "Max uses",
+    "validUntil": "Expires",
+    "usage": "Used",
+    "issuedBy": "Issued by",
+    "issue": "Issue",
+    "created": "Coupon {{code}} created.",
+    "copy": "Copy code",
+    "copied": "Code copied.",
+    "empty": "No coupons yet.",
+    "tokenAmount": "{{amount}} tokens"
   }
 }

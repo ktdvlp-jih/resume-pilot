@@ -6,5 +6,6 @@ public enum BillingLedgerEntryType {
     REFUND,
     CANCEL_RECLAIM,
     ADMIN_GRANT,
-    FREE_GRANT
+    FREE_GRANT,
+    COUPON_REDEEM
 }

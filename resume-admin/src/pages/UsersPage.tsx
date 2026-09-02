@@ -50,6 +50,17 @@ function formatCreatedOn(iso?: string) {
   }).format(date);
 }
 
+function formatLedgerWhen(iso?: string) {
+  if (!iso) return '—';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '—';
+  return new Intl.DateTimeFormat('ko-KR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+    timeZone: 'Asia/Seoul',
+  }).format(date);
+}
+
 export default function UsersPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -77,6 +88,12 @@ export default function UsersPage() {
     enabled: !!walletUser,
   });
 
+  const ledgerQuery = useQuery({
+    queryKey: ['admin-user-ledger', walletUser?.id],
+    queryFn: () => api.getUserLedger(walletUser!.id),
+    enabled: !!walletUser,
+  });
+
   const grantMutation = useMutation({
     mutationFn: () =>
       api.grantUserEntitlement(walletUser!.id, {
@@ -88,6 +105,7 @@ export default function UsersPage() {
     onSuccess: () => {
       toast.success(t('userWallet.granted'));
       queryClient.invalidateQueries({ queryKey: ['admin-user-wallet', walletUser?.id] });
+      queryClient.invalidateQueries({ queryKey: ['admin-user-ledger', walletUser?.id] });
       setGrantNote('');
     },
     onError: (err) => toast.error(err instanceof Error ? err.message : t('common.error')),
@@ -435,6 +453,40 @@ export default function UsersPage() {
             <Button disabled={grantMutation.isPending || grantAmount < 1} onClick={() => grantMutation.mutate()}>
               {t('userWallet.grant')}
             </Button>
+            <div className="space-y-2 border-t pt-4">
+              <Label>{t('userWallet.ledgerTitle')}</Label>
+              {ledgerQuery.isLoading ? (
+                <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+              ) : (ledgerQuery.data ?? []).length === 0 ? (
+                <p className="text-sm text-muted-foreground">{t('userWallet.ledgerEmpty')}</p>
+              ) : (
+                <ul className="max-h-48 space-y-2 overflow-y-auto text-sm">
+                  {(ledgerQuery.data ?? []).map((row) => (
+                    <li key={row.id} className="rounded-md border px-3 py-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-medium">
+                          {t(`billingLedger.types.${row.entryType}`, { defaultValue: row.entryType })}
+                        </span>
+                        <span className="text-muted-foreground">{formatLedgerWhen(row.createdAt)}</span>
+                      </div>
+                      <p>
+                        +{row.amount}
+                        {row.kind === 'TOKEN' ? ` ${t('userWallet.tokens')}` : row.operation ? ` (${row.operation})` : ''}
+                      </p>
+                      {row.entryType === 'ADMIN_GRANT' && row.grantedByAdminEmail && (
+                        <p className="text-muted-foreground">{t('userWallet.grantedBy', { email: row.grantedByAdminEmail })}</p>
+                      )}
+                      {row.entryType === 'COUPON_REDEEM' && row.couponCode && (
+                        <p className="text-muted-foreground">{t('userWallet.couponCode', { code: row.couponCode })}</p>
+                      )}
+                      {row.note && row.entryType !== 'COUPON_REDEEM' && (
+                        <p className="text-muted-foreground">{row.note}</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>

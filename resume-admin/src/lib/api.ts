@@ -490,4 +490,60 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  getUserLedger: (userId: string, limit = 30) =>
+    request<Array<{
+      id: string;
+      entryType: string;
+      kind?: string;
+      operation?: string;
+      amount: number;
+      note?: string;
+      createdAt: string;
+      grantedByAdminEmail?: string;
+      couponCode?: string;
+    }>>(`/api/v1/admin/users/${userId}/ledger?limit=${limit}`),
+  listCoupons: () =>
+    request<Array<{
+      id: string;
+      code: string;
+      kind: string;
+      operation?: string;
+      grantAmount: number;
+      maxRedemptions: number;
+      redemptionCount: number;
+      validFrom: string;
+      validUntil?: string;
+      enabled: boolean;
+      note?: string;
+      createdByAdminEmail?: string;
+      createdAt: string;
+    }>>('/api/v1/admin/billing/coupons'),
+  createCoupon: (data: {
+    code?: string;
+    kind: string;
+    operation?: string;
+    grantAmount: number;
+    maxRedemptions?: number;
+    validUntil?: string;
+    note?: string;
+  }) =>
+    request<{
+      id: string;
+      code: string;
+      kind: string;
+      operation?: string;
+      grantAmount: number;
+      maxRedemptions: number;
+      redemptionCount: number;
+      enabled: boolean;
+      note?: string;
+      createdAt: string;
+    }>('/api/v1/admin/billing/coupons', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  setCouponEnabled: (id: string, enabled: boolean) =>
+    request<{ id: string; enabled: boolean }>(`/api/v1/admin/billing/coupons/${id}/enabled?enabled=${enabled}`, {
+      method: 'PATCH',
+    }),
 };

@@ -720,4 +720,23 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  listBillingLedger: () =>
+    requestList<{
+      id: string;
+      entryType: string;
+      kind?: string;
+      operation?: string;
+      amount: number;
+      note?: string;
+      createdAt: string;
+      grantedByAdminEmail?: string;
+      couponCode?: string;
+    }>('/api/v1/billing/ledger'),
+  redeemCoupon: async (code: string) =>
+    normalizeWallet(
+      await request<WalletResponse>('/api/v1/billing/coupons/redeem', {
+        method: 'POST',
+        body: JSON.stringify({ code }),
+      }),
+    ),
 };

@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Building2, Briefcase, Bot, CreditCard, FileText, Link2, LogOut, Package, ScrollText, Settings2, ShieldBan, Sparkles, Users, Wallet } from 'lucide-react';
+import { Building2, Briefcase, Bot, CreditCard, FileText, Link2, LogOut, Package, ScrollText, Settings2, ShieldBan, Sparkles, Ticket, Users, Wallet } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { LogoMark } from '@/components/Logo';
 import { clearTokens, getUserRole } from '@/lib/api';
@@ -32,6 +32,7 @@ const navItems = [
   { to: '/llm-settings', icon: Bot, key: 'nav.llmSettings', kind: 'full' },
   { to: '/integration-settings', icon: Wallet, key: 'nav.integrationSettings', kind: 'full' },
   { to: '/billing-products', icon: Package, key: 'nav.billingProducts', kind: 'full' },
+  { to: '/coupons', icon: Ticket, key: 'nav.coupons', kind: 'full' },
   { to: '/payments', icon: CreditCard, key: 'nav.payments', kind: 'full' },
   { to: '/deploy-ci-settings', icon: Settings2, key: 'nav.deploySettings', kind: 'full' },
 ] as const;

@@ -39,6 +39,12 @@ public class BillingLedgerEntry {
     @Column(name = "payment_id")
     private UUID paymentId;
 
+    @Column(name = "granted_by_admin_id")
+    private UUID grantedByAdminId;
+
+    @Column(name = "coupon_id")
+    private UUID couponId;
+
     @Column(name = "needs_manual_fix", nullable = false)
     @Builder.Default
     private boolean needsManualFix = false;

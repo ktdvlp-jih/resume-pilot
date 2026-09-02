@@ -1,10 +1,13 @@
 package com.resumepilot.presentation.controller;
 
+import com.resumepilot.application.billing.BillingLedgerService;
 import com.resumepilot.application.billing.BillingWalletService;
+import com.resumepilot.application.billing.CouponService;
 import com.resumepilot.application.billing.IntegrationSettingsService;
 import com.resumepilot.application.billing.PaymentService;
 import com.resumepilot.application.integration.GitHubOAuthService;
 import com.resumepilot.application.integration.NotionOAuthService;
+import com.resumepilot.global.config.SecurityUtils;
 import com.resumepilot.global.response.ApiResponse;
 import com.resumepilot.presentation.dto.billing.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,6 +33,8 @@ public class AdminBillingController {
 
     private final IntegrationSettingsService integrationSettings;
     private final BillingWalletService walletService;
+    private final BillingLedgerService ledgerService;
+    private final CouponService couponService;
     private final PaymentService paymentService;
     private final NotionOAuthService notionOAuthService;
     private final GitHubOAuthService gitHubOAuthService;
@@ -114,7 +119,35 @@ public class AdminBillingController {
     public ApiResponse<WalletResponse> grant(
             @PathVariable UUID userId,
             @Valid @RequestBody AdminGrantRequest request) {
-        return ApiResponse.ok(walletService.adminGrant(userId, request));
+        return ApiResponse.ok(walletService.adminGrant(userId, request, SecurityUtils.getCurrentUserId()));
+    }
+
+    @GetMapping("/users/{userId}/ledger")
+    @Operation(summary = "사용자 충전·지급 내역")
+    public ApiResponse<List<LedgerEntryResponse>> userLedger(
+            @PathVariable UUID userId,
+            @RequestParam(defaultValue = "30") int limit) {
+        return ApiResponse.ok(ledgerService.listAdminCredits(userId, limit));
+    }
+
+    @GetMapping("/billing/coupons")
+    @Operation(summary = "쿠폰 목록")
+    public ApiResponse<List<CouponResponse>> listCoupons() {
+        return ApiResponse.ok(couponService.listCoupons());
+    }
+
+    @PostMapping("/billing/coupons")
+    @Operation(summary = "쿠폰 발급")
+    public ApiResponse<CouponResponse> createCoupon(@Valid @RequestBody CreateCouponRequest request) {
+        return ApiResponse.ok(couponService.createCoupon(request, SecurityUtils.getCurrentUserId()));
+    }
+
+    @PatchMapping("/billing/coupons/{id}/enabled")
+    @Operation(summary = "쿠폰 활성/비활성")
+    public ApiResponse<CouponResponse> setCouponEnabled(
+            @PathVariable UUID id,
+            @RequestParam boolean enabled) {
+        return ApiResponse.ok(couponService.setCouponEnabled(id, enabled));
     }
 
     private static String trimTrailingSlash(String url) {

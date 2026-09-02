@@ -26,6 +26,7 @@
     "llmSettings": "LLM 설정",
     "integrationSettings": "연동 설정",
     "billingProducts": "과금 상품",
+    "coupons": "쿠폰",
     "payments": "결제",
     "botLinks": "봇 링크",
     "deploySettings": "배포 CI",
@@ -438,6 +439,36 @@
     "amount": "수량",
     "kind": "종류",
     "note": "메모",
-    "granted": "지급했습니다."
+    "granted": "지급했습니다.",
+    "ledgerTitle": "충전·지급 내역",
+    "ledgerEmpty": "내역이 없습니다.",
+    "grantedBy": "처리 관리자: {{email}}",
+    "couponCode": "쿠폰: {{code}}"
+  },
+  "billingLedger": {
+    "types": {
+      "GRANT": "결제 충전",
+      "ADMIN_GRANT": "관리자 지급",
+      "FREE_GRANT": "무료 지급",
+      "COUPON_REDEEM": "쿠폰 등록",
+      "REFUND": "환불"
+    }
+  },
+  "coupons": {
+    "desc": "토큰·횟수 쿠폰을 발급합니다. 사용자는 설정에서 코드를 등록해 잔액을 늘립니다.",
+    "createTitle": "쿠폰 발급",
+    "listTitle": "발급 목록",
+    "code": "쿠폰 코드",
+    "codeAuto": "비우면 자동 생성",
+    "maxRedemptions": "최대 사용 횟수",
+    "validUntil": "만료일",
+    "usage": "사용",
+    "issuedBy": "발급자",
+    "issue": "발급",
+    "created": "쿠폰 {{code}} 를 발급했습니다.",
+    "copy": "코드 복사",
+    "copied": "쿠폰 코드를 복사했습니다.",
+    "empty": "발급된 쿠폰이 없습니다.",
+    "tokenAmount": "토큰 {{amount}}개"
   }
 }

@@ -1,5 +1,6 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { api, getAccessToken } from '@/lib/api';
@@ -8,6 +9,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 type Props = {
   /** true면 잔액·단가만 (충전 상품 숨김) */
@@ -16,7 +19,9 @@ type Props = {
 
 export function BillingPanel({ balanceOnly = false }: Props) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const loggedIn = !!getAccessToken();
+  const [couponCode, setCouponCode] = useState('');
 
   const clientKeyQuery = useQuery({
     queryKey: ['payment-client-key'],
@@ -33,6 +38,23 @@ export function BillingPanel({ balanceOnly = false }: Props) {
     queryKey: ['billing-products'],
     queryFn: api.listBillingProducts,
     enabled: !balanceOnly,
+  });
+
+  const ledgerQuery = useQuery({
+    queryKey: ['billing-ledger'],
+    queryFn: api.listBillingLedger,
+    enabled: loggedIn,
+  });
+
+  const redeemMutation = useMutation({
+    mutationFn: () => api.redeemCoupon(couponCode.trim()),
+    onSuccess: () => {
+      toast.success(t('billing.couponRedeemed'));
+      setCouponCode('');
+      queryClient.invalidateQueries({ queryKey: ['billing-wallet'] });
+      queryClient.invalidateQueries({ queryKey: ['billing-ledger'] });
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : t('billing.couponError')),
   });
 
   const buyMutation = useMutation({
@@ -91,6 +113,68 @@ export function BillingPanel({ balanceOnly = false }: Props) {
             {Object.keys(countBalances).length === 0 && (
               <span className="text-sm text-muted-foreground">{t('billing.noCounts')}</span>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {loggedIn && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('billing.couponTitle')}</CardTitle>
+            <CardDescription>{t('billing.couponHint')}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3 sm:flex-row">
+            <Input
+              value={couponCode}
+              placeholder={t('billing.couponPlaceholder')}
+              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              className="font-mono uppercase"
+            />
+            <Button
+              disabled={!couponCode.trim() || redeemMutation.isPending}
+              onClick={() => redeemMutation.mutate()}
+            >
+              {t('billing.couponRedeem')}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {loggedIn && ledgerQuery.data && ledgerQuery.data.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('billing.ledgerTitle')}</CardTitle>
+            <CardDescription>{t('billing.ledgerHint')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 text-sm">
+              {ledgerQuery.data.map((row) => (
+                <li key={row.id} className="flex flex-wrap items-start justify-between gap-2 border-b pb-2 last:border-0">
+                  <div>
+                    <p className="font-medium">
+                      {t(`billing.ledgerTypes.${row.entryType}`, { defaultValue: row.entryType })}
+                    </p>
+                    <p className="text-muted-foreground">
+                      +{row.amount}
+                      {row.kind === 'TOKEN' ? ` ${t('billing.tokens')}` : row.operation ? ` (${row.operation})` : ''}
+                    </p>
+                    {row.entryType === 'ADMIN_GRANT' && row.grantedByAdminEmail && (
+                      <p className="text-xs text-muted-foreground">
+                        {t('billing.ledgerAdminBy', { email: row.grantedByAdminEmail })}
+                      </p>
+                    )}
+                    {row.entryType === 'COUPON_REDEEM' && row.couponCode && (
+                      <p className="text-xs text-muted-foreground">
+                        {t('billing.ledgerCoupon', { code: row.couponCode })}
+                      </p>
+                    )}
+                  </div>
+                  <time className="text-xs text-muted-foreground">
+                    {new Intl.DateTimeFormat(undefined, { dateStyle: 'short', timeStyle: 'short' }).format(new Date(row.createdAt))}
+                  </time>
+                </li>
+              ))}
+            </ul>
           </CardContent>
         </Card>
       )}

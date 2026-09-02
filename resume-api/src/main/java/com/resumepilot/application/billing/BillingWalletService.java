@@ -91,10 +91,15 @@ public class BillingWalletService {
     }
 
     @Transactional
-    public WalletResponse adminGrant(UUID userId, AdminGrantRequest req) {
+    public WalletResponse adminGrant(UUID userId, AdminGrantRequest req, UUID grantedByAdminId) {
         BillingProductKind kind = BillingProductKind.valueOf(req.kind());
-        entitlementService.adminGrant(userId, kind, req.operation(), req.amount(), req.note());
+        entitlementService.adminGrant(userId, kind, req.operation(), req.amount(), req.note(), grantedByAdminId);
         return wallet(userId);
+    }
+
+    @Transactional
+    public WalletResponse adminGrant(UUID userId, AdminGrantRequest req) {
+        return adminGrant(userId, req, null);
     }
 
     private void validateProduct(BillingProductUpsertRequest req) {

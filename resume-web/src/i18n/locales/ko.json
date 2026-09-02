@@ -989,7 +989,24 @@
     "completeError": "결제 승인에 실패했습니다.",
     "failTitle": "결제 실패",
     "failDefault": "결제가 취소되었거나 실패했습니다.",
-    "back": "충전 페이지로"
+    "back": "충전 페이지로",
+    "couponTitle": "쿠폰 등록",
+    "couponHint": "받은 쿠폰 코드를 입력하면 토큰 또는 횟수가 추가됩니다.",
+    "couponPlaceholder": "쿠폰 코드",
+    "couponRedeem": "등록하기",
+    "couponRedeemed": "쿠폰이 적용되었습니다.",
+    "couponError": "쿠폰을 등록하지 못했습니다.",
+    "ledgerTitle": "충전 내역",
+    "ledgerHint": "결제·관리자 지급·쿠폰 등록 기록입니다.",
+    "ledgerAdminBy": "관리자 지급 ({{email}})",
+    "ledgerCoupon": "쿠폰 {{code}}",
+    "ledgerTypes": {
+      "GRANT": "결제 충전",
+      "ADMIN_GRANT": "관리자 지급",
+      "FREE_GRANT": "무료 지급",
+      "COUPON_REDEEM": "쿠폰 등록",
+      "REFUND": "환불"
+    }
   },
   "share": {
     "fallbackTitle": "공유된 자기소개서",

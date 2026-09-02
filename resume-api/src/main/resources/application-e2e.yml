@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:resume_e2e;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: false
+
+jwt:
+  secret: test-secret-key-for-unit-tests-must-be-long-enough-256bits
+
+ADMIN_EMAIL: admin@local.test
+ADMIN_PASSWORD: admin1234

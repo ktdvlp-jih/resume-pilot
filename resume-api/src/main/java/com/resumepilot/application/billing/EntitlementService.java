@@ -44,6 +44,17 @@ public class EntitlementService {
 
     @Transactional
     public EntitlementLot adminGrant(UUID userId, BillingProductKind kind, String operation, int amount, String note) {
+        return adminGrant(userId, kind, operation, amount, note, null);
+    }
+
+    @Transactional
+    public EntitlementLot adminGrant(
+            UUID userId,
+            BillingProductKind kind,
+            String operation,
+            int amount,
+            String note,
+            UUID grantedByAdminId) {
         if (amount <= 0) {
             throw new BusinessException(ErrorCode.INVALID_INPUT, "amount must be > 0");
         }
@@ -53,6 +64,7 @@ public class EntitlementService {
         if (kind == BillingProductKind.TOKEN) {
             operation = null;
         }
+        String ledgerNote = note != null && !note.isBlank() ? note.trim() : "관리자 수동 지급";
         EntitlementLot lot = EntitlementLot.builder()
                 .userId(userId)
                 .kind(kind)
@@ -69,9 +81,37 @@ public class EntitlementService {
                 .operation(operation)
                 .amount(amount)
                 .lotId(lot.getId())
-                .note(note)
+                .note(ledgerNote)
+                .grantedByAdminId(grantedByAdminId)
                 .build());
         return lot;
+    }
+
+    @Transactional
+    public UUID grantFromCoupon(UUID userId, BillingCoupon coupon) {
+        BillingProductKind kind = coupon.getKind();
+        String operation = kind == BillingProductKind.COUNT ? coupon.getOperation() : null;
+        int amount = coupon.getGrantAmount();
+        EntitlementLot lot = EntitlementLot.builder()
+                .userId(userId)
+                .kind(kind)
+                .operation(operation)
+                .remaining(amount)
+                .originalAmount(amount)
+                .source(EntitlementSource.COUPON)
+                .build();
+        lotRepository.save(lot);
+        BillingLedgerEntry ledger = ledgerRepository.save(BillingLedgerEntry.builder()
+                .userId(userId)
+                .entryType(BillingLedgerEntryType.COUPON_REDEEM)
+                .kind(kind)
+                .operation(operation)
+                .amount(amount)
+                .lotId(lot.getId())
+                .couponId(coupon.getId())
+                .note(coupon.getCode())
+                .build());
+        return ledger.getId();
     }
 
     @Transactional

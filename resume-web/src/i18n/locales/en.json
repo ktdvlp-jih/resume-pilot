@@ -878,7 +878,24 @@
     "completeError": "Payment confirmation failed.",
     "failTitle": "Payment failed",
     "failDefault": "Payment was cancelled or failed.",
-    "back": "Back to billing"
+    "back": "Back to billing",
+    "couponTitle": "Redeem coupon",
+    "couponHint": "Enter a coupon code to add tokens or feature uses.",
+    "couponPlaceholder": "Coupon code",
+    "couponRedeem": "Redeem",
+    "couponRedeemed": "Coupon applied.",
+    "couponError": "Could not redeem coupon.",
+    "ledgerTitle": "Top-up history",
+    "ledgerHint": "Purchases, admin grants, and coupon redemptions.",
+    "ledgerAdminBy": "Admin grant ({{email}})",
+    "ledgerCoupon": "Coupon {{code}}",
+    "ledgerTypes": {
+      "GRANT": "Purchase",
+      "ADMIN_GRANT": "Admin grant",
+      "FREE_GRANT": "Free grant",
+      "COUPON_REDEEM": "Coupon",
+      "REFUND": "Refund"
+    }
   },
   "share": {
     "fallbackTitle": "Shared cover letter",

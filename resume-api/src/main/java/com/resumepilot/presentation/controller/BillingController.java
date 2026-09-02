@@ -1,6 +1,8 @@
 package com.resumepilot.presentation.controller;
 
+import com.resumepilot.application.billing.BillingLedgerService;
 import com.resumepilot.application.billing.BillingWalletService;
+import com.resumepilot.application.billing.CouponService;
 import com.resumepilot.application.billing.PaymentService;
 import com.resumepilot.global.config.SecurityUtils;
 import com.resumepilot.global.response.ApiResponse;
@@ -20,6 +22,8 @@ public class BillingController {
 
     private final PaymentService paymentService;
     private final BillingWalletService walletService;
+    private final BillingLedgerService ledgerService;
+    private final CouponService couponService;
 
     @GetMapping("/api/v1/payments/client-key")
     @Operation(summary = "토스 클라이언트 키 (공개)")
@@ -37,6 +41,18 @@ public class BillingController {
     @Operation(summary = "판매 중인 상품")
     public ApiResponse<List<BillingProductResponse>> products() {
         return ApiResponse.ok(walletService.listEnabledProducts());
+    }
+
+    @GetMapping("/api/v1/billing/ledger")
+    @Operation(summary = "내 충전·지급 내역")
+    public ApiResponse<List<LedgerEntryResponse>> ledger(@RequestParam(defaultValue = "30") int limit) {
+        return ApiResponse.ok(ledgerService.listUserCredits(SecurityUtils.getCurrentUserId(), limit));
+    }
+
+    @PostMapping("/api/v1/billing/coupons/redeem")
+    @Operation(summary = "쿠폰 등록")
+    public ApiResponse<WalletResponse> redeemCoupon(@Valid @RequestBody RedeemCouponRequest request) {
+        return ApiResponse.ok(couponService.redeem(SecurityUtils.getCurrentUserId(), request.code()));
     }
 
     @PostMapping("/api/v1/payments/orders")
