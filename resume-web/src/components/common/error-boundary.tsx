@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { isChunkLoadError, reloadOnceForChunkError } from '@/lib/chunk-load';
 import { captureError } from '@/lib/error-tracking';
 
 type Props = { children: ReactNode; fallbackTitle?: string };
@@ -15,6 +16,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
+    if (isChunkLoadError(error) && reloadOnceForChunkError()) return;
     captureError(error, { componentStack: info.componentStack });
   }
 
