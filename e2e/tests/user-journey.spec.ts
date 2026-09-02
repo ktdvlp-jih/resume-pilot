@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('user journey', () => {
-  test('signup → experience → workspace', async ({ page }) => {
+  test('signup → experience → workspace', async ({ page, request }) => {
     const stamp = Date.now();
     const email = `e2e-${stamp}@resumepilot.test`;
     const password = 'password123';
@@ -14,6 +14,43 @@ test.describe('user journey', () => {
     await page.locator('form input[type="checkbox"]').nth(0).check();
     await page.locator('form input[type="checkbox"]').nth(1).check();
     await page.locator('form button[type="submit"]').click();
+
+    // bypass 환경: 바로 온보딩 / 운영: 이메일 인증 안내 후 force-verify
+    const reachedOnboarding = await page
+      .waitForURL(/\/onboarding/, { timeout: 5_000 })
+      .then(() => true)
+      .catch(() => false);
+
+    if (!reachedOnboarding) {
+      await expect(page.getByText(/이메일을 확인|Check your email/i)).toBeVisible({ timeout: 15_000 });
+      const internal = process.env.INTERNAL_API_TOKEN?.trim();
+      if (!internal) {
+        throw new Error(
+          'signup requires email verification but INTERNAL_API_TOKEN is not set for E2E force-verify',
+        );
+      }
+      const verifyRes = await request.post('/api/v1/internal/auth/force-verify-email', {
+        headers: { 'X-Internal-Token': internal },
+        data: { email },
+      });
+      const verifyBody = await verifyRes.json();
+      if (!verifyRes.ok() || !verifyBody.success || !verifyBody.data?.accessToken) {
+        throw new Error(`force-verify failed: ${verifyRes.status()} ${JSON.stringify(verifyBody)}`);
+      }
+      await page.evaluate(
+        ({ accessToken, refreshToken, userId }: { accessToken: string; refreshToken: string; userId: string }) => {
+          localStorage.setItem('accessToken', accessToken);
+          localStorage.setItem('refreshToken', refreshToken);
+          if (userId) localStorage.setItem('userId', userId);
+        },
+        {
+          accessToken: verifyBody.data.accessToken as string,
+          refreshToken: (verifyBody.data.refreshToken as string) || 'e2e-refresh-token',
+          userId: String(verifyBody.data.userId ?? ''),
+        },
+      );
+      await page.goto('/onboarding');
+    }
 
     await expect(page).toHaveURL(/\/onboarding/, { timeout: 15_000 });
     await page.getByRole('button', { name: /Later|나중에/i }).click();

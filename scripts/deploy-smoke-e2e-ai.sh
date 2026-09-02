@@ -35,6 +35,7 @@ docker run --rm --network host \
   -v "${ROOT}/e2e:/e2e" \
   -w /e2e \
   -e PLAYWRIGHT_BASE_URL="${BASE_URL}" \
+  -e INTERNAL_API_TOKEN="${INTERNAL_API_TOKEN:-}" \
   -e CI=1 \
   "${IMAGE}" \
   bash -lc "npm ci && npx playwright test tests/ai-flow.spec.ts --reporter=list --timeout=180000"
