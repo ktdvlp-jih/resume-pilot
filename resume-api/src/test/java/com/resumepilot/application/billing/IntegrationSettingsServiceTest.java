@@ -76,7 +76,7 @@ class IntegrationSettingsServiceTest {
         ));
 
         List<IntegrationSettingItemResponse> items = service.listForAdmin();
-        assertThat(items).hasSize(8);
+        assertThat(items).hasSize(15);
 
         IntegrationSettingItemResponse client = items.stream()
                 .filter(i -> i.key().equals(IntegrationSettingsService.TOSS_CLIENT_KEY))

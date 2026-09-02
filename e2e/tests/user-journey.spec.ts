@@ -11,6 +11,8 @@ test.describe('user journey', () => {
     await page.locator('#name').fill(name);
     await page.locator('#email').fill(email);
     await page.locator('#password').fill(password);
+    await page.locator('form input[type="checkbox"]').nth(0).check();
+    await page.locator('form input[type="checkbox"]').nth(1).check();
     await page.locator('form button[type="submit"]').click();
 
     await expect(page).toHaveURL(/\/onboarding/, { timeout: 15_000 });

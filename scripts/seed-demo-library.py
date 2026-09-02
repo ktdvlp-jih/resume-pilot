@@ -410,7 +410,7 @@ def token_of(payload: dict) -> str | None:
 
 
 def ensure_account(email: str, name: str) -> str:
-    signed = request("POST", "/api/v1/auth/signup", body={"email": email, "password": PASSWORD, "name": name})
+    signed = request("POST", "/api/v1/auth/signup", body={"email": email, "password": PASSWORD, "name": name, "termsAccepted": True, "privacyAccepted": True})
     token = token_of(signed)
     if token:
         print(f"signup {email}")

@@ -1,5 +1,6 @@
 package com.resumepilot.infrastructure.security;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -16,12 +17,18 @@ public class UserPrincipal implements UserDetails {
 
     private final UUID id;
     private final String email;
+    @Getter(AccessLevel.NONE)
     private final String password;
     private final String role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role));
+    }
+
+    @Override
+    public String getPassword() {
+        return password == null ? "" : password;
     }
 
     @Override

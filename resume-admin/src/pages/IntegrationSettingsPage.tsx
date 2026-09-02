@@ -60,6 +60,26 @@ const IMPORT_PROVIDERS: ProviderDef[] = [
   },
 ];
 
+const AUTH_PROVIDERS: ProviderDef[] = [
+  {
+    id: 'google-login',
+    displayNameKey: 'integrationSettings.googleLoginName',
+    slug: 'google-login',
+    keys: ['GOOGLE_OAUTH_CLIENT_ID', 'GOOGLE_OAUTH_CLIENT_SECRET', 'GOOGLE_OAUTH_REDIRECT_URI'],
+  },
+  {
+    id: 'kakao-login',
+    displayNameKey: 'integrationSettings.kakaoLoginName',
+    slug: 'kakao-login',
+    keys: [
+      'KAKAO_OAUTH_ENABLED',
+      'KAKAO_OAUTH_CLIENT_ID',
+      'KAKAO_OAUTH_CLIENT_SECRET',
+      'KAKAO_OAUTH_REDIRECT_URI',
+    ],
+  },
+];
+
 const FIELD_LABEL_KEYS: Record<string, string> = {
   TOSS_PAYMENTS_CLIENT_KEY: 'integrationSettings.fields.clientKey',
   TOSS_PAYMENTS_SECRET_KEY: 'integrationSettings.fields.secretKey',
@@ -69,6 +89,13 @@ const FIELD_LABEL_KEYS: Record<string, string> = {
   GITHUB_CLIENT_ID: 'integrationSettings.fields.clientId',
   GITHUB_CLIENT_SECRET: 'integrationSettings.fields.clientSecret',
   GITHUB_OAUTH_REDIRECT_URI: 'integrationSettings.fields.redirectUri',
+  GOOGLE_OAUTH_CLIENT_ID: 'integrationSettings.fields.clientId',
+  GOOGLE_OAUTH_CLIENT_SECRET: 'integrationSettings.fields.clientSecret',
+  GOOGLE_OAUTH_REDIRECT_URI: 'integrationSettings.fields.redirectUri',
+  KAKAO_OAUTH_ENABLED: 'integrationSettings.fields.kakaoEnabled',
+  KAKAO_OAUTH_CLIENT_ID: 'integrationSettings.fields.clientId',
+  KAKAO_OAUTH_CLIENT_SECRET: 'integrationSettings.fields.clientSecret',
+  KAKAO_OAUTH_REDIRECT_URI: 'integrationSettings.fields.redirectUri',
 };
 
 function providerHasPendingEdits(provider: ProviderDef, itemsByKey: Map<string, Setting>, edits: Record<string, string>) {
@@ -132,9 +159,11 @@ function IntegrationProviderCard({
                     ? item.configured
                       ? item.displayValue
                       : t('integrationSettings.secretPlaceholder')
-                    : item.key.endsWith('_REDIRECT_URI')
-                      ? t('integrationSettings.redirectUriPlaceholder')
-                      : t('integrationSettings.valuePlaceholder')
+                    : item.key === 'KAKAO_OAUTH_ENABLED'
+                      ? t('integrationSettings.enabledPlaceholder')
+                      : item.key.endsWith('_REDIRECT_URI')
+                        ? t('integrationSettings.redirectUriPlaceholder')
+                        : t('integrationSettings.valuePlaceholder')
                 }
                 value={
                   item.secret
@@ -363,6 +392,33 @@ export default function IntegrationSettingsPage() {
           </Button>
         }
         providers={IMPORT_PROVIDERS}
+        itemsByKey={itemsByKey}
+        edits={edits}
+        revealingKey={revealingKey}
+        onEditChange={(key, value) => setEdits((prev) => ({ ...prev, [key]: value }))}
+        onReveal={revealSettingKey}
+        onSaveProvider={saveProvider}
+        savingProviderId={savingProviderId}
+        isLoading={query.isLoading}
+      />
+
+      <IntegrationSection
+        title={t('integrationSettings.authTitle')}
+        description={t('integrationSettings.authDesc')}
+        headerAction={
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-8 shrink-0 rounded-full text-muted-foreground hover:text-foreground"
+            title={t('integrationSettings.oauthCallbacksHelp')}
+            aria-label={t('integrationSettings.oauthCallbacksHelp')}
+            onClick={() => setOauthHelpOpen(true)}
+          >
+            <CircleHelp className="size-4" />
+          </Button>
+        }
+        providers={AUTH_PROVIDERS}
         itemsByKey={itemsByKey}
         edits={edits}
         revealingKey={revealingKey}

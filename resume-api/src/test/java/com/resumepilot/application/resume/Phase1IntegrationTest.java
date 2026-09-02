@@ -33,7 +33,7 @@ class Phase1IntegrationTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        SignupRequest signup = new SignupRequest("phase1@example.com", "password123", "Phase1 User");
+        SignupRequest signup = new SignupRequest("phase1@example.com", "password123", "Phase1 User", true, true);
         mockMvc.perform(post("/api/v1/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(signup)));

@@ -51,6 +51,27 @@ app:
       service-key: ${QNET_SERVICE_KEY:}
       base-url: ${QNET_BASE_URL:http://openapi.q-net.or.kr/api/service/rest/InquiryListNationalQualifcationSVC/getList}
 
+auth:
+  email-verification-bypass: ${AUTH_EMAIL_VERIFICATION_BYPASS:false}
+  verification-token-ttl-hours: ${AUTH_VERIFICATION_TOKEN_TTL_HOURS:24}
+  resend-cooldown-seconds: ${AUTH_RESEND_COOLDOWN_SECONDS:60}
+
+mail:
+  provider: ${MAIL_PROVIDER:log}
+  from: ${MAIL_FROM:onboarding@resend.dev}
+
+oauth:
+  google:
+    client-id: ${GOOGLE_OAUTH_CLIENT_ID:}
+    client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET:}
+    redirect-uri: ${GOOGLE_OAUTH_REDIRECT_URI:}
+  kakao:
+    client-id: ${KAKAO_OAUTH_CLIENT_ID:}
+    client-secret: ${KAKAO_OAUTH_CLIENT_SECRET:}
+    redirect-uri: ${KAKAO_OAUTH_REDIRECT_URI:}
+    # false(기본): 로그인 화면에서 카카오 숨김. Admin 연동설정의 KAKAO_OAUTH_ENABLED=true 로도 켤 수 있음
+    enabled: ${KAKAO_OAUTH_ENABLED:false}
+
 management:
   endpoints:
     web:

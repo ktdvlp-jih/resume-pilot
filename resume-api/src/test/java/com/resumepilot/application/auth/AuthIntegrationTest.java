@@ -2,6 +2,7 @@ package com.resumepilot.application.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.resumepilot.presentation.dto.auth.SignupRequest;
+import com.resumepilot.presentation.dto.auth.SignupResponse;
 import com.resumepilot.presentation.dto.auth.TokenResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +13,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -28,12 +32,20 @@ class AuthIntegrationTest {
 
     @Test
     void signupLoginAndAccessProtectedEndpoint() throws Exception {
-        SignupRequest signup = new SignupRequest("test@example.com", "password123", "Test User");
-        mockMvc.perform(post("/api/v1/auth/signup")
+        SignupRequest signup = new SignupRequest("test@example.com", "password123", "Test User", true, true);
+        MvcResult signupResult = mockMvc.perform(post("/api/v1/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(signup)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.requiresEmailVerification").value(false))
+                .andReturn();
+
+        SignupResponse signupResponse = objectMapper.readValue(
+                signupResult.getResponse().getContentAsString(),
+                com.fasterxml.jackson.databind.JsonNode.class
+        ).get("data").traverse(objectMapper).readValueAs(SignupResponse.class);
+        assertThat(signupResponse.tokens()).isNotNull();
 
         MvcResult loginResult = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -33,10 +33,18 @@ try {
 }
 
 try {
-  $body = @{ email = $email; password = $password; name = "Smoke $stamp" } | ConvertTo-Json
+  $body = @{ email = $email; password = $password; name = "Smoke $stamp"; termsAccepted = $true; privacyAccepted = $true } | ConvertTo-Json
   $signup = Invoke-RestMethod "$Base/api/v1/auth/signup" -Method Post -Body $body -ContentType "application/json" -TimeoutSec 20
-  $token = $signup.data.accessToken
-  Add-Row "API POST /auth/signup" ($signup.success -and $token) "success=$($signup.success)"
+  $token = $signup.data.tokens.accessToken
+  if (-not $token -and $signup.data.requiresEmailVerification) {
+    $internal = $env:INTERNAL_API_TOKEN
+    if (-not $internal) { throw "signup requires email verification but INTERNAL_API_TOKEN is empty" }
+    $verifyBody = @{ email = $email } | ConvertTo-Json
+    $headers = @{ "X-Internal-Token" = $internal }
+    $verified = Invoke-RestMethod "$Base/api/v1/internal/auth/force-verify-email" -Method Post -Body $verifyBody -ContentType "application/json" -Headers $headers -TimeoutSec 20
+    $token = $verified.data.accessToken
+  }
+  Add-Row "API POST /auth/signup" ($signup.success -and $token) "success=$($signup.success); verified=$([bool]$token)"
 } catch {
   Add-Row "API POST /auth/signup" $false $_.Exception.Message
   $token = $null

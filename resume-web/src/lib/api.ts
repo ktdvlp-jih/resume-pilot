@@ -20,6 +20,23 @@ export interface TokenResponse {
   role: string;
 }
 
+export interface SignupResponse {
+  email: string;
+  requiresEmailVerification: boolean;
+  message: string;
+  tokens: TokenResponse | null;
+}
+
+export interface OAuthProvidersResponse {
+  google: boolean;
+  kakao: boolean;
+}
+
+export interface OAuthAuthorizeResponse {
+  authorizeUrl: string;
+  provider: string;
+}
+
 import type { CareerPortfolio } from './career-portfolio';
 
 export interface UserResponse {
@@ -266,20 +283,30 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 
   if (response.status === 401) {
-    clearTokens();
-    if (!path.includes('/auth/')) {
-      window.location.href = '/login?expired=1';
+    // auth API는 본문 오류 코드를 사용자에게 보여 줘야 함 (예: 인증 링크 재사용)
+    if (path.includes('/auth/')) {
+      const json = await parseApiJson<T>(response);
+      const err = new Error(json.error?.message || 'Request failed') as Error & { code?: string };
+      err.code = json.error?.code;
+      throw err;
     }
+    clearTokens();
+    window.location.href = '/login?expired=1';
     throw new Error('Authentication required');
   }
 
   if (response.status === 403) {
-    throw new Error('Access denied');
+    const json = await parseApiJson<T>(response);
+    const err = new Error(json.error?.message || 'Access denied') as Error & { code?: string };
+    err.code = json.error?.code;
+    throw err;
   }
 
   const json = await parseApiJson<T>(response);
   if (!response.ok || !json.success) {
-    throw new Error(json.error?.message || 'Request failed');
+    const err = new Error(json.error?.message || 'Request failed') as Error & { code?: string };
+    err.code = json.error?.code;
+    throw err;
   }
   return json.data;
 }
@@ -341,15 +368,55 @@ function normalizeWallet(wallet: WalletResponse): WalletResponse {
 }
 
 export const api = {
-  signup: (email: string, password: string, name?: string) =>
-    request<TokenResponse>('/api/v1/auth/signup', {
+  signup: (email: string, password: string, name?: string, consent?: { termsAccepted: boolean; privacyAccepted: boolean }) =>
+    request<SignupResponse>('/api/v1/auth/signup', {
       method: 'POST',
-      body: JSON.stringify({ email, password, name }),
+      body: JSON.stringify({
+        email,
+        password,
+        name,
+        termsAccepted: consent?.termsAccepted ?? false,
+        privacyAccepted: consent?.privacyAccepted ?? false,
+      }),
     }),
   login: (email: string, password: string) =>
     request<TokenResponse>('/api/v1/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
+    }),
+  verifyEmail: (token: string) =>
+    request<TokenResponse>('/api/v1/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
+  resendVerification: (email: string) =>
+    request<void>('/api/v1/auth/resend-verification', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+  getOAuthProviders: () => request<OAuthProvidersResponse>('/api/v1/auth/oauth/providers'),
+  getOAuthAuthorizeUrl: (provider: 'google' | 'kakao', frontendUrl?: string, returnPath?: string) => {
+    const params = new URLSearchParams();
+    if (frontendUrl) params.set('frontendUrl', frontendUrl);
+    if (returnPath) params.set('returnPath', returnPath);
+    const query = params.toString();
+    return request<OAuthAuthorizeResponse>(
+      `/api/v1/auth/oauth/${provider}/authorize${query ? `?${query}` : ''}`,
+    );
+  },
+  linkOAuthAccount: (linkToken: string, opts?: { password?: string; emailToken?: string }) =>
+    request<TokenResponse>('/api/v1/auth/oauth/link', {
+      method: 'POST',
+      body: JSON.stringify({
+        linkToken,
+        ...(opts?.password ? { password: opts.password } : {}),
+        ...(opts?.emailToken ? { emailToken: opts.emailToken } : {}),
+      }),
+    }),
+  sendOAuthLinkEmail: (linkToken: string) =>
+    request<null>('/api/v1/auth/oauth/link/send-email', {
+      method: 'POST',
+      body: JSON.stringify({ linkToken }),
     }),
   getMe: async () => normalizeUser(await request<UserResponse>('/api/v1/users/me')),
   updateMe: async (data: {

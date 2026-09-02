@@ -12,6 +12,8 @@ import { ProtectedLayout } from './components/Layout';
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const SignupPage = lazy(() => import('./pages/SignupPage'));
+const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'));
+const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'));
 const GuidesPage = lazy(() => import('./pages/public/GuidesPage'));
 const GuideArticlePage = lazy(() => import('./pages/public/GuideArticlePage'));
 const PublicRoleGuidePage = lazy(() => import('./pages/public/PublicRoleGuidePage'));
@@ -56,6 +58,8 @@ export default function App() {
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/signup" element={<SignupPage />} />
+                  <Route path="/verify-email" element={<VerifyEmailPage />} />
+                  <Route path="/auth/callback" element={<AuthCallbackPage />} />
                   <Route path="/guides" element={<GuidesPage />} />
                   <Route path="/guides/roles" element={<PublicRoleGuidePage />} />
                   <Route path="/guides/:slug" element={<GuideArticlePage />} />

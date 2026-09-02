@@ -17,3 +17,13 @@ jwt:
   secret: test-secret-key-for-unit-tests-must-be-long-enough-256bits
   access-expiration-ms: 900000
   refresh-expiration-ms: 86400000
+
+auth:
+  email-verification-bypass: true
+
+mail:
+  provider: log
+
+app:
+  public-api-url: http://localhost:8080
+  public-web-url: http://localhost:5173

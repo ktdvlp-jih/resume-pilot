@@ -192,7 +192,7 @@ DOMAIN_LEAK = re.compile(
 def main() -> int:
     t0 = time.time()
     step(f"회원가입 {EMAIL}")
-    tokens = api("POST", "/api/v1/auth/signup", body={"email": EMAIL, "password": PASSWORD, "name": NAME})
+    tokens = api("POST", "/api/v1/auth/signup", body={"email": EMAIL, "password": PASSWORD, "name": NAME, "termsAccepted": True, "privacyAccepted": True})
     token = tokens["accessToken"]
     me = api("GET", "/api/v1/users/me", token)
     REPORT["userId"] = me.get("id")

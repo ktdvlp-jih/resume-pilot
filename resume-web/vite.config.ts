@@ -21,17 +21,18 @@ export default defineConfig({
     stripCrossorigin(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.svg', 'logo-mark.png'],
       manifest: {
         name: 'ResumePilot',
         short_name: 'ResumePilot',
-        description: 'RAG 기반 기업 맞춤 자기소개서 작성·첨삭',
+        description: '기업 맞춤 자기소개서 작성·첨삭',
         theme_color: '#7c3aed',
         background_color: '#fcfcfd',
         display: 'standalone',
         start_url: '/',
         icons: [
-          { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
+          { src: '/logo-mark.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/logo-mark.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {

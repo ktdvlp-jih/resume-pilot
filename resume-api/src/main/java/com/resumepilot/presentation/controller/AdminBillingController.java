@@ -30,6 +30,10 @@ public class AdminBillingController {
             "http://localhost:8080/api/v1/experiences/import/notion/oauth/callback";
     private static final String GITHUB_REDIRECT_TEMPLATE =
             "http://localhost:8080/api/v1/experiences/import/github/oauth/callback";
+    private static final String GOOGLE_LOGIN_REDIRECT_TEMPLATE =
+            "http://localhost:8080/api/v1/auth/oauth/google/callback";
+    private static final String KAKAO_LOGIN_REDIRECT_TEMPLATE =
+            "http://localhost:8080/api/v1/auth/oauth/kakao/callback";
 
     private final IntegrationSettingsService integrationSettings;
     private final BillingWalletService walletService;
@@ -56,8 +60,12 @@ public class AdminBillingController {
                 apiBase,
                 notionOAuthService.resolveRedirectUri(),
                 gitHubOAuthService.resolveRedirectUri(),
+                apiBase + "/api/v1/auth/oauth/google/callback",
+                apiBase + "/api/v1/auth/oauth/kakao/callback",
                 NOTION_REDIRECT_TEMPLATE,
-                GITHUB_REDIRECT_TEMPLATE));
+                GITHUB_REDIRECT_TEMPLATE,
+                GOOGLE_LOGIN_REDIRECT_TEMPLATE,
+                KAKAO_LOGIN_REDIRECT_TEMPLATE));
     }
 
     @PatchMapping("/integration-settings")

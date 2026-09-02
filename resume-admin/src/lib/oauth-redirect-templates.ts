@@ -2,4 +2,6 @@
 export const OAUTH_REDIRECT_TEMPLATES = {
   notion: 'http://localhost:8080/api/v1/experiences/import/notion/oauth/callback',
   github: 'http://localhost:8080/api/v1/experiences/import/github/oauth/callback',
+  googleLogin: 'http://localhost:8080/api/v1/auth/oauth/google/callback',
+  kakaoLogin: 'http://localhost:8080/api/v1/auth/oauth/kakao/callback',
 } as const;

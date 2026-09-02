@@ -11,6 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+
 /** ADMIN_EMAIL 설정 시 기동 때 관리자 계정 생성·승격 */
 @Slf4j
 @Component
@@ -34,20 +36,32 @@ public class AdminInitializer implements ApplicationRunner {
         }
 
         userRepository.findByEmail(adminEmail).ifPresentOrElse(user -> {
+            boolean changed = false;
             if (user.getRole() != UserRole.ADMIN) {
                 user.setRole(UserRole.ADMIN);
+                changed = true;
+            }
+            if (!user.isEmailVerified()) {
+                user.setEmailVerified(true);
+                changed = true;
+            }
+            if (changed) {
                 userRepository.save(user);
-                log.info("기존 사용자를 관리자로 승격: {}", adminEmail);
+                log.info("기존 사용자를 관리자로 승격·인증: {}", adminEmail);
             }
         }, () -> {
             if (adminPassword.isBlank()) {
                 log.warn("ADMIN_PASSWORD가 없어 관리자 계정을 생성하지 않음: {}", adminEmail);
                 return;
             }
+            Instant now = Instant.now();
             userRepository.save(User.builder()
                     .email(adminEmail)
                     .passwordHash(passwordEncoder.encode(adminPassword))
                     .role(UserRole.ADMIN)
+                    .emailVerified(true)
+                    .termsAcceptedAt(now)
+                    .privacyAcceptedAt(now)
                     .build());
             log.info("관리자 계정 생성: {}", adminEmail);
         });

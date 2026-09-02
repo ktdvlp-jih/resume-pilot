@@ -29,13 +29,25 @@ public class IntegrationSettingsService {
     public static final String GITHUB_CLIENT_ID = "GITHUB_CLIENT_ID";
     public static final String GITHUB_CLIENT_SECRET = "GITHUB_CLIENT_SECRET";
     public static final String GITHUB_OAUTH_REDIRECT_URI = "GITHUB_OAUTH_REDIRECT_URI";
+    public static final String GOOGLE_OAUTH_CLIENT_ID = "GOOGLE_OAUTH_CLIENT_ID";
+    public static final String GOOGLE_OAUTH_CLIENT_SECRET = "GOOGLE_OAUTH_CLIENT_SECRET";
+    public static final String GOOGLE_OAUTH_REDIRECT_URI = "GOOGLE_OAUTH_REDIRECT_URI";
+    public static final String KAKAO_OAUTH_CLIENT_ID = "KAKAO_OAUTH_CLIENT_ID";
+    public static final String KAKAO_OAUTH_CLIENT_SECRET = "KAKAO_OAUTH_CLIENT_SECRET";
+    public static final String KAKAO_OAUTH_REDIRECT_URI = "KAKAO_OAUTH_REDIRECT_URI";
+    /** true일 때만 로그인 화면에 카카오 버튼 노출 (비즈 이메일 권한 확보 후 사용) */
+    public static final String KAKAO_OAUTH_ENABLED = "KAKAO_OAUTH_ENABLED";
 
     private static final Set<String> KNOWN_KEYS = Set.of(
             TOSS_CLIENT_KEY, TOSS_SECRET_KEY,
             NOTION_CLIENT_ID, NOTION_CLIENT_SECRET, NOTION_OAUTH_REDIRECT_URI,
-            GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_OAUTH_REDIRECT_URI);
+            GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_OAUTH_REDIRECT_URI,
+            GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, GOOGLE_OAUTH_REDIRECT_URI,
+            KAKAO_OAUTH_CLIENT_ID, KAKAO_OAUTH_CLIENT_SECRET, KAKAO_OAUTH_REDIRECT_URI,
+            KAKAO_OAUTH_ENABLED);
     private static final Set<String> SECRET_KEYS = Set.of(
-            TOSS_SECRET_KEY, NOTION_CLIENT_SECRET, GITHUB_CLIENT_SECRET);
+            TOSS_SECRET_KEY, NOTION_CLIENT_SECRET, GITHUB_CLIENT_SECRET,
+            GOOGLE_OAUTH_CLIENT_SECRET, KAKAO_OAUTH_CLIENT_SECRET);
 
     private final IntegrationConfigRepository repository;
     private final LlmSecretsCipher secretsCipher;
@@ -77,6 +89,9 @@ public class IntegrationSettingsService {
         }
         if (key.startsWith("NOTION_") || key.startsWith("GITHUB_")) {
             return "IMPORT";
+        }
+        if (key.startsWith("GOOGLE_OAUTH_") || key.startsWith("KAKAO_OAUTH_")) {
+            return "AUTH";
         }
         return "OTHER";
     }

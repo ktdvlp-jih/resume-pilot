@@ -360,7 +360,7 @@
   },
   "integrationSettings": {
     "title": "Integration settings",
-    "desc": "Manage Toss Payments, Notion, and GitHub keys. Secrets are masked in the UI.",
+    "desc": "Manage Toss Payments, Notion, GitHub, and SNS login keys. Secrets are masked in the UI.",
     "loadError": "Failed to load integration settings.",
     "saveError": "Failed to save.",
     "saveSuccess": "Saved.",
@@ -368,17 +368,22 @@
     "pgDesc": "CLIENT_KEY is for the browser checkout; SECRET_KEY is server-only for confirm/cancel.",
     "importTitle": "Experience import · Notion / GitHub",
     "importDesc": "Used for Notion OAuth and GitHub import. Redirect URI must match the Notion developer console.",
+    "authTitle": "SNS login · Google / Kakao",
+    "authDesc": "User login OAuth. Keep Kakao hidden until you have biz email scope; set display to true to show the button.",
     "tossName": "Toss Payments",
     "notionName": "Notion",
     "githubName": "GitHub",
+    "googleLoginName": "Google login",
+    "kakaoLoginName": "Kakao login",
     "saveKeys": "Save keys",
     "secretPlaceholder": "Enter new secret key",
     "valuePlaceholder": "Enter value",
+    "enabledPlaceholder": "true or false (default: hidden)",
     "configured": "Configured",
     "notConfigured": "Not configured",
     "redirectUriPlaceholder": "OAuth App callback URL (optional; defaults from PUBLIC_API_URL)",
     "noteTitle": "Note",
-    "note1": "Do not put keys in .env. Save here only.",
+    "note1": "Prefer saving keys here. .env is used only as a fallback when Admin values are empty.",
     "note2": "Redirect URI must match the OAuth App callback. Leave blank to use PUBLIC_API_URL.",
     "oauthCallbacksTitle": "OAuth callback URLs",
     "oauthCallbacksHelp": "OAuth callback URL help",
@@ -396,7 +401,8 @@
       "secretKey": "Secret key",
       "clientId": "Client ID",
       "clientSecret": "Client Secret",
-      "redirectUri": "Redirect URI"
+      "redirectUri": "Redirect URI",
+      "kakaoEnabled": "Show on login screen (true/false)"
     }
   },
   "billingProducts": {

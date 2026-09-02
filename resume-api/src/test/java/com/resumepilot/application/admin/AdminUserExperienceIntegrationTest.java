@@ -140,7 +140,7 @@ class AdminUserExperienceIntegrationTest {
     private void signup(String email, String name) throws Exception {
         mockMvc.perform(post("/api/v1/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new SignupRequest(email, "password123", name))));
+                .content(objectMapper.writeValueAsString(new SignupRequest(email, "password123", name, true, true))));
     }
 
     private String login(String email) throws Exception {

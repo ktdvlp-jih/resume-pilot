@@ -394,8 +394,12 @@ export const api = {
       publicApiUrl: string;
       notionRedirectUri: string;
       githubRedirectUri: string;
+      googleLoginRedirectUri: string;
+      kakaoLoginRedirectUri: string;
       notionRedirectTemplate: string;
       githubRedirectTemplate: string;
+      googleLoginRedirectTemplate: string;
+      kakaoLoginRedirectTemplate: string;
     }>('/api/v1/admin/integration-settings/oauth-hints'),
   updateIntegrationSettings: (items: Array<{ key: string; value: string }>) =>
     request<Array<{

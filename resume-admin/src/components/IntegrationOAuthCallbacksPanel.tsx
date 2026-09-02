@@ -73,13 +73,19 @@ export function IntegrationOAuthCallbacksPanel({
   hints: {
     notionRedirectUri: string;
     githubRedirectUri: string;
+    googleLoginRedirectUri?: string;
+    kakaoLoginRedirectUri?: string;
     notionRedirectTemplate?: string;
     githubRedirectTemplate?: string;
+    googleLoginRedirectTemplate?: string;
+    kakaoLoginRedirectTemplate?: string;
   };
 }) {
   const { t } = useTranslation();
   const notionTemplate = hints.notionRedirectTemplate || OAUTH_REDIRECT_TEMPLATES.notion;
   const githubTemplate = hints.githubRedirectTemplate || OAUTH_REDIRECT_TEMPLATES.github;
+  const googleTemplate = hints.googleLoginRedirectTemplate || OAUTH_REDIRECT_TEMPLATES.googleLogin;
+  const kakaoTemplate = hints.kakaoLoginRedirectTemplate || OAUTH_REDIRECT_TEMPLATES.kakaoLogin;
 
   return (
     <div className="grid gap-3 lg:grid-cols-2">
@@ -93,6 +99,20 @@ export function IntegrationOAuthCallbacksPanel({
         template={githubTemplate}
         resolved={hints.githubRedirectUri}
       />
+      {hints.googleLoginRedirectUri && (
+        <OAuthCallbackRow
+          label={t('integrationSettings.googleLoginName')}
+          template={googleTemplate}
+          resolved={hints.googleLoginRedirectUri}
+        />
+      )}
+      {hints.kakaoLoginRedirectUri && (
+        <OAuthCallbackRow
+          label={t('integrationSettings.kakaoLoginName')}
+          template={kakaoTemplate}
+          resolved={hints.kakaoLoginRedirectUri}
+        />
+      )}
     </div>
   );
 }

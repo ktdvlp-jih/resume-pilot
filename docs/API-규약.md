@@ -43,8 +43,13 @@ Authorization: Bearer <access_token>
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/auth/signup` | No | Register |
+| POST | `/auth/signup` | No | Register (email verification required unless bypass) |
 | POST | `/auth/login` | No | Login |
+| POST | `/auth/verify-email` | No | Complete email verification → tokens |
+| POST | `/auth/resend-verification` | No | Resend verification email |
+| GET | `/auth/oauth/providers` | No | Which SNS logins are configured |
+| GET | `/auth/oauth/{google\|kakao}/authorize` | No | Start SNS login |
+| GET | `/auth/oauth/{google\|kakao}/callback` | No | SNS callback → redirect to SPA |
 | POST | `/auth/refresh` | No | Refresh tokens |
 | PATCH | `/auth/password` | Yes | Change password |
 

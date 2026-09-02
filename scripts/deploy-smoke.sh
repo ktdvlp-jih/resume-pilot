@@ -54,11 +54,42 @@ api_check "GET /users/me (no auth)" GET /api/v1/users/me "" "" 401
 STAMP="$(date +%s)"
 EMAIL="smoke-${STAMP}@resumepilot.test"
 PASS="password123"
-SIGNUP_JSON="{\"email\":\"${EMAIL}\",\"password\":\"${PASS}\",\"name\":\"Smoke ${STAMP}\"}"
+SIGNUP_JSON="{\"email\":\"${EMAIL}\",\"password\":\"${PASS}\",\"name\":\"Smoke ${STAMP}\",\"termsAccepted\":true,\"privacyAccepted\":true}"
 
 api_check "POST /auth/signup" POST /api/v1/auth/signup "${SIGNUP_JSON}"
 
-TOKEN="$(python3 -c "import json; print(json.load(open('/tmp/smoke-body.json'))['data']['accessToken'])")"
+TOKEN="$(
+  BASE_URL="${BASE}" EMAIL="${EMAIL}" INTERNAL_API_TOKEN="${INTERNAL_API_TOKEN:-}" python3 - <<'PY'
+import json, os, urllib.request
+body = json.load(open("/tmp/smoke-body.json"))
+data = body.get("data") or {}
+tokens = data.get("tokens") or {}
+token = tokens.get("accessToken")
+if token:
+    print(token)
+    raise SystemExit(0)
+if data.get("requiresEmailVerification"):
+    internal = os.environ.get("INTERNAL_API_TOKEN", "").strip()
+    if not internal:
+        raise SystemExit("SMOKE FAIL signup requires email verification but INTERNAL_API_TOKEN is empty")
+    email = data.get("email") or os.environ.get("EMAIL", "")
+    base = os.environ["BASE_URL"].rstrip("/")
+    req = urllib.request.Request(
+        base + "/api/v1/internal/auth/force-verify-email",
+        data=json.dumps({"email": email}).encode(),
+        headers={"Content-Type": "application/json", "X-Internal-Token": internal},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        verified = json.load(resp)
+    token = (verified.get("data") or {}).get("accessToken")
+    if not token:
+        raise SystemExit("SMOKE FAIL force-verify-email returned no accessToken")
+    print(token)
+    raise SystemExit(0)
+raise SystemExit("SMOKE FAIL signup response has no tokens")
+PY
+)"
 api_check "POST /auth/login" POST /api/v1/auth/login "{\"email\":\"${EMAIL}\",\"password\":\"${PASS}\"}"
 api_check "GET /users/me (auth)" GET /api/v1/users/me "" "${TOKEN}"
 

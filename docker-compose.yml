@@ -52,6 +52,11 @@ services:
       QNET_SERVICE_KEY: ${QNET_SERVICE_KEY:-}
       PUBLIC_API_URL: ${PUBLIC_API_URL:-https://resume.ggury.com}
       PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-https://resume.ggury.com}
+      MAIL_PROVIDER: ${MAIL_PROVIDER:-log}
+      MAIL_FROM: ${MAIL_FROM:-onboarding@resend.dev}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      AUTH_EMAIL_VERIFICATION_BYPASS: ${AUTH_EMAIL_VERIFICATION_BYPASS:-false}
+      # SNS·PG·Notion/GitHub OAuth 키는 Admin /admin/integration-settings (DB) 에서 관리
     ports:
       - "${APP_PORT:-9180}:8080"
 
