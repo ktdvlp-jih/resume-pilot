@@ -7,8 +7,8 @@ export function PublicLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-svh flex-col bg-background">
       <PublicHeader />
       <main className="flex-1">{children}</main>
-      <HelpChatWidget />
       <AppFooter />
+      <HelpChatWidget />
     </div>
   );
 }

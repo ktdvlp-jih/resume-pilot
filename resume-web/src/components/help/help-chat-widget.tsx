@@ -85,6 +85,8 @@ export function HelpChatWidget() {
   const [error, setError] = useState('');
   const [showGreeting, setShowGreeting] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const messagesScrollRef = useRef<HTMLDivElement>(null);
+  const [footerLift, setFooterLift] = useState(0);
   const pageLabel = pageLabelForPath(pathname, t);
 
   useEffect(() => {
@@ -110,8 +112,32 @@ export function HelpChatWidget() {
   }, [messages]);
 
   useEffect(() => {
+    const footer = document.querySelector('footer');
+    if (!footer) return;
+
+    const updateLift = () => {
+      const rect = footer.getBoundingClientRect();
+      const overlap = Math.max(0, window.innerHeight - rect.top);
+      setFooterLift(overlap);
+    };
+
+    updateLift();
+    window.addEventListener('scroll', updateLift, { passive: true });
+    window.addEventListener('resize', updateLift);
+    return () => {
+      window.removeEventListener('scroll', updateLift);
+      window.removeEventListener('resize', updateLift);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!open) return;
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const viewport = messagesScrollRef.current?.querySelector('[data-slot="scroll-area-viewport"]');
+    if (viewport instanceof HTMLElement) {
+      viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+      return;
+    }
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
   }, [messages, open, loading]);
 
   const dismissGreeting = () => {
@@ -155,7 +181,10 @@ export function HelpChatWidget() {
   };
 
   return (
-    <div className="pointer-events-none sticky bottom-0 z-40 flex flex-col items-end gap-3 p-4 sm:p-5">
+    <div
+      className="pointer-events-none fixed inset-x-0 z-40 flex flex-col items-end gap-3 p-4 sm:p-5"
+      style={{ bottom: footerLift }}
+    >
       {open && (
         <aside
           className={cn(
@@ -189,7 +218,8 @@ export function HelpChatWidget() {
             </Button>
           </header>
 
-          <ScrollArea className="min-h-0 flex-1 bg-muted/20 px-3 py-4">
+          <div ref={messagesScrollRef} className="min-h-0 flex-1">
+          <ScrollArea className="h-full bg-muted/20 px-3 py-4">
             <div className="space-y-3 pb-2">
               <div className="flex items-end gap-2">
                 <BotAvatar size={28} />
@@ -247,6 +277,7 @@ export function HelpChatWidget() {
               <div ref={bottomRef} />
             </div>
           </ScrollArea>
+          </div>
 
           <div className="space-y-2 border-t border-border bg-card p-3">
             {messages.length > 0 && (
