@@ -11,5 +11,6 @@ public enum LlmOperation {
     PORTFOLIO_REVIEW,
     SECTION_ANALYSIS,
     EXPERIENCE_CHAT,
+    HELP_CHAT,
     EMBEDDING
 }

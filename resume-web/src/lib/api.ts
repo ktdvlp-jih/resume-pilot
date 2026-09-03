@@ -311,8 +311,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return json.data;
 }
 
-async function publicRequest<T>(path: string): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`);
+async function publicRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  };
+  const response = await fetch(`${API_URL}${path}`, { ...options, headers });
   const json = await parseApiJson<T>(response);
   if (!response.ok || !json.success) {
     throw new Error(json.error?.message || 'Request failed');
@@ -623,6 +627,46 @@ export const api = {
     publicRequestList<PublicJobPostingResponse>('/api/v1/public/shared-job-postings'),
   getPublicSharedResume: (token: string) =>
     publicRequest<PublicSharedResumeResponse>(`/api/v1/public/shared-resumes/${token}`),
+  sendHelpChat: (
+    message: string,
+    history: Array<{ role: string; content: string }> = [],
+    page?: { pagePath?: string; pageLabel?: string },
+  ) =>
+    publicRequest<{ reply: string; citations: string[] }>('/api/v1/public/help-chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        message,
+        history,
+        pagePath: page?.pagePath ?? '',
+        pageLabel: page?.pageLabel ?? '',
+      }),
+    }),
+  trialJobAnalysis: (
+    sourceType: string,
+    content: string,
+    sourceUrl?: string,
+    fileBase64?: string,
+    mimeType?: string,
+  ) =>
+    publicRequest<Record<string, unknown>>('/api/v1/public/trial/job-analysis', {
+      method: 'POST',
+      body: JSON.stringify({ sourceType, content, sourceUrl, fileBase64, mimeType }),
+      credentials: 'include',
+    }),
+  trialGenerate: (jobContent: string, keywords?: string[], experienceSummary?: string) =>
+    publicRequest<Record<string, unknown>>('/api/v1/public/trial/generate', {
+      method: 'POST',
+      body: JSON.stringify({ jobContent, keywords, experienceSummary }),
+      credentials: 'include',
+    }),
+  getTrialStatus: () =>
+    publicRequest<{
+      jobAnalysis: { used: number; max: number };
+      generate: { used: number; max: number };
+      total: { used: number; max: number };
+    }>('/api/v1/public/trial/status', { credentials: 'include' }),
+  convertGuest: () =>
+    request<void>('/api/v1/auth/convert-guest', { method: 'POST', credentials: 'include' }),
   createResumeShareLink: (id: string) =>
     request<ResumeShareLinkResponse>(`/api/v1/resumes/${id}/share-link`, { method: 'POST' }),
   revokeResumeShareLink: (id: string) =>

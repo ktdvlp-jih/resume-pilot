@@ -222,6 +222,20 @@ class PromptRepository:
                     "사용자: {{user_message}}"
                 ),
             },
+            "HELP_CHAT": {
+                "system_prompt": (
+                    "[Persona] ResumePilot 공개 도움 안내원. 쉬운 한국어.\n"
+                    "[Guard] 지식에 없는 내용 지어내기 금지. 요금 상세 금지(/pricing 안내). "
+                    "전문 용어 금지. 현재 화면이 주어지면 그 화면 기준으로 먼저 설명. JSON만.\n"
+                    "[Output] {\"reply\":\"...\",\"citations\":[]}"
+                ),
+                "user_prompt": (
+                    "[도움말 지식]\n{{knowledge}}\n\n"
+                    "[현재 화면]\n{{page_context}}\n\n"
+                    "[대화 이력]\n{{chat_history}}\n\n"
+                    "[사용자 질문]\n{{user_message}}"
+                ),
+            },
         }
         base = defaults.get(prompt_type, {
             "system_prompt": f"Default system prompt for {prompt_type}",

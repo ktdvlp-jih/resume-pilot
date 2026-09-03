@@ -9,6 +9,7 @@ from app.services.company_analysis_service import company_analysis_service
 from app.services.generation_service import (
     detection_service,
     generation_service,
+    help_chat_service,
     humanize_service,
     interview_service,
     keyword_service,
@@ -49,6 +50,7 @@ class GenerateRequest(BaseModel):
     existing_paragraphs: list[str] = []
     section_target_chars: list[int] = []
     user_instruction: str = ""
+    trial_experiences: list[dict[str, str]] = []
     skip_postprocess: bool = False
 
 
@@ -89,6 +91,13 @@ class ExperienceCoachRequest(BaseModel):
     current_draft: dict[str, Any] = Field(default_factory=dict)
     chat_history: list[dict[str, str]] = Field(default_factory=list)
     existing_experience: dict[str, Any] | None = None
+
+
+class HelpChatRequest(BaseModel):
+    user_message: str
+    knowledge: str = ""
+    chat_history: list[dict[str, str]] = Field(default_factory=list)
+    page_context: str = ""
 
 
 class JobAnalyzeRequest(BaseModel):
@@ -172,3 +181,8 @@ async def analyze_sections(request: SectionAnalysisRequest):
 @app.post("/coach/experience")
 async def coach_experience(request: ExperienceCoachRequest):
     return ApiResponse(data=await experience_coach_service.coach(request.model_dump()))
+
+
+@app.post("/coach/help")
+async def coach_help(request: HelpChatRequest):
+    return ApiResponse(data=await help_chat_service.chat(request.model_dump()))

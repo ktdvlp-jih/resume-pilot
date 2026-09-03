@@ -71,6 +71,7 @@ OPERATION_MAX_TOKENS: dict[str, int] = {
     "PORTFOLIO_REVIEW": 8192,
     "SECTION_ANALYSIS": 2048,
     "EXPERIENCE_CHAT": 4096,
+    "HELP_CHAT": 2048,
 }
 
 _JSON_FENCE_RE = re.compile(r"```(?:json)?\s*([\s\S]*?)```", re.IGNORECASE)

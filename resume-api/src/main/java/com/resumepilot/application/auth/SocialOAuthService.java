@@ -209,7 +209,7 @@ public class SocialOAuthService {
                 .build()
                 .encode()
                 .toUriString();
-        mailService.sendOAuthLinkEmail(user.getEmail(), linkUrl);
+        mailService.sendOAuthLinkEmail(user.getEmail(), linkUrl, pending.provider());
     }
 
     private User loadUserForLink(SocialOAuthStateCodec.LinkPending pending) {

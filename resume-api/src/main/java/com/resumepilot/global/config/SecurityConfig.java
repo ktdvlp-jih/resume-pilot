@@ -40,6 +40,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final InternalApiAuthFilter internalApiAuthFilter;
     private final OpsBotAuthFilter opsBotAuthFilter;
+    private final com.resumepilot.infrastructure.security.GuestTrialFilter guestTrialFilter;
     private final CustomUserDetailsService userDetailsService;
 
     @Value("${cors.allowed-origins:http://localhost:5173,http://localhost:5174}")
@@ -83,6 +84,7 @@ public class SecurityConfig {
                 .addFilterBefore(opsBotAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(internalApiAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(guestTrialFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                         .accessDeniedHandler((request, response, accessDenied) -> {

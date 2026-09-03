@@ -92,6 +92,12 @@ export default function LandingPage() {
                   <Button size="lg" variant="outline" asChild>
                     <Link to="/login">{t('auth.login')}</Link>
                   </Button>
+                  <Button size="lg" variant="secondary" asChild>
+                    <Link to="/trial">
+                      {t('guestTrial.cta')}
+                      <Sparkles className="size-4" />
+                    </Link>
+                  </Button>
                   <Button size="lg" variant="ghost" asChild>
                     <Link to="/guides">{t('nav.guides')}</Link>
                   </Button>

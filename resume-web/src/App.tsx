@@ -25,6 +25,7 @@ const CalendarPage = lazy(() => import('./pages/public/CalendarPage'));
 const FeaturesPage = lazy(() => import('./pages/public/FeaturesPage'));
 const PricingPage = lazy(() => import('./pages/public/PricingPage'));
 const SharedResumePage = lazy(() => import('./pages/public/SharedResumePage'));
+const TrialPage = lazy(() => import('./pages/public/TrialPage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const ExperiencesPage = lazy(() => import('./pages/ExperiencesPage'));
 const ExperienceImportPage = lazy(() => import('./pages/ExperienceImportPage'));
@@ -73,6 +74,7 @@ export default function App() {
                   <Route path="/privacy" element={<LegalPage />} />
                   <Route path="/terms" element={<LegalPage />} />
                   <Route path="/contact" element={<LegalPage />} />
+                  <Route path="/trial" element={<TrialPage />} />
                   <Route path="/r/:token" element={<SharedResumePage />} />
                   <Route element={<ProtectedLayout />}>
                     <Route path="/dashboard" element={<DashboardPage />} />

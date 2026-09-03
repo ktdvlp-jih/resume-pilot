@@ -2,12 +2,15 @@ package com.resumepilot.presentation.controller;
 
 import com.resumepilot.application.auth.AuthService;
 import com.resumepilot.application.auth.SocialOAuthService;
+import com.resumepilot.application.guest.GuestTrialService;
 import com.resumepilot.global.config.SecurityUtils;
 import com.resumepilot.global.exception.BusinessException;
 import com.resumepilot.global.response.ApiResponse;
 import com.resumepilot.presentation.dto.auth.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final SocialOAuthService socialOAuthService;
+    private final GuestTrialService guestTrialService;
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입")
@@ -79,6 +83,25 @@ public class AuthController {
     @Operation(summary = "설정된 소셜 로그인 제공자")
     public ApiResponse<OAuthProvidersResponse> oauthProviders() {
         return ApiResponse.ok(socialOAuthService.providers());
+    }
+
+    @PostMapping("/convert-guest")
+    @Operation(summary = "게스트 체험을 회원 계정에 연결")
+    public ApiResponse<Void> convertGuest(HttpServletRequest request) {
+        java.util.UUID userId = SecurityUtils.getCurrentUserId();
+        String guestId = extractGuestCookie(request);
+        if (guestId != null && !guestId.isBlank()) {
+            guestTrialService.convertToUser(guestId, userId);
+        }
+        return ApiResponse.ok(null);
+    }
+
+    private static String extractGuestCookie(HttpServletRequest request) {
+        if (request.getCookies() == null) return null;
+        for (Cookie c : request.getCookies()) {
+            if ("rp-guest-id".equals(c.getName())) return c.getValue();
+        }
+        return null;
     }
 
     @GetMapping("/oauth/{provider}/authorize")

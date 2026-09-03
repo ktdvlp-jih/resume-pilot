@@ -20,10 +20,12 @@ public enum ErrorCode {
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "Invalid email or password"),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN", "Invalid or expired token"),
     AI_SERVICE_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "AI_SERVICE_ERROR", "AI service unavailable"),
+    RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "RATE_LIMITED", "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요"),
     INSUFFICIENT_BALANCE(HttpStatus.PAYMENT_REQUIRED, "INSUFFICIENT_BALANCE", "Insufficient token or count balance"),
     PAYMENT_NOT_CONFIGURED(HttpStatus.SERVICE_UNAVAILABLE, "PAYMENT_NOT_CONFIGURED", "Payment is not configured"),
     PAYMENT_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "PAYMENT_AMOUNT_MISMATCH", "Payment amount mismatch"),
     PAYMENT_ALREADY_PROCESSING(HttpStatus.CONFLICT, "PAYMENT_ALREADY_PROCESSING", "Payment already processing"),
+    GUEST_TRIAL_LIMIT_EXCEEDED(HttpStatus.LOCKED, "GUEST_TRIAL_LIMIT_EXCEEDED", "체험 횟수를 모두 사용했어요. 가입하면 더 쓸 수 있습니다."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "Internal server error");
 
     private final HttpStatus status;

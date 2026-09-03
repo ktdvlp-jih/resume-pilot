@@ -21,7 +21,7 @@ export default defineConfig({
     stripCrossorigin(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'logo-mark.png'],
+      includeAssets: ['favicon.svg', 'favicon.png', 'favicon-32.png', 'apple-touch-icon.png', 'logo-mark.png'],
       manifest: {
         name: 'ResumePilot',
         short_name: 'ResumePilot',
@@ -31,8 +31,11 @@ export default defineConfig({
         display: 'standalone',
         start_url: '/',
         icons: [
+          { src: '/favicon-32.png', sizes: '32x32', type: 'image/png', purpose: 'any' },
+          { src: '/favicon.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: '/logo-mark.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
           { src: '/logo-mark.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
         ],
       },
       workbox: {
@@ -76,6 +79,13 @@ export default defineConfig({
     host: true,
     fs: {
       allow: [path.resolve(__dirname, '..')],
+    },
+    proxy: {
+      // dev에서 API를 same-origin으로 프록시 → HttpOnly 쿠키(게스트 체험)가 cross-origin 문제 없이 동작
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
     },
   },
 })

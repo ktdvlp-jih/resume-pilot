@@ -43,7 +43,18 @@ class GenerationService:
         except Exception as exc:
             logger.warning("RAG context build failed: %s", exc)
         context = rag_context.get("context", {})
-        experiences = context.get("experiences", [])
+        trial_experiences = request.get("trial_experiences")
+        if isinstance(trial_experiences, list) and trial_experiences:
+            experiences = [
+                {
+                    "entity_id": str(exp.get("entity_id") or f"trial-{idx + 1}"),
+                    "content": str(exp.get("content") or "").strip(),
+                }
+                for idx, exp in enumerate(trial_experiences)
+                if isinstance(exp, dict) and str(exp.get("content") or "").strip()
+            ]
+        else:
+            experiences = context.get("experiences", [])
         writing_styles = context.get("writing_styles", [])
         return {
             **state,
@@ -860,6 +871,63 @@ class ExperienceCoachService:
         return [str(v).strip() for v in raw if str(v or "").strip()]
 
 
+class HelpChatService:
+    """공개 FAQ·사용법 안내. 지식 밖의 내용은 지어내지 않는다."""
+
+    async def chat(self, payload: dict[str, Any]) -> dict[str, Any]:
+        if not await llm_service.has_routes("HELP_CHAT"):
+            raise RuntimeError("LLM routes unavailable for HELP_CHAT")
+
+        user_message = str(payload.get("user_message") or "").strip()
+        if not user_message:
+            raise RuntimeError("user_message is required")
+
+        knowledge = str(payload.get("knowledge") or "").strip()
+        page_context = str(payload.get("page_context") or "").strip()
+        history_raw = payload.get("chat_history")
+        history_lines: list[str] = []
+        if isinstance(history_raw, list):
+            for item in history_raw[-6:]:
+                if not isinstance(item, dict):
+                    continue
+                role = str(item.get("role") or "user")
+                content = str(item.get("content") or "").strip()
+                if content:
+                    prefix = "사용자" if role == "user" else "안내"
+                    history_lines.append(f"{prefix}: {content}")
+
+        variables = {
+            "knowledge": knowledge or "(지식 없음)",
+            "page_context": page_context or "(현재 화면 정보 없음)",
+            "chat_history": "\n".join(history_lines) if history_lines else "(없음)",
+            "user_message": user_message,
+        }
+        prompt = await prompt_client.render("HELP_CHAT", variables)
+        parsed, completion = await llm_service.complete_json_value_for_operation(
+            "HELP_CHAT",
+            prompt["system_prompt"],
+            prompt["user_prompt"],
+            temperature=0.3,
+        )
+        if not isinstance(parsed, dict):
+            raise RuntimeError(
+                f"HELP_CHAT returned unparseable response: {(completion.content or '')[:200]}"
+            )
+        reply = str(parsed.get("reply") or "").strip()
+        citations_raw = parsed.get("citations")
+        citations: list[str] = []
+        if isinstance(citations_raw, list):
+            for v in citations_raw[:3]:
+                s = str(v or "").strip()
+                if s:
+                    citations.append(s)
+        return {
+            "reply": reply,
+            "citations": citations,
+            "model": completion.model,
+        }
+
+
 generation_service = GenerationService()
 detection_service = DetectionService()
 humanize_service = HumanizeService()
@@ -869,3 +937,4 @@ keyword_service = KeywordService()
 portfolio_review_service = PortfolioReviewService()
 section_analysis_service = SectionAnalysisService()
 experience_coach_service = ExperienceCoachService()
+help_chat_service = HelpChatService()

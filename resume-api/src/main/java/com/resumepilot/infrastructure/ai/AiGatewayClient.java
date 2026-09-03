@@ -69,6 +69,10 @@ public class AiGatewayClient {
         return post("/coach/experience", request);
     }
 
+    public Map<String, Object> helpChat(Map<String, Object> request) {
+        return post("/coach/help", request);
+    }
+
     private Map<String, Object> post(String path, Map<String, Object> request) {
         try {
             return client().post()
