@@ -249,7 +249,8 @@
     "termsLink": "서비스 이용약관",
     "privacyLink": "개인정보처리방침",
     "agreeRequiredSuffix": "에 동의합니다",
-    "consentRequired": "서비스 이용약관과 개인정보처리방침에 동의해 주세요"
+    "consentRequired": "서비스 이용약관과 개인정보처리방침에 동의해 주세요",
+    "socialConsentHint": "소셜로 로그인·가입하려면 아래 동의 후 버튼을 눌러 주세요."
   },
   "dashboard": {
     "title": "내 자기소개서",

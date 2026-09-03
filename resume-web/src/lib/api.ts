@@ -395,10 +395,17 @@ export const api = {
       body: JSON.stringify({ email }),
     }),
   getOAuthProviders: () => request<OAuthProvidersResponse>('/api/v1/auth/oauth/providers'),
-  getOAuthAuthorizeUrl: (provider: 'google' | 'kakao', frontendUrl?: string, returnPath?: string) => {
+  getOAuthAuthorizeUrl: (
+    provider: 'google' | 'kakao',
+    frontendUrl?: string,
+    returnPath?: string,
+    consent?: { termsAccepted: boolean; privacyAccepted: boolean },
+  ) => {
     const params = new URLSearchParams();
     if (frontendUrl) params.set('frontendUrl', frontendUrl);
     if (returnPath) params.set('returnPath', returnPath);
+    if (consent?.termsAccepted) params.set('termsAccepted', 'true');
+    if (consent?.privacyAccepted) params.set('privacyAccepted', 'true');
     const query = params.toString();
     return request<OAuthAuthorizeResponse>(
       `/api/v1/auth/oauth/${provider}/authorize${query ? `?${query}` : ''}`,

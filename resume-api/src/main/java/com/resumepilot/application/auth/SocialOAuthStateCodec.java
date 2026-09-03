@@ -27,7 +27,18 @@ public class SocialOAuthStateCodec {
     @Value("${jwt.secret}")
     private String signingSecret;
 
-    public record State(String provider, String frontendUrl, String returnPath, long issuedAtEpochSec) {}
+    public record State(
+            String provider,
+            String frontendUrl,
+            String returnPath,
+            long issuedAtEpochSec,
+            Boolean termsAccepted,
+            Boolean privacyAccepted
+    ) {
+        public boolean hasLegalConsent() {
+            return Boolean.TRUE.equals(termsAccepted) && Boolean.TRUE.equals(privacyAccepted);
+        }
+    }
 
     /** 동일 이메일 계정에 SNS를 연결하기 전 사용자 확인용 */
     public record LinkPending(

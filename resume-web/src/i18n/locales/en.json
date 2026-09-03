@@ -225,7 +225,8 @@
     "termsLink": "Terms of Service",
     "privacyLink": "Privacy Policy",
     "agreeRequiredSuffix": " — I agree",
-    "consentRequired": "Please agree to the Terms of Service and Privacy Policy"
+    "consentRequired": "Please agree to the Terms of Service and Privacy Policy",
+    "socialConsentHint": "Agree below, then continue with a social provider to log in or sign up."
   },
   "dashboard": {
     "title": "My Cover Letters",

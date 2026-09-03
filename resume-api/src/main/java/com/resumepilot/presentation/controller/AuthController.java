@@ -86,8 +86,11 @@ public class AuthController {
     public ApiResponse<OAuthAuthorizeResponse> oauthAuthorize(
             @PathVariable String provider,
             @RequestParam(required = false) String frontendUrl,
-            @RequestParam(required = false) String returnPath) {
-        return ApiResponse.ok(socialOAuthService.buildAuthorizeUrl(provider, frontendUrl, returnPath));
+            @RequestParam(required = false) String returnPath,
+            @RequestParam(defaultValue = "false") boolean termsAccepted,
+            @RequestParam(defaultValue = "false") boolean privacyAccepted) {
+        return ApiResponse.ok(socialOAuthService.buildAuthorizeUrl(
+                provider, frontendUrl, returnPath, termsAccepted, privacyAccepted));
     }
 
     @GetMapping("/oauth/{provider}/callback")

@@ -88,12 +88,22 @@ public class SocialOAuthService {
         return new OAuthProvidersResponse(isGoogleConfigured(), isKakaoConfigured());
     }
 
-    public OAuthAuthorizeResponse buildAuthorizeUrl(String provider, String frontendUrl, String returnPath) {
+    public OAuthAuthorizeResponse buildAuthorizeUrl(
+            String provider,
+            String frontendUrl,
+            String returnPath,
+            boolean termsAccepted,
+            boolean privacyAccepted) {
         String normalized = normalizeProvider(provider);
         String web = resolveFrontendUrl(frontendUrl);
         String path = sanitizeReturnPath(returnPath);
         String state = stateCodec.encode(new SocialOAuthStateCodec.State(
-                normalized, web, path, Instant.now().getEpochSecond()));
+                normalized,
+                web,
+                path,
+                Instant.now().getEpochSecond(),
+                termsAccepted,
+                privacyAccepted));
 
         if (PROVIDER_GOOGLE.equals(normalized)) {
             requireGoogle();
@@ -137,7 +147,7 @@ public class SocialOAuthService {
             name = profile.name();
         }
 
-        return resolveOrCreateUser(normalized, oauthId, email, name, state.frontendUrl());
+        return resolveOrCreateUser(normalized, oauthId, email, name, state);
     }
 
     @Transactional
@@ -324,7 +334,12 @@ public class SocialOAuthService {
     }
 
     private String resolveOrCreateUser(
-            String provider, String oauthId, String email, String name, String frontendUrl) {
+            String provider,
+            String oauthId,
+            String email,
+            String name,
+            SocialOAuthStateCodec.State state) {
+        String frontendUrl = state.frontendUrl();
         return userRepository.findByOauthProviderAndOauthId(provider, oauthId)
                 .map(existing -> {
                     if (!existing.isEnabled()) {
@@ -336,11 +351,16 @@ public class SocialOAuthService {
                     }
                     return buildSuccessRedirect(frontendUrl, authService.issueTokensForUser(existing));
                 })
-                .orElseGet(() -> linkOrCreate(provider, oauthId, email, name, frontendUrl));
+                .orElseGet(() -> linkOrCreate(provider, oauthId, email, name, state));
     }
 
     private String linkOrCreate(
-            String provider, String oauthId, String email, String name, String frontendUrl) {
+            String provider,
+            String oauthId,
+            String email,
+            String name,
+            SocialOAuthStateCodec.State state) {
+        String frontendUrl = state.frontendUrl();
         return userRepository.findByEmail(email).map(existing -> {
             if (!existing.isEnabled()) {
                 throw new BusinessException(ErrorCode.FORBIDDEN, "비활성화된 계정입니다");
@@ -368,6 +388,10 @@ public class SocialOAuthService {
             return buildLinkRequiredRedirect(
                     frontendUrl, linkToken, maskEmail(email), provider, hasPassword(existing));
         }).orElseGet(() -> {
+            if (!state.hasLegalConsent()) {
+                throw new BusinessException(ErrorCode.INVALID_INPUT,
+                        "서비스 이용약관과 개인정보처리방침에 동의해 주세요");
+            }
             Instant consentedAt = Instant.now();
             User user = userRepository.save(User.builder()
                     .email(email)

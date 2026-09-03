@@ -7,6 +7,8 @@ type Props = {
   disabled?: boolean;
   /** false면 소셜 버튼 클릭 시 약관 동의 유도 */
   consentOk?: boolean;
+  termsAccepted?: boolean;
+  privacyAccepted?: boolean;
   onConsentRequired?: () => void;
 };
 
@@ -51,7 +53,13 @@ function toUserOauthError(raw: string, fallback: string): string {
   return raw;
 }
 
-export function SocialLoginButtons({ disabled, consentOk = true, onConsentRequired }: Props) {
+export function SocialLoginButtons({
+  disabled,
+  consentOk = true,
+  termsAccepted = false,
+  privacyAccepted = false,
+  onConsentRequired,
+}: Props) {
   const { t } = useTranslation();
   const [providers, setProviders] = useState<OAuthProvidersResponse>({ google: false, kakao: false });
   const [loading, setLoading] = useState<'google' | 'kakao' | null>(null);
@@ -99,6 +107,7 @@ export function SocialLoginButtons({ disabled, consentOk = true, onConsentRequir
         provider,
         window.location.origin,
         window.location.pathname || '/login',
+        { termsAccepted, privacyAccepted },
       );
       window.location.assign(authorizeUrl);
       // 이동이 안 되거나 뒤로가기로 복귀할 수 있으므로 잠시 후 잠금 해제

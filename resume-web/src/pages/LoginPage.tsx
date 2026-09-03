@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { AuthLegalConsent, isLegalConsentComplete } from '@/components/auth/auth-legal-consent';
 import { SocialLoginButtons } from '@/components/auth/social-login-buttons';
 import { AuthFormCard, AuthSplitLayout } from '@/components/layout/auth-split-layout';
 import { DocumentHead } from '@/components/seo/document-head';
@@ -15,11 +16,15 @@ export default function LoginPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
   const [resending, setResending] = useState(false);
+
+  const socialConsentOk = isLegalConsentComplete(termsAccepted, privacyAccepted);
 
   useEffect(() => {
     const oauth = searchParams.get('oauth');
@@ -131,7 +136,22 @@ export default function LoginPage() {
             )}
           </form>
 
-          <SocialLoginButtons disabled={loading} />
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">{t('auth.socialConsentHint')}</p>
+            <AuthLegalConsent
+              termsAccepted={termsAccepted}
+              privacyAccepted={privacyAccepted}
+              onTermsChange={setTermsAccepted}
+              onPrivacyChange={setPrivacyAccepted}
+            />
+            <SocialLoginButtons
+              disabled={loading}
+              consentOk={socialConsentOk}
+              termsAccepted={termsAccepted}
+              privacyAccepted={privacyAccepted}
+              onConsentRequired={() => setError(t('auth.consentRequired'))}
+            />
+          </div>
 
           <p className="text-center text-sm text-muted-foreground">
             {t('auth.noAccount')}{' '}

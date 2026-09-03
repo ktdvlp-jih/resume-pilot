@@ -181,6 +181,8 @@ export default function SignupPage() {
           <SocialLoginButtons
             disabled={loading}
             consentOk={consentOk}
+            termsAccepted={termsAccepted}
+            privacyAccepted={privacyAccepted}
             onConsentRequired={() => setError(t('auth.consentRequired'))}
           />
 
