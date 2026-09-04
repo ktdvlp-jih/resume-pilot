@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Send, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { LogoMark } from '@/components/Logo';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';

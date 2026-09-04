@@ -190,7 +190,7 @@ export default function TrialPage() {
 
   return (
     <PublicLayout>
-      <DocumentHead title={t('guestTrial.title')} path="/trial" />
+      <DocumentHead title={t('guestTrial.title')} description={t('guestTrial.subtitle')} path="/trial" />
       <div className="mx-auto max-w-3xl px-4 py-12 md:py-16">
         <div className="mb-8 text-center">
           <Badge variant="secondary" className="mb-4 gap-2 px-3 py-1">
