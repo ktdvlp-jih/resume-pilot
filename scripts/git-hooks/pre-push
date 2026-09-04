@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# pre-push: 푸시할 커밋 범위에 프론트(web/admin) 변경이 있으면 npm ci + npm run build 강제
+# CI(Docker npm run build)와 동일 검증을 푸시 전에 수행해 배포 실패를 방지
+# 상세: .cursor/rules/build-verify-before-commit.mdc
+set -euo pipefail
+
+hook_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/common.sh
+source "${hook_dir}/lib/common.sh"
+
+repo="$(git rev-parse --show-toplevel)"
+
+pushed=0
+changed_files=""
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "${local_ref}" = "(delete)" ] && continue
+  pushed=1
+  if [ "${remote_sha}" = "0000000000000000000000000000000000000000" ]; then
+    # 신규 브랜치: 공통 조상(base) 탐색 — 없으면 변경 전체로 간주
+    base="$(git merge-base HEAD "@{upstream}" 2>/dev/null || git merge-base HEAD origin/master 2>/dev/null || echo '')"
+  else
+    base="${remote_sha}"
+  fi
+
+  if [ -n "${base}" ]; then
+    range_changed="$(git diff --name-only "${base}" "${local_sha}" -- resume-web resume-admin 2>/dev/null || true)"
+  else
+    range_changed="resume-web/X resume-admin/X"   # base 없으면 전체 검증
+  fi
+  changed_files="$(printf '%s\n%s\n' "${changed_files}" "${range_changed}" | sed '/^$/d' | sort -u)"
+done
+
+# 실제 전송된 ref 없으면 정상 커밋/푸시가 아니므로 통과
+if [ "${pushed}" -eq 0 ]; then
+  exit 0
+fi
+
+if [ -n "${changed_files}" ]; then
+  cd "${repo}"
+  verify_changed_frontends "${changed_files}"
+fi
+
+echo "[git-hook] pre-push build 검증 완료 — 푸시 진행"

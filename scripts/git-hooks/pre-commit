@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# pre-commit: 커밋할 파일에 프론트(web/admin) 변경이 있으면 npm ci + npm run build 강제
+# 상세: .cursor/rules/build-verify-before-commit.mdc
+set -euo pipefail
+
+hook_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/common.sh
+source "${hook_dir}/lib/common.sh"
+
+# 스테이징된 파일만 대상 (커밋 내용과 CI 검사 범위를 일치시킴)
+staged="$(git diff --cached --name-only --diff-filter=ACM -- 'resume-web/**' 'resume-admin/**')"
+if [ -z "${staged}" ]; then
+  exit 0
+fi
+
+# 텍스트 파일이 아닌 자산(이미지 등)만 있는 커밋은 빌드 영향이 없어 통과
+# (package-lock/source 변화가 없으면 npm run build 도중 캐시로 빠르게 끝나므로 항상 실행)
+verify_changed_frontends "${staged}"
+echo "[git-hook] pre-commit build 검증 완료 — 커밋 진행"

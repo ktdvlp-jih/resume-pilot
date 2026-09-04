@@ -1,0 +1,51 @@
+---
+description: 커밋·푸시·배포 전 npm ci + npm run build 검증을 무조건 수행한다
+alwaysApply: true
+---
+
+# 빌드 검증 선행 (무조건)
+
+**커밋·푸시·배포 요청 전, 프론트엔드(`resume-web`·`resume-admin`) 소스가 조금이라도 바뀌었으면 반드시 실제 빌드 검증부터 한다.**
+
+## 절대 규칙
+
+1. `resume-web/` 또는 `resume-admin/`의 소스 변경이 있으면, 커밋하기 **전에** 각 변경 앱에서 아래를 실행한다.
+
+```powershell
+# resume-web 변경 시
+cd resume-web
+npm ci --no-audit --no-fund
+npm run build        # = tsc -b && vite build  (dev 서버 실행은 검증이 아님)
+
+# resume-admin 변경 시 (동일)
+cd resume-admin
+npm ci --no-audit --no-fund
+npm run build
+```
+
+2. **빌드가 성공할 때까지 커밋·푸시하지 않는다.** 실패하면 오류를 고치고 다시 `npm run build`를 돌려 통과 후에만 커밋한다.
+3. 두 앱을 동시에 바꿨으면 **두 앱 모두** 검증한다.
+4. 잠시 확인만 할 때도 `npm run build` 대신 dev 서버로 때우지 않는다. CI는 `npm run build`(tsc 포함)로 검사하므로 **반드시 같은 명령**을 쓴다.
+
+## git hook (무조건 강제)
+
+저장소에 **pre-commit·pre-push hook**이 포함되어 있다 (`scripts/git-hooks/`). 프론트 소스 변경 커밋·푸시 시 자동으로 `npm ci + npm run build`를 실행하고, 실패하면 커밋·푸시를 **차단**한다.
+
+- 새 PC에서 저장소를 clone한 뒤 **1회 설치**한다:
+  - Windows: `powershell -ExecutionPolicy Bypass -File scripts\install-git-hooks.ps1`
+  - macOS/Linux: `./scripts/install-git-hooks.sh`
+- 설치 확인: `git config core.hooksPath` → `.../scripts/git-hooks`
+- hook이 꺼져 있으면(`hooksPath` 미설정) 빌드 검증을 **건너뛰지 말고** 위 절대 규칙으로 수동 검증한다.
+
+## 왜 반드시인가 (근거)
+
+- Vite `dev` 서버는 타입 검사를 하지 않아 **로컬에서는 잘 떠도** CI/Docker의 `npm run build`(`tsc -b && vite build`)에서 TS 오류로 배포가 터진다.
+- 실제 사례: 미사용 `import`(TS6133), 필수 prop 누락(TS2741) 등 — 로컬 실행과 무관하게 배포 실패 반복.
+- 따라서 CI와 동일한 `npm ci + npm run build`를 푸시 전에 검증하는 것만이 반복 실패를 막는 확실한 방법이다.
+
+## 커밋 전 체크리스트
+
+- [ ] `git fetch` 후 로컬이 `origin/master`보다 뒤처지지 않았는지 (다른 PC 푸시 확인)
+- [ ] 변경한 프론트 앱에서 `npm ci` + `npm run build` 통과
+- [ ] (API 변경 시) `./gradlew.bat compileJava` 또는 관련 테스트 통과
+- [ ] `.env` 실값·`.specstory/` 등 커밋 금지 파일 미포함 (`secrets-handling.mdc`, `specstory-commit.mdc`)
