@@ -188,14 +188,14 @@ export function HelpChatWidget() {
       {open && (
         <aside
           className={cn(
-            'pointer-events-auto flex w-[min(100%,28rem)] flex-col overflow-hidden',
-            'h-[min(72svh,36rem)] rounded-2xl border border-border bg-background shadow-2xl',
+            'pointer-events-auto flex w-[min(100%,24rem)] flex-col overflow-hidden',
+            'h-[min(70svh,30rem)] rounded-2xl border border-border bg-background shadow-2xl',
             'animate-in fade-in-0 slide-in-from-bottom-3 duration-200',
           )}
           aria-label={t('helpChat.title')}
         >
-          <header className="flex shrink-0 items-center gap-3 bg-primary px-4 py-3.5 text-primary-foreground">
-            <BotAvatar size={40} />
+          <header className="flex shrink-0 items-center gap-3 bg-primary px-4 py-3 text-primary-foreground">
+            <BotAvatar size={34} />
             <div className="min-w-0 flex-1">
               <p className="text-base font-semibold leading-tight">{t('helpChat.agentName')}</p>
               <p className="mt-0.5 flex items-center gap-1.5 text-xs text-primary-foreground/85">
@@ -222,8 +222,8 @@ export function HelpChatWidget() {
           <ScrollArea className="h-full bg-muted/20 px-3 py-4">
             <div className="space-y-3 pb-2">
               <div className="flex items-end gap-2">
-                <BotAvatar size={28} />
-                <div className="max-w-[85%] rounded-2xl rounded-bl-md border border-border bg-card px-3.5 py-2.5 text-sm leading-relaxed shadow-sm">
+                <BotAvatar size={24} />
+                <div className="max-w-[85%] rounded-2xl rounded-bl-md border border-border bg-card px-3 py-2 text-sm leading-relaxed shadow-sm">
                   {t('helpChat.welcome')}
                 </div>
               </div>
@@ -247,14 +247,14 @@ export function HelpChatWidget() {
               {messages.map((m, idx) =>
                 m.role === 'user' ? (
                   <div key={`u-${idx}`} className="flex justify-end">
-                    <div className="max-w-[85%] rounded-2xl rounded-br-md bg-primary px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap text-primary-foreground shadow-sm">
+                    <div className="max-w-[85%] rounded-2xl rounded-br-md bg-primary px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap text-primary-foreground shadow-sm">
                       {m.content}
                     </div>
                   </div>
                 ) : (
                   <div key={`a-${idx}`} className="flex items-end gap-2">
-                    <BotAvatar size={28} />
-                    <div className="max-w-[85%] rounded-2xl rounded-bl-md border border-border bg-card px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap shadow-sm">
+                    <BotAvatar size={24} />
+                    <div className="max-w-[85%] rounded-2xl rounded-bl-md border border-border bg-card px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap shadow-sm">
                       {m.content}
                     </div>
                   </div>
@@ -263,7 +263,7 @@ export function HelpChatWidget() {
 
               {loading && (
                 <div className="flex items-end gap-2">
-                  <BotAvatar size={28} />
+                  <BotAvatar size={24} />
                   <div className="rounded-2xl rounded-bl-md border border-border bg-card px-3.5 py-2.5 text-sm text-muted-foreground shadow-sm">
                     <span className="inline-flex gap-1">
                       <span className="size-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:0ms]" />
@@ -349,12 +349,12 @@ export function HelpChatWidget() {
           type="button"
           onClick={openChat}
           className={cn(
-            'pointer-events-auto relative mr-1 flex max-w-[min(100%,20rem)] items-start gap-3 rounded-full border border-border/80',
+            'pointer-events-auto relative mr-1 flex max-w-[min(100%,18rem)] items-start gap-2.5 rounded-full border border-border/80',
             'bg-card px-3.5 py-3 text-left shadow-lg ring-1 ring-black/5 transition hover:shadow-xl',
             'animate-in fade-in-0 slide-in-from-bottom-2 duration-300',
           )}
         >
-          <BotAvatar size={40} />
+          <BotAvatar size={36} />
           <span className="min-w-0 flex-1 pr-5 pt-0.5">
             <span className="block text-sm font-semibold leading-snug text-foreground">
               {t('helpChat.proactiveHi')}
@@ -393,7 +393,7 @@ export function HelpChatWidget() {
         size="lg"
         variant="ghost"
         className={cn(
-          'pointer-events-auto size-16 overflow-hidden rounded-[28%] p-0',
+          'pointer-events-auto size-14 overflow-hidden rounded-[28%] p-0',
           'shadow-lg ring-4 ring-primary/25 transition hover:ring-primary/40 hover:opacity-95',
           'focus-visible:ring-4 focus-visible:ring-primary/50',
           open && 'ring-primary/45',
@@ -405,10 +405,10 @@ export function HelpChatWidget() {
       >
         {open ? (
           <span className="flex size-full items-center justify-center bg-primary text-primary-foreground">
-            <X className="size-7" strokeWidth={2.25} />
+            <X className="size-6" strokeWidth={2.25} />
           </span>
         ) : (
-          <LogoMark size={64} className="size-full rounded-[28%] object-cover" />
+          <LogoMark size={56} className="size-full rounded-[28%] object-cover" />
         )}
       </Button>
     </div>
